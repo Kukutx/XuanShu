@@ -1,0 +1,33 @@
+{
+  "source": "https://github.com/qfdk/qimen/blob/main/test/paipan.test.js",
+  "license": "MIT (source repository); fixture values reproduced only for verification",
+  "scope": "Five published 2026 12:00 eight-palace benchmarks, including nine dark-stem cells each. Benchmark source describes its own school conventions; tests do not certify every Qimen tradition.",
+  "timezone": "Asia/Shanghai",
+  "cases": [
+    {
+      "datetime": "2026-03-21T12:00",
+      "dun": "阳遁", "bureau": 3, "zhi_fu_star": "天冲", "zhi_fu_palace": 2, "zhi_shi_door": "伤门", "zhi_shi_palace": 9,
+      "dark_stems": {"1":"辛", "2":"壬", "3":"癸", "4":"丁", "5":"丙", "6":"乙", "7":"戊", "8":"己", "9":"庚"}
+    },
+    {
+      "datetime": "2026-06-09T12:00",
+      "dun": "阳遁", "bureau": 3, "zhi_fu_star": "天冲", "zhi_fu_palace": 2, "zhi_shi_door": "伤门", "zhi_shi_palace": 9,
+      "dark_stems": {"1":"辛", "2":"壬", "3":"癸", "4":"丁", "5":"丙", "6":"乙", "7":"戊", "8":"己", "9":"庚"}
+    },
+    {
+      "datetime": "2026-07-15T12:00",
+      "dun": "阴遁", "bureau": 5, "zhi_fu_star": "天辅", "zhi_fu_palace": 1, "zhi_shi_door": "杜门", "zhi_shi_palace": 2,
+      "dark_stems": {"1":"乙", "2":"丙", "3":"丁", "4":"癸", "5":"壬", "6":"辛", "7":"庚", "8":"己", "9":"戊"}
+    },
+    {
+      "datetime": "2026-09-23T12:00",
+      "dun": "阴遁", "bureau": 1, "zhi_fu_star": "天英", "zhi_fu_palace": 6, "zhi_shi_door": "景门", "zhi_shi_palace": 1,
+      "dark_stems": {"1":"壬", "2":"辛", "3":"庚", "4":"己", "5":"戊", "6":"乙", "7":"丙", "8":"丁", "9":"癸"}
+    },
+    {
+      "datetime": "2026-12-08T12:00",
+      "dun": "阴遁", "bureau": 7, "zhi_fu_star": "天辅", "zhi_fu_palace": 4, "zhi_shi_door": "杜门", "zhi_shi_palace": 4,
+      "dark_stems": {"1":"丙", "2":"丁", "3":"癸", "4":"壬", "5":"辛", "6":"庚", "7":"己", "8":"戊", "9":"乙"}
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Authenticated local Docker profile. Generate a random secret first:
+#   python scripts/init_docker_local.py
+#   docker compose up --build
+# The host bind remains 127.0.0.1:8000; the application never trusts a
+# container-bridge source as an unauthenticated loopback client.
+services:
+  xuanshu:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DEPLOYMENT_MODE: public
+      MCP_BEARER_TOKEN: ${MCP_BEARER_TOKEN:?Run python scripts/init_docker_local.py first}
+      ASTRO_ALLOWED_HOSTS: localhost,127.0.0.1
+      MCP_ALLOWED_ORIGINS: http://localhost:8000,http://127.0.0.1:8000
+    restart: unless-stopped

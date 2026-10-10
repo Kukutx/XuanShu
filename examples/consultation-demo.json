@@ -1,0 +1,15 @@
+{
+  "question": "请帮我核对2027年的职业规划对应哪些传统文化计算结构，不要预测事业成功率",
+  "intent": "auto",
+  "birth": {
+    "birth_datetime": "2000-08-16T04:00",
+    "timezone": "Asia/Shanghai",
+    "gender": "female"
+  },
+  "lunar_year": 2027,
+  "focus_palace": "官禄宫",
+  "real_world_facts": [
+    {"category": "goal", "statement": "希望评估学习投入与工作时间的取舍"},
+    {"category": "constraint", "statement": "每周可自由安排的时间有限"}
+  ]
+}

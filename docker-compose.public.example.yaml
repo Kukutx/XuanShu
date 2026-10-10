@@ -1,0 +1,13 @@
+# For an explicitly authorized HTTPS reverse-proxy deployment ONLY.
+# Keep application TCP private; expose HTTPS exclusively through the proxy.
+services:
+  xuanshu:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DEPLOYMENT_MODE: public
+      MCP_BEARER_TOKEN: ${MCP_BEARER_TOKEN:?Set a strong random 32+ character token}
+      ASTRO_ALLOWED_HOSTS: ${ASTRO_ALLOWED_HOSTS:?Set expected hostnames}
+      MCP_ALLOWED_ORIGINS: ${MCP_ALLOWED_ORIGINS:-}
+    restart: unless-stopped

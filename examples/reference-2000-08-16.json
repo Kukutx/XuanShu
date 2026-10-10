@@ -1,0 +1,1636 @@
+{
+  "input": {
+    "birth_datetime": "2000-08-16T04:00",
+    "timezone": "Asia/Shanghai",
+    "gender": "female",
+    "late_zi_day_rollover": false,
+    "leap_month_second_half_as_next": true
+  },
+  "result": {
+    "bazi": {
+      "system": "bazi",
+      "birth_datetime": "2000-08-16T04:00+08:00",
+      "timezone": "Asia/Shanghai",
+      "pillars": {
+        "year": {
+          "stem": "庚",
+          "branch": "辰",
+          "text": "庚辰",
+          "stem_element": "金",
+          "branch_element": "土",
+          "ten_god_of_stem": "偏财",
+          "na_yin": "白蜡金",
+          "hidden_stems": [
+            {
+              "stem": "戊",
+              "element": "土",
+              "ten_god": "食神"
+            },
+            {
+              "stem": "乙",
+              "element": "木",
+              "ten_god": "正印"
+            },
+            {
+              "stem": "癸",
+              "element": "水",
+              "ten_god": "正官"
+            }
+          ]
+        },
+        "month": {
+          "stem": "甲",
+          "branch": "申",
+          "text": "甲申",
+          "stem_element": "木",
+          "branch_element": "金",
+          "ten_god_of_stem": "偏印",
+          "na_yin": "泉中水",
+          "hidden_stems": [
+            {
+              "stem": "庚",
+              "element": "金",
+              "ten_god": "偏财"
+            },
+            {
+              "stem": "壬",
+              "element": "水",
+              "ten_god": "七杀"
+            },
+            {
+              "stem": "戊",
+              "element": "土",
+              "ten_god": "食神"
+            }
+          ]
+        },
+        "day": {
+          "stem": "丙",
+          "branch": "午",
+          "text": "丙午",
+          "stem_element": "火",
+          "branch_element": "火",
+          "ten_god_of_stem": "日主",
+          "na_yin": "天河水",
+          "hidden_stems": [
+            {
+              "stem": "丁",
+              "element": "火",
+              "ten_god": "劫财"
+            },
+            {
+              "stem": "己",
+              "element": "土",
+              "ten_god": "伤官"
+            }
+          ]
+        },
+        "hour": {
+          "stem": "庚",
+          "branch": "寅",
+          "text": "庚寅",
+          "stem_element": "金",
+          "branch_element": "木",
+          "ten_god_of_stem": "偏财",
+          "na_yin": "松柏木",
+          "hidden_stems": [
+            {
+              "stem": "甲",
+              "element": "木",
+              "ten_god": "偏印"
+            },
+            {
+              "stem": "丙",
+              "element": "火",
+              "ten_god": "比肩"
+            },
+            {
+              "stem": "戊",
+              "element": "土",
+              "ten_god": "食神"
+            }
+          ]
+        }
+      },
+      "day_master": "丙",
+      "day_master_element": "火",
+      "surface_five_elements": {
+        "木": 2,
+        "火": 2,
+        "土": 1,
+        "金": 3,
+        "水": 0
+      },
+      "hidden_stem_elements_unweighted": {
+        "木": 2,
+        "火": 2,
+        "土": 4,
+        "金": 1,
+        "水": 2
+      },
+      "ten_god_occurrences_unweighted": {
+        "偏财": 3,
+        "食神": 3,
+        "正印": 1,
+        "正官": 1,
+        "偏印": 2,
+        "七杀": 1,
+        "劫财": 1,
+        "伤官": 1,
+        "比肩": 1
+      },
+      "branch_relations": [
+        {
+          "a": "year",
+          "b": "month",
+          "branches": "辰/申",
+          "labels": []
+        },
+        {
+          "a": "year",
+          "b": "day",
+          "branches": "辰/午",
+          "labels": []
+        },
+        {
+          "a": "year",
+          "b": "hour",
+          "branches": "辰/寅",
+          "labels": []
+        },
+        {
+          "a": "month",
+          "b": "day",
+          "branches": "申/午",
+          "labels": []
+        },
+        {
+          "a": "month",
+          "b": "hour",
+          "branches": "申/寅",
+          "labels": [
+            "六冲",
+            "相刑"
+          ]
+        },
+        {
+          "a": "day",
+          "b": "hour",
+          "branches": "午/寅",
+          "labels": []
+        }
+      ],
+      "time_basis": {
+        "mode": "clock",
+        "civil_datetime": "2000-08-16T04:00:00+08:00",
+        "effective_local_reading": "2000-08-16T04:00:00",
+        "longitude_east_degrees": null,
+        "civil_utc_offset_minutes": 480.0,
+        "longitude_vs_zone_meridian_minutes": 0.0,
+        "equation_of_time_minutes": 0.0,
+        "effective_shift_minutes": 0.0,
+        "method": "civil wall clock",
+        "scope": "Changes traditional day/hour/lunar-date placement only; never the astronomical instant."
+      },
+      "lunar_date": {
+        "year": 2000,
+        "month": 7,
+        "day": 17,
+        "is_leap_month": false,
+        "month_days": 29,
+        "method": "astronomical-new-moon-china-utc8"
+      },
+      "jie_boundaries": {
+        "previous": {
+          "name": "立秋",
+          "instant": "2000-08-07T13:02:58+08:00"
+        },
+        "next": {
+          "name": "白露",
+          "instant": "2000-09-07T15:59:08+08:00"
+        }
+      },
+      "rules": {
+        "year_boundary": "立春",
+        "month_boundary": "十二节令",
+        "day_boundary": "00:00",
+        "solar_time_correction": false,
+        "time_mode": "clock",
+        "hidden_stems": "本气、中气、余气传统顺序；不含藏干权重"
+      },
+      "notes": [
+        "五行计数仅包含四柱明干与地支本气，不代表旺衰或缺失判定",
+        "传统历法模型，不构成可验证的人生预测"
+      ]
+    },
+    "ziwei": {
+      "system": "ziwei",
+      "birth_datetime": "2000-08-16T04:00+08:00",
+      "timezone": "Asia/Shanghai",
+      "lunar_date": {
+        "year": 2000,
+        "month": 7,
+        "day": 17,
+        "is_leap_month": false,
+        "month_days": 29,
+        "method": "astronomical-new-moon-china-utc8"
+      },
+      "year_pillar": "庚辰",
+      "adjusted_lunar_month": 7,
+      "ming_palace": "午",
+      "shen_palace": "戌",
+      "five_elements_bureau": "木三局",
+      "bureau_number": 3,
+      "palaces": [
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "辰",
+                "palace": "夫妻宫"
+              },
+              {
+                "branch": "申",
+                "palace": "福德宫"
+              }
+            ],
+            "opposite": {
+              "branch": "午",
+              "palace": "命宫"
+            }
+          },
+          "name": "迁移宫",
+          "branch": "子",
+          "stem": "戊",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [
+            "贪狼"
+          ],
+          "auxiliary_stars": [
+            "铃星",
+            "封诰",
+            "八座"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [],
+            "additional_named": [
+              "铃星",
+              "封诰",
+              "八座"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "白虎",
+            "natal_jiangqian": "将星",
+            "changsheng": "养",
+            "boshi": "病符"
+          },
+          "small_limit_nominal_ages": [
+            11,
+            23,
+            35,
+            47,
+            59,
+            71,
+            83,
+            95,
+            107,
+            119
+          ],
+          "birth_year_transformations": [],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "贪狼",
+              "target_branch": "子",
+              "target_palace": "迁移宫",
+              "self_transform": true
+            },
+            {
+              "type": "化权",
+              "star": "太阴",
+              "target_branch": "亥",
+              "target_palace": "仆役宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "右弼",
+              "target_branch": "辰",
+              "target_palace": "夫妻宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "天机",
+              "target_branch": "巳",
+              "target_palace": "兄弟宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 63,
+            "end_age": 72
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "巳",
+                "palace": "兄弟宫"
+              },
+              {
+                "branch": "酉",
+                "palace": "田宅宫"
+              }
+            ],
+            "opposite": {
+              "branch": "未",
+              "palace": "父母宫"
+            }
+          },
+          "name": "疾厄宫",
+          "branch": "丑",
+          "stem": "己",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [
+            "天同",
+            "巨门"
+          ],
+          "auxiliary_stars": [
+            "地劫",
+            "天魁",
+            "寡宿",
+            "破碎",
+            "天使"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "地劫",
+              "天魁"
+            ],
+            "additional_named": [
+              "寡宿",
+              "破碎",
+              "天使"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "天德",
+            "natal_jiangqian": "攀鞍",
+            "changsheng": "胎",
+            "boshi": "喜神"
+          },
+          "small_limit_nominal_ages": [
+            10,
+            22,
+            34,
+            46,
+            58,
+            70,
+            82,
+            94,
+            106,
+            118
+          ],
+          "birth_year_transformations": [
+            {
+              "type": "化忌",
+              "star": "天同",
+              "palace": "丑",
+              "palace_name": "疾厄宫"
+            }
+          ],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "武曲",
+              "target_branch": "寅",
+              "target_palace": "财帛宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "贪狼",
+              "target_branch": "子",
+              "target_palace": "迁移宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "天梁",
+              "target_branch": "卯",
+              "target_palace": "子女宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "文曲",
+              "target_branch": "午",
+              "target_palace": "命宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 53,
+            "end_age": 62
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "午",
+                "palace": "命宫"
+              },
+              {
+                "branch": "戌",
+                "palace": "官禄宫"
+              }
+            ],
+            "opposite": {
+              "branch": "申",
+              "palace": "福德宫"
+            }
+          },
+          "name": "财帛宫",
+          "branch": "寅",
+          "stem": "戊",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [
+            "武曲",
+            "天相"
+          ],
+          "auxiliary_stars": [
+            "天马",
+            "月解",
+            "天巫",
+            "阴煞",
+            "天哭",
+            "天寿",
+            "三台",
+            "天厨"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "天马"
+            ],
+            "additional_named": [
+              "月解",
+              "天巫",
+              "阴煞",
+              "天哭",
+              "天寿",
+              "三台",
+              "天厨"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "吊客",
+            "natal_jiangqian": "岁驿",
+            "changsheng": "绝",
+            "boshi": "飞廉"
+          },
+          "small_limit_nominal_ages": [
+            9,
+            21,
+            33,
+            45,
+            57,
+            69,
+            81,
+            93,
+            105,
+            117
+          ],
+          "birth_year_transformations": [
+            {
+              "type": "化权",
+              "star": "武曲",
+              "palace": "寅",
+              "palace_name": "财帛宫"
+            }
+          ],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "贪狼",
+              "target_branch": "子",
+              "target_palace": "迁移宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "太阴",
+              "target_branch": "亥",
+              "target_palace": "仆役宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "右弼",
+              "target_branch": "辰",
+              "target_palace": "夫妻宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "天机",
+              "target_branch": "巳",
+              "target_palace": "兄弟宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 43,
+            "end_age": 52
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "未",
+                "palace": "父母宫"
+              },
+              {
+                "branch": "亥",
+                "palace": "仆役宫"
+              }
+            ],
+            "opposite": {
+              "branch": "酉",
+              "palace": "田宅宫"
+            }
+          },
+          "name": "子女宫",
+          "branch": "卯",
+          "stem": "己",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [
+            "太阳",
+            "天梁"
+          ],
+          "auxiliary_stars": [
+            "天刑"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "天刑"
+            ],
+            "additional_named": []
+          },
+          "natal_cycles": {
+            "natal_suiqian": "病符",
+            "natal_jiangqian": "息神",
+            "changsheng": "墓",
+            "boshi": "奏书"
+          },
+          "small_limit_nominal_ages": [
+            8,
+            20,
+            32,
+            44,
+            56,
+            68,
+            80,
+            92,
+            104,
+            116
+          ],
+          "birth_year_transformations": [
+            {
+              "type": "化禄",
+              "star": "太阳",
+              "palace": "卯",
+              "palace_name": "子女宫"
+            }
+          ],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "武曲",
+              "target_branch": "寅",
+              "target_palace": "财帛宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "贪狼",
+              "target_branch": "子",
+              "target_palace": "迁移宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "天梁",
+              "target_branch": "卯",
+              "target_palace": "子女宫",
+              "self_transform": true
+            },
+            {
+              "type": "化忌",
+              "star": "文曲",
+              "target_branch": "午",
+              "target_palace": "命宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 33,
+            "end_age": 42
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "申",
+                "palace": "福德宫"
+              },
+              {
+                "branch": "子",
+                "palace": "迁移宫"
+              }
+            ],
+            "opposite": {
+              "branch": "戌",
+              "palace": "官禄宫"
+            }
+          },
+          "name": "夫妻宫",
+          "branch": "辰",
+          "stem": "庚",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [
+            "七杀"
+          ],
+          "auxiliary_stars": [
+            "右弼",
+            "火星",
+            "华盖"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "右弼"
+            ],
+            "additional_named": [
+              "火星",
+              "华盖"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "岁建",
+            "natal_jiangqian": "华盖",
+            "changsheng": "死",
+            "boshi": "将军"
+          },
+          "small_limit_nominal_ages": [
+            7,
+            19,
+            31,
+            43,
+            55,
+            67,
+            79,
+            91,
+            103,
+            115
+          ],
+          "birth_year_transformations": [],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "太阳",
+              "target_branch": "卯",
+              "target_palace": "子女宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "武曲",
+              "target_branch": "寅",
+              "target_palace": "财帛宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "太阴",
+              "target_branch": "亥",
+              "target_palace": "仆役宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "天同",
+              "target_branch": "丑",
+              "target_palace": "疾厄宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 23,
+            "end_age": 32
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "酉",
+                "palace": "田宅宫"
+              },
+              {
+                "branch": "丑",
+                "palace": "疾厄宫"
+              }
+            ],
+            "opposite": {
+              "branch": "亥",
+              "palace": "仆役宫"
+            }
+          },
+          "name": "兄弟宫",
+          "branch": "巳",
+          "stem": "辛",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [
+            "天机"
+          ],
+          "auxiliary_stars": [
+            "天喜",
+            "天空",
+            "孤辰"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "天喜"
+            ],
+            "additional_named": [
+              "天空",
+              "孤辰"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "晦气",
+            "natal_jiangqian": "劫煞",
+            "changsheng": "病",
+            "boshi": "小耗"
+          },
+          "small_limit_nominal_ages": [
+            6,
+            18,
+            30,
+            42,
+            54,
+            66,
+            78,
+            90,
+            102,
+            114
+          ],
+          "birth_year_transformations": [],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "巨门",
+              "target_branch": "丑",
+              "target_palace": "疾厄宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "太阳",
+              "target_branch": "卯",
+              "target_palace": "子女宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "文曲",
+              "target_branch": "午",
+              "target_palace": "命宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "文昌",
+              "target_branch": "申",
+              "target_palace": "福德宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 13,
+            "end_age": 22
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "戌",
+                "palace": "官禄宫"
+              },
+              {
+                "branch": "寅",
+                "palace": "财帛宫"
+              }
+            ],
+            "opposite": {
+              "branch": "子",
+              "palace": "迁移宫"
+            }
+          },
+          "name": "命宫",
+          "branch": "午",
+          "stem": "壬",
+          "is_ming": true,
+          "is_shen": false,
+          "main_stars": [
+            "紫微"
+          ],
+          "auxiliary_stars": [
+            "文曲",
+            "凤阁",
+            "蜚廉"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "文曲",
+              "凤阁"
+            ],
+            "additional_named": [
+              "蜚廉"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "丧门",
+            "natal_jiangqian": "灾煞",
+            "changsheng": "衰",
+            "boshi": "青龙"
+          },
+          "small_limit_nominal_ages": [
+            5,
+            17,
+            29,
+            41,
+            53,
+            65,
+            77,
+            89,
+            101,
+            113
+          ],
+          "birth_year_transformations": [],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "天梁",
+              "target_branch": "卯",
+              "target_palace": "子女宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "紫微",
+              "target_branch": "午",
+              "target_palace": "命宫",
+              "self_transform": true
+            },
+            {
+              "type": "化科",
+              "star": "左辅",
+              "target_branch": "戌",
+              "target_palace": "官禄宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "武曲",
+              "target_branch": "寅",
+              "target_palace": "财帛宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 3,
+            "end_age": 12
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "亥",
+                "palace": "仆役宫"
+              },
+              {
+                "branch": "卯",
+                "palace": "子女宫"
+              }
+            ],
+            "opposite": {
+              "branch": "丑",
+              "palace": "疾厄宫"
+            }
+          },
+          "name": "父母宫",
+          "branch": "未",
+          "stem": "癸",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [],
+          "auxiliary_stars": [
+            "陀罗",
+            "天钺",
+            "天姚"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "陀罗",
+              "天钺",
+              "天姚"
+            ],
+            "additional_named": []
+          },
+          "natal_cycles": {
+            "natal_suiqian": "贯索",
+            "natal_jiangqian": "天煞",
+            "changsheng": "帝旺",
+            "boshi": "力士"
+          },
+          "small_limit_nominal_ages": [
+            4,
+            16,
+            28,
+            40,
+            52,
+            64,
+            76,
+            88,
+            100,
+            112
+          ],
+          "birth_year_transformations": [],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "破军",
+              "target_branch": "申",
+              "target_palace": "福德宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "巨门",
+              "target_branch": "丑",
+              "target_palace": "疾厄宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "太阴",
+              "target_branch": "亥",
+              "target_palace": "仆役宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "贪狼",
+              "target_branch": "子",
+              "target_palace": "迁移宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 113,
+            "end_age": 122
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "子",
+                "palace": "迁移宫"
+              },
+              {
+                "branch": "辰",
+                "palace": "夫妻宫"
+              }
+            ],
+            "opposite": {
+              "branch": "寅",
+              "palace": "财帛宫"
+            }
+          },
+          "name": "福德宫",
+          "branch": "申",
+          "stem": "甲",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [
+            "破军"
+          ],
+          "auxiliary_stars": [
+            "文昌",
+            "禄存",
+            "龙池",
+            "台辅"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "文昌",
+              "禄存",
+              "龙池"
+            ],
+            "additional_named": [
+              "台辅"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "官符",
+            "natal_jiangqian": "指背",
+            "changsheng": "临官",
+            "boshi": "博士"
+          },
+          "small_limit_nominal_ages": [
+            3,
+            15,
+            27,
+            39,
+            51,
+            63,
+            75,
+            87,
+            99,
+            111
+          ],
+          "birth_year_transformations": [],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "廉贞",
+              "target_branch": "戌",
+              "target_palace": "官禄宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "破军",
+              "target_branch": "申",
+              "target_palace": "福德宫",
+              "self_transform": true
+            },
+            {
+              "type": "化科",
+              "star": "武曲",
+              "target_branch": "寅",
+              "target_palace": "财帛宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "太阳",
+              "target_branch": "卯",
+              "target_palace": "子女宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 103,
+            "end_age": 112
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "丑",
+                "palace": "疾厄宫"
+              },
+              {
+                "branch": "巳",
+                "palace": "兄弟宫"
+              }
+            ],
+            "opposite": {
+              "branch": "卯",
+              "palace": "子女宫"
+            }
+          },
+          "name": "田宅宫",
+          "branch": "酉",
+          "stem": "乙",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [],
+          "auxiliary_stars": [
+            "地空",
+            "擎羊",
+            "咸池",
+            "天贵"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "地空",
+              "擎羊"
+            ],
+            "additional_named": [
+              "咸池",
+              "天贵"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "小耗",
+            "natal_jiangqian": "咸池",
+            "changsheng": "冠带",
+            "boshi": "官府"
+          },
+          "small_limit_nominal_ages": [
+            2,
+            14,
+            26,
+            38,
+            50,
+            62,
+            74,
+            86,
+            98,
+            110
+          ],
+          "birth_year_transformations": [],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "天机",
+              "target_branch": "巳",
+              "target_palace": "兄弟宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "天梁",
+              "target_branch": "卯",
+              "target_palace": "子女宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "紫微",
+              "target_branch": "午",
+              "target_palace": "命宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "太阴",
+              "target_branch": "亥",
+              "target_palace": "仆役宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 93,
+            "end_age": 102
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "寅",
+                "palace": "财帛宫"
+              },
+              {
+                "branch": "午",
+                "palace": "命宫"
+              }
+            ],
+            "opposite": {
+              "branch": "辰",
+              "palace": "夫妻宫"
+            }
+          },
+          "name": "官禄宫",
+          "branch": "戌",
+          "stem": "丙",
+          "is_ming": false,
+          "is_shen": true,
+          "main_stars": [
+            "廉贞",
+            "天府"
+          ],
+          "auxiliary_stars": [
+            "左辅",
+            "天虚",
+            "天才"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "左辅"
+            ],
+            "additional_named": [
+              "天虚",
+              "天才"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "大耗",
+            "natal_jiangqian": "月煞",
+            "changsheng": "沐浴",
+            "boshi": "伏兵"
+          },
+          "small_limit_nominal_ages": [
+            1,
+            13,
+            25,
+            37,
+            49,
+            61,
+            73,
+            85,
+            97,
+            109
+          ],
+          "birth_year_transformations": [],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "天同",
+              "target_branch": "丑",
+              "target_palace": "疾厄宫",
+              "self_transform": false
+            },
+            {
+              "type": "化权",
+              "star": "天机",
+              "target_branch": "巳",
+              "target_palace": "兄弟宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "文昌",
+              "target_branch": "申",
+              "target_palace": "福德宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "廉贞",
+              "target_branch": "戌",
+              "target_palace": "官禄宫",
+              "self_transform": true
+            }
+          ],
+          "decade": {
+            "start_age": 83,
+            "end_age": 92
+          }
+        },
+        {
+          "three_harmonies_and_opposite": {
+            "trine": [
+              {
+                "branch": "卯",
+                "palace": "子女宫"
+              },
+              {
+                "branch": "未",
+                "palace": "父母宫"
+              }
+            ],
+            "opposite": {
+              "branch": "巳",
+              "palace": "兄弟宫"
+            }
+          },
+          "name": "仆役宫",
+          "branch": "亥",
+          "stem": "丁",
+          "is_ming": false,
+          "is_shen": false,
+          "main_stars": [
+            "太阴"
+          ],
+          "auxiliary_stars": [
+            "红鸾",
+            "天月",
+            "恩光",
+            "天伤"
+          ],
+          "auxiliary_star_groups": {
+            "original_selected": [
+              "红鸾"
+            ],
+            "additional_named": [
+              "天月",
+              "恩光",
+              "天伤"
+            ]
+          },
+          "natal_cycles": {
+            "natal_suiqian": "龙德",
+            "natal_jiangqian": "亡神",
+            "changsheng": "长生",
+            "boshi": "大耗"
+          },
+          "small_limit_nominal_ages": [
+            12,
+            24,
+            36,
+            48,
+            60,
+            72,
+            84,
+            96,
+            108,
+            120
+          ],
+          "birth_year_transformations": [
+            {
+              "type": "化科",
+              "star": "太阴",
+              "palace": "亥",
+              "palace_name": "仆役宫"
+            }
+          ],
+          "palace_flying_transformations": [
+            {
+              "type": "化禄",
+              "star": "太阴",
+              "target_branch": "亥",
+              "target_palace": "仆役宫",
+              "self_transform": true
+            },
+            {
+              "type": "化权",
+              "star": "天同",
+              "target_branch": "丑",
+              "target_palace": "疾厄宫",
+              "self_transform": false
+            },
+            {
+              "type": "化科",
+              "star": "天机",
+              "target_branch": "巳",
+              "target_palace": "兄弟宫",
+              "self_transform": false
+            },
+            {
+              "type": "化忌",
+              "star": "巨门",
+              "target_branch": "丑",
+              "target_palace": "疾厄宫",
+              "self_transform": false
+            }
+          ],
+          "decade": {
+            "start_age": 73,
+            "end_age": 82
+          }
+        }
+      ],
+      "star_positions": {
+        "紫微": "午",
+        "天机": "巳",
+        "太阳": "卯",
+        "武曲": "寅",
+        "天同": "丑",
+        "廉贞": "戌",
+        "天府": "戌",
+        "太阴": "亥",
+        "贪狼": "子",
+        "巨门": "丑",
+        "天相": "寅",
+        "天梁": "卯",
+        "七杀": "辰",
+        "破军": "申",
+        "左辅": "戌",
+        "右弼": "辰",
+        "文昌": "申",
+        "文曲": "午",
+        "地空": "酉",
+        "地劫": "丑",
+        "禄存": "申",
+        "擎羊": "酉",
+        "陀罗": "未",
+        "天马": "寅",
+        "天魁": "丑",
+        "天钺": "未",
+        "红鸾": "亥",
+        "天喜": "巳",
+        "天刑": "卯",
+        "天姚": "未",
+        "龙池": "申",
+        "凤阁": "午",
+        "火星": "辰",
+        "铃星": "子",
+        "台辅": "申",
+        "封诰": "子",
+        "月解": "寅",
+        "天巫": "寅",
+        "天月": "亥",
+        "阴煞": "寅",
+        "天空": "巳",
+        "天哭": "寅",
+        "天虚": "戌",
+        "孤辰": "巳",
+        "寡宿": "丑",
+        "蜚廉": "午",
+        "破碎": "丑",
+        "华盖": "辰",
+        "咸池": "酉",
+        "天才": "戌",
+        "天寿": "寅",
+        "三台": "寅",
+        "八座": "子",
+        "恩光": "亥",
+        "天贵": "酉",
+        "天厨": "寅",
+        "天伤": "亥",
+        "天使": "丑"
+      },
+      "star_counts": {
+        "main": 14,
+        "auxiliary": 44,
+        "original_selected": 18,
+        "additional_named": 26
+      },
+      "ming_master": "破军",
+      "shen_master": "文昌",
+      "small_limit_age_system": "传统虚岁；出生当年按一岁计算，非周岁",
+      "natal_cycles_included": [
+        "boshi",
+        "changsheng",
+        "natal_jiangqian",
+        "natal_suiqian"
+      ],
+      "time_basis": {
+        "mode": "clock",
+        "civil_datetime": "2000-08-16T04:00:00+08:00",
+        "effective_local_reading": "2000-08-16T04:00:00",
+        "longitude_east_degrees": null,
+        "civil_utc_offset_minutes": 480.0,
+        "longitude_vs_zone_meridian_minutes": 0.0,
+        "equation_of_time_minutes": 0.0,
+        "effective_shift_minutes": 0.0,
+        "method": "civil wall clock",
+        "scope": "Changes traditional day/hour/lunar-date placement only; never the astronomical instant."
+      },
+      "birth_year_transformations": [
+        {
+          "type": "化禄",
+          "star": "太阳",
+          "palace": "卯",
+          "palace_name": "子女宫"
+        },
+        {
+          "type": "化权",
+          "star": "武曲",
+          "palace": "寅",
+          "palace_name": "财帛宫"
+        },
+        {
+          "type": "化科",
+          "star": "太阴",
+          "palace": "亥",
+          "palace_name": "仆役宫"
+        },
+        {
+          "type": "化忌",
+          "star": "天同",
+          "palace": "丑",
+          "palace_name": "疾厄宫"
+        }
+      ],
+      "transformation_school": "全书系十干四化（iztro published table）",
+      "rules": {
+        "year_boundary": "农历正月初一",
+        "late_zi_day_rollover_in_ziwei": false,
+        "leap_month_second_half_as_next": true,
+        "star_coverage": "14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派与流曜",
+        "additional_star_rules": "iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导",
+        "ming_master_basis": "本命命宫地支（与公开示例相符）；其他流派可能用生年地支",
+        "shen_master_basis": "出生年地支",
+        "natal_cycles_are_not_annual_charts": true,
+        "solar_time_correction": false,
+        "time_mode": "clock"
+      },
+      "notes": [
+        "紫微新增选定杂曜、四组十二神与虚岁小限；仍缺完整流曜、流月和流派逐宫验证",
+        "传统时辰依据所选时基计算；太阳时转换为近似值，非精密历史历书定盘",
+        "流派差异请使用一致的命盘规则比对"
+      ]
+    }
+  },
+  "symbolic_reading": {
+    "type": "symbolic-non-predictive",
+    "summary": "历法计算与传统术数符号说明（非科学预测）",
+    "points": [
+      "八字四柱：庚辰 / 甲申 / 丙午 / 庚寅。",
+      "日主丙（火），是十神映射的参照，不是对个人特征的科学判断。",
+      "可见干支本气数量：木2、火2、土1、金3、水0。",
+      "命宫在午、身宫在戌，命宫十四主星：紫微。",
+      "紫微局数：木三局；采用全书系十干四化（iztro published table）。",
+      "生年四化：太阳化禄（子女宫）、武曲化权（财帛宫）、太阴化科（仆役宫）、天同化忌（疾厄宫）。"
+    ],
+    "day_master_hidden_stems": {
+      "year": [
+        {
+          "stem": "戊",
+          "element": "土",
+          "ten_god": "食神"
+        },
+        {
+          "stem": "乙",
+          "element": "木",
+          "ten_god": "正印"
+        },
+        {
+          "stem": "癸",
+          "element": "水",
+          "ten_god": "正官"
+        }
+      ],
+      "month": [
+        {
+          "stem": "庚",
+          "element": "金",
+          "ten_god": "偏财"
+        },
+        {
+          "stem": "壬",
+          "element": "水",
+          "ten_god": "七杀"
+        },
+        {
+          "stem": "戊",
+          "element": "土",
+          "ten_god": "食神"
+        }
+      ],
+      "day": [
+        {
+          "stem": "丁",
+          "element": "火",
+          "ten_god": "劫财"
+        },
+        {
+          "stem": "己",
+          "element": "土",
+          "ten_god": "伤官"
+        }
+      ],
+      "hour": [
+        {
+          "stem": "甲",
+          "element": "木",
+          "ten_god": "偏印"
+        },
+        {
+          "stem": "丙",
+          "element": "火",
+          "ten_god": "比肩"
+        },
+        {
+          "stem": "戊",
+          "element": "土",
+          "ten_god": "食神"
+        }
+      ]
+    },
+    "palace_topics": {
+      "命宫": "整体自我概念与传统命盘起点",
+      "兄弟宫": "同辈、手足和同伴关系",
+      "夫妻宫": "亲密关系及伴侣互动",
+      "子女宫": "后辈、教养与创造性表达",
+      "财帛宫": "资源与收支管理的象征主题",
+      "疾厄宫": "身体、生活习惯的文化象征，不作医学判断",
+      "迁移宫": "环境变更、流动和外部交流",
+      "仆役宫": "朋友、社群与团队协作",
+      "官禄宫": "学习、职业与公共角色",
+      "田宅宫": "居住环境与家庭空间",
+      "福德宫": "兴趣、休息与精神体验",
+      "父母宫": "长辈、导师与支持网络"
+    },
+    "next_questions": [
+      "想根据某一宫的星曜和生年四化进一步查看传统含义吗？",
+      "想看某一天的节令切换或两张命盘的结构差异吗？"
+    ],
+    "limitations": [
+      "命理缺乏可靠的科学验证，不应作为人生、医疗或财务决策依据。",
+      "生年四化表有流派差异，本版本固定采用全书系；不包括完整辅杂星、流年和完整飞星断法。",
+      "藏干和五行计数不代表旺衰、喜忌或个性测量。"
+    ]
+  }
+}

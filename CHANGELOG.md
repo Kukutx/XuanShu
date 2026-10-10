@@ -1,0 +1,157 @@
+# 更新记录 · v.0.1.0（未发布）
+
+## 2026-10-10 · 全工具接口验收与 Windows 安装脚本（仍为 v.0.1.0）
+
+- 新增 `scripts/full_functional_audit.py`，对照全部 25 个 MCP 工具与 REST 端点，强制清单一致，失败不可用错误分开报告；新增测试固定工具清单，防止新增 API 时漏测。
+- Windows 侧实测 Python 3.13、uv、Node、Docker CLI 与 `iztro-py 0.5.0` 的独立真实 API 可调用性；Docker Engine 当时未运行，不能据此写成通过容器测试。
+- 新增 `scripts/windows_acceptance.ps1`，使用项目 `.venv` 进行隔离安装、全接口/CLI/HTTP/Chrome/Node 验收；不自动对外部署或保存出生档案。
+- 未修改版本号、已审核术数算法或第三方私有接口。
+
+## 2026-10-10 · 咨询执行器（固定 v.0.1.0，未正式发布）
+
+- 新增实际可执行的 `app/consultation.py`：六类问题自动路由，缺失出生/年份/伴侣/候选时刻/方案时显式澄清；只调用必要的原有计算引擎，提供字段证据、trace、原始结果和限制。
+- 同一执行器通过 REST `/api/consultation`、MCP `consultation_execute`、CLI `consult --input`、Web 新的「AI 咨询工作流」使用；MCP 现为 **25 Tools / 17 Resources / 15 Prompts / 18 Skills**，Web **22 视图**，项目版本不变。
+- 新增客户端携带的非敏感 `continuation` 游标（意图/宫位/年份/轮次），不保存服务器会话、出生记录或现实个人事件。合盘要求显式许可；现实情况作为用户自述而非计算证据或已核事实。
+- 新增 12 项可执行咨询回归，并对真实 HTTP、MCP 2026、CLI、Chromium、wheel 与现有安全流程进行验证；不将此确定性工具编排冒充自主语言模型咨询。
+
+
+## 主营业务与 Agent 工作流全面审计 — 2026-10-10（版本保持 v.0.1.0）
+
+- 对照公开 Tianfu Agent 功能说明、iztro 动态流曜 API 和当前 `app/`/`static/`/`skills/` 代码，指出**核心缺口是以问题为中心的咨询 Agent/多轮记忆/知识规则库**，不是 MCP 工具数量；新增 `docs/research/PRODUCT_BUSINESS_AUDIT.md` 深度业务审计与 `CONSULTATION_WORKFLOW_SPEC.md` 六场景验收规范。
+- 在**现有** `skills/structured-dossier/SKILL.md` 中加入六种业务路由、必要信息确认、具体 MCP 调用选择、事实与传统/假设分层、流派冲突处理、无持久化内存时的诚实降级。
+- 原有 MCP `prepare-report` Prompt 增加问题驱动路线判断，保持 24 Tools、16 Resources、15 Prompts、18 Skills，不新增版本、不伪称已运行自主 LLM 或私有平台功能。
+- 新增导向性回归测试；没有新增付费内容、受限网页抓取、私有天府 API 或虚构科学预测功能。生产 OAuth、公网真实多轮客户端仍未验收。
+
+
+## 深度证据与独立参考研究 — 2026-10-10（版本仍为 v.0.1.0）
+
+- 新增 `app/evidence.py`：字段级追溯、10 条规则及公开参考目录、单字段 SHA-256、八字/紫微输出对象 SHA-256、跨立春/农历年界口径校验、十二宫三方四正/飞化结构和 4 项内部一致性检测。
+- REST `/api/deep-review`、MCP `deep_evidence_review`、`astro://rules/evidence` 资源和 `deep-evidence-review` Prompt、CLI `deep-review`、Web「深度证据」、综合报告 `include_deep_evidence` 打通。**现有 18 Skills 不增加版本、不另建工程目录**；加强 `structured-dossier` Skill 的证据溯源规则。
+- 修复一个真实的演示复算缺陷：公开样本使用 `gender=unspecified`，测试误传 `female`，导致紫微完整摘要不同。所有深度结果与金样本现在明确包含 `input_parameters` 并有性别敏感性测试。
+- Python wheel 安装包现在也包含新增的 `docs/research` 方法调研和 `examples` 复核材料（与源代码包内容一致），增加隔离安装验收，避免规则出处在安装后失联。
+- 增加 `docs/research/FEATURES_AND_REFERENCES.md`，以公开资料区分天府 Agent 的产品自述与可独立实现/验证功能；示例、边界反例、浏览器/MCP/HTTP/隔离安装测试同时覆盖。
+- 现有断言同步核对 24 Tools、16 Resources、15 Prompts、18 Skills、21 Web 页签，版本保持 `v.0.1.0`。**这些参考不构成专业盘全量认证或现实人生预测。**
+
+## 开发阶段整包合并（版本仍为 v.0.1.0）— 2026-10-10
+
+- 可选 `iztro-py` 专业紫微适配器支持本命与选定日期动态盘输出；独立于原生子集，依赖未安装时拒绝虚假返回。
+- 奇门逐宫参考盘比对 REST/MCP/UI/CLI，5 个公开样本各 15 个外部提供字段核对，共 75 个字段；其他字段需后续外部证据。
+- MCP Skills draft 导入接口 `skills/list`、`skills/get`，提供 SHA-256 资源完整性校验，优先暴露 5 个供扫描；完整工程 18 Skills、23 工具与 20 页签。
+- 创建了真实的 ChatGPT 私有 Skills Plugin（没有公网计算服务器）；新增 `scripts/build_plugin.py` 和私有插件产物。
+- 更新真实 Uvicorn HTTP、Chromium 控件及隔离 wheel 安装回归；没有正式公开发布或版本升级。
+
+## 安装包、协议输入与跨时区日期修复 — 2026-10-10
+
+- 修复 wheel 分发包遗漏 `static/`、MCP `docs/rules/` 与 `skills/` 导致独立安装后 `app.main` 无法启动的严重交付问题；新增构建时打包资源、`MANIFEST.in`、真正的临时目录 wheel 安装烟雾测试，并纳入 CI。保留源码根目录为唯一可编辑的规则/静态资源来源。
+- 统一 REST 与 stdio MCP 的严格 JSON 入口校验：拒绝 `NaN` / `Infinity`、浮点溢出、重复键、不可编码的孤立代理项及过深嵌套，修复已复现的 HTTP 500；增加畸形 JSON 与返回错误码回归。
+- 排盘质量审计新增“所在地有效公历日 vs 相同绝对瞬间的北京日界农历”的明确对照及人工复核提示。保留既定本命盘口径，不静默改变任何八字、紫微星曜位置；新增 2024 春节时区交界参考用例和 Web 显示。
+- 奇门增加横跨阴阳遁、多个年份与时辰的九宫排布不变量测试；仅核验内部结构，并不等于跨流派逐宫外部认证。
+- **版本仍固定 `v.0.1.0`，无新版目录、无正式公网发布**。
+
+
+## 实际可靠性与 Docker 安全启动修复 — 2026-10-10
+
+- 修复默认 Docker Compose 将宿主请求视为容器网桥非回环来源而拒绝访问（403）的问题：不降低匿名安全边界，改为仅宿主回环发布 + 强制认证的 Compose，新增私密随机令牌初始化脚本；CI 增加实际 Docker 容器运行与 REST/MCP Host/Origin 鉴权检查（执行环境需有 Docker）。
+- 修复 MCP 收到数组/对象形式的协议版本、非对象初始化版本、非法 `params._meta` 等时抛出 `TypeError` 的缺陷，全部返回结构化 JSON-RPC 参数错误并保持 stdio/HTTP 服务存活。
+- 修复本地非 8000 端口网页调用 REST/MCP 被误拒绝，同时避免错误信任其他本地端口；本机浏览器 Origin 与实际 Host、方案、端口严格一致，公网模式仍按显式来源白名单。
+- 新增独立回归、真实 Uvicorn 自定义端口联调、Docker 网桥模拟。外部 OAuth、全紫微/奇门流派和远程部署仍未完成；项目版本保持 `v.0.1.0`。
+
+## 项目统一命名：玄枢 · XuanShu — 2026-10-10
+
+- 正式开发目录由旧工程名直接更名为唯一的 `xuanshu/`；Python 分发包、命令行 `xuanshu`、MCP 服务标识、Docker 服务、前端标题及导出文件均统一为 **XuanShu**，**版本仍为 `v.0.1.0`**。
+- 保留旧 localStorage 档案单次迁移及旧 AES-GCM 加密备份的**只读导入兼容**，避免更名后个人档案不可恢复。
+- 修正 CI 仍验证旧版本 ZIP 的失效路径，增加一致性测试与旧格式真实 WebCrypto 解密测试；本地真实 HTTP 与 Chromium 桥接测试均重新执行。
+- 奇门按公开 MIT 项目的五组参考盘额外核对了 45 个九宫暗干单元格，并新增全部九宫暗干数学不变量与 REST/MCP 一致性测试。此项**不代表**全部门、星、神与不同流派通过验收。
+
+## 本次合并维护 — 2026-10-10
+
+- **固定 `v.0.1.0` 未发布版本号**；统一 Python 包、Web、API/MCP、示例与 ZIP 的版本标识，禁止发布前叠加版本。
+- 紫微保留全部 14 主星与原 18 颗辅助星位置，新增 26 颗辅助/杂曜、四组本命十二神和可选虚岁小限；**仍不是专业全星系**。
+- 解决 JSON 快照输出中 `frozenset` 导致的辅星排列不稳定；保留原始独立参考盘，并增加扩展盘回归、结构约束与跨 `PYTHONHASHSEED` 测试。
+- 修复代码、文档、MCP 工具描述与报告仍标注 18 颗辅星的过期信息。
+
+## 奇门与 OAuth 资源鉴权研究 — 2026-10-10
+
+- 新增限定流派的 **时家奇门拆补转盘**：九宫地干/天干、三元九局、八门九星八神、旬首值符值使、时旬空亡。源码 `app/qimen.py`，接口 `/api/qimen` 与 MCP `qimen_hour_chart`、CLI 和 Web 九宫视图；已与公开 2026 五组盘的 6 项字段交叉对照；逐宫外部流派验收仍未完成。
+- 新增外部 JWT OAuth **资源服务器**：`app/oauth_resource.py`，RFC 9728 资源发现、签名/iss/aud/sub/scope/exp 校验、HTTPS JWKS、401 Bearer 挑战；没有内建身份提供商或实际公网安装。
+- 扩展至 **21 Tools、15 Resources、14 Prompts、16 Skills、18 个 Web 视图**。补充计算、离线 OAuth 和 REST/MCP 回归及文档。
+- 与此前开发阶段一样，不把工程测试通过等同于命理算法得到权威认证、完整系统上线或远程 OAuth 联调。
+
+## 大运与节令边界研究 — 2026-10-10
+
+- 新增独立 `app/advanced.py`：传统八字大运十年干支、十二节顺逆、三日一岁名义起运、可配置顺逆方向和近似公历时间投影；不输出人生吉凶和成功率。
+- 新增出生时间误差的事件驱动边界地图：按 UTC 区间检测真实时辰/日界/DST/历史 UTC 偏移并二分至秒，叠加天文交节事件，逐段调用八字与部分紫微引擎。
+- **修复**节令精确时刻处的八字月柱浮点边界偏差；建除值日月建复用同一节令时刻判定；大运准确处理出生恰在交节的零时差情况，避免把起运年数误算到下一节。
+- 新增 39 项精确节令参数化测试，覆盖 2000、2024、2033 各十二节的交节前/当刻/后瞬间，另有真实排盘、时区转换和大运零时差测试。
+- 通过 Web / REST / 2025/2026 MCP / stdio / CLI / 结构化 Markdown 报告接入；合计 **20 Tools / 13 Resources / 13 Prompts / 15 Skills / 17 个 Web 视图**。
+- 增加发布版本一致性校验，并明确“数值秒级定位”不等于出生资料的真实精度；完整奇门、全紫微流派、OAuth、多租户和公网 HTTPS 仍未实现。
+
+## 历法、决策和多端工作流研究 — 2026-10-09
+
+- 新增独立建除十二值日（月建按太阳黄经节令月、日支按六十甲子日循环）；可查询 1–93 天并过滤值日，交节日提醒日内值日可能变化。
+- 新增 1–30 年年干四化固定本命盘叠加，可关注单宫及统计各宫符号出现数量，不得当成吉凶或事件预测。
+- 新增现实方案透明加权决策矩阵（2–8 方案、1–8 维度、0–5 主观评分、权重归一化和剔除单一维度敏感性）。与命理结果完全隔离。
+- 三项功能贯通 CLI、REST、MCP、Web 工作台及说明文档；扩展到 18 Tools / 11 Resources / 11 Prompts / 13 Skills、15 个 Web 视图。
+- 决策矩阵 Web 编辑器加入指标/方案动态增删，拒绝空值、布尔伪装评分和空白问题；新增真实 Chromium 点击测试、命令行对照和新接口鉴权回归。
+- 新增独立规则出处与对照用例。通过 DevMate 检查本地 REA 安装，但尊重目标网站禁止逆向及未经许可自动访问的公开服务条款，**未对其执行 REA 抓包或源码提取**。
+- 继续保留既有的计算、加密备份与部署安全限制；奇门其他流派、紫微完整流曜、完整 OAuth 登录和公网部署仍未实现。
+
+## 历法审计与协议加固 — 2026-10-09
+
+### Independent audit and reliability
+
+- Audited published Hong Kong Observatory new-moon starts with 26 independent month-start fixtures (2024 and 2033), including leap month handling.
+- Surfaced published future new-moon uncertainties (2057, 2089, 2097) without silently changing astronomical outputs; known model/reference divergence is now explicitly flagged.
+- Added comprehensive `chart_quality_audit` for hour/day/jie boundaries, solar-time day changes, cross-timezone conventions and historical timezones. Fixed the prior almost-always-on 60-minute warning by making the default **15 minutes**.
+- Added the audit to REST, CLI, HTTP + stdio MCP, reusable agent rules and the provenance-bearing Markdown report.
+
+### Interoperability and security
+
+- Strictly validate `io.modelcontextprotocol/clientCapabilities` for 2026-07-28 metadata requests; emit appropriate cache hints on modern discovery/list/resource operations; preserve 2025 compatibility.
+- Harden local HTTP Host allowlisting to prevent DNS-rebinding abuse and reject untrusted REST Origin headers, not just MCP Origins.
+- Added a real loopback Uvicorn HTTP smoke test, optional real Chromium DOM smoke with FastAPI TestClient bridge, and expanded unit/regression suites.
+- Updated docs, CI release version and security status; added `docs/DEEP_AUDIT.md` differentiating resolved defects from unsolved production and professional-calculation limitations.
+
+### Important limitations
+
+- Browser bridge tests are *not* full network E2E; real Docker image, OAuth, remote Plugin registration, production HTTPS and native third-party client interoperability are not claimed.
+- Multi-school full Zi Wei, full Qi Men Dun Jia and extensive independent 1901–2099 reference comparison remain unfinished.
+
+
+## 计算、客户端与安全基础 — 2026-10-09
+
+### Core and calculation
+
+- Added three clock-basis choices: civil clock, geographic mean solar time and equation-of-time-corrected apparent solar time, with IANA timezone / DST ambiguity checking.
+- Added a side-by-side time-basis audit and difference comparison for two input/rule configurations.
+- Added BaZi branch relationships, transparent rule metadata, and a structured provenance-bearing combined BaZi / partial Zi Wei Markdown report.
+- Added year-stem four-transformation overlays and 12-palace three-harmony/opposite references for partial Zi Wei.
+- Added **lunar-to-Gregorian inverse conversion** with leap-month validity checks and round-trip validation.
+- Added **sampled birth-time uncertainty analysis**, including safe handling of UTC and DST, and clear limits on non-exhaustive sampling.
+
+### Application and interoperability
+
+- Increased MCP surface to **14 tools, 7 resources and 7 prompts**; introduced **2026-07-28** stateless protocol compatibility alongside legacy 2025 MCP initialization.
+- Published **9 independent agent skills** and reusable Python CLI, REST and stdio interfaces.
+- Upgraded local Web workbench to 11 tabs, with embedded calendar conversion / birth-window tools, year overlays, time audits, rule comparisons and provenance reports.
+- Added local AES-256-GCM WebCrypto encrypted archive export/import with PBKDF2 key derivation; browser profiles remain explicitly opt-in and otherwise saved in plaintext localStorage.
+
+### Distribution, hardening and verification
+
+- Public mode now requires 32+ character static Bearer token and exact host allowlist, plus Origin validation for MCP and streamed HTTP request-size enforcement.
+- Updated Python CI matrix to 3.11/3.12/3.13, added comprehensive HTTP/MCP and calendar tests, expanded Docker and security documentation.
+- Added a reproducible source ZIP build utility with file SHA-256 manifest and independent archive verification.
+- **119 tests passing before packaging**, with a separate WebCrypto smoke test and local live HTTP smoke test; no claim of Chromium E2E, Docker runtime or permanent HTTPS deployment.
+
+### Known limitations
+
+Partial Zi Wei with school-specific tables only; Qi Men Dun Jia, complete professional astrology, cross-device identity/OAuth, long-term cloud memory and fully deployed remote ChatGPT/Claude plugins are **out of scope for this release**. Traditional interpretation is cultural rather than scientifically validated prediction. Swiss Ephemeris AGPL/commercial licensing applies.
+
+## 排盘与本地数据基础 — 2026-10-09
+
+- BaZi hidden stems, ten gods, Na Yin and solar-term references; natal Zi Wei four transformations, palace details, calendar / pair comparison and local profiles.
+- Expanded to 8 tools, 3 resources, 3 prompts, 4 skills and 7 workbench views.
+
+## 项目初始化 — 2026-10-09
+
+- Initial BaZi, partial Zi Wei, Chinese lunar calendar, REST and stateless MCP HTTP / stdio with a local Web console.

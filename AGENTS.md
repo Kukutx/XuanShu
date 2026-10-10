@@ -1,0 +1,42 @@
+# Agent development guidance
+
+This repository is an independently implemented Chinese calendar/cultural chart calculator, not a clone of proprietary endpoints.
+
+## Development workflow
+
+- Use `python -m pytest -q` before committing or delivering changes.
+- Do not replace verified astronomical boundaries with hand-wavy date approximations.
+- New calculations require independent reference fixtures, reproducible rules and tests.
+- Keep Pydantic input models strict (`extra='forbid'`), REST/MCP parity, and both transports tested.
+- Preserve all original rules and limitations in output; *never* present partial Zi Wei as a complete professional chart.
+- Do not persist a birth date/time on the server unless a future feature **explicitly** introduces consent and security.
+- Client-side storage must require a deliberate click, be removable, and never store bearer tokens.
+- Follow the AGPL-3.0 and third-party license notices. Do not reverse engineer or automate a third-party website when its rules prohibit doing so. Do not reproduce proprietary Tianfu AI prompts, service interfaces or scraped paywalled content.
+- Do not present traditional symbolic categories as validated health, financial, romantic or future predictions.
+
+## Main locations
+
+- `app/astronomy.py`: astronomy and modern Chinese lunar calendar.
+- `app/engines.py`: BaZi / partial Zi Wei calculation.
+- `app/reference.py`: school-specific traditional lookup tables.
+- `app/features.py`: calendar range, pair comparison, palace detail.
+- `app/workflows.py`: independently implemented twelve-day officers, yearly label sequence, and user-scored decision matrix. Distinguish cultural labels from empirical decisions.
+- `app/extended.py`: astronomical lunar inverse and sampled birth-time uncertainty, with explicit limitations.
+- `app/advanced.py`: traditional BaZi decade sequence and event-based modeled birth-boundary map; keep datetime calculations on true UTC instants, with school limitations.
+- `app/astronomy.py`: `jie_neighbors` and `solar_month_offset` own all Jie event comparisons, including exact event instants; do not introduce separate floating-angle month calculation.
+- `app/qimen.py`: explicitly school-scoped Qimen rotating hour chart; not externally certified.
+- `app/consultation.py`: deterministic six-scenario question-first executable orchestration. Not an autonomous LLM; no server persistence; partner records require explicit authorization.
+- `app/oauth_resource.py`: JWT resource server backed by an external OAuth issuer, not an OAuth authorization server.
+- `app/mcp.py`: shared MCP tool, resource and prompt transport logic.
+- `app/main.py`: FastAPI REST + Streamable HTTP MCP.
+- `app/stdio.py`: Claude/Codex stdio MCP.
+- `static/`: self-contained browser console.
+- `skills/`: portable Agent Skills instructions.
+- `tests/`: regression suite; `scripts/build_release.py`: deterministic ZIP and SHA-256 manifest validation.
+
+## Version policy (user requirement)
+
+- **Pre-publication release label is frozen at `v.0.1.0`.** Never increment or create parallel versioned source directories.
+- Python / package / MCP / API numeric identity must be `0.1.0`; UI, docs and ZIP release label must be `v.0.1.0`.
+- Work only in the canonical `xuanshu/` repository. Record progress in changelog entries without increasing version numbers.
+- CI and deterministic release builder must fail closed on version drift.
