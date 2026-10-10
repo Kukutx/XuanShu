@@ -1,6 +1,10 @@
 # 玄枢 · XuanShu v.0.1.0
 
-**Windows/CI 验收（2026-10-10）：** 711 项 Python 测试通过、1 项环境条件跳过；25 项 MCP/REST 工具结果一致；真实 Chrome HTTP、Docker 多阶段构建与容器鉴权已实测通过。详见 TEST_REPORT.md。公网 OAuth/远程 MCP 和专业流派认证仍须独立验收。
+**发行包隐私：** 构建脚本不会包含 .artifacts 测试截图、.env.local 等真实环境配置或私钥文件；校验器也会拒绝这些路径。
+
+**浏览器测试截图：** 默认保存到 Git 忽略的 .artifacts/browser-smoke/，不会覆盖仓库内的展示截图。仅在需要明确更新展示素材时，使用 scripts/browser_smoke.py --screenshots-dir screenshots。
+
+**Windows/CI 验收（2026-10-10）：** 713 项 Python 测试通过、1 项环境条件跳过；25 项 MCP/REST 工具结果一致；真实 Chrome HTTP、Docker 多阶段构建与容器鉴权已实测通过。详见 TEST_REPORT.md。公网 OAuth/远程 MCP 和专业流派认证仍须独立验收。
 
 **本地优先、独立实现、可测试的传统历法 / 八字 / 紫微（部分）/ 时家奇门（限定流派）计算和 AI Agent 工具平台。**
 

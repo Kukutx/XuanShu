@@ -117,3 +117,32 @@ def test_wheel_includes_research_and_reproducible_examples():
     import json
     fixture=json.loads((ROOT/'examples/deep-evidence-reference-2024-02-07.json').read_text(encoding='utf-8'))
     assert fixture['input_parameters']['birth']['gender']=='unspecified'
+
+
+def test_release_excludes_local_secrets_and_browser_artifacts():
+    from scripts.build_release import is_excluded, source_files
+    for filename in (
+        '.artifacts/browser-smoke/01-bazi-desktop.png',
+        '.env.local', '.env.production', 'credentials.pem',
+        'private.key', 'secrets.p12', 'local.sqlite',
+    ):
+        assert is_excluded(Path(filename)), filename
+    assert not is_excluded(Path('.env.example'))
+    assert not is_excluded(Path('app/main.py'))
+    assert all('.artifacts' not in p.relative_to(ROOT).parts for p in source_files())
+
+
+def test_release_verification_rejects_hashed_secret_file(tmp_path):
+    import hashlib
+    import zipfile
+    import pytest
+    from scripts.build_release import PREFIX, MANIFEST, verify
+    content = b'example-only-no-secret'
+    digest = hashlib.sha256(content).hexdigest()
+    path = tmp_path / 'invalid-secret.zip'
+    with zipfile.ZipFile(path, 'w') as archive:
+        archive.writestr(f'{PREFIX}/.env.local', content)
+        archive.writestr(f'{PREFIX}/{MANIFEST}',
+                         f'{digest}  .env.local\n'.encode('utf-8'))
+    with pytest.raises(ValueError, match='Forbidden release entry'):
+        verify(path)

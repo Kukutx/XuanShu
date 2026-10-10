@@ -23,9 +23,9 @@ DEFAULT_ZIP = ROOT.parent / 'xuanshu-v.0.1.0.zip'
 FROZEN_VERSION = '0.1.0'
 DISPLAY_VERSION = 'v.0.1.0'
 MANIFEST = 'RELEASE_MANIFEST.sha256'
-SKIP_DIRS = {'.git', '.venv', '__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', 'node_modules', 'dist', 'build', '.tox', 'xuanshu.egg-info'}
+SKIP_DIRS = {'.git', '.venv', '.artifacts', '__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', 'node_modules', 'dist', 'build', '.tox', 'xuanshu.egg-info'}
 SKIP_NAMES = {'.env', '.DS_Store', 'Thumbs.db', MANIFEST}
-SKIP_SUFFIXES = {'.pyc', '.pyo', '.pyd', '.zip', '.log', '.tmp'}
+SKIP_SUFFIXES = {'.pyc', '.pyo', '.pyd', '.zip', '.log', '.tmp', '.pem', '.key', '.p12', '.pfx', '.sqlite', '.db'}
 FIXED_TIMESTAMP = (2026, 10, 9, 0, 0, 0)
 
 
@@ -54,11 +54,17 @@ def validate_release_metadata(root: Path = ROOT) -> None:
         raise ValueError('Stale Web UI version marker')
 
 
+def is_excluded(relative: Path) -> bool:
+    """Fail closed for build caches, QA artifacts and local secrets."""
+    return (any(part in SKIP_DIRS for part in relative.parts)
+            or relative.name in SKIP_NAMES
+            or (relative.name.startswith('.env.') and relative.name != '.env.example')
+            or relative.suffix in SKIP_SUFFIXES)
+
+
 def eligible(path: Path) -> bool:
     relative = path.relative_to(ROOT)
-    return (path.is_file() and not path.is_symlink()
-            and not any(part in SKIP_DIRS for part in relative.parts)
-            and path.name not in SKIP_NAMES and path.suffix not in SKIP_SUFFIXES)
+    return path.is_file() and not path.is_symlink() and not is_excluded(relative)
 
 
 def source_files() -> list[Path]:
@@ -123,6 +129,8 @@ def verify(path: Path):
             if (separator != '  ' or len(hash_) != 64 or any(c not in '0123456789abcdef' for c in hash_)
                     or not name or name.startswith('/') or '\\' in name or any(part in ('.', '..') for part in name.split('/'))):
                 raise ValueError(f'Invalid manifest entry: {line}')
+            if is_excluded(Path(name)):
+                raise ValueError(f'Forbidden release entry: {name}')
             if name in entries:
                 raise ValueError(f'Duplicate manifest entry: {name}')
             entries[name] = hash_

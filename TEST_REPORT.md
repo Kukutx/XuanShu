@@ -4,13 +4,17 @@
 
 **以下为当前实际通过的结果，覆盖早期报告中“Docker 未实测”的历史状态：**
 
-- Windows Python 3.13：pytest **711 passed、1 skipped**。跳过项仅针对可选专业库未安装的环境；本机已安装依赖，专业紫微真实调用通过。
+- Windows Python 3.13：pytest **713 passed、1 skipped**。跳过项仅针对可选专业库未安装的环境；本机已安装依赖，专业紫微真实调用通过。
 - **25/25 MCP Tools** 与 REST 结果一致；CLI、Node WebCrypto AES-GCM 和旧版备份测试通过。
 - 独立 Uvicorn **39 次本机 HTTP 请求**；Chromium 桥接 **25 次**；另有 Chrome 直接访问真实 Uvicorn TCP 的 **7 次 HTTP API 调用**，含桌面/手机操作，0 JS/network 异常。
 - Docker Desktop 29.8.1 Linux Engine：修复 slim 镜像缺少 GCC 的问题，使用多阶段 wheel 构建；实际 Docker Compose 构建、容器启动及 docker_smoke.py 鉴权 REST/MCP、错误令牌、Host/Origin 拦截均通过。宿主机仅监听 127.0.0.1:8000。
 - 运行镜像采用 uid=100(xuanshu)，已验证 pyswisseph 2.10.3.2 已安装且不包含 gcc（镜像 272,563,754 bytes）。验收后通过 Docker Compose down 清理容器与网络。
 - 首次 GitHub Actions 因缺少 setuptools 构建依赖失败；修复后 Python 3.11、3.12、3.13 与 Docker 共 **4/4 任务成功**：https://github.com/Kukutx/XuanShu/actions/runs/38058390888
 - GitHub 公开仓库：https://github.com/Kukutx/XuanShu 。发布前检查确认 .env、虚拟环境和缓存没有进入提交，也未创建 Release。
+
+- 浏览器回归截图副作用修复：默认输出到 Git 忽略的 .artifacts/browser-smoke，而不是覆盖已提交的 screenshots；保留显式更新截图选项。
+
+- 源码 ZIP 发现在浏览器回归后误打包 .artifacts 测试截图；发行脚本已排除该目录，并阻止 .env.local / 私钥类文件进入构建及通过验证。
 
 **上述测试不涵盖：** 公网 HTTPS/OAuth 真实授权、ChatGPT/Claude 远程 MCP 客户端实际在线调用、所有术数流派的独立专业认证、生产多租户和长期记忆系统。
 
