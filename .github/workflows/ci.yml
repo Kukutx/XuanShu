@@ -30,6 +30,22 @@ jobs:
       - run: python -m app.cli gregorian --year 2024 --month 1 --day 1
       - run: python -m app.cli deep-review --date 2024-02-07T12:00 --palace 官禄宫 --year 2026
       - run: python scripts/build_release.py && python scripts/build_release.py --verify ../xuanshu-v.0.1.0.zip
+  python_latest:
+    name: Python 3.15 compatibility
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.13.0"
+      - run: uv python install 3.15
+      - run: uv venv --python 3.15 .venv
+      - run: uv pip install --python .venv/bin/python -r requirements-dev.txt -e . 'iztro-py==0.5.0'
+      - run: uv pip install --python .venv/bin/python pip setuptools wheel
+      - run: .venv/bin/python -m pytest -q
+      - run: .venv/bin/python scripts/full_functional_audit.py
+      - run: .venv/bin/python scripts/wheel_smoke.py
+      - run: .venv/bin/python scripts/http_smoke.py
   docker:
     runs-on: ubuntu-24.04
     steps:

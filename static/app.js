@@ -4,6 +4,27 @@ const $ = sel => document.querySelector(sel);
 const result = $('#result');
 const form = $('#birth-form');
 const tabs = [...document.querySelectorAll('.tab')];
+const commonTabs = new Set(['consult','bazi','qimen','ziwei','professional','calendar','pair','decision','report']);
+let expandedTools = false;
+function updateToolNavigation() {
+  const term = $('#tool-search').value.trim().toLocaleLowerCase();
+  let visible = 0;
+  tabs.forEach(tab => {
+    const allowed = expandedTools || !!term || commonTabs.has(tab.dataset.tab);
+    const matches = !term || tab.textContent.toLocaleLowerCase().includes(term);
+    // Preserve the active view until the user intentionally selects another.
+    tab.hidden = !(tab.dataset.tab === active || (allowed && matches));
+    if (!tab.hidden) visible++;
+  });
+  $('#tool-visible-count').textContent = term ? `匹配 ${visible} 项` : `当前 ${visible}/${tabs.length} 项`;
+  $('#tool-toggle-all').textContent = expandedTools ? '收起高级功能' : `展开全部 ${tabs.length} 项`;
+  $('#tool-toggle-all').setAttribute('aria-expanded', String(expandedTools));
+}
+$('#tool-toggle-all').addEventListener('click', () => {expandedTools = !expandedTools; updateToolNavigation();});
+$('#tool-search').addEventListener('input', updateToolNavigation);
+$('#tool-search').addEventListener('keydown',event=>{
+  if(event.key==='Escape'){event.currentTarget.value='';updateToolNavigation();}
+});
 const profileKey = 'xuanshu-profiles-v2';
 // Read existing pre-rename local profiles once; keep the original as a safe fallback.
 const legacyProfileKey = 'oriental-astro-profiles-v2';
@@ -22,12 +43,17 @@ let active = 'consult';
 let current = null;
 let consultResult = null;
 let consultCursor = null;
-let consultDraft = {question:'我想了解我的职业方向和2027年的传统年度结构',intent:'auto', useBirth:false, usePartner:false, partnerDate:'', lunarYear:'', candidateDates:'', facts:'', includeReport:false};
+let consultAdvancedOpen = false;
+let consultDraft = {question:'',intent:'auto', useBirth:false, usePartner:false, partnerDate:'', lunarYear:'', candidateDates:'', facts:'', includeReport:false};
 let qimenResult = null;
 let qimenFingerprint = null;
 let professionalResult = null;
 let referenceAuditResult = null;
-let professionalTargetDraft = '2026-10-10';
+const localToday = () => {
+  const now = new Date();
+  return [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
+};
+let professionalTargetDraft = localToday();
 let currentInput = null;
 let selectedPalace = '命宫';
 let calendarResult = null;
@@ -53,8 +79,8 @@ let reportDraft = {lunar_year: null, include_time_audit: false, include_deep_evi
 let windowDraft = {radius: 30, spacing: 10};
 let lunarInverseDraft = {lunar_year:2024,lunar_month:1,lunar_day:1,is_leap_month:false};
 let annualDraft = 2026;
-let calendarDraft = {start_date: '2024-02-10', days: 14};
-let officerDraft = {start_date:'2026-10-15',days:30,officer:''};
+let calendarDraft = {start_date: localToday(), days: 14};
+let officerDraft = {start_date:localToday(),days:30,officer:''};
 let timelineDraft = {start_lunar_year:2024,years:10,focus_palace:''};
 let decisionDraft = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
 let pairDraft = {birth_datetime: '2001-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified'};
@@ -113,6 +139,7 @@ function setInput(data) {
   $('#time_mode').value = data.time_mode || 'clock';
   $('#longitude').value = data.longitude ?? '';
   updateGeoControls();
+  updateDemoBirthWarning();
 }
 async function postJSON(path, body) {
   const token = $('#api_token').value;
@@ -121,10 +148,15 @@ async function postJSON(path, body) {
     headers: {'Content-Type': 'application/json', ...(token ? {'Authorization': 'Bearer ' + token} : {})},
     body: JSON.stringify(body),
   });
-  const data = await response.json();
+  let data;
+  try {data=await response.json();}
+  catch (_) {throw new Error(`服务返回了无法解析的响应（HTTP ${response.status}），请检查服务地址或代理配置`);}
   if (!response.ok) {
-    const message = data.detail;
-    throw new Error(typeof message === 'string' ? message : (Array.isArray(message) ? message.map(x => x.msg).join('; ') : JSON.stringify(message || data)));
+    const message=data?.detail;
+    const detail=typeof message==='string' ? message : (Array.isArray(message) ? message.map(x=>x.msg).join('; ') : JSON.stringify(message || data));
+    if(response.status===401)throw new Error('请检查 API 访问令牌（401）：'+detail);
+    if(response.status===403)throw new Error('访问被拒绝（403），请检查服务来源与权限：'+detail);
+    throw new Error(`HTTP ${response.status}：${detail}`);
   }
   return data;
 }
@@ -893,16 +925,29 @@ function renderIntegration() {
   title(result,'Agent 接入中心','统一 MCP 服务 / 计算 Tool / 方法资源');
   append(result,'p','info-inline','本项目兼容 MCP 2026-07-28 和旧版 2025 协议的 stdio / Streamable HTTP；本地 Web 运行不等于已上线公网或已登记到 ChatGPT/Claude。');
   rules(result,[
-    {label:'MCP 工具',value:'21 Tools',detail:'八字 / 紫微 / 历法 / 双盘 / 时间审计 / 年干四化'},
-    {label:'规则资源',value:'15 Resources',detail:'方法规则、隐私和限制说明'},
-    {label:'Agent Skills',value:'16 Skills',detail:'放在源码 skills/ 目录'},
-    {label:'提示模板',value:'14 Prompts',detail:'可复用计算工作流'},
+    {label:'MCP 工具',value:'25 Tools',detail:'八字 / 紫微 / 历法 / 双盘 / 时间审计 / 年干四化'},
+    {label:'规则资源',value:'17 Resources',detail:'方法规则、隐私和限制说明'},
+    {label:'Agent Skills',value:'18 Skills',detail:'放在源码 skills/ 目录'},
+    {label:'提示模板',value:'15 Prompts',detail:'可复用计算工作流'},
   ]);
   append(result,'h4','subheading','本地 HTTP 端点');
   const origin = location.origin==='null' ? 'http://127.0.0.1:8000' : location.origin;
   append(result,'pre','json-code','POST '+origin+'/mcp\nGET  '+origin+'/docs\nGET  '+origin+'/api/capabilities');
   append(result,'h4','subheading','Claude / Codex stdio 示例');
-  append(result,'pre','json-code',JSON.stringify({mcpServers:{'xuanshu':{command:'/ABSOLUTE/PATH/.venv/bin/python',args:['-m','app.stdio'],env:{PYTHONPATH:'/ABSOLUTE/PATH/PROJECT'}}}},null,2));
+  const windows = /Windows/i.test(navigator.userAgent);
+  const projectPath=windows ? 'C:\\path\\to\\xuanshu' : '/path/to/xuanshu';
+  const pythonPath=windows ? projectPath+'\\.venv\\Scripts\\python.exe' : projectPath+'/.venv/bin/python';
+  const snippet=JSON.stringify({mcpServers:{xuanshu:{command:pythonPath,args:['-m','app.stdio'],env:{PYTHONPATH:projectPath}}}},null,2);
+  append(result,'pre','json-code',snippet);
+  const copy=append(result,'button','tiny-button','复制 Claude / Codex 本地配置');
+  copy.type='button';copy.id='integration-copy';
+  copy.addEventListener('click',async()=>{
+    try{
+      await navigator.clipboard.writeText(snippet);
+      copy.textContent='已复制，记得替换项目实际路径';
+    }catch(e){copy.textContent='无法自动复制，请手动选中上面的配置文本';}
+  });
+  append(result,'p','small-text','将配置中的占位路径替换成你自己的项目路径。运行 Python 的虚拟环境必须先安装项目依赖。');
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
@@ -915,6 +960,25 @@ function renderConsultation() {
   const label=append(area,'label',null,'你现在想研究什么问题？'); label.htmlFor='consult-question';
   const question=append(area,'textarea');question.id='consult-question'; question.rows=3;
   question.maxLength=600;question.value=consultDraft.question;
+  const shortcuts=append(area,'div','consult-shortcuts');
+  append(shortcuts,'span','small-text','常见咨询问题：');
+  const examples=[
+    ['本命概览','natal','请按传统八字和紫微规则整理我的本命结构，并标明计算依据。'],
+    ['年度事业','career',`${new Date().getFullYear()+1} 年我的事业选择可从哪些传统结构和现实约束分析？`],
+    ['双人关系','relationship','请比较两个人的传统命盘结构，列出共同点与差异。'],
+    ['候选择时','timing','我有几个候选时间，请比较传统择时标签和现实限制。'],
+    ['方案对照','decision','请比较几个真实可行的方案，列出不同权重下的优缺点。']
+  ];
+  examples.forEach(([label,value,example])=>{
+    const item=append(shortcuts,'button','tiny-button',label);item.type='button';
+    item.addEventListener('click',()=>{
+      question.value=example;
+      intent.value=value;
+      consultDraft.question=example;
+      consultDraft.intent=value;
+      question.focus();
+    });
+  });
   const controls=append(area,'div','inline-control');
   const intentLabel=append(controls,'label',null,'问题场景');
   const intent=append(intentLabel,'select');intent.id='consult-intent';
@@ -923,15 +987,32 @@ function renderConsultation() {
   const year=createInput('农历年（选填）','number',consultDraft.lunarYear,controls);year.id='consult-year';year.min='1901';year.max='2099';
   const bl=append(controls,'label',null,'本次允许使用左侧出生资料');
   const birthCheck=append(bl,'input');birthCheck.type='checkbox';birthCheck.id='consult-use-birth';birthCheck.checked=consultDraft.useBirth;
-  const partnerLabel=append(controls,'label',null,'使用第二人出生资料（自愿）');
+  const advanced=append(area,'details','consult-advanced');advanced.id='consult-advanced';advanced.open=consultAdvancedOpen;
+  append(advanced,'summary',null,'更多咨询选项：合盘、候选日期、现实条件和完整报告');
+  advanced.addEventListener('toggle',()=>{consultAdvancedOpen=advanced.open;});
+  const advancedControls=append(advanced,'div','inline-control');
+  const partnerLabel=append(advancedControls,'label',null,'使用第二人出生资料（自愿）');
   const partnerCheck=append(partnerLabel,'input');partnerCheck.type='checkbox';partnerCheck.id='consult-use-partner';partnerCheck.checked=consultDraft.usePartner;
-  const partnerDate=createInput('第二人时间（当地）','datetime-local',consultDraft.partnerDate,controls);partnerDate.id='consult-partner-date';
-  const candidateLabel=append(controls,'label',null,'多个候选时刻：每行一个 ISO 本地时间（最多5个）');
+  const partnerDate=createInput('第二人时间（当地）','datetime-local',consultDraft.partnerDate,advancedControls);partnerDate.id='consult-partner-date';
+  const candidateLabel=append(advancedControls,'label',null,'多个候选时刻：每行一个 ISO 本地时间（最多5个）');
   const candidates=append(candidateLabel,'textarea');candidates.rows=2;candidates.id='consult-candidates';candidates.value=consultDraft.candidateDates;
-  const factLabel=append(controls,'label',null,'现实条件或目标（选填；每行一条，最多8条；仅本次使用）');
+  const factLabel=append(advancedControls,'label',null,'现实条件或目标（选填；每行一条，最多8条；仅本次使用）');
   const facts=append(factLabel,'textarea');facts.rows=3;facts.id='consult-real-world-facts';facts.value=consultDraft.facts;
-  const fullLabel=append(controls,'label',null,'同时生成完整技术报告');
+  const fullLabel=append(advancedControls,'label',null,'同时生成完整技术报告');
   const full=append(fullLabel,'input');full.type='checkbox';full.id='consult-full-report';full.checked=consultDraft.includeReport;
+  // Preserve unsent edits while switching tools; only in-memory, never uploaded.
+  const preserveDraft=()=>{
+    consultDraft={
+      question:question.value, intent:intent.value, useBirth:birthCheck.checked,
+      usePartner:partnerCheck.checked,partnerDate:partnerDate.value,
+      lunarYear:year.value,candidateDates:candidates.value,
+      facts:facts.value,includeReport:full.checked
+    };
+  };
+  [question,intent,year,birthCheck,partnerCheck,partnerDate,candidates,facts,full].forEach(control=>{
+    control.addEventListener('input',preserveDraft);
+    control.addEventListener('change',preserveDraft);
+  });
   const launch=append(area,'button','primary-btn','执行咨询工作流');launch.type='button';launch.id='consult-run';
   const feedback=append(area,'p','inline-msg');feedback.id='consult-feedback';
   launch.addEventListener('click', async()=>{
@@ -1014,6 +1095,7 @@ function render() {
 tabs.forEach(tab => tab.addEventListener('click', () => {
   active = tab.dataset.tab;
   tabs.forEach(other => {const selected = other === tab; other.classList.toggle('active', selected); other.setAttribute('aria-selected', String(selected));});
+  updateToolNavigation();
   render();
 }));
 form.addEventListener('submit', async event => {
@@ -1085,5 +1167,12 @@ showProfiles();
 function updateGeoControls(){const mode=$('#time_mode').value;$('#longitude').required=mode!=='clock';$('#longitude').closest('.location-panel').classList.toggle('solar-active',mode!=='clock');}
 $('#time_mode').addEventListener('change',updateGeoControls);updateGeoControls();
 
+// The demonstration date must remain explicitly identified until changed.
+function updateDemoBirthWarning() {
+  $('#demo-birth-warning').hidden = $('#birth_datetime').value !== '2000-08-16T04:00';
+}
+$('#birth_datetime').addEventListener('input',updateDemoBirthWarning);
+updateDemoBirthWarning();
+updateToolNavigation();
 // Initialize the question-first view without requiring a natal chart.
 render();

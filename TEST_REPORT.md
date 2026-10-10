@@ -1,5 +1,16 @@
 # XuanShu v.0.1.0 · 实际测试及正式验收边界
 
+## 2026-10-10 Python 3.15 / 用户体验升级
+
+- 官方 Python 3.15.0 Windows x64 安装包 SHA-256 和 Authenticode 数字签名均通过。
+- Windows 默认解释器及项目 .venv 已升级至 Python 3.15，旧 3.13.7 和原 .venv 备份保留；uv 0.13.0。
+- 3.15 下实装专业紫微依赖的 XuanShu 自动化测试：719 passed、1 conditional skipped；MCP 工具与 REST 25/25 一致。
+- 功能检索、常用优先导航、咨询快捷问题、参数折叠、未提交草稿保留以及实时日期和更清晰 HTTP 错误信息已接入浏览器。
+- Python 3.15 的 GitHub CI 验收结果以后续 Actions 运行记录为准；Docker 镜像仍基于已验收的 3.12-slim。
+- Chrome 154 实测：功能搜索和 Esc 清空、五种快捷咨询模板、系统对应的本地 MCP 复制入口，以及桌面与移动端交互均通过；本次真实浏览器 -> Uvicorn 7 次 HTTP API 请求无 JS/网络错误。
+- UX 详细验收与未完成项目见 docs/research/UX_AUDIT.md。
+
+
 ## 2026-10-10 Windows / GitHub 实机验收（版本固定 v.0.1.0）
 
 **以下为当前实际通过的结果，覆盖早期报告中“Docker 未实测”的历史状态：**

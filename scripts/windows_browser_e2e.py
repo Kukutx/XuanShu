@@ -52,6 +52,15 @@ def main():
                            if '/api/' in r.url else None)
                 desktop.goto(url + '/', wait_until='networkidle')
                 assert desktop.locator('.tab').count() == 22
+                assert desktop.locator('.tab:visible').count() < 22
+                desktop.locator('#tool-search').fill('四化')
+                assert desktop.locator('[data-tab="transform"]').is_visible()
+                desktop.locator('#tool-search').press('Escape')
+                assert desktop.locator('#tool-search').input_value() == ''
+                desktop.locator('#tool-toggle-all').click()
+                assert desktop.locator('.tab:visible').count() == 22
+                desktop.get_by_role('button',name='年度事业',exact=True).click()
+                assert '事业' in desktop.locator('#consult-question').input_value()
                 desktop.locator('#consult-question').fill('2027年职业选择')
                 desktop.locator('#consult-run').click()
                 desktop.get_by_text('需要补充', exact=False).first.wait_for()
@@ -76,11 +85,16 @@ def main():
                 desktop.locator('#calendar-run').click()
                 desktop.locator('#result tbody tr').first.wait_for()
                 assert desktop.locator('#result tbody tr').count() == 14
+                desktop.locator('[data-tab="integration"]').click()
+                assert desktop.locator('#integration-copy').is_visible()
+                assert any('mcpServers' in v for v in desktop.locator('#result pre').all_text_contents())
                 mobile = browser.new_page(viewport={'width': 390, 'height': 844},
                                           is_mobile=True, has_touch=True)
                 mobile.on('pageerror', lambda e: errors.append(str(e)))
                 mobile.goto(url + '/', wait_until='networkidle')
                 assert mobile.locator('#consult-question').is_visible()
+                assert mobile.locator('#tool-search').is_visible()
+                assert mobile.locator('.consult-shortcuts button').count() == 5
             finally:
                 browser.close()
         assert not errors, errors

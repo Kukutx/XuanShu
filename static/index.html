@@ -32,6 +32,7 @@
           <label for="birth_datetime">公历出生日期与时间</label>
           <input id="birth_datetime" name="birth_datetime" type="datetime-local" value="2000-08-16T04:00" min="1901-01-01T00:00" max="2099-12-31T23:59" required />
           <div class="field-help">示例日期为公开排盘基准；可以替换为自己的测试数据</div>
+          <p class="demo-data-notice" id="demo-birth-warning" role="status">当前使用演示出生资料。个人分析前请替换为实际出生时间。</p>
           <label for="timezone">时区</label>
           <select id="timezone" name="timezone">
             <option value="Asia/Shanghai">Asia/Shanghai · 中国</option>
@@ -92,7 +93,13 @@
           <div class="section-head"><span class="section-num">03</span><div><h2>命盘工作台</h2><p id="result-subtitle">选择参数后开始生成</p></div></div>
           <div class="toolbar"><button type="button" id="download-json" class="tiny-button" disabled>导出 JSON ↓</button><div class="mini-badge">ENGINE DEV</div></div>
         </div>
-        <div class="tabbar" role="tablist" aria-label="工作台功能">
+        <div class="tool-finder" role="search" aria-label="工作台功能查找">
+          <label for="tool-search">查找需要的功能</label>
+          <input id="tool-search" type="search" placeholder="搜索八字、择时、报告等 22 项能力" autocomplete="off" aria-controls="workspace-tabs" />
+          <button id="tool-toggle-all" type="button" class="tiny-button" aria-controls="workspace-tabs" aria-expanded="false">展开全部 22 项</button>
+          <small id="tool-visible-count" role="status" aria-live="polite"></small>
+        </div>
+        <div class="tabbar" id="workspace-tabs" role="tablist" aria-label="工作台功能">
           <button class="tab active" data-tab="consult" role="tab" aria-selected="true">AI 咨询工作流</button>
           <button class="tab" data-tab="bazi" role="tab" aria-selected="false">四柱八字</button>
           <button class="tab" data-tab="qimen" role="tab" aria-selected="false">奇门遁甲</button>

@@ -85,6 +85,10 @@ def main() -> None:
               JSON.stringify([{id:'legacy-1',label:'既有档案',data:{birth_datetime:'2000-08-16T04:00',timezone:'Asia/Shanghai'}}]))''')
             page.add_script_tag(content=js)
             page.add_script_tag(content=vault_js)
+            assert page.locator('#tool-toggle-all').is_visible()
+            assert page.locator('.tab:visible').count() < page.locator('.tab').count()
+            page.locator('#tool-toggle-all').click()
+            page.locator('#consult-advanced summary').click()
             assert page.evaluate("JSON.parse(localStorage.getItem('xuanshu-profiles-v2'))[0].id") == 'legacy-1'
             assert page.evaluate("localStorage.getItem('oriental-astro-profiles-v2') !== null")
 

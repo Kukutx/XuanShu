@@ -23,16 +23,17 @@ if (-not (Test-Path (Join-Path $root 'pyproject.toml'))) { throw 'Missing pyproj
 $uv = Get-Command uv -ErrorAction SilentlyContinue
 if (-not $NoInstall) {
   if (-not (Test-Path $python)) {
-    if ($uv) { Invoke-Checked 'Create isolated Python venv' { uv venv --python 3.13 .venv } }
-    else { Invoke-Checked 'Create isolated Python venv' { py -3.13 -m venv .venv } }
+    if ($uv) { Invoke-Checked 'Create isolated Python venv' { uv venv --python 3.15 .venv } }
+    else { Invoke-Checked 'Create isolated Python venv' { py -3.15 -m venv .venv } }
   }
   if ($uv) {
-    Invoke-Checked 'Install project and test dependencies' { uv pip install --python $python -r requirements-dev.txt -e . }
+    Invoke-Checked 'Install project and test dependencies' { uv pip install --python $python -r requirements-dev.txt -e . pip setuptools wheel }
     if (-not $SkipProfessional) {
       Invoke-Checked 'Install optional professional Zi Wei' { uv pip install --python $python 'iztro-py==0.5.0' }
     }
     if (-not $SkipBrowser) { Invoke-Checked 'Install Playwright browser driver' { uv pip install --python $python playwright } }
   } else {
+    Invoke-Checked 'Install packaging tools' { & $python -m pip install --upgrade pip setuptools wheel }
     Invoke-Checked 'Install project and test dependencies' { & $python -m pip install -r requirements-dev.txt -e . }
     if (-not $SkipProfessional) {
       Invoke-Checked 'Install optional professional Zi Wei' { & $python -m pip install 'iztro-py==0.5.0' }
@@ -42,6 +43,7 @@ if (-not $NoInstall) {
 }
 if (-not (Test-Path $python)) { throw "No project venv Python: $python" }
 Invoke-Checked 'Automated unit/regression tests' { & $python -m pytest -q }
+Invoke-Checked 'Isolated wheel installation smoke' { & $python scripts/wheel_smoke.py }
 Invoke-Checked 'All MCP tools vs REST functional audit' { & $python scripts/full_functional_audit.py }
 Invoke-Checked 'Real loopback TCP HTTP smoke' { & $python scripts/http_smoke.py }
 Invoke-Checked 'CLI smoke' { & $python -m app.cli bazi --date 2000-08-16T04:00 --tz Asia/Shanghai | Out-Null }

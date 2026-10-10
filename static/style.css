@@ -54,3 +54,22 @@
 .qimen-cell.center{background:rgba(41,34,28,.8);border-color:rgba(213,187,127,.42)}
 .qimen-cell.empty{border-style:dashed}.qimen-cell small{color:#f1b38a}
 @media(max-width:690px){.qimen-board{gap:5px}.qimen-cell{padding:6px;min-height:125px;font-size:11px;gap:4px}.qimen-cell strong{font-size:11px}}
+
+/* Progressive, searchable workbench without removing existing tools. */
+[hidden]{display:none!important}
+.tool-finder{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 29px;border-top:1px solid var(--border);background:rgba(255,255,255,.015)}
+.tool-finder label{color:var(--muted);font-size:12px;white-space:nowrap}
+.tool-finder input{flex:1;min-width:130px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--panel2);color:var(--text);font:inherit}
+.tool-finder input:focus-visible,.tool-finder button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.tool-finder small{color:var(--muted);font-size:11px;margin-left:auto;white-space:nowrap}
+.tabbar{flex-wrap:wrap;gap:6px 20px;overflow:visible;padding-top:4px;padding-bottom:4px}
+.tab{padding:9px 0}
+.consult-shortcuts{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:8px 0 16px}
+.consult-shortcuts .small-text{font-size:11px;color:var(--muted);width:100%}
+.consult-shortcuts button{white-space:normal}
+.consult-advanced{margin:14px 0 18px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.018);padding:10px 14px}
+.consult-advanced summary{cursor:pointer;color:var(--gold2);font-size:12px;font-weight:600}
+.consult-advanced summary:focus-visible{outline:2px solid var(--gold2)}
+.consult-advanced .inline-control{padding-top:12px}
+.demo-data-notice{font-size:11px;color:#f0c18c;border-left:3px solid var(--gold);padding:7px 10px;background:rgba(198,160,108,.07);margin:12px 0}
+@media(max-width:640px){.tool-finder{padding:12px 18px;gap:9px}.tool-finder label{width:100%}.tool-finder input{min-width:0}.tool-finder small{margin-left:0}.tabbar{padding-left:18px;padding-right:18px;gap:4px 15px}.tab{font-size:11px}}

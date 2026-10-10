@@ -1,5 +1,7 @@
 # 玄枢 · XuanShu v.0.1.0
 
+**Python 3.15 与体验改造（2026-10-10）：** Windows 系统用户默认及本项目虚拟环境已升级至 Python 3.15.0，uv 更新为 0.13.0；旧 3.13.7 安装和虚拟环境保留回退。界面提供常用功能优先、搜索全部 22 项、五类快捷咨询、折叠选项、草稿保留与可复制的本地 MCP 配置。详情见 docs/research/UX_AUDIT.md。Linux Docker 仍使用已验证的 Python 3.12。
+
 **发行包隐私：** 构建脚本不会包含 .artifacts 测试截图、.env.local 等真实环境配置或私钥文件；校验器也会拒绝这些路径。
 
 **浏览器测试截图：** 默认保存到 Git 忽略的 .artifacts/browser-smoke/，不会覆盖仓库内的展示截图。仅在需要明确更新展示素材时，使用 scripts/browser_smoke.py --screenshots-dir screenshots。
