@@ -53,6 +53,8 @@ CASES = OrderedDict([
     ('birth_time_window', ('/api/birth-window', {'birth': BIRTH, 'uncertainty_minutes': 5, 'sample_every_minutes': 5})),
     ('chart_quality_audit', ('/api/quality-audit', {'birth': BIRTH})),
     ('day_officers', ('/api/day-officers', {'start_date': '2026-10-15', 'days': 3})),
+    ('date_candidate_scan', ('/api/date-scan', {'start_date': '2026-10-15', 'days': 10, 'include_officers': ['成', '开'], 'hours': ['09:00']})),
+    ('life_path_review', ('/api/life-path', {'birth': BIRTH, 'events': [{'date': '2020-03-01', 'title': '换工作'}]})),
     ('annual_timeline', ('/api/annual-timeline', {'birth': BIRTH, 'start_lunar_year': 2025, 'years': 3})),
     ('decision_matrix', ('/api/decision-matrix', MATRIX)),
     ('bazi_dayun', ('/api/dayun', {'birth': BIRTH, 'periods': 3})),

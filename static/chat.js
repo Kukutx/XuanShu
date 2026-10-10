@@ -14,6 +14,7 @@ let chatDraft = '';
 let chatLanguage = 'zh-CN';
 let chatUseBirth = true;
 let chatTokenWatch = false;
+let lifePathResult = null;
 
 function chatStore(key) {
   try {const data = JSON.parse(localStorage.getItem(key) || '{}'); return data && typeof data === 'object' && !Array.isArray(data) ? data : {};}
@@ -190,8 +191,34 @@ function renderMemoryPanel(parent) {
     const title = evTitle.value.trim();
     if (!evDate.value || !title || stored.life_events.length >= 30) return;
     stored.life_events.push({date: evDate.value, title, note: evNote.value.trim()});
-    saveProfileMemory(profile.id, stored); render();
+    lifePathResult = null; saveProfileMemory(profile.id, stored); render();
   });
+  const reviewRow = append(panel, 'div', 'profile-actions');
+  const review = append(reviewRow, 'button', 'tiny-button', '对照人生事件（不需要模型）'); review.type = 'button'; review.id = 'life-path-run';
+  review.disabled = !stored.life_events.length;
+  const reviewMsg = append(panel, 'p', 'inline-msg');
+  review.addEventListener('click', async () => {
+    const birth = readInput(); if (birth.longitude === null) delete birth.longitude;
+    review.disabled = true; reviewMsg.textContent = '';
+    try {
+      lifePathResult = await postJSON('/api/life-path', {birth, events: stored.life_events.map(e => ({date: e.date, title: e.title, note: e.note || ''}))});
+      render(); const again = $('#chat-memory-panel'); if (again) again.open = true;
+    } catch (err) {reviewMsg.textContent = '对照失败：' + err.message; review.disabled = false;}
+  });
+  if (lifePathResult) {
+    const table = append(append(panel, 'div', 'table-wrap'), 'table', 'data-table'); table.id = 'life-path-table';
+    const hr = append(append(table, 'thead'), 'tr');
+    ['日期', '事件', '虚岁', '大运', '流年', '流年与本命', '年度四化（化忌）'].forEach(x => append(hr, 'th', null, x));
+    const body = append(table, 'tbody');
+    lifePathResult.events.forEach(e => {
+      const tr = append(body, 'tr');
+      const rel = e.solar_year_branch_relations.map(r => r.with + r.type).join('、') || '—';
+      const ji = e.annual_transformations.find(t => t.type === '化忌');
+      [e.date, e.title, e.nominal_age_xusui, e.dayun ? e.dayun.pillar : '未指定方向', e.solar_year_pillar, rel,
+        ji ? ji.star + '→' + ji.natal_palace : '—'].forEach(x => append(tr, 'td', null, x));
+    });
+    lifePathResult.notes.concat(lifePathResult.limitations).forEach(x => note(panel, x));
+  }
 }
 function renderChat() {
   if (!chatTokenWatch) {

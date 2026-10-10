@@ -6,10 +6,15 @@
   <meta name="theme-color" content="#0d1118" />
   <meta name="description" content="本地优先的八字、紫微（部分）、时家奇门（限定流派）、日历与 Agent MCP 工具。" />
   <title>玄枢 · XuanShu v.0.1.0</title>
+  <link rel="manifest" href="/static/manifest.json" />
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <link rel="stylesheet" href="/static/style.css" />
   <script src="/static/chat.js" defer></script>
   <script src="/static/app.js" defer></script>
   <script src="/static/vault.js" defer></script>
+  <script src="/static/cities.js" defer></script>
 </head>
 <body>
   <div class="ambient"></div>
@@ -23,7 +28,7 @@
       <div class="eyebrow"><span>✳</span> CHART ENGINE / v.0.1.0</div>
       <h1>从你的问题出发，<em>调用可核验的术数工具。</em></h1>
       <p>时制审计与节令 · 八字藏干十神 · 农历反查 · 时刻误差采样 · 紫微三方四正与四化 · 时家奇门拆补九宫 · 双盘对照 · 建除值日 · 年度轨迹 · 大运十年干支 · 出生边界地图 · 透明决策矩阵 · 加密本地备份。所有计算结果可由 ChatGPT、Claude 与 Codex 通过 MCP 读取。</p>
-      <div class="feature-strips"><span>25 MCP TOOLS</span><span>15 PROMPTS</span><span>17 RESOURCES</span><span>18 AGENT SKILLS</span></div>
+      <div class="feature-strips"><span>27 MCP TOOLS</span><span>15 PROMPTS</span><span>17 RESOURCES</span><span>18 AGENT SKILLS</span></div>
     </section>
 
     <div class="main-grid">
@@ -58,9 +63,11 @@
               <option value="mean_solar">平太阳时（按经度）</option>
               <option value="apparent_solar">真太阳时（经度 + 均时差）</option>
             </select>
+            <label for="birth_city">出生城市（选填，自动填写时区和经度）</label>
+            <select id="birth_city"><option value="">手动填写</option></select>
             <label for="longitude">出生地经度（东正西负）</label>
             <input id="longitude" name="longitude" type="number" min="-180" max="180" step="0.0001" placeholder="如 104.0667（成都示例）" />
-            <p class="field-help">太阳时模式必须填写准确经度。不自动定位，不上传位置。</p>
+            <p class="field-help">太阳时模式必须填写准确经度。城市坐标取市中心，内置在页面里，不联网查询、不上传位置。</p>
           </div>
           <label for="api_token">API 访问令牌（本地默认留空）</label>
           <input id="api_token" type="password" autocomplete="off" placeholder="Docker/私有服务器需要填写，本机直接运行可留空" />
@@ -97,8 +104,8 @@
         <p id="stale-birth-warning" class="stale-birth-warning" role="status" aria-live="polite" hidden>出生参数已修改。下方旧命盘不再对应当前输入；请点击左侧「生成命盘」重新计算，才能导出。</p>
         <div class="tool-finder" role="search" aria-label="工作台功能查找">
           <label for="tool-search">查找需要的功能</label>
-          <input id="tool-search" type="search" placeholder="搜索八字、择时、报告等 23 项能力" autocomplete="off" aria-controls="workspace-tabs" />
-          <button id="tool-toggle-all" type="button" class="tiny-button" aria-controls="workspace-tabs" aria-expanded="false">展开全部 23 项</button>
+          <input id="tool-search" type="search" placeholder="搜索八字、择时、报告等 24 项能力" autocomplete="off" aria-controls="workspace-tabs" />
+          <button id="tool-toggle-all" type="button" class="tiny-button" aria-controls="workspace-tabs" aria-expanded="false">展开全部 24 项</button>
           <small id="tool-visible-count" role="status" aria-live="polite"></small>
           <span class="tool-keyboard-hint">Ctrl+K 搜索 · ← / → 切换功能</span>
         </div>
@@ -115,6 +122,7 @@
           <button class="tab" data-tab="time" role="tab" aria-selected="false">太阳时审计</button>
           <button class="tab" data-tab="dayun" role="tab" aria-selected="false">大运干支</button>
           <button class="tab" data-tab="boundaries" role="tab" aria-selected="false">生时边界地图</button>
+          <button class="tab" data-tab="date-scan" role="tab" aria-selected="false">择日择时</button>
           <button class="tab" data-tab="officers" role="tab" aria-selected="false">建除值日</button>
           <button class="tab" data-tab="timeline" role="tab" aria-selected="false">年度轨迹</button>
           <button class="tab" data-tab="decision" role="tab" aria-selected="false">方案决策</button>

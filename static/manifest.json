@@ -1,0 +1,12 @@
+{
+  "name": "玄枢 · XuanShu",
+  "short_name": "玄枢",
+  "description": "本地优先的八字、紫微、奇门与 AI 对话工具。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d1118",
+  "theme_color": "#0d1118",
+  "lang": "zh-CN",
+  "icons": [{"src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
+}

@@ -1,6 +1,6 @@
 include LICENSE
 include README.md
-recursive-include static *.js *.html *.css
+recursive-include static *.js *.html *.css *.json *.svg
 recursive-include docs/rules *.md
 recursive-include skills *.md
 recursive-include docs/research *.md

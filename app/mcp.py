@@ -18,6 +18,8 @@ from .analysis import symbolic_reading
 from .evidence import DeepReviewRequest, deep_evidence_review
 from .consultation import ConsultationRequest, execute_consultation
 from .qimen import QimenRequest, qimen_chart
+from .date_selection import DateScanRequest, date_candidate_scan
+from .life_path import LifePathRequest, life_path_review
 from .professional_ziwei import ProfessionalZiweiRequest, professional_ziwei_chart
 from .chart_audit import QimenAuditRequest, qimen_reference_audit
 from .extended import LunarToGregorianRequest, BirthWindowRequest, lunar_to_gregorian, birth_window
@@ -60,6 +62,8 @@ TOOL_DEFS = [
     {'name': 'decision_matrix', 'title': '透明多方案决策矩阵', 'description': 'Compare user-scored options with transparent normalized weights and leave-one-out sensitivity; entirely non-astrological.', 'inputSchema': DecisionMatrixRequest.model_json_schema()},
     {'name': 'bazi_dayun', 'title': '八字大运十年干支', 'description': 'Traditional direction, adjacent jie, nominal age and 10-year pillars; cultural labels without predictions.', 'inputSchema': DayunRequest.model_json_schema()},
     {'name': 'birth_boundary_map', 'title': '出生时间边界地图', 'description': 'Locate modeled hour, day, solar-term and DST transitions across a birth uncertainty interval.', 'inputSchema': BirthBoundaryRequest.model_json_schema()},
+    {'name': 'date_candidate_scan', 'title': '择日择时区间扫描', 'description': 'Scan up to 93 days, filter by user-chosen twelve-day officers, jie-boundary days and natal branch clashes, optionally attach hour-Qimen charts for given local times. Chronological list, no luck ranking.', 'inputSchema': DateScanRequest.model_json_schema()},
+    {'name': 'life_path_review', 'title': '人生事件命途回溯', 'description': 'Place user-reported past events beside the BaZi decade period, solar year pillar, lunar-year Zi Wei stem transformations and natal branch relations. Co-occurrence only, no causal claims.', 'inputSchema': LifePathRequest.model_json_schema()},
     {'name': 'palace_detail', 'title': '十二宫重点查看', 'description': 'Get a selected palace, included stars, natal transformation markers, flying mappings and traditional topic.', 'inputSchema': PalaceRequest.model_json_schema()},
 ]
 TOOLS = {item['name']: item for item in TOOL_DEFS}
@@ -137,6 +141,8 @@ def call_tool(name: str, args: dict) -> Any:
         'decision_matrix': (DecisionMatrixRequest, decision_matrix),
         'bazi_dayun': (DayunRequest, dayun_sequence),
         'birth_boundary_map': (BirthBoundaryRequest, birth_boundary_map),
+        'date_candidate_scan': (DateScanRequest, date_candidate_scan),
+        'life_path_review': (LifePathRequest, life_path_review),
     }
     model, function = mapping[name]
     return function(model.model_validate(args))

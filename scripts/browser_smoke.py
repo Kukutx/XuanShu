@@ -47,6 +47,7 @@ def main() -> None:
     css = (ROOT / 'static/style.css').read_text(encoding='utf-8')
     js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     chat_js = (ROOT / 'static/chat.js').read_text(encoding='utf-8')
+    cities_js = (ROOT / 'static/cities.js').read_text(encoding='utf-8')
     vault_js = (ROOT / 'static/vault.js').read_text(encoding='utf-8')
     client = TestClient(app)
     counts = {'requests': 0}
@@ -87,10 +88,22 @@ def main() -> None:
             page.add_script_tag(content=chat_js)
             page.add_script_tag(content=js)
             page.add_script_tag(content=vault_js)
+            page.add_script_tag(content=cities_js)
+            page.locator('#birth_city').select_option('温哥华')
+            assert page.locator('#timezone').input_value() == 'America/Vancouver'
+            assert page.locator('#longitude').input_value() == '-123.1207'
+            page.locator('#birth_city').select_option('')
+            page.locator('#timezone').select_option('Asia/Shanghai')
+            page.locator('#longitude').fill('')
             # AI chat is the initial view; without a configured model it explains how to enable it.
             page.locator('#chat-status').get_by_text('对话服务未启用', exact=False).wait_for(timeout=30000)
             assert page.locator('#chat-send').is_disabled()
             assert page.locator('#chat-memory-panel').count() == 1
+            page.locator('[data-tab="date-scan"]').click()
+            page.locator('#scan-hours').fill('09:00')
+            page.locator('#scan-run').click()
+            page.get_by_text('值符', exact=False).first.wait_for(timeout=30000)
+            page.locator('[data-tab="chat"]').click()
             assert page.locator('#tool-toggle-all').is_visible()
             assert page.locator('.tab:visible').count() < page.locator('.tab').count()
             page.locator('#tool-toggle-all').click()
@@ -99,7 +112,7 @@ def main() -> None:
             assert page.evaluate("JSON.parse(localStorage.getItem('xuanshu-profiles-v2'))[0].id") == 'legacy-1'
             assert page.evaluate("localStorage.getItem('oriental-astro-profiles-v2') !== null")
 
-            assert page.locator('.tab').count() == 23
+            assert page.locator('.tab').count() == 24
             # Question-first consultation keeps its opt-in birth input.
             assert page.locator('#consult-question').count() == 1
             page.locator('#consult-question').fill('2027年职业选择')

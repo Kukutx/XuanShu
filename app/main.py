@@ -35,6 +35,8 @@ from .professional_ziwei import ProfessionalZiweiRequest, professional_ziwei_cha
 from .chart_audit import QimenAuditRequest, qimen_reference_audit
 from .oauth_resource import config as oauth_config, is_authorized, challenge as oauth_challenge, metadata as oauth_metadata
 from .qimen import QimenRequest, qimen_chart
+from .date_selection import DateScanRequest, date_candidate_scan
+from .life_path import LifePathRequest, life_path_review
 from .chat import ChatRequest, ChatUnavailable, chat_status, run_chat
 
 ROOT = resource_root()
@@ -194,6 +196,22 @@ def chat(request: ChatRequest):
         return run_chat(request)
     except ChatUnavailable as exc:
         raise HTTPException(503, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, detail=str(exc)) from exc
+
+
+@app.post('/api/date-scan')
+def date_scan(request: DateScanRequest):
+    try:
+        return date_candidate_scan(request)
+    except ValueError as exc:
+        raise HTTPException(422, detail=str(exc)) from exc
+
+
+@app.post('/api/life-path')
+def life_path(request: LifePathRequest):
+    try:
+        return life_path_review(request)
     except ValueError as exc:
         raise HTTPException(422, detail=str(exc)) from exc
 
