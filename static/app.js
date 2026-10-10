@@ -4,9 +4,10 @@ const $ = sel => document.querySelector(sel);
 const result = $('#result');
 const form = $('#birth-form');
 const tabs = [...document.querySelectorAll('.tab')];
-const commonTabs = new Set(['consult','bazi','qimen','ziwei','professional','calendar','pair','decision','report']);
+const commonTabs = new Set(['chat','consult','bazi','qimen','ziwei','professional','calendar','pair','decision','report']);
 // Search alternative terminology without transmitting the user's query.
 const toolKeywords = {
+  chat:'对话 聊天 ai chat 问答 记忆 人生事件 life path 回溯 多语言 english',
   consult:'咨询 agent 事业 工作 感情 婚姻 关系 问答 career advice',
   bazi:'八字 四柱 生辰 干支 命盘',
   qimen:'奇门 遁甲 九宫 择时 事件',
@@ -69,7 +70,7 @@ try {
     }
   }
 } catch (_) { /* Storage may be unavailable; leave previous data untouched. */ }
-let active = 'consult';
+let active = 'chat';
 let current = null;
 let consultResult = null;
 let consultCursor = null;
@@ -1098,6 +1099,7 @@ function renderJson() {
 }
 function render() {
   clear();
+  if (active === 'chat') return renderChat();
   if (active === 'consult') return renderConsultation();
   if (active === 'qimen') return renderQimen();
   if (active === 'professional') return renderProfessionalZiwei();

@@ -244,7 +244,7 @@ def test_plugin_metadata_and_web_vault_have_no_external_analytics():
     root=Path(__file__).resolve().parents[1]
     html=(root/'static/index.html').read_text(encoding='utf-8')
     vault=(root/'static/vault.js').read_text(encoding='utf-8')
-    assert html.count('data-tab=')==22
+    assert html.count('data-tab=') == 23
     assert '/static/vault.js' in html
     assert 'PBKDF2' in vault and 'AES-GCM' in vault and 'subtle.decrypt' in vault
     assert 'fetch(' not in vault

@@ -27,10 +27,11 @@ This repository is an independently implemented Chinese calendar/cultural chart 
 - `app/qimen.py`: explicitly school-scoped Qimen rotating hour chart; not externally certified.
 - `app/consultation.py`: deterministic six-scenario question-first executable orchestration. Not an autonomous LLM; no server persistence; partner records require explicit authorization.
 - `app/oauth_resource.py`: JWT resource server backed by an external OAuth issuer, not an OAuth authorization server.
+- `app/chat.py`: optional LLM conversation (Anthropic SDK or OpenAI-compatible) over `mcp.call_tool`. The model must never compute charts itself; every call is traced. REST-only by design (MCP clients are already models). No server persistence; memory and life events come from the browser per request.
 - `app/mcp.py`: shared MCP tool, resource and prompt transport logic.
 - `app/main.py`: FastAPI REST + Streamable HTTP MCP.
 - `app/stdio.py`: Claude/Codex stdio MCP.
-- `static/`: self-contained browser console.
+- `static/`: self-contained browser console (`chat.js` is the AI conversation view and loads before `app.js`).
 - `skills/`: portable Agent Skills instructions.
 - `tests/`: regression suite; `scripts/build_release.py`: deterministic ZIP and SHA-256 manifest validation.
 

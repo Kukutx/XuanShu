@@ -51,8 +51,8 @@ def main():
                 desktop.on('response', lambda r: responses.append((r.status, r.url))
                            if '/api/' in r.url else None)
                 desktop.goto(url + '/', wait_until='networkidle')
-                assert desktop.locator('.tab').count() == 22
-                assert desktop.locator('.tab:visible').count() < 22
+                assert desktop.locator('.tab').count() == 23
+                assert desktop.locator('.tab:visible').count() < 23
                 # Ctrl+K and synonyms make the workbench discoverable.
                 desktop.keyboard.press('Control+k')
                 assert desktop.locator('#tool-search').evaluate('(el) => document.activeElement === el')
@@ -77,7 +77,7 @@ def main():
                 desktop.locator('#tool-search').press('Escape')
                 assert desktop.locator('#tool-search').input_value() == ''
                 desktop.locator('#tool-toggle-all').click()
-                assert desktop.locator('.tab:visible').count() == 22
+                assert desktop.locator('.tab:visible').count() == 23
                 desktop.get_by_role('button',name='年度事业',exact=True).click()
                 assert '事业' in desktop.locator('#consult-question').input_value()
                 desktop.locator('#consult-question').fill('2027年职业选择')

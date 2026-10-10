@@ -46,6 +46,7 @@ def main() -> None:
     html = re.sub(r'<link\s+rel="stylesheet"\s+href="/static/style.css"\s*/>', '', html)
     css = (ROOT / 'static/style.css').read_text(encoding='utf-8')
     js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
+    chat_js = (ROOT / 'static/chat.js').read_text(encoding='utf-8')
     vault_js = (ROOT / 'static/vault.js').read_text(encoding='utf-8')
     client = TestClient(app)
     counts = {'requests': 0}
@@ -53,7 +54,7 @@ def main() -> None:
     def call_api(path: str, data: dict):
         if not path.startswith('/api/'):
             raise ValueError('Only /api/ calls can use the local browser bridge')
-        response = client.post(path, json=data)
+        response = client.get(path) if data is None else client.post(path, json=data)
         counts['requests'] += 1
         return {'ok': response.is_success, 'status': response.status_code, 'data': response.json()}
 
@@ -75,7 +76,7 @@ def main() -> None:
                 removeItem:k=>{delete map[k]}
               },configurable:true});
               window.fetch=async(path,opt)=>{
-                const data=JSON.parse(opt.body);
+                const data=opt && opt.body ? JSON.parse(opt.body) : null;
                 const result=await window.apiBridge(path,data);
                 return {ok:result.ok,status:result.status,json:async()=>result.data};
               };
@@ -83,17 +84,23 @@ def main() -> None:
             # Exercise one-time profile migration when the project is rebranded.
             page.evaluate('''() => window.localStorage.setItem('oriental-astro-profiles-v2',
               JSON.stringify([{id:'legacy-1',label:'既有档案',data:{birth_datetime:'2000-08-16T04:00',timezone:'Asia/Shanghai'}}]))''')
+            page.add_script_tag(content=chat_js)
             page.add_script_tag(content=js)
             page.add_script_tag(content=vault_js)
+            # AI chat is the initial view; without a configured model it explains how to enable it.
+            page.locator('#chat-status').get_by_text('对话服务未启用', exact=False).wait_for(timeout=30000)
+            assert page.locator('#chat-send').is_disabled()
+            assert page.locator('#chat-memory-panel').count() == 1
             assert page.locator('#tool-toggle-all').is_visible()
             assert page.locator('.tab:visible').count() < page.locator('.tab').count()
             page.locator('#tool-toggle-all').click()
+            page.locator('[data-tab="consult"]').click()
             page.locator('#consult-advanced summary').click()
             assert page.evaluate("JSON.parse(localStorage.getItem('xuanshu-profiles-v2'))[0].id") == 'legacy-1'
             assert page.evaluate("localStorage.getItem('oriental-astro-profiles-v2') !== null")
 
-            assert page.locator('.tab').count() == 22
-            # Question-first consultation is the initial view, with opt-in birth input.
+            assert page.locator('.tab').count() == 23
+            # Question-first consultation keeps its opt-in birth input.
             assert page.locator('#consult-question').count() == 1
             page.locator('#consult-question').fill('2027年职业选择')
             page.locator('#consult-run').click()

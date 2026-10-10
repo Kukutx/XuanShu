@@ -4,8 +4,27 @@
 
 **本机 Python 最新版：** 已安装 Python 3.15.0（官方 2026-10-09 发布），玄枢虚拟环境与用户 PATH 默认均已指向 3.15；如旧 DevMate/PowerShell 窗口仍显示 3.13.7，请重新打开窗口刷新环境，旧版保留供其他项目兼容使用。
 
-**工作台使用体验：** Ctrl+K 搜索 22 项功能、同义词查找、方向键与 Home/End 切换、工具直达链接（仅存工具 ID）、出生参数改动后旧结果标记，以及咨询报告 Markdown 一键复制。详情见 docs/research/UX_AUDIT.md。
+**工作台使用体验：** Ctrl+K 搜索 23 项功能、同义词查找、方向键与 Home/End 切换、工具直达链接（仅存工具 ID）、出生参数改动后旧结果标记，以及咨询报告 Markdown 一键复制。详情见 docs/research/UX_AUDIT.md。
 
+
+## AI 对话（可选，需要自备模型 API Key）
+
+工作台首页「AI 对话」用自然语言提问，由你配置的语言模型调用玄枢的 25 个确定性工具回答；模型不自己排盘，每次工具调用的参数、结果摘要和 SHA-256 都能在「推理过程」里展开核对。对应天府 Agent 的对话、主动追问、跨对话档案记忆、人生事件回溯和多语言输出，对齐清单见 [docs/research/TIANFU_PARITY.md](docs/research/TIANFU_PARITY.md)。
+
+```bash
+# Claude（官方 Anthropic SDK，默认 claude-opus-5-5）
+python -m pip install '.[chat]'
+export ANTHROPIC_API_KEY=...            # 可选：XUANSHU_LLM_MODEL、XUANSHU_LLM_EFFORT=low|medium|high|xhigh|max
+
+# 或任意 OpenAI 兼容接口（DeepSeek、通义千问、本地 Ollama 等）
+python -m pip install '.[chat-openai]'
+export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_BASE_URL=https://api.deepseek.com/v1 XUANSHU_LLM_API_KEY=...
+```
+
+- REST：`GET /api/chat/status`、`POST /api/chat`。不提供 MCP 版本：MCP 客户端本身就是模型，直接调用 25 个工具即可。
+- 回答语言：简体中文、繁體中文、English、日本語。
+- 档案记忆与人生事件按本机档案隔离，**只存在浏览器里**，随每次提问发送；模型只能“提议”记忆，你点击后才保存。对话历史默认不保存，需在档案里主动勾选。服务器不保存任何对话或出生资料。
+- 未配置模型时页面会提示如何启用，其余工具照常使用。
 
 **Python 3.15 与体验改造（2026-10-10）：** Windows 系统用户默认及本项目虚拟环境已升级至 Python 3.15.0，uv 更新为 0.13.0；旧 3.13.7 安装和虚拟环境保留回退。界面提供常用功能优先、搜索全部 22 项、五类快捷咨询、折叠选项、草稿保留与可复制的本地 MCP 配置。详情见 docs/research/UX_AUDIT.md。Linux Docker 仍使用已验证的 Python 3.12。
 
@@ -58,7 +77,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\windows_acceptance.ps1
 | 建除十二值日 | **1–93 日传统月建值日查询**、节令日内分界标记、标签过滤 | 不给黄历吉凶与宜忌承诺 |
 | 透明决策矩阵 | 用户自定义 2–8 方案、1–8 指标权重，0–5 主观评分、单指标敏感性 | 不使用命理评分，亦非现实成功概率 |
 | 双人盘 | 4 组四柱和地支传统关系对照 | 不给虚假关系匹配分数 |
-| Web 工作台 | **22 个视图**，包含大运与边界地图、十二宫可点击、四化/时制查询、档案管理、JSON 导出 | 无云端账户/云同步 |
+| Web 工作台 | **23 个视图**（含 AI 对话），包含大运与边界地图、十二宫可点击、四化/时制查询、档案管理、JSON 导出 | 无云端账户/云同步 |
 | 浏览器隐私 | 可选 localStorage 保存/删除；WebCrypto AES-256-GCM 加密导出/导入，PBKDF2 口令推导 | **保存到浏览器的记录是明文**；仅加密备份文件，不替代磁盘加密 |
 | MCP / Agent | **25 Tools、17 Resources、15 Prompts、18 Skills**；HTTP+stdio 共用计算函数 | 外部 OAuth JWT 资源服务器；无实际授权服务器、租户隔离、主动 SSE 或公网连接验收 |
 | 工程交付 | Docker、Compose、Windows PowerShell 启动、Linux/macOS shell、CLI、GitHub CI、pytest / MCP / HTTP 校验 | 永久公网 HTTPS 部署需使用自己的授权主机及域名 |

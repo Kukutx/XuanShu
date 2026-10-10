@@ -148,7 +148,7 @@ def test_web_declares_new_workbench_and_safe_response_rendering():
     root=resource_root()
     html=(root/'static/index.html').read_text(encoding='utf-8')
     js=(root/'static/app.js').read_text(encoding='utf-8')
-    assert html.count('data-tab=')==22
+    assert html.count('data-tab=') == 23
     assert 'data-tab="deep"' in html
     assert "'/api/deep-review'" in js
     assert "append(panel,'p','feature-note',f.observation)" in js

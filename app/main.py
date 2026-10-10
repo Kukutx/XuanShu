@@ -35,6 +35,7 @@ from .professional_ziwei import ProfessionalZiweiRequest, professional_ziwei_cha
 from .chart_audit import QimenAuditRequest, qimen_reference_audit
 from .oauth_resource import config as oauth_config, is_authorized, challenge as oauth_challenge, metadata as oauth_metadata
 from .qimen import QimenRequest, qimen_chart
+from .chat import ChatRequest, ChatUnavailable, chat_status, run_chat
 
 ROOT = resource_root()
 app = FastAPI(title='XuanShu API', version=__version__, description='Deterministic cultural calendar/chart calculations and MCP tools. Non-predictive.')
@@ -178,6 +179,21 @@ def bazi(request: BirthInput, http_request: Request):
 def consultation(request: ConsultationRequest):
     try:
         return execute_consultation(request)
+    except ValueError as exc:
+        raise HTTPException(422, detail=str(exc)) from exc
+
+
+@app.get('/api/chat/status')
+def chat_status_api():
+    return chat_status()
+
+
+@app.post('/api/chat')
+def chat(request: ChatRequest):
+    try:
+        return run_chat(request)
+    except ChatUnavailable as exc:
+        raise HTTPException(503, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(422, detail=str(exc)) from exc
 

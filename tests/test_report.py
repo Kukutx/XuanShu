@@ -94,7 +94,7 @@ def test_report_cli_json_output():
 def test_report_frontend_skill_wiring():
     from pathlib import Path
     root=Path(__file__).resolve().parents[1]
-    assert (root/'static/index.html').read_text(encoding='utf-8').count('data-tab=')==22
+    assert (root/'static/index.html').read_text(encoding='utf-8').count('data-tab=') == 23
     assert "'/api/report'" in (root/'static/app.js').read_text(encoding='utf-8')
     skill=(root/'skills/structured-dossier/SKILL.md').read_text(encoding='utf-8')
     assert 'structured_report' in skill and 'provenance' in skill
