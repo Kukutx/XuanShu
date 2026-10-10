@@ -1,5 +1,7 @@
 # 玄枢 · XuanShu v.0.1.0
 
+**Windows/CI 验收（2026-10-10）：** 711 项 Python 测试通过、1 项环境条件跳过；25 项 MCP/REST 工具结果一致；真实 Chrome HTTP、Docker 多阶段构建与容器鉴权已实测通过。详见 TEST_REPORT.md。公网 OAuth/远程 MCP 和专业流派认证仍须独立验收。
+
 **本地优先、独立实现、可测试的传统历法 / 八字 / 紫微（部分）/ 时家奇门（限定流派）计算和 AI Agent 工具平台。**
 
 提供 Web 工作台、Python CLI、REST API、MCP Streamable HTTP + stdio、Agent Skills、JSON / ICS 导出以及可选浏览器端加密备份。**不依赖天府 AI 的私有接口、付费内容或源码，与该网站无官方关联。**

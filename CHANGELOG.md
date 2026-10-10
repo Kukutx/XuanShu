@@ -1,5 +1,7 @@
 # 更新记录 · v.0.1.0（未发布）
 
+- 2026-10-10 Windows/GitHub: 修复 Docker Slim 缺编译器，改为多阶段 wheel 构建；补充 Chrome 真实 HTTP 测试；公开仓库上传成功；修复 CI wheel 构建依赖，通过 Python 3.11/3.12/3.13 与 Docker 四组任务。项目版本仍固定 v.0.1.0。
+
 ## 2026-10-10 · 全工具接口验收与 Windows 安装脚本（仍为 v.0.1.0）
 
 - 新增 `scripts/full_functional_audit.py`，对照全部 25 个 MCP 工具与 REST 端点，强制清单一致，失败不可用错误分开报告；新增测试固定工具清单，防止新增 API 时漏测。
