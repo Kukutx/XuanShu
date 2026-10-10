@@ -88,16 +88,14 @@ def date_candidate_scan(req: DateScanRequest) -> dict:
         if req.exclude_natal_clash and clashes:
             excluded['natal_clash'] += 1
             continue
-        if len(candidates) >= req.max_results:
+        # Stop rather than emit candidates whose requested hour charts were not computed.
+        if len(candidates) >= req.max_results or charts + len(req.hours) > MAX_QIMEN_CHARTS:
             truncated = True
             break
         lunar = chinese_lunar_date(date.fromisoformat(day['date']))
         entry = {**day, 'lunar_date': {k: lunar[k] for k in ('year', 'month', 'day', 'is_leap_month')},
                  'natal_clashes': clashes, 'hour_charts': []}
         for hour in req.hours:
-            if charts >= MAX_QIMEN_CHARTS:
-                truncated = True
-                break
             chart = qimen_chart(QimenRequest(moment=BirthInput(birth_datetime=f"{day['date']}T{hour}", timezone=req.timezone)))
             charts += 1
             entry['hour_charts'].append({key: chart[key] for key in (
@@ -120,6 +118,6 @@ def date_candidate_scan(req: DateScanRequest) -> dict:
             '候选日只按你选的传统标签筛选并按日期排列，没有吉凶评分，也不保证择日效果。',
             '建除值日以北京时间正午归类；交节当天前后的值日可能不同。',
             '地支六冲只对照本命年支和日支，是传统标签，不代表现实冲突。',
-            f'时家奇门只覆盖时家拆补转盘一种流派，每次最多排 {MAX_QIMEN_CHARTS} 张盘。',
+            f'时家奇门只覆盖时家拆补转盘一种流派，每次最多排 {MAX_QIMEN_CHARTS} 张盘；达到上限时停止扫描并标记 truncated，不输出缺盘的候选日。',
         ] + calendar['limitations'][2:],
     }

@@ -13,7 +13,7 @@ import hashlib
 import json
 import os
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
@@ -28,6 +28,8 @@ DEFAULT_ANTHROPIC_MODEL = 'claude-opus-5-5'
 MAX_ROUNDS = 8
 MAX_TOOL_RESULT_CHARS = 20000
 MEMORY_TOOL = 'propose_memory'
+# Tools that take a second person's birth data; they run only with explicit user consent.
+PARTNER_TOOLS = {'pair_comparison': 'person_b', 'consultation_execute': 'partner'}
 
 
 def _clean(value: str) -> str:
@@ -62,11 +64,17 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=24)
     profile: ChatProfile | None = None
     language: Language = 'zh-CN'
+    # Ticked by the user in the browser; the model cannot grant it.
+    partner_authorized: bool = False
+    # The browser's local calendar date, so "today" matches the user rather than the server zone.
+    today: date | None = None
 
     @model_validator(mode='after')
     def ends_with_user(self):
         if self.messages[0].role != 'user' or self.messages[-1].role != 'user':
             raise ValueError('conversation must start and end with a user message')
+        if self.today is not None and abs((self.today - datetime.now(timezone.utc).date()).days) > 1:
+            raise ValueError('today must be within one day of the current UTC date')
         return self
 
 
@@ -149,12 +157,14 @@ SYSTEM_PROMPT = """你是玄枢（XuanShu）的术数文化咨询助手，帮助
 6. 择日择时：先问清日期范围、事项和在意的传统条件，再调用 date_candidate_scan（可附带时刻排时家奇门）；用户给出具体候选时刻时也可逐一调用 qimen_hour_chart。按日期列出，说明这只是文化标签，不保证效果。
 7. 用户要求完整分析时，按「核心结论 / 详细分析 / 行动建议 / 术语解释」组织；行动建议必须是现实中可执行、与命盘无关也成立的建议。
 8. 发现值得长期记住的背景（如职业、正在面对的选择），可以调用 propose_memory 提议保存，由用户决定。
-9. 第二个人的出生资料只有在用户明确表示已获对方同意时才使用。"""
+9. 第二个人的出生资料只有在用户勾选「已获对方同意」后才能使用；未勾选时 pair_comparison 和带 partner 的 consultation_execute 会被拒绝，请提示用户先勾选。"""
 
 
 def build_system(req: ChatRequest) -> list[str]:
     """Stable instructions first (cacheable), then per-request context."""
-    context = [f"本次回答语言：{LANGUAGE_NAMES[req.language]}。今天日期：{date.today().isoformat()}。"]
+    today = req.today.isoformat() + '（用户本地日期）' if req.today else datetime.now(timezone.utc).date().isoformat() + '（UTC）'
+    consent = '用户已勾选：已获第二人同意。' if req.partner_authorized else '用户未勾选第二人同意。'
+    context = [f"本次回答语言：{LANGUAGE_NAMES[req.language]}。今天日期：{today}。{consent}"]
     profile = req.profile
     if profile is not None:
         lines = ['<profile>', f"档案标签：{profile.label or '未命名'}"]
@@ -179,13 +189,18 @@ def build_system(req: ChatRequest) -> list[str]:
 class ChatRun:
     trace: list[dict] = field(default_factory=list)
     memory_suggestions: list[str] = field(default_factory=list)
+    partner_authorized: bool = False
 
     def execute(self, name: str, args: Any) -> tuple[str, bool]:
         """Run one tool call; return (content for the model, is_error)."""
         step = len(self.trace) + 1
-        entry: dict[str, Any] = {'step': step, 'tool': name, 'arguments': args}
+        entry: dict[str, Any] = {'step': step, 'tool': name, 'arguments': args[:2000] if isinstance(args, str) else args}
         if not isinstance(args, dict):
-            entry.update(ok=False, error='arguments must be a JSON object')
+            entry.update(ok=False, error='arguments must be a valid JSON object')
+            self.trace.append(entry)
+            return entry['error'], True
+        if name in PARTNER_TOOLS and args.get(PARTNER_TOOLS[name]) is not None and not self.partner_authorized:
+            entry.update(ok=False, error='第二人的出生资料需要用户在对话界面勾选「已获对方同意」后才能使用')
             self.trace.append(entry)
             return entry['error'], True
         if name == MEMORY_TOOL:
@@ -216,8 +231,44 @@ class ChatRun:
                      summary=('返回字段：' + '、'.join(list(result)[:12])) if isinstance(result, dict) else '已返回结果')
         self.trace.append(entry)
         if len(text) > MAX_TOOL_RESULT_CHARS:
-            text = text[:MAX_TOOL_RESULT_CHARS] + f'\n…[结果过长，已截断；完整结果共 {len(text)} 字符，可缩小查询范围后重试]'
+            text = _compact(result, len(text))
         return text, False
+
+
+def _dumps(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, default=str, sort_keys=True)
+
+
+def _compact(result: Any, total: int) -> str:
+    """Shrink an oversized result to valid JSON, keeping small fields such as
+    ``limitations`` and ``method`` whole and cutting only the bulky lists."""
+    notice = f'结果共 {total} 字符，超过上限；已保留全部小字段与 limitations，长列表只保留开头部分。可缩小查询范围后重试。'
+    if not isinstance(result, dict):
+        return _dumps({'_truncated': notice, 'partial_text': _dumps(result)[:MAX_TOOL_RESULT_CHARS // 2]})
+    budget = MAX_TOOL_RESULT_CHARS - 1000
+    kept: dict[str, Any] = {}
+    cut: list[str] = []
+    # Smallest fields first so limitations, method and counts always survive.
+    for key in sorted(result, key=lambda k: (k != 'limitations', len(_dumps(result[k])))):
+        value = result[key]
+        size = len(_dumps(value)) + len(key) + 6
+        if size <= budget or key == 'limitations':
+            kept[key] = value
+            budget -= size
+        elif isinstance(value, list):
+            items = []
+            for item in value:
+                size = len(_dumps(item)) + 2
+                if size > budget:
+                    break
+                items.append(item)
+                budget -= size
+            kept[key] = items
+            cut.append(f'{key}：保留前 {len(items)} / {len(value)} 项')
+        else:
+            cut.append(f'{key}：已省略')
+    kept['_truncated'] = {'notice': notice, 'fields': cut}
+    return _dumps(kept)
 
 
 # A loop function runs the provider conversation to completion.
@@ -281,9 +332,9 @@ def openai_loop(config: ChatConfig, system: list[str], history: list[dict], tool
             try:
                 args = json.loads(call.function.arguments or '{}')
             except json.JSONDecodeError:
-                content, _ = 'arguments must be valid JSON', True
-            else:
-                content, _ = execute(call.function.name, args)
+                # Pass the raw text through so the failed attempt still appears in the trace.
+                args = call.function.arguments
+            content, _ = execute(call.function.name, args)
             messages.append({'role': 'tool', 'tool_call_id': call.id, 'content': content})
     return '工具调用轮次已达上限，请把问题拆小后再问。', 'max_rounds'
 
@@ -298,7 +349,7 @@ def run_chat(req: ChatRequest, config: ChatConfig | None = None, loop: LoopFn | 
             raise ChatUnavailable(status['reason'])
         config = chat_config()
     assert config is not None
-    run = ChatRun()
+    run = ChatRun(partner_authorized=req.partner_authorized)
     history = [m.model_dump() for m in req.messages]
     reply, stop = (loop or LOOPS[config.provider])(config, build_system(req), history, tool_specs(), run.execute)
     return {

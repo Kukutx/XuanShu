@@ -4,6 +4,8 @@ No network: a fake provider loop drives tool calls the way a model would.
 """
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -50,11 +52,58 @@ def test_memory_proposals_are_returned_not_stored():
     assert out['trace'][1]['ok'] is False
 
 
-def test_long_tool_results_are_truncated(monkeypatch):
-    monkeypatch.setattr(chat_module, 'MAX_TOOL_RESULT_CHARS', 100)
-    loop = scripted_loop([('bazi_chart', BIRTH)])
-    run_chat(ChatRequest(messages=[{'role': 'user', 'content': '八字'}]), config=CONFIG, loop=loop)
-    assert '已截断' in loop.results[0][0]
+def test_long_tool_results_stay_valid_json_and_keep_limitations(monkeypatch):
+    monkeypatch.setattr(chat_module, 'MAX_TOOL_RESULT_CHARS', 8000)
+    loop = scripted_loop([('date_candidate_scan', {'start_date': '2026-01-01', 'days': 93, 'hours': ['09:00', '15:00']})])
+    run_chat(ChatRequest(messages=[{'role': 'user', 'content': '择日'}]), config=CONFIG, loop=loop)
+    text = loop.results[0][0]
+    assert len(text) <= chat_module.MAX_TOOL_RESULT_CHARS
+    data = json.loads(text)
+    full = chat_module.call_tool('date_candidate_scan', {'start_date': '2026-01-01', 'days': 93, 'hours': ['09:00', '15:00']})
+    assert data['limitations'] == full['limitations'] and data['criteria'] == full['criteria']
+    assert 0 < len(data['candidates']) < len(full['candidates'])
+    assert data['candidates'] == full['candidates'][:len(data['candidates'])]
+    assert any(f.startswith('candidates') for f in data['_truncated']['fields'])
+
+
+def test_partner_tools_need_the_users_consent_tick():
+    pair = {'person_a': BIRTH, 'person_b': {**BIRTH, 'birth_datetime': '1999-03-02T10:00'}}
+    message = [{'role': 'user', 'content': '合盘'}]
+    denied = run_chat(ChatRequest(messages=message), config=CONFIG, loop=scripted_loop([('pair_comparison', pair)]))
+    assert not denied['trace'][0]['ok'] and '已获对方同意' in denied['trace'][0]['error']
+    consult = {'question': '我们适合合作吗', 'birth': BIRTH, 'partner': pair['person_b'], 'partner_authorized': True}
+    denied = run_chat(ChatRequest(messages=message), config=CONFIG, loop=scripted_loop([('consultation_execute', consult)]))
+    assert not denied['trace'][0]['ok']
+    allowed = run_chat(ChatRequest(messages=message, partner_authorized=True), config=CONFIG,
+                       loop=scripted_loop([('pair_comparison', pair)]))
+    assert allowed['trace'][0]['ok']
+
+
+def test_malformed_openai_arguments_are_traced(monkeypatch):
+    import sys
+    import types
+
+    def reply(calls, content=None):
+        message = types.SimpleNamespace(content=content, tool_calls=calls)
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(message=message, finish_reason='stop')])
+
+    bad = types.SimpleNamespace(id='c1', function=types.SimpleNamespace(name='bazi_chart', arguments='{not json'))
+    responses = iter([reply([bad]), reply(None, '好的')])
+    client = types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=lambda **kw: next(responses))))
+    monkeypatch.setitem(sys.modules, 'openai', types.SimpleNamespace(OpenAI=lambda **kw: client))
+    out = run_chat(ChatRequest(messages=[{'role': 'user', 'content': '八字'}]), config=ChatConfig('openai', 'm'))
+    assert out['reply'] == '好的'
+    assert out['trace'] == [{'step': 1, 'tool': 'bazi_chart', 'arguments': '{not json', 'ok': False,
+                             'error': 'arguments must be a valid JSON object'}]
+
+
+def test_today_comes_from_the_browser_within_a_day():
+    from datetime import datetime, timedelta, timezone
+    today = datetime.now(timezone.utc).date()
+    req = ChatRequest(messages=[{'role': 'user', 'content': '今天'}], today=today + timedelta(days=1))
+    assert f'{(today + timedelta(days=1)).isoformat()}（用户本地日期）' in build_system(req)[1]
+    with pytest.raises(ValidationError):
+        ChatRequest(messages=[{'role': 'user', 'content': '今天'}], today=today + timedelta(days=3))
 
 
 def test_system_context_carries_profile_as_unverified_data_and_language():

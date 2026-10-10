@@ -13,6 +13,8 @@ let chatBusy = false;
 let chatDraft = '';
 let chatLanguage = 'zh-CN';
 let chatUseBirth = true;
+let chatPartnerOK = false;  // the user's own consent tick; never set by the model
+let chatOwner = null;      // profile id the current conversation belongs to
 let chatTokenWatch = false;
 let lifePathResult = null;
 
@@ -43,9 +45,30 @@ function loadChatHistory(id) {
   return Array.isArray(list) ? list.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').slice(-60) : [];
 }
 function persistChatHistory() {
-  const profile = chatProfile();
-  if (!profile || !profileMemory(profile.id).keep_history) return;
-  const all = chatStore(chatHistoryKey); all[profile.id] = chatMessages.slice(-60); chatSave(chatHistoryKey, all);
+  if (!chatOwner || chatOwner !== $('#profiles').value || !profileMemory(chatOwner).keep_history) return;
+  const all = chatStore(chatHistoryKey); all[chatOwner] = chatMessages.slice(-60); chatSave(chatHistoryKey, all);
+}
+// A conversation belongs to one profile: switching profiles starts a fresh one
+// so one profile's history is never sent or saved under another.
+function syncChatOwner() {
+  const id = $('#profiles').value || null;
+  if (id === chatOwner) return;
+  // A conversation started before any profile existed is adopted by the first one.
+  if (chatOwner !== null) {chatMessages = []; lifePathResult = null;}
+  chatOwner = id;
+}
+// Remove memory, life events and saved conversations of deleted profiles.
+function purgeChatStores() {
+  const alive = new Set(loadProfiles().map(x => x.id));
+  for (const key of [chatMemoryKey, chatHistoryKey]) {
+    const all = chatStore(key); let changed = false;
+    Object.keys(all).forEach(id => {if (!alive.has(id)) {delete all[id]; changed = true;}});
+    if (changed) {
+      if (Object.keys(all).length) chatSave(key, all);
+      else try {localStorage.removeItem(key);} catch (_) {}
+    }
+  }
+  syncChatOwner();
 }
 async function fetchChatStatus() {
   const token = $('#api_token').value;
@@ -58,7 +81,9 @@ async function fetchChatStatus() {
 // Send the most recent turns that fit under the server body limit.
 function chatPayload() {
   const profile = chatProfile();
-  const payload = {language: chatLanguage, messages: []};
+  const now = new Date();
+  const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const payload = {language: chatLanguage, messages: [], partner_authorized: chatPartnerOK, today};
   if (profile || chatUseBirth) {
     const stored = profile ? profileMemory(profile.id) : {memory:[], life_events:[]};
     payload.profile = {label: profile ? profile.label.slice(0, 50) : '当前参数', memory: stored.memory,
@@ -81,6 +106,7 @@ function chatPayload() {
 async function sendChat(text) {
   const content = text.trim();
   if (!content || chatBusy) return;
+  syncChatOwner();
   chatMessages.push({role:'user', content: content.slice(0, 4000)});
   chatDraft = ''; chatBusy = true; render();
   try {
@@ -224,7 +250,9 @@ function renderChat() {
   if (!chatTokenWatch) {
     chatTokenWatch = true;
     $('#api_token').addEventListener('change', () => {chatStatus = null; if (active === 'chat') render();});
+    $('#profiles').addEventListener('change', () => {syncChatOwner(); if (active === 'chat') render();});
   }
+  syncChatOwner();
   if (chatStatus === null) {chatStatus = {pending:true}; fetchChatStatus();}
   const area = append(result, 'section', 'consult-panel chat-panel');
   append(area, 'h3', null, 'AI 对话');
@@ -241,10 +269,14 @@ function renderChat() {
   const birth = append(birthLabel, 'input'); birth.type = 'checkbox'; birth.id = 'chat-use-birth'; birth.checked = chatUseBirth;
   birthLabel.append(' 附带左侧出生参数');
   birth.addEventListener('change', () => {chatUseBirth = birth.checked;});
+  const partnerLabel = append(controls, 'label', 'check-line');
+  const partner = append(partnerLabel, 'input'); partner.type = 'checkbox'; partner.id = 'chat-partner-ok'; partner.checked = chatPartnerOK;
+  partnerLabel.append(' 已获第二人同意使用其出生资料');
+  partner.addEventListener('change', () => {chatPartnerOK = partner.checked;});
   const profile = chatProfile();
   const loadBtn = append(controls, 'button', 'tiny-button', '载入本档案对话'); loadBtn.type = 'button'; loadBtn.id = 'chat-load-history';
   loadBtn.disabled = !profile || !profileMemory(profile.id).keep_history;
-  loadBtn.addEventListener('click', () => {chatMessages = loadChatHistory(profile.id); render();});
+  loadBtn.addEventListener('click', () => {chatOwner = profile.id; chatMessages = loadChatHistory(profile.id); render();});
   renderMemoryPanel(area);
 
   const log = append(area, 'div', 'chat-log'); log.id = 'chat-log'; log.setAttribute('aria-live', 'polite');

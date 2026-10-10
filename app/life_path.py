@@ -8,14 +8,14 @@ imply that the labels caused the events.
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .advanced import DayunRequest, dayun_sequence
 from .astronomy import chinese_lunar_date
-from .engines import BirthInput, calculate_bazi
+from .engines import BirthInput, calculate_bazi, normalized_dt
 from .features import AnnualRequest, annual_transformations
 from .reference import BRANCH_CLASH, BRANCH_HARMONY
 
@@ -38,7 +38,7 @@ class LifePathRequest(BaseModel):
 
     @model_validator(mode='after')
     def events_after_birth(self):
-        born = datetime.fromisoformat(self.birth.birth_datetime).date()
+        born = normalized_dt(self.birth).date()
         for event in self.events:
             if event.date < born or event.date.year > 2099:
                 raise ValueError('event dates must fall between the birth date and 2099-12-31')
@@ -68,7 +68,7 @@ def life_path_review(req: LifePathRequest) -> dict:
                                               direction_override=req.dayun_direction_override))['periods']
     else:
         notes.append('未指定性别或大运顺逆，省略大运对照（方向不会被猜测）。')
-    born = datetime.fromisoformat(req.birth.birth_datetime).date()
+    born = normalized_dt(req.birth).date()  # local date in the stated zone, as the chart engines use
     rows = []
     for event in sorted(req.events, key=lambda e: e.date):
         noon = BirthInput(birth_datetime=f'{event.date.isoformat()}T12:00', timezone=req.birth.timezone)

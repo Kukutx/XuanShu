@@ -475,7 +475,16 @@ function renderDayOfficers() {
   officerResult.limitations.forEach(x=>note(result,x));
 }
 let dateScanResult = null;
-let dateScanDraft = {start_date: localToday(), days: 30, include:[], exclude:['破','闭'], skipJie:true, natal:false, hours:''};
+let dateScanFingerprint = null;
+// The scan depends on the birth fields (natal filter) and the zone (hour charts).
+function dateScanStamp(natal, hours) {
+  return JSON.stringify({birth: natal ? readInput() : null, timezone: hours ? $('#timezone').value : null});
+}
+function dateScanStale() {
+  return !!dateScanResult && dateScanFingerprint !== dateScanStamp(dateScanResult.criteria.exclude_natal_clash, dateScanResult.criteria.hours.length > 0);
+}
+// No criteria are preselected: every exclusion is the user's own choice.
+let dateScanDraft = {start_date: localToday(), days: 30, include:[], exclude:[], skipJie:false, natal:false, hours:''};
 function renderDateScan() {
   title(result,'择日择时','按你选的传统条件筛选候选日，可附加每个候选日指定时刻的时家奇门盘 · 按日期排列，不打吉凶分');
   const row=append(result,'div','inline-control');
@@ -503,10 +512,12 @@ function renderDateScan() {
       exclude_jie_boundary_days:dateScanDraft.skipJie,hours:dateScanDraft.hours.split(/[,，\s]+/).filter(Boolean),timezone:$('#timezone').value};
     if(dateScanDraft.natal){payload.birth=readInput();if(payload.birth.longitude===null)delete payload.birth.longitude;payload.exclude_natal_clash=true;}
     run.disabled=true;msg.textContent='';
-    try{dateScanResult=await postJSON('/api/date-scan',payload);render();}
+    const stamp=dateScanStamp(dateScanDraft.natal,payload.hours.length>0);
+    try{dateScanResult=await postJSON('/api/date-scan',payload);dateScanFingerprint=stamp;render();}
     catch(e){msg.textContent='扫描失败：'+e.message;}
     finally{run.disabled=false;}
   });
+  if(dateScanStale()){dateScanResult=null;dateScanFingerprint=null;append(result,'p','info-inline','出生参数或时区已更改，旧的扫描结果已清除，请重新扫描。');return;}
   if(!dateScanResult){append(result,'p','info-inline','先选条件再扫描。结果只是传统标签筛选，最终取舍以现实安排为准。');return;}
   const ex=dateScanResult.excluded_counts;
   meta(result,[`候选 ${dateScanResult.candidates.length} 日`,`排除：值日 ${ex.officer_not_included+ex.officer_excluded} · 交节 ${ex.jie_boundary} · 相冲 ${ex.natal_clash}`,dateScanResult.truncated?'结果已达上限':'按日期排列']);
@@ -1231,7 +1242,7 @@ function updateStaleBirthNotice() {
   const fingerprint=JSON.stringify(readInput());
   const outdatedChart=!!currentInput && fingerprint !== JSON.stringify(currentInput);
   const outdatedQimen=!!qimenResult && !!qimenFingerprint && fingerprint !== qimenFingerprint;
-  const outdated=outdatedChart || outdatedQimen;
+  const outdated=outdatedChart || outdatedQimen || dateScanStale();
   $('#stale-birth-warning').hidden = !outdated;
   if (outdated) {
     $('#result-subtitle').textContent = '出生资料已更改：旧命盘需要重新生成';
@@ -1308,7 +1319,7 @@ $('#load-profile').addEventListener('click', () => {
 $('#remove-profile').addEventListener('click', () => {
   const chosen = $('#profiles').value;
   if (!chosen) {setFeedback('请选择要删除的档案'); return;}
-  try {localStorage.setItem(profileKey, JSON.stringify(loadProfiles().filter(x => x.id !== chosen))); showProfiles(); setFeedback('已从本机浏览器删除所选档案。');}
+  try {localStorage.setItem(profileKey, JSON.stringify(loadProfiles().filter(x => x.id !== chosen))); showProfiles(); purgeChatStores(); setFeedback('已从本机浏览器删除所选档案及其对话、记忆和人生事件。'); if (active === 'chat') render();}
   catch (_) {setFeedback('删除失败：浏览器存储不可用');}
 });
 showProfiles();

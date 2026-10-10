@@ -40,6 +40,18 @@ def test_scan_hour_charts_use_qimen_engine_and_are_capped():
     assert (chart['dun'], chart['bureau'], chart['zhi_fu_star'], chart['zhi_shi_door']) == ('阴遁', 5, '天辅', '杜门')
     capped = date_candidate_scan(DateScanRequest(start_date='2026-01-01', days=60, hours=['09:00', '15:00'], max_results=60))
     assert sum(len(c['hour_charts']) for c in capped['candidates']) == MAX_QIMEN_CHARTS and capped['truncated']
+    # Every emitted candidate carries all requested charts; none is left half-computed.
+    assert all(len(c['hour_charts']) == 2 for c in capped['candidates'])
+    odd = date_candidate_scan(DateScanRequest(start_date='2026-01-01', days=60, hours=['09:00', '12:00', '15:00']))
+    assert all(len(c['hour_charts']) == 3 for c in odd['candidates']) and len(odd['candidates']) == MAX_QIMEN_CHARTS // 3
+
+
+def test_jie_boundary_found_when_the_jie_falls_after_23_00():
+    # 2006 立夏 falls between 23:00 and midnight Beijing time on 2006-05-05.
+    days = {d['date']: d for d in day_officer_calendar(DayOfficerRequest(start_date='2006-05-04', days=3))['days']}
+    assert [days[k]['jie_boundary_on_date'] for k in sorted(days)] == [False, True, False]
+    out = date_candidate_scan(DateScanRequest(start_date='2006-05-04', days=3, exclude_jie_boundary_days=True))
+    assert '2006-05-05' not in {c['date'] for c in out['candidates']} and out['excluded_counts']['jie_boundary'] == 1
 
 
 @pytest.mark.parametrize('payload', [
@@ -72,6 +84,16 @@ def test_life_path_never_guesses_dayun_direction():
     assert out['events'][0]['dayun'] is None and out['notes']
     with pytest.raises(ValidationError):
         LifePathRequest(birth=BIRTH, events=[{'date': '1999-01-01', 'title': '出生前'}])
+
+
+def test_life_path_uses_the_birth_date_in_the_stated_zone():
+    # 2000-08-15T20:00Z is 2000-08-16 04:00 in Shanghai, so 2000-08-15 is before the local birth date.
+    aware = {**BIRTH, 'birth_datetime': '2000-08-15T20:00:00+00:00'}
+    with pytest.raises(ValidationError):
+        LifePathRequest(birth=aware, events=[{'date': '2000-08-15', 'title': '出生前'}])
+    same = life_path_review(LifePathRequest(birth=aware, events=[{'date': '2022-07-01', 'title': '毕业'}]))
+    naive = life_path_review(LifePathRequest(birth=BIRTH, events=[{'date': '2022-07-01', 'title': '毕业'}]))
+    assert same['events'] == naive['events']
 
 
 def test_rest_and_mcp_parity():
