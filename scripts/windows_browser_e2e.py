@@ -53,6 +53,25 @@ def main():
                 desktop.goto(url + '/', wait_until='networkidle')
                 assert desktop.locator('.tab').count() == 22
                 assert desktop.locator('.tab:visible').count() < 22
+                # Ctrl+K and synonyms make the workbench discoverable.
+                desktop.keyboard.press('Control+k')
+                assert desktop.locator('#tool-search').evaluate('(el) => document.activeElement === el')
+                desktop.locator('#tool-search').fill('MCP')
+                assert desktop.locator('[data-tab="integration"]').is_visible()
+                desktop.locator('[data-tab="integration"]').click()
+                assert desktop.evaluate('location.hash') == '#tool=integration'
+                desktop.reload(wait_until='networkidle')
+                assert desktop.locator('[data-tab="integration"]').get_attribute('aria-selected') == 'true'
+                desktop.locator('#tool-search').fill('')
+                desktop.locator('#tool-toggle-all').click()
+                desktop.locator('[data-tab="consult"]').click()
+                desktop.locator('[data-tab="consult"]').focus()
+                desktop.keyboard.press('End')
+                assert desktop.locator('[data-tab="json"]').get_attribute('aria-selected') == 'true'
+                desktop.keyboard.press('Home')
+                assert desktop.locator('[data-tab="consult"]').get_attribute('aria-selected') == 'true'
+                # Reset expanded navigation to preserve existing test assumptions.
+                desktop.locator('#tool-toggle-all').click()
                 desktop.locator('#tool-search').fill('四化')
                 assert desktop.locator('[data-tab="transform"]').is_visible()
                 desktop.locator('#tool-search').press('Escape')
@@ -67,10 +86,23 @@ def main():
                 desktop.locator('#consult-use-birth').check()
                 desktop.locator('#consult-run').click()
                 desktop.get_by_text('annual_transformations', exact=False).first.wait_for()
+                assert desktop.locator('#consult-copy-markdown').is_visible()
+                desktop.context.grant_permissions(['clipboard-read','clipboard-write'], origin=url)
+                desktop.locator('#consult-copy-markdown').click()
+                assert desktop.locator('#consult-copy-markdown').text_content() == '已复制报告'
+                assert len(desktop.evaluate('navigator.clipboard.readText()')) > 80
                 desktop.locator('[data-tab="bazi"]').click()
                 desktop.locator('#run-btn').click()
                 desktop.locator('.pillar-stem').first.wait_for()
                 assert desktop.locator('.pillar-stem').count() == 4
+                assert desktop.locator('#stale-birth-warning').is_hidden()
+                original_date=desktop.locator('#birth_datetime').input_value()
+                desktop.locator('#birth_datetime').fill('2000-08-16T04:01')
+                assert desktop.locator('#stale-birth-warning').is_visible()
+                assert desktop.locator('#download-json').is_disabled()
+                desktop.locator('#birth_datetime').fill(original_date)
+                assert desktop.locator('#stale-birth-warning').is_hidden()
+                assert desktop.locator('#download-json').is_enabled()
                 desktop.locator('[data-tab="qimen"]').click()
                 desktop.locator('#qimen-run').click()
                 desktop.locator('.qimen-cell').first.wait_for()
@@ -95,6 +127,19 @@ def main():
                 assert mobile.locator('#consult-question').is_visible()
                 assert mobile.locator('#tool-search').is_visible()
                 assert mobile.locator('.consult-shortcuts button').count() == 5
+                # Qimen is usable without first generating the natal chart.
+                # Its own result must also be marked stale if birth inputs change.
+                standalone=browser.new_page(viewport={'width':1024,'height':768})
+                standalone.on('pageerror', lambda e: errors.append(str(e)))
+                standalone.goto(url + '/#tool=qimen', wait_until='networkidle')
+                assert standalone.locator('[data-tab="qimen"]').get_attribute('aria-selected') == 'true'
+                standalone.locator('#qimen-run').click()
+                standalone.locator('.qimen-cell').first.wait_for()
+                assert standalone.locator('#stale-birth-warning').is_hidden()
+                standalone.locator('#birth_datetime').fill('2000-08-16T04:01')
+                assert standalone.locator('#stale-birth-warning').is_visible()
+                standalone.locator('#birth_datetime').fill('2000-08-16T04:00')
+                assert standalone.locator('#stale-birth-warning').is_hidden()
             finally:
                 browser.close()
         assert not errors, errors

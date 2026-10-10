@@ -146,3 +146,27 @@ def test_release_verification_rejects_hashed_secret_file(tmp_path):
                          f'{digest}  .env.local\n'.encode('utf-8'))
     with pytest.raises(ValueError, match='Forbidden release entry'):
         verify(path)
+
+
+
+def test_ignored_virtualenv_symlinks_do_not_block_release(tmp_path, monkeypatch):
+    # Python 3.15 uv venv creates a POSIX .venv/lib64 -> lib link.
+    import pytest
+    from scripts import build_release
+    ignored = tmp_path / '.venv'
+    ignored.mkdir()
+    link = ignored / 'lib64'
+    try:
+        link.symlink_to(ignored, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip('Host does not permit creating symbolic links')
+    source = tmp_path / 'README.md'
+    source.write_text('example', encoding='utf-8')
+    monkeypatch.setattr(build_release, 'ROOT', tmp_path)
+    assert build_release.source_files() == [source]
+
+    # Unexcluded source symlinks remain forbidden (no data exfiltration).
+    untrusted = tmp_path / 'untrusted'
+    untrusted.symlink_to(source)
+    with pytest.raises(ValueError, match='refuses symbolic links'):
+        build_release.source_files()

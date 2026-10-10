@@ -57,3 +57,36 @@ def test_mcp_onboarding_snippet_is_copyable_and_portable():
     assert "'C:\\\\path\\\\to\\\\xuanshu'" in js
     assert "navigator.clipboard.writeText(snippet)" in js
     assert "'/path/to/xuanshu'" in js
+
+
+
+def test_workbench_is_keyboard_accessible_and_shareable_without_birth_data():
+    html=(ROOT/'static/index.html').read_text(encoding='utf-8')
+    js=(ROOT/'static/app.js').read_text(encoding='utf-8')
+    assert "function tabFromHash()" in js
+    assert "history.replaceState(null, '', '#tool=' + active)" in js
+    assert "function activateTab(tab, updateUrl = true)" in js
+    assert "'ArrowRight','ArrowLeft','Home','End'" in js
+    assert "event.key.toLowerCase() === 'k'" in js
+    assert "const toolKeywords" in js
+    assert "integration:'mcp" in js
+    assert 'Ctrl+K' in html
+    assert 'role="tablist"' in html
+
+
+def test_editing_birth_disables_old_chart_export_without_discarding_it():
+    html=(ROOT/'static/index.html').read_text(encoding='utf-8')
+    js=(ROOT/'static/app.js').read_text(encoding='utf-8')
+    assert 'id="stale-birth-warning"' in html
+    assert "function updateStaleBirthNotice()" in js
+    assert "JSON.stringify(readInput()) !== JSON.stringify(currentInput)" in js
+    assert "$('#download-json').disabled = true" in js
+    assert "updateStaleBirthNotice();" in js
+    assert "const outdatedQimen=" in js
+    assert "fingerprint !== qimenFingerprint" in js
+
+
+def test_report_markdown_can_be_copied_without_downloading():
+    js=(ROOT/'static/app.js').read_text(encoding='utf-8')
+    assert "copyBtn.id='consult-copy-markdown'" in js
+    assert "navigator.clipboard.writeText(consultResult.markdown)" in js

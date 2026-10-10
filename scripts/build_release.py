@@ -69,6 +69,11 @@ def eligible(path: Path) -> bool:
 
 def source_files() -> list[Path]:
     for path in ROOT.rglob('*'):
+        # Virtual environments on POSIX normally contain .venv/lib64 symlinks.
+        # Excluded trees must not block legitimate source archives, while
+        # links in *eligible* source paths remain strictly forbidden.
+        if is_excluded(path.relative_to(ROOT)):
+            continue
         if path.is_symlink():
             raise ValueError(f'Release refuses symbolic links: {path}')
     return sorted((p for p in ROOT.rglob('*') if eligible(p)), key=lambda p: p.relative_to(ROOT).as_posix())

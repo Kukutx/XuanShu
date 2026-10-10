@@ -1,5 +1,26 @@
 # XuanShu v.0.1.0 · 实际测试及正式验收边界
 
+## 2026-10-10 最新 XuanShu v.0.1.0 验收
+
+- **Windows Python 3.15.0**：723 passed、1 skipped，skip 为已安装专业依赖时不适用的负向环境条件测试；另有 FastAPI TestClient 的 1 条第三方弃用警告，非失败。
+- **pip check**：No broken requirements found；PySwissEph 与 iztro-py 的实际导入/工具调用均可用。
+- **25/25 REST↔MCP** 工具返回一致；隔离 wheel 安装、CLI、真实 Uvicorn HTTP、Windows Chromium 桥接和 Chrome 直接 HTTP、浏览器 AES-GCM 加密备份通过。
+- **可用性真实浏览器回归**：Ctrl+K 搜索、MCP 同义词、22 项工具键盘 Home/End/方向键、#tool=安全直达、出生参数更改后旧盘和独立奇门盘的过期数据提醒、导出禁用及一键复制 Markdown，均正常。
+- **跨平台 Python 3.15 打包修复**：跳过排除目录内部的 .venv/lib64 符号链接，但继续拒绝源码树里的真实符号链接；新增完整正反向安全测试。
+- 项目版本继续固定 **v.0.1.0**，**没有创建 Release**；公网 OAuth、ChatGPT/Claude 远程 MCP 和全部术数流派专业认证仍没有完成。
+
+
+## 2026-10-10 Python 3.15 / Windows 交互深度回归
+
+- Windows 已安装 Python 3.15.0：系统用户 PATH 从 Machine+User 环境重建后 python 默认解析为 3.15.0；py 与玄枢 .venv 本来已经使用 3.15.0。旧进程没有即时刷新环境不等于升级失败。
+- 玄枢 Python 3.15 的 pip check 通过；FastAPI、Pydantic、PyJWT、PySwissEph、iztro-py 依赖实际存在。
+- Linux Python 3.15 CI 发现 .venv/lib64 虚拟环境符号链接触发过度阻拦；已调整发行源文件过滤并补正反两向安全测试。
+- 新增更易发现的工具搜索、Ctrl+K、键盘无障碍切换、#tool=工具 ID 安全直达、出生信息变动后的过期数据提示、Markdown 剪贴板复制。
+- Windows Chrome 154 真实访问本机 Uvicorn 经过页面操作验证；不包含公网 HTTPS/OAuth 的真实客户端认证。
+- 所有业务功能仍属于传统文化方法计算，自动化测试通过不意味着现实预测科学有效。
+
+
+
 ## 2026-10-10 Python 3.15 / 用户体验升级
 
 - 官方 Python 3.15.0 Windows x64 安装包 SHA-256 和 Authenticode 数字签名均通过。

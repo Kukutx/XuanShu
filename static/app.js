@@ -5,18 +5,48 @@ const result = $('#result');
 const form = $('#birth-form');
 const tabs = [...document.querySelectorAll('.tab')];
 const commonTabs = new Set(['consult','bazi','qimen','ziwei','professional','calendar','pair','decision','report']);
+// Search alternative terminology without transmitting the user's query.
+const toolKeywords = {
+  consult:'咨询 agent 事业 工作 感情 婚姻 关系 问答 career advice',
+  bazi:'八字 四柱 生辰 干支 命盘',
+  qimen:'奇门 遁甲 九宫 择时 事件',
+  ziwei:'紫微 星曜 宫位 命盘',
+  professional:'紫微 专业 iztro 大限 流年 流月 流日 流时',
+  'qimen-audit':'奇门 核验 参考盘',
+  transform:'四化 飞化 年干',
+  annual:'流年 年运 年度',
+  time:'太阳时 经度 时差',
+  dayun:'八字 大运 起运',
+  boundaries:'出生时间 时辰 边界',
+  officers:'择日 建除 十二值日',
+  timeline:'年份 运势 轨迹',
+  decision:'方案 对比 权重 决策',
+  calendar:'农历 日历 节气 日期',
+  pair:'合盘 双人 伴侣 关系',
+  quality:'质量 核查 误差',
+  reading:'传统 符号 分析',
+  deep:'证据 来源 文献 规则',
+  report:'报告 综述 markdown',
+  integration:'mcp claude chatgpt codex plugin 接入 配置',
+  json:'json 数据 导出 开发',
+};
 let expandedTools = false;
 function updateToolNavigation() {
   const term = $('#tool-search').value.trim().toLocaleLowerCase();
   let visible = 0;
+  let matched = 0;
   tabs.forEach(tab => {
     const allowed = expandedTools || !!term || commonTabs.has(tab.dataset.tab);
-    const matches = !term || tab.textContent.toLocaleLowerCase().includes(term);
+    const content = (tab.textContent + ' ' + (toolKeywords[tab.dataset.tab] || '')).toLocaleLowerCase();
+    const matches = !term || content.includes(term);
+    if (term && matches) matched++;
     // Preserve the active view until the user intentionally selects another.
     tab.hidden = !(tab.dataset.tab === active || (allowed && matches));
     if (!tab.hidden) visible++;
   });
-  $('#tool-visible-count').textContent = term ? `匹配 ${visible} 项` : `当前 ${visible}/${tabs.length} 项`;
+  $('#tool-visible-count').textContent = term
+    ? (matched ? ('找到 ' + matched + ' 项（当前页面保留）') : '没有匹配项，请尝试八字、择时、MCP 等关键词')
+    : ('当前 ' + visible + '/' + tabs.length + ' 项');
   $('#tool-toggle-all').textContent = expandedTools ? '收起高级功能' : `展开全部 ${tabs.length} 项`;
   $('#tool-toggle-all').setAttribute('aria-expanded', String(expandedTools));
 }
@@ -140,6 +170,7 @@ function setInput(data) {
   $('#longitude').value = data.longitude ?? '';
   updateGeoControls();
   updateDemoBirthWarning();
+  updateStaleBirthNotice();
 }
 async function postJSON(path, body) {
   const token = $('#api_token').value;
@@ -1047,6 +1078,11 @@ function renderConsultation() {
   if(consultResult.missing_inputs.length){append(result,'h4','subheading','需要补充');consultResult.missing_inputs.forEach(x=>append(result,'p','disclaimer',x.field+' · '+x.reason));}
   append(result,'h4','subheading','可核验观察');
   consultResult.observations.forEach(x=>{const row=append(result,'section','report-section');append(row,'p','feature-note',x.text);append(row,'p','small-text','来源：'+x.tool+' · '+x.path);if(x.limit)append(row,'p','disclaimer',x.limit);});
+  const copyBtn=append(result,'button','tiny-button','复制咨询报告 Markdown');copyBtn.type='button';copyBtn.id='consult-copy-markdown';
+  copyBtn.addEventListener('click',async()=>{
+    try {await navigator.clipboard.writeText(consultResult.markdown);copyBtn.textContent='已复制报告';}
+    catch (_) {copyBtn.textContent='复制失败，请使用旁边的下载功能';}
+  });
   const exportBtn=append(result,'button','tiny-button','导出咨询报告 Markdown ↓');exportBtn.type='button';
   exportBtn.addEventListener('click',()=>{const blob=new Blob([consultResult.markdown],{type:'text/markdown;charset=utf-8'});const url=URL.createObjectURL(blob);const a=elt('a');a.href=url;a.download='xuanshu-consultation.md';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);});
   consultResult.limitations.forEach(x=>note(result,x));
@@ -1092,12 +1128,70 @@ function render() {
   else if (active === 'reading') renderReading(current.reading);
   else renderJson();
 }
-tabs.forEach(tab => tab.addEventListener('click', () => {
+// The URL identifies only the selected tool; it never stores a birth date.
+function tabFromHash() {
+  const match = /^#tool=([a-z-]+)$/.exec(location.hash);
+  return match ? tabs.find(tab => tab.dataset.tab === match[1]) : null;
+}
+function activateTab(tab, updateUrl = true) {
+  if (!tab) return;
   active = tab.dataset.tab;
-  tabs.forEach(other => {const selected = other === tab; other.classList.toggle('active', selected); other.setAttribute('aria-selected', String(selected));});
+  tabs.forEach(other => {
+    const selected = other === tab;
+    other.classList.toggle('active', selected);
+    other.setAttribute('aria-selected', String(selected));
+    other.tabIndex = selected ? 0 : -1;
+  });
+  if (updateUrl && /^https?:$/.test(location.protocol)) {
+    history.replaceState(null, '', '#tool=' + active);
+  }
   updateToolNavigation();
   render();
-}));
+}
+tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
+$('#workspace-tabs').addEventListener('keydown', event => {
+  if (!['ArrowRight','ArrowLeft','Home','End'].includes(event.key) || !event.target.classList.contains('tab')) return;
+  event.preventDefault();
+  const available = tabs.filter(tab => !tab.hidden);
+  const index = available.indexOf(event.target);
+  if (index < 0 || !available.length) return;
+  const next = event.key === 'Home' ? 0 : event.key === 'End' ? available.length-1
+    : (index + (event.key === 'ArrowRight' ? 1 : -1) + available.length) % available.length;
+  activateTab(available[next]);
+  available[next].focus();
+});
+document.addEventListener('keydown', event => {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k') {
+    event.preventDefault();
+    $('#tool-search').focus();
+    $('#tool-search').select();
+  }
+});
+window.addEventListener('hashchange', () => {
+  const tab = tabFromHash();
+  if (tab && tab.dataset.tab !== active) activateTab(tab, false);
+});
+// Keep old results visible for reference, but mark them as stale and
+// disable export when the user edits any birth parameter.
+function updateStaleBirthNotice() {
+  const fingerprint=JSON.stringify(readInput());
+  const outdatedChart=!!currentInput && fingerprint !== JSON.stringify(currentInput);
+  const outdatedQimen=!!qimenResult && !!qimenFingerprint && fingerprint !== qimenFingerprint;
+  const outdated=outdatedChart || outdatedQimen;
+  $('#stale-birth-warning').hidden = !outdated;
+  if (outdated) {
+    $('#result-subtitle').textContent = '出生资料已更改：旧命盘需要重新生成';
+    $('#download-json').disabled = true;
+  } else if (currentInput) {
+    $('#result-subtitle').textContent = currentInput.birth_datetime.replace('T',' ') + ' · ' + currentInput.timezone;
+    $('#download-json').disabled = false;
+  }
+}
+for (const type of ['input','change']) {
+  form.addEventListener(type, event => {
+    if (event.target.id !== 'api_token') updateStaleBirthNotice();
+  });
+}
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const run = $('#run-btn'); const error = $('#error');
@@ -1114,12 +1208,13 @@ form.addEventListener('submit', async event => {
     selectedPalace = '命宫';
     $('#result-subtitle').textContent = data.birth_datetime.replace('T',' ') + ' · ' + data.timezone;
     $('#download-json').disabled = false;
+    updateStaleBirthNotice();
     render();
   } catch (err) {error.textContent = '计算失败：' + err.message; error.hidden = false;}
   finally {run.disabled = false; run.querySelector('span').textContent = '生成命盘';}
 });
 $('#download-json').addEventListener('click', () => {
-  if (!current) return;
+  if (!current || (currentInput && JSON.stringify(readInput()) !== JSON.stringify(currentInput))) return;
   const blob = new Blob([JSON.stringify(jsonData(), null, 2)], {type: 'application/json;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const anchor = elt('a'); anchor.href = url; anchor.download = 'xuanshu-' + currentInput.birth_datetime.slice(0,10) + '.json';
@@ -1173,6 +1268,7 @@ function updateDemoBirthWarning() {
 }
 $('#birth_datetime').addEventListener('input',updateDemoBirthWarning);
 updateDemoBirthWarning();
-updateToolNavigation();
-// Initialize the question-first view without requiring a natal chart.
-render();
+// Restore a tool-only URL without exposing sensitive input in the address bar.
+const initialTab=tabFromHash();
+if (initialTab) activateTab(initialTab, false);
+else {updateToolNavigation(); render();}
