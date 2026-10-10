@@ -3,18 +3,23 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+permissions:
+  contents: read
+
 jobs:
   python:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         python-version: ['3.11', '3.12', '3.13']
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+      - run: python -m pip install --upgrade pip setuptools wheel
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m compileall -q app
       - run: python -m pytest -q
@@ -26,9 +31,9 @@ jobs:
       - run: python -m app.cli deep-review --date 2024-02-07T12:00 --palace 官禄宫 --year 2026
       - run: python scripts/build_release.py && python scripts/build_release.py --verify ../xuanshu-v.0.1.0.zip
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: docker build --tag xuanshu:ci .
       - run: python scripts/init_docker_local.py
       - run: docker compose up -d --build
