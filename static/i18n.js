@@ -128,6 +128,9 @@ const UI_TEXT = [
   ['对话由你配置的语言模型生成；命盘计算只来自本地确定性工具。服务器不保存对话、记忆或出生资料。传统术数未经科学预测效力验证。', 'Replies come from the language model you configured; chart calculations come only from local deterministic tools. The server stores no chats, memory or birth data. Traditional systems are not scientifically validated predictors.', '回答は設定した言語モデルが生成し、命盤の計算はローカルの決定的ツールのみによります。サーバーは会話・記憶・出生データを保存しません。伝統術数は科学的な予測として検証されていません。'],
   [' 独立核验回答（多一次模型调用）', ' Independently verify answers (one more model call)', ' 回答を独立に検証（モデル呼び出しが 1 回増える）'],
   ['出生时间误差 ', 'Birth-time uncertainty ', '出生時刻の誤差 '],
+  ['回答方式 ', 'Answer mode ', '回答方式 '], ['单一助手', 'Single assistant', '単一アシスタント'],
+  ['多流派会诊（多次模型调用）', 'Multi-school panel (several model calls)', '流派別の合議（モデル呼び出しが複数回）'],
+  ['各流派专家正在分别排盘，随后综合…', 'Each school’s specialist is charting; a synthesis follows…', '各流派の専門家が個別に作盤中、その後まとめます…'],
   ['±2 分钟', '±2 min', '±2 分'], ['±15 分钟', '±15 min', '±15 分'], ['±30 分钟', '±30 min', '±30 分'],
   ['±1 小时', '±1 h', '±1 時間'], ['±2 小时', '±2 h', '±2 時間'],
   // Date selection

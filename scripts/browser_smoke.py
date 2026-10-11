@@ -103,6 +103,7 @@ def main() -> None:
             page.locator('#chat-status').get_by_text('对话服务未启用', exact=False).wait_for(timeout=30000)
             assert page.locator('#chat-send').is_disabled()
             assert page.locator('#chat-memory-panel').count() == 1
+            assert page.locator('#chat-mode option').count() == 2 and page.locator('#chat-mode').input_value() == 'single'
             page.locator('[data-tab="date-scan"]').click()
             page.locator('#scan-hours').fill('09:00')
             page.locator('#scan-run').click()

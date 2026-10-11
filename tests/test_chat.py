@@ -232,3 +232,60 @@ def test_year_pillar_confidence_uses_lichun_not_any_jie():
     # Near 白露 (a jie that is not 立春) only the month pillar moves.
     bailu = {f['fact']: f['confidence'] for f in chart_confidence(BirthInput(birth_datetime='2024-09-07T11:00', timezone='Asia/Shanghai'), 120)['facts']}
     assert bailu['八字年柱'] == 'high' and bailu['八字月柱'] == 'low'
+
+
+def panel_loop(calls_by_agent):
+    """Answers as whichever agent the system prompt names; the synthesizer gets no tools."""
+    seen = []
+
+    def loop(config, system, history, tools, execute):
+        names = {t['name'] for t in tools}
+        if not tools:
+            seen.append(('synth', names, history[-1]['content']))
+            return '综合回答', 'end_turn'
+        agent = next(k for k, v in chat_module.SPECIALISTS.items() if v['label'] in system[0])
+        seen.append((agent, names, system[1]))
+        for name, args in calls_by_agent.get(agent, []):
+            execute(name, args)
+        return f'{agent} 报告', 'end_turn'
+    loop.seen = seen
+    return loop
+
+
+def test_panel_mode_runs_one_specialist_per_school_then_a_tool_free_synthesizer():
+    loop = panel_loop({'bazi': [('bazi_chart', BIRTH)], 'ziwei': [('ziwei_chart', BIRTH), ('bazi_chart', BIRTH)]})
+    verify = fake_verifier({'claims': [], 'overall': '无计算陈述。'})
+    req = ChatRequest(messages=[{'role': 'user', 'content': '今年事业如何'}], profile={'birth': BIRTH}, mode='panel')
+    out = run_chat(req, config=CONFIG, loop=loop, verify=verify)
+    assert out['mode'] == 'panel' and out['reply'] == '综合回答'
+    assert [p['agent'] for p in out['panel']] == ['bazi', 'ziwei', 'qimen']
+    assert [p['tool_calls'] for p in out['panel']] == [1, 2, 0]
+    tools = {agent: names for agent, names, _ in loop.seen}
+    assert 'bazi_chart' in tools['bazi'] and 'ziwei_chart' not in tools['bazi']
+    assert 'qimen_hour_chart' in tools['qimen'] and 'bazi_chart' not in tools['qimen']
+    assert 'propose_memory' not in tools['ziwei'] and 'solar_terms' in tools['ziwei']
+    assert tools['synth'] == set()
+    # A specialist cannot reach another school's tool even if it asks for one.
+    trace = out['trace']
+    assert [t['step'] for t in trace] == [1, 2, 3]
+    assert [t['agent'] for t in trace] == ['bazi', 'ziwei', 'ziwei']
+    assert trace[2]['ok'] is False and '本流派' in trace[2]['error']
+    # The synthesizer reads every report; the verifier sees the evidence from all specialists.
+    synth_input = next(c for a, _, c in loop.seen if a == 'synth')
+    assert 'bazi 报告' in synth_input and 'qimen 报告' in synth_input and synth_input.startswith('今年事业如何')
+    assert '"tool": "bazi_chart"' in verify.user_text and '"tool": "ziwei_chart"' in verify.user_text
+    assert any('多流派会诊' in line for line in out['limitations'])
+
+
+def test_panel_agents_can_be_narrowed_and_must_be_unique():
+    loop = panel_loop({})
+    req = ChatRequest(messages=[{'role': 'user', 'content': '下周哪天搬家'}], mode='panel', panel_agents=['qimen'], verify=False)
+    out = run_chat(req, config=CONFIG, loop=loop)
+    assert [p['agent'] for p in out['panel']] == ['qimen'] and out['verification'] is None
+    with pytest.raises(ValidationError):
+        ChatRequest(messages=[{'role': 'user', 'content': 'x'}], panel_agents=['bazi', 'bazi'])
+    with pytest.raises(ValidationError):
+        ChatRequest(messages=[{'role': 'user', 'content': 'x'}], panel_agents=[])
+    single = run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False), config=CONFIG,
+                      loop=scripted_loop([]))
+    assert single['mode'] == 'single' and single['panel'] is None
