@@ -4,7 +4,7 @@ const $ = sel => document.querySelector(sel);
 const result = $('#result');
 const form = $('#birth-form');
 const tabs = [...document.querySelectorAll('.tab')];
-const commonTabs = new Set(['chat','date-scan','consult','bazi','qimen','ziwei','transform','dayun','calendar','pair','decision','report']);
+const commonTabs = new Set(['chat','today','date-scan','consult','bazi','qimen','ziwei','transform','dayun','calendar','pair','decision','report']);
 // Search alternative terminology without transmitting the user's query.
 const toolKeywords = {
   chat:'对话 聊天 ai chat 问答 记忆 人生事件 life path 回溯 多语言 english',
@@ -52,9 +52,10 @@ function updateToolNavigation() {
     while (node && !node.classList.contains('tab-group')) {if (node.classList.contains('tab') && !node.hidden) shown = true; node = node.nextElementSibling;}
     label.hidden = !shown;
   });
-  $('#tool-visible-count').textContent = term
-    ? (matched ? ('找到 ' + matched + ' 项（当前页面保留）') : '没有匹配项，请尝试八字、择时、MCP 等关键词')
-    : ('当前 ' + visible + '/' + tabs.length + ' 项');
+  // Counts sit between their own text nodes so 当前 / 项 translate as whole entries.
+  $('#tool-visible-count').replaceChildren(...(term
+    ? (matched ? ['找到 ', String(matched), ' 项（当前页面保留）'] : ['没有匹配项，请尝试八字、择时、MCP 等关键词'])
+    : ['当前 ', visible + '/' + tabs.length, ' 项']));
   $('#tool-toggle-all').textContent = expandedTools ? '收起高级功能' : `展开全部 ${tabs.length} 项`;
   $('#tool-toggle-all').setAttribute('aria-expanded', String(expandedTools));
 }
@@ -963,6 +964,173 @@ function renderDecision() {
 // Reverse lookup: four pillars -> every matching birth interval in 1901–2099.
 const JIAZI = Array.from({length: 60}, (_, i) => STEM_ORDER[i % 10] + BRANCH_ORDER[i % 12]);
 let pillarDraft = null, pillarResult = null;
+// Today card: calendar facts for this moment on the device clock; with a chart, the traditional labels against it.
+const deviceZone = () => {try {return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai';} catch (_) {return 'Asia/Shanghai';}};
+// The device reading with its UTC offset, so a repeated daylight-saving hour still names one instant.
+function localMoment() {
+  const n = new Date(), pad = x => String(x).padStart(2, '0'), off = -n.getTimezoneOffset();
+  const zone = (off < 0 ? '-' : '+') + pad(Math.floor(Math.abs(off) / 60)) + ':' + pad(Math.abs(off) % 60);
+  return localToday() + 'T' + pad(n.getHours()) + ':' + pad(n.getMinutes()) + zone;
+}
+let todayData = null, todayKey = null, todayPending = false, todayError = '', todayBirthSkipped = false;
+function todayRequest() {
+  const body = {moment: localMoment(), timezone: deviceZone()};
+  if (current && currentInput) body.birth = currentInput;
+  return body;
+}
+function ensureToday(then) {
+  const body = todayRequest(), key = JSON.stringify(body);
+  if (todayKey === key || todayPending) return;
+  todayPending = true;
+  // The natal comparison is optional (a chart born after this moment is rejected), and an unrecognised
+  // device zone falls back to China time: either way the plain card still shows.
+  const tries = [body];
+  if (body.birth) {const {birth, ...plain} = body; tries.push(plain);}
+  if (body.timezone !== 'Asia/Shanghai') tries.push(...tries.map(data => ({...data, timezone: 'Asia/Shanghai'})));
+  (async () => {
+    let last = null;
+    for (const data of tries) {
+      try {return {data, result: await postJSON('/api/daily-almanac', data)};} catch (err) {last = err;}
+    }
+    throw last;
+  })()
+    .then(({data, result}) => {todayData = result; todayError = ''; todayBirthSkipped = !!body.birth && !data.birth;})
+    .catch(err => {todayData = null; todayError = err.message;})
+    .finally(() => {todayPending = false; todayKey = key; renderTodayChip(); if (then) then();});
+}
+// A page left open keeps the card current: refetch once the device clock reaches a new hour (the hour
+// pillar and, at midnight, the date change) and whenever the page becomes visible again.
+function refreshTodayIfStale() {
+  if (document.hidden || todayPending || !todayKey) return;
+  if (JSON.parse(todayKey).moment.slice(0, 13) === localMoment().slice(0, 13)) return;
+  ensureToday(() => {if (active === 'today') render();});
+}
+setInterval(refreshTodayIfStale, 60000);
+document.addEventListener('visibilitychange', refreshTodayIfStale);
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function moonIcon(parent, moon, size = 56) {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 48 48'); svg.setAttribute('width', size); svg.setAttribute('height', size);
+  svg.setAttribute('class', 'moon-icon'); svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', moon.phase + ' ' + Math.round(moon.illuminated_fraction * 100) + '%');
+  const disc = document.createElementNS(SVG_NS, 'circle');
+  disc.setAttribute('cx', 24); disc.setAttribute('cy', 24); disc.setAttribute('r', 20); disc.setAttribute('class', 'moon-dark');
+  svg.append(disc);
+  const angle = moon.elongation_degrees * Math.PI / 180, r = 20, rx = Math.abs(Math.cos(angle)) * r;
+  if (moon.illuminated_fraction > 0.004) {
+    // Northern-hemisphere view: the lit limb is on the right while waxing. The terminator is a half ellipse.
+    const crescent = Math.cos(angle) > 0;
+    const outer = moon.waxing ? 1 : 0, inner = moon.waxing ? (crescent ? 0 : 1) : (crescent ? 1 : 0);
+    const lit = document.createElementNS(SVG_NS, 'path');
+    lit.setAttribute('d', `M24 4 A${r} ${r} 0 0 ${outer} 24 44 A${rx.toFixed(2)} ${r} 0 0 ${inner} 24 4 Z`);
+    lit.setAttribute('class', 'moon-lit');
+    svg.append(lit);
+  }
+  parent.append(svg);
+  return svg;
+}
+const clockOf = iso => iso.slice(5, 10).replace('-', '/') + ' ' + iso.slice(11, 16);
+const WEEKDAY_NAMES = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
+const ANIMAL_YEARS = ['鼠年', '牛年', '虎年', '兔年', '龙年', '蛇年', '马年', '羊年', '猴年', '鸡年', '狗年', '猪年'];
+// Numbers sit in their own text node so the units around them translate as whole entries.
+function texts(parent, ...parts) {parts.forEach(part => parent.append(String(part))); return parent;}
+function renderToday() {
+  title(result, '今日历法', '本机时间 · 历法事实 · 不打吉凶分');
+  if (todayKey !== JSON.stringify(todayRequest())) {
+    ensureToday(() => {if (active === 'today') render();});
+    if (!todayData) {append(result, 'p', 'field-help', '正在计算今天的四柱、节气和月相…'); return;}
+  }
+  if (!todayData) {append(result, 'p', 'inline-msg', '今日历法暂时算不出来：' + todayError); return;}
+  const t = todayData;
+  const hero = append(result, 'section', 'today-hero');
+  const date = append(hero, 'div', 'today-date');
+  texts(append(date, 'small'), t.date.replace(/-/g, '/'), ' · ', WEEKDAY_NAMES['一二三四五六日'.indexOf(t.weekday)]);
+  append(date, 'strong', 'today-lunar', t.lunar.label);
+  texts(append(date, 'span', 'today-year'), t.pillars.year, ' · ', ANIMAL_YEARS[BRANCH_ORDER.indexOf(t.pillars.year[1])]);
+  const grid = append(hero, 'div', 'today-pillars');
+  for (const key of ['year', 'month', 'day', 'hour']) {
+    const p = t.pillars[key];
+    const box = append(grid, 'div', 'today-pillar' + (key === 'day' ? ' today-day' : ''));
+    append(box, 'small', null, nameMap[key]);
+    append(box, 'b', stemClass(p[0]), p[0]);
+    append(box, 'b', branchClass(p[1]), p[1]);
+  }
+  const moonBox = append(hero, 'div', 'today-moon');
+  moonIcon(moonBox, t.moon);
+  const moonText = append(moonBox, 'div');
+  append(moonText, 'strong', null, t.moon.phase);
+  texts(append(moonText, 'small'), '照亮', ' ' + Math.round(t.moon.illuminated_fraction * 100) + '%');
+  texts(append(moonText, 'small'), '下次满月', ' ' + clockOf(t.moon.next_full_moon));
+  texts(append(moonText, 'small'), '下次新月', ' ' + clockOf(t.moon.next_new_moon));
+
+  const term = append(result, 'section', 'today-term');
+  const now = append(term, 'div', 'today-term-now');
+  append(now, 'strong', null, t.solar_term.current.name);
+  texts(append(now, 'small'), '已入节', ' ' + t.solar_term.current.day_number, ' 天', ' · ', '交节', ' ' + clockOf(t.solar_term.current.start));
+  const track = append(term, 'div', 'today-term-track');
+  track.setAttribute('role', 'progressbar'); track.setAttribute('aria-valuemin', '0'); track.setAttribute('aria-valuemax', '100');
+  track.setAttribute('aria-valuenow', String(Math.round(t.solar_term.progress * 100)));
+  track.setAttribute('aria-label', t.solar_term.current.name + ' → ' + t.solar_term.next.name);
+  append(track, 'span', 'today-term-fill').style.width = Math.round(t.solar_term.progress * 100) + '%';
+  const next = append(term, 'div', 'today-term-next');
+  append(next, 'strong', null, t.solar_term.next.name);
+  const until = append(next, 'small');
+  if (t.solar_term.next.days_until) texts(until, String(t.solar_term.next.days_until), ' 天后'); else texts(until, '今天');
+  texts(until, ' · ', '交节', ' ' + clockOf(t.solar_term.next.start));
+
+  const facts = append(result, 'div', 'meta-tags today-facts');
+  texts(append(facts, 'span'), '建除值日', ' ' + t.day_officer.officer);
+  if (t.day_officer.jie_boundary_on_date) append(facts, 'span', null, '今天交节，节令前后值日不同');
+  texts(append(facts, 'span'), '农历本月', ' ' + t.lunar.month_days, ' 天');
+  append(facts, 'span', null, t.timezone);
+
+  append(result, 'h4', 'subheading', '与我的命盘');
+  if (!t.personal && todayBirthSkipped) {
+    append(result, 'p', 'field-help', '当前命盘的出生时间晚于此刻，不列个人对照。');
+  } else if (!t.personal) {
+    const empty = append(result, 'div', 'today-empty');
+    append(empty, 'p', 'field-help', '生成命盘后，这里会列出今天四柱对日主的十神，以及与本命四支的六冲、六合、同支。');
+    const go = append(empty, 'button', 'tiny-button', '用当前出生资料生成命盘'); go.type = 'button'; go.id = 'today-generate';
+    go.addEventListener('click', () => form.requestSubmit());
+  } else {
+    const me = t.personal;
+    const tags = [`日主 ${me.day_master}`, `虚岁 ${me.nominal_age}`];
+    if (me.decade_period && me.decade_period.pillar) tags.push(`大运 ${me.decade_period.pillar}（${me.decade_period.stem_ten_god}）`);
+    else if (me.decade_period) tags.push('尚未起运');
+    else tags.push('选择性别后显示大运');
+    meta(result, tags);
+    const wrap = append(result, 'div', 'table-wrap');
+    const table = append(wrap, 'table', 'data-table today-table');
+    const head = append(append(table, 'thead'), 'tr');
+    ['', '今日', '天干十神', '地支与本命'].forEach(text => append(head, 'th', null, text));
+    const body = append(table, 'tbody');
+    me.today_against_natal.forEach(row => {
+      const tr = append(body, 'tr');
+      append(tr, 'th', null, nameMap[row.pillar_of]);
+      const cell = append(tr, 'td', 'pillar-cell');
+      append(cell, 'b', stemClass(row.pillar[0]), row.pillar[0]); append(cell, 'b', branchClass(row.pillar[1]), row.pillar[1]);
+      append(tr, 'td', null, row.stem_ten_god);
+      const rel = append(tr, 'td');
+      if (!row.branch_relations.length) append(rel, 'span', 'muted', '—');
+      row.branch_relations.forEach(x => {
+        const chip = append(rel, 'span', 'relation-chip rel-' + {'六冲': 'clash', '六合': 'harmony', '同支': 'same'}[x.type]);
+        texts(chip, x.type, ' · ', x.with, ' ' + x.natal_branch);
+      });
+    });
+  }
+  t.limitations.forEach(text => note(result, text));
+}
+// A one-line today summary in the page header; it opens the full card.
+function renderTodayChip() {
+  const chip = $('#today-chip');
+  if (!chip || !todayData) return;
+  const t = todayData;
+  chip.replaceChildren();
+  append(chip, 'span', 'today-chip-label', '今日');
+  moonIcon(chip, t.moon, 16);
+  texts(chip, t.lunar.label, ' · ', t.pillars.day, ' · ', t.solar_term.current.name);
+  chip.hidden = false;
+}
 function renderPillarSearch() {
   title(result, '四柱反查出生时间', '给出四柱，列出 1901–2099 年间所有对得上的出生时段');
   append(result, 'p', 'info-inline', '时区、时制和经度沿用出生资料；边界用和排盘相同的计算逐秒校准。');
@@ -1695,6 +1863,7 @@ function renderView() {
   if (active === 'deep') return renderDeep();
   if (active === 'pillar-search') return renderPillarSearch();
   if (active === 'import-check') return renderImportCheck();
+  if (active === 'today') return renderToday();
   if (!current) {
     const empty = append(result, 'div', 'empty-state');
     append(empty, 'div', 'empty-orbit', '☯');
@@ -1956,7 +2125,7 @@ function updateGeoControls(){
   const panel=$('#advanced-rules');
   panel.classList.toggle('solar-active',mode!=='clock');
   if(mode!=='clock')panel.open=true;
-  const parts=[$('#time_mode').selectedOptions[0].textContent.replace(/（.*$/,'')];
+  const parts=[{clock:'当地钟表时间',mean_solar:'平太阳时',apparent_solar:'真太阳时'}[mode]];
   if($('#late_zi_day_rollover').checked)parts.push('23:00 换日');
   parts.push($('#leap_month_second_half_as_next').checked?'闰月顺延':'闰月不顺延');
   $('#advanced-rules-summary').textContent=parts.join(' · ');
@@ -2113,3 +2282,8 @@ updateDemoBirthWarning();
 // Restore a tool-only URL without exposing sensitive input in the address bar.
 const initialTab=tabFromHash();
 activateTab(initialTab || tabs.find(t => t.dataset.tab === active), false);
+$('#today-chip').addEventListener('click', () => {
+  activateTab(tabs.find(t => t.dataset.tab === 'today'));
+  $('#workspace').scrollIntoView({block: 'start', behavior: 'smooth'});
+});
+if (active !== 'today') ensureToday();

@@ -123,7 +123,7 @@ def main() -> None:
             assert page.evaluate("JSON.parse(localStorage.getItem('xuanshu-profiles-v2'))[0].id") == 'legacy-1'
             assert page.evaluate("localStorage.getItem('oriental-astro-profiles-v2') !== null")
 
-            assert page.locator('.tab').count() == 26
+            assert page.locator('.tab').count() == 27
             # Question-first consultation keeps its opt-in birth input.
             assert page.locator('#consult-question').count() == 1
             page.locator('#consult-question').fill('2027年职业选择')
@@ -164,7 +164,7 @@ def main() -> None:
             page.locator('#pillar-use-1').wait_for(timeout=30000)
             assert page.locator('#result tbody tr').count() == 2
             assert '2000-08-16 03:00:00' in page.locator('#result').inner_text()
-            page.screenshot(path=str(screenshot_dir / '27-pillar-search.png'), full_page=True)
+            page.screenshot(path=str(screenshot_dir / '33-pillar-search.png'), full_page=True)
             page.locator('#pillar-use-1').click()
             assert page.locator('#birth_datetime').input_value() == '2000-08-16T04:00'
             page.locator('.pillar-stem').first.wait_for(timeout=30000)
@@ -179,7 +179,16 @@ def main() -> None:
             page.locator('#import-check-run').click()
             page.wait_for_function("() => document.querySelectorAll('.import-table tr.mismatch').length === 1", timeout=30000)
             assert '可能的原因' in page.locator('#result').inner_text()
-            page.screenshot(path=str(screenshot_dir / '28-import-check.png'), full_page=True)
+            page.screenshot(path=str(screenshot_dir / '34-import-check.png'), full_page=True)
+
+            # Today card from the header chip: calendar facts for the device clock and labels against the chart.
+            assert page.locator('#today-chip').is_visible()
+            page.locator('#today-chip').click()
+            page.locator('.today-table').wait_for(timeout=30000)
+            assert page.locator('.today-pillar').count() == 4 and page.locator('.today-table tbody tr').count() == 4
+            assert page.locator('.moon-icon').count() == 2  # the card and the header chip
+            assert '日主 丙火' in page.locator('#result').inner_text()
+            page.screenshot(path=str(screenshot_dir / '35-today.png'), full_page=True)
             page.locator('[data-tab="bazi"]').click()
             page.locator('[data-tab="annual"]').click()
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)

@@ -153,7 +153,7 @@ def test_new_mcp_tools_and_resources_prompts():
     init = process_rpc(rpc('initialize', {'protocolVersion':PROTOCOL}))['result']
     assert set(init['capabilities']) == {'tools','prompts','resources','extensions'}
     result = process_rpc(rpc('tools/list'))['result']['tools']
-    assert len(result) == 30
+    assert len(result) == 31
     for name, args, field in [
         ('calendar_days', {'start_date':'2024-02-10','days':1}, 'days'),
         ('pair_comparison', {'person_a':{'birth_datetime':'2000-08-16T04:00'},'person_b':{'birth_datetime':'2001-01-01T12:00'}},'comparisons'),

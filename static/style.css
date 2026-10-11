@@ -478,6 +478,45 @@ a{color:inherit;text-decoration:none}
 .import-result.diff{color:var(--warn);white-space:nowrap;font-weight:600}
 .plain-list{margin:6px 0 12px 18px;font-size:13px;line-height:1.7;color:var(--text2)}
 
+/* 今日历法 */
+.today-hero{display:grid;grid-template-columns:minmax(150px,1fr) auto auto;gap:18px;align-items:center;border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;background:linear-gradient(135deg,var(--accent-soft),transparent 60%),var(--panel2)}
+.today-date{display:flex;flex-direction:column;gap:2px;min-width:0}
+.today-date small,.today-year{font-size:12px;color:var(--muted)}
+.today-lunar{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:34px;line-height:1.15;color:var(--gold2);font-weight:500}
+.today-pillars{display:grid;grid-template-columns:repeat(4,minmax(46px,1fr));gap:6px}
+.today-pillar{display:flex;flex-direction:column;align-items:center;border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--panel)}
+.today-pillar small{font-size:11px;color:var(--muted)}
+.today-pillar b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:24px;line-height:1.15;font-weight:500}
+.today-pillar.today-day{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--accent-line)}
+.today-moon{display:flex;align-items:center;gap:10px}
+.today-moon>div{display:flex;flex-direction:column;line-height:1.35}
+.today-moon small{font-size:11px;color:var(--muted)}
+.moon-icon{flex:0 0 auto}
+.moon-dark{fill:var(--panel3);stroke:var(--border-strong);stroke-width:1}
+.moon-lit{fill:var(--gold2)}
+.today-term{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;margin:14px 0 4px}
+.today-term-now,.today-term-next{display:flex;flex-direction:column;line-height:1.35}
+.today-term-next{text-align:right}
+.today-term small{font-size:11px;color:var(--muted)}
+.today-term-track{height:6px;border-radius:3px;background:var(--panel3);overflow:hidden}
+.today-term-fill{display:block;height:100%;background:linear-gradient(90deg,var(--accent-line),var(--gold))}
+.today-facts{margin-top:10px}
+.today-empty{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:12px 14px}
+.today-table td,.today-table th{vertical-align:middle}
+.today-table td b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:16px;font-weight:500}
+.relation-chip{display:inline-block;margin:2px 6px 2px 0;padding:1px 8px;border-radius:999px;border:1px solid var(--border-strong);font-size:12px;white-space:nowrap}
+.relation-chip.rel-clash{border-color:var(--red);color:var(--red)}
+.relation-chip.rel-harmony{border-color:var(--green);color:var(--green)}
+.today-chip{display:inline-flex;align-items:center;gap:8px;margin-top:10px;border:1px solid var(--accent-line);border-radius:999px;background:var(--accent-soft);color:var(--text2);padding:4px 12px 4px 6px;font-size:12px;letter-spacing:.3px}
+.today-chip:hover{border-color:var(--gold)}
+.today-chip-label{background:var(--gold);color:var(--on-gold);border-radius:999px;padding:0 8px;font-weight:600;font-size:11px}
+
+/* Theme toggle icon drawn in CSS so it never depends on a font having the glyph. */
+.theme-icon{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor;flex:0 0 auto}
+.theme-icon[data-mode="system"]{background:linear-gradient(90deg,currentColor 50%,transparent 50%)}
+.theme-icon[data-mode="light"]{background:currentColor;border-width:0;box-shadow:0 0 0 2px var(--panel2),0 0 0 3px currentColor;width:8px;height:8px;margin:2px}
+.theme-icon[data-mode="dark"]{border-width:0;box-shadow:inset -4px -1px 0 0 currentColor}
+
 .hour-unknown-line{margin:8px 0 2px;font-size:13px;color:var(--text2)}
 .lunar-leap{display:flex;align-items:flex-end;padding-bottom:10px}
 #lunar-fill{margin-top:12px}
@@ -526,6 +565,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .input-panel:not(.collapsed) .birth-summary{justify-content:flex-end}
 }
 @media(max-width:640px){
+  .today-hero{grid-template-columns:1fr;gap:14px;padding:14px}
+  .today-term{grid-template-columns:1fr 1fr}
+  .today-term-track{grid-column:1 / -1;grid-row:2}
   .workspace-top{padding:16px}
   .tool-finder{padding:10px 16px;gap:8px}
   .tool-finder label,.tool-keyboard-hint{display:none}

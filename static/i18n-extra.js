@@ -154,6 +154,10 @@ const UI_EXTRA = {
 " days",
 " 日"
 ],
+" 天后": [
+" days away",
+" 日後"
+],
 " 字段一致": [
 " fields match",
 " フィールドが一致"
@@ -678,6 +682,10 @@ const UI_EXTRA = {
 "Upper Yuan",
 "上元"
 ],
+"上弦月": [
+"First quarter",
+"上弦の月"
+],
 "上海": [
 "Shanghai",
 "上海"
@@ -697,6 +705,18 @@ const UI_EXTRA = {
 "下元": [
 "Lower Yuan",
 "下元"
+],
+"下弦月": [
+"Last quarter",
+"下弦の月"
+],
+"下次新月": [
+"Next new moon",
+"次の新月"
+],
+"下次满月": [
+"Next full moon",
+"次の満月"
 ],
 "下载 Markdown 报告 ↓": [
 "Download Markdown report ↓",
@@ -769,6 +789,10 @@ const UI_EXTRA = {
 "不限": [
 "Any",
 "指定なし"
+],
+"与我的命盘": [
+"Against my chart",
+"自分の命盤との関係"
 ],
 "与本命四化分开显示 · 仅为星曜位置叠加": [
 "Shown separately from natal Four Transformations · star position overlay only",
@@ -986,6 +1010,10 @@ const UI_EXTRA = {
 "Month 2",
 "二月"
 ],
+"亏凸月": [
+"Waning gibbous",
+"寝待月（欠けていく凸月）"
+],
 "五月": [
 "Month 5",
 "五月"
@@ -1098,6 +1126,14 @@ const UI_EXTRA = {
 "Friends Palace",
 "奴僕宮"
 ],
+"今天": [
+"Today",
+"今日"
+],
+"今天交节，节令前后值日不同": [
+"A solar term begins today; the day officer differs before and after it",
+"今日は節入りの日で、節入りの前後で十二直が異なります"
+],
 "今年": [
 "This year",
 "今年"
@@ -1109,6 +1145,18 @@ const UI_EXTRA = {
 "今年的流年四化落在哪些宫？": [
 "Which palaces do this year's four transformations fall in?",
 "今年の流年四化はどの宮に入りますか？"
+],
+"今日": [
+"Today",
+"今日"
+],
+"今日历法卡片": [
+"Today's calendar card",
+"今日の暦カード"
+],
+"今日历法暂时算不出来：": [
+"Today's calendar could not be calculated: ",
+"今日の暦を計算できませんでした："
 ],
 "仍不一致": [
 "Still differing",
@@ -1389,6 +1437,10 @@ const UI_EXTRA = {
 "兑宫": [
 "Dui Palace",
 "兌宮"
+],
+"兔年": [
+"Year of the Rabbit",
+"卯年（うさぎ）"
 ],
 "全书系十干四化、宫干飞化": [
 "Quanshu-lineage ten-stem Four Transformations, palace-stem flying transformations",
@@ -1681,6 +1733,10 @@ const UI_EXTRA = {
 "农历月份": [
 "Lunar month",
 "旧暦月"
+],
+"农历本月": [
+"Days in this lunar month",
+"今月（旧暦）の日数"
 ],
 "农历正月初一": [
 "First day of the first lunar month",
@@ -2086,6 +2142,10 @@ const UI_EXTRA = {
 "Month 10",
 "十月"
 ],
+"十神与六冲、六合、同支只是传统标签，不代表现实中的好坏；出生资料只用于本次计算，服务器不保存。": [
+"Ten gods and the six clashes, six harmonies and same-branch marks are traditional labels, not good or bad outcomes. Birth data is used only for this calculation and the server keeps nothing.",
+"十神や六冲・六合・同支は伝統的なラベルで、現実の良し悪しを示すものではありません。出生データはこの計算にだけ使い、サーバーには保存しません。"
+],
 "十神按日主看天干。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。": [
 "Ten gods are read from the stem against the day master. Decade start years come from the three-days-per-year rule and are approximate; annual pillars change at Lichun. Click a year to open the same year layer on the Zi Wei chart.",
 "十神は日主から見た天干です。交運年は三日一歳の換算による概算で、流年は立春で替わります。流年をクリックすると紫微盤で同じ年の流年層を開きます。"
@@ -2221,6 +2281,10 @@ const UI_EXTRA = {
 "只依据年柱、月柱、日柱等不随时辰变化的内容，需要时请用户补充时辰或几件确定发生过的大事。": [
 "rely only on what does not change with the hour, such as the year, month and day pillars, and when needed ask the user for the hour or a few events that certainly happened.",
 "年柱・月柱・日柱など時刻で変わらない内容だけに基づき、必要なら時刻か確実に起きた出来事をいくつか尋ねてください。"
+],
+"只列历法事实与传统名称，不给吉凶评分、宜忌或预测。": [
+"Calendar facts and traditional names only: no luck score, do-and-avoid list or forecast.",
+"暦の事実と伝統的な名称だけを示し、吉凶の点数・宜忌・予測は出しません。"
 ],
 "只对照年干和本命宫位，不是完整流年盘或预测": [
 "Only compares the year stem and natal palaces; not a complete annual chart or prediction",
@@ -2618,6 +2682,10 @@ const UI_EXTRA = {
 "Earthly branches",
 "地支"
 ],
+"地支与本命": [
+"Branch vs. natal",
+"地支と本命"
+],
 "地支六冲只对照本命年支和日支，是传统标签，不代表现实冲突。": [
 "Branch Six Clashes are only compared between the natal year branch and day branch; they are traditional labels and do not represent real-world conflict.",
 "地支の六冲は本命の年支と日支のみを対照しています。伝統的なラベルであり、現実の衝突を表すものではありません。"
@@ -2913,6 +2981,10 @@ const UI_EXTRA = {
 "天干": [
 "Heaven stem",
 "天干"
+],
+"天干十神": [
+"Stem ten god",
+"天干の十神"
 ],
 "天府": [
 "Tian Fu",
@@ -3338,6 +3410,10 @@ const UI_EXTRA = {
 "No saved local profiles yet",
 "保存済みのローカルプロフィールはまだありません"
 ],
+"尚未起运": [
+"Luck periods not started yet",
+"まだ大運に入っていません"
+],
 "局": [
 "Ju",
 "局"
@@ -3417,6 +3493,10 @@ const UI_EXTRA = {
 "已停止生成。": [
 "Stopped.",
 "生成を停止しました。"
+],
+"已入节": [
+"Into this term",
+"節入りから"
 ],
 "已向用户展示，等待用户确认后才会保存。": [
 "Shown to the user; it will be saved only after the user confirms.",
@@ -3630,6 +3710,10 @@ const UI_EXTRA = {
 "Day officers are assigned using noon Beijing time; on a solar-term change day the officer may differ before and after the change.",
 "十二直は北京時間の正午で分類します。節入り当日は前後で十二直が異なる場合があります。"
 ],
+"建除值日按所在时区当天正午的节令月归类；交节当天节令前后可能不同。": [
+"The day officer uses the jie month at local noon in the card's timezone; on a jie day it differs before and after the term begins.",
+"建除の値日は、その時間帯の当日正午の節月で分類します。交節の日は節入りの前後で異なることがあります。"
+],
 "建除十二值日": [
 "Twelve Day Officers (Jian Chu)",
 "建除十二直"
@@ -3714,6 +3798,10 @@ const UI_EXTRA = {
 "Current parameters",
 "現在のパラメータ"
 ],
+"当前命盘的出生时间晚于此刻，不列个人对照。": [
+"The current chart's birth time is later than this moment, so no personal comparison is shown.",
+"現在の命盤の出生時刻はこの時点より後のため、個人対照は表示しません。"
+],
 "当前四柱无所列特定关系标签": [
 "The current Four Pillars have none of the listed relationship labels",
 "現在の四柱には列挙された特定の関係ラベルなし"
@@ -3737,6 +3825,10 @@ const UI_EXTRA = {
 "当前模型在此检查范围内未检出时辰、日界、节令或时区变更。": [
 "Within this check range, the current model detected no change of hour, day boundary, solar term or time zone.",
 "この確認範囲内で、現行モデルは時辰・日界・節令・タイムゾーンの変化を検出しませんでした。"
+],
+"当地钟表时间": [
+"Local clock time",
+"現地の時計時刻"
 ],
 "怎么选": [
 "How to choose",
@@ -3857,6 +3949,10 @@ const UI_EXTRA = {
 "打印 / 存为 PDF": [
 "Print / save as PDF",
 "印刷 / PDF に保存"
+],
+"打开今日历法": [
+"Open today's calendar",
+"今日の暦を開く"
 ],
 "打开参考来源 ↗": [
 "Open reference ↗",
@@ -4145,6 +4241,10 @@ const UI_EXTRA = {
 "新方案 ": [
 "New option ",
 "新しい案 "
+],
+"新月": [
+"New moon",
+"新月"
 ],
 "新的档案记忆": [
 "New profile memory",
@@ -4498,6 +4598,34 @@ const UI_EXTRA = {
 "Weekday",
 "曜日"
 ],
+"星期一": [
+"Monday",
+"月曜日"
+],
+"星期三": [
+"Wednesday",
+"水曜日"
+],
+"星期二": [
+"Tuesday",
+"火曜日"
+],
+"星期五": [
+"Friday",
+"金曜日"
+],
+"星期六": [
+"Saturday",
+"土曜日"
+],
+"星期四": [
+"Thursday",
+"木曜日"
+],
+"星期日": [
+"Sunday",
+"日曜日"
+],
 "春分": [
 "Spring Equinox (Chunfen)",
 "春分"
@@ -4581,6 +4709,10 @@ const UI_EXTRA = {
 "月煞": [
 "Yue Sha",
 "月煞"
+],
+"月相按地心黄经差计算，与当地实际所见可能相差数小时。": [
+"The moon phase uses the geocentric longitude difference and can differ from what you see locally by a few hours.",
+"月相は地心黄経差で計算するため、実際に見える様子と数時間ずれることがあります。"
 ],
 "月解": [
 "Yue Jie",
@@ -4729,6 +4861,10 @@ const UI_EXTRA = {
 "本工具只标记数据与计算边界，不替代权威历书或完整紫微流派审查。": [
 "This tool only flags data and calculation boundaries; it does not replace an authoritative almanac or a full Zi Wei school review.",
 "本ツールはデータと計算の境界を示すのみで、権威ある暦書や紫微の流派の完全な審査に代わるものではありません。"
+],
+"本机时间 · 历法事实 · 不打吉凶分": [
+"Device clock · calendar facts · no luck scores",
+"端末の時刻 · 暦の事実 · 吉凶の点数なし"
 ],
 "本机运行可跳过": [
 "Skip when running locally",
@@ -5006,6 +5142,10 @@ const UI_EXTRA = {
 "Calculating…",
 "計算中…"
 ],
+"正在计算今天的四柱、节气和月相…": [
+"Calculating today's pillars, solar term and moon phase…",
+"今日の四柱・節気・月相を計算しています…"
+],
 "正在起局…": [
 "Casting…",
 "局を立てています…"
@@ -5069,6 +5209,10 @@ const UI_EXTRA = {
 "死门": [
 "Death Door (Si)",
 "死門"
+],
+"残月": [
+"Waning crescent",
+"有明月（欠けていく三日月）"
 ],
 "每个命盘事实可追溯到工具调用": [
 "Every chart fact traces back to a tool call",
@@ -5254,6 +5398,10 @@ const UI_EXTRA = {
 "Man (Full)",
 "満"
 ],
+"满月": [
+"Full moon",
+"満月"
+],
 "澳门": [
 "Macau",
 "マカオ"
@@ -5294,6 +5442,10 @@ const UI_EXTRA = {
 "Then",
 "それから"
 ],
+"照亮": [
+"Lit",
+"輝面"
+],
 "父母": [
 "Parents",
 "父母"
@@ -5306,9 +5458,17 @@ const UI_EXTRA = {
 "Version: v.",
 "バージョン：v."
 ],
+"牛年": [
+"Year of the Ox",
+"丑年（うし）"
+],
 "状态 ": [
 "Status ",
 "状態 "
+],
+"狗年": [
+"Year of the Dog",
+"戌年（いぬ）"
 ],
 "独立八字、紫微计算 → 可选年干四化和太阳时审计 → Markdown": [
 "Independent BaZi and Zi Wei calculation → optional year-stem Four Transformations and solar time audit → Markdown",
@@ -5321,6 +5481,14 @@ const UI_EXTRA = {
 "独立核验回答（多一次模型调用）": [
 "Independently verify the answer (one more model call)",
 "回答を独立検証（モデル呼び出しが一回増えます）"
+],
+"猪年": [
+"Year of the Pig",
+"亥年（いのしし）"
+],
+"猴年": [
+"Year of the Monkey",
+"申年（さる）"
 ],
 "玄": [
 "Xuan",
@@ -5397,6 +5565,10 @@ const UI_EXTRA = {
 "生年：": [
 "Birth year: ",
 "生年："
+],
+"生成命盘后，这里会列出今天四柱对日主的十神，以及与本命四支的六冲、六合、同支。": [
+"After you generate a chart, this lists the ten god of each of today's pillars against the Day Master, and their six clashes, six harmonies and same branches with the natal branches.",
+"命盤を作成すると、今日の四柱の日主に対する十神と、本命の四支との六冲・六合・同支をここに表示します。"
 ],
 "生成失败：": [
 "Generation failed: ",
@@ -5501,6 +5673,10 @@ const UI_EXTRA = {
 "的三方四正": [
 "'s Three Directions and Four Squares",
 "の三方四正"
+],
+"盈凸月": [
+"Waxing gibbous",
+"十三夜月（満ちていく凸月）"
 ],
 "目前未触发已知敏感边界提示。": [
 "No known sensitive-boundary warnings have been triggered so far.",
@@ -5862,6 +6038,10 @@ const UI_EXTRA = {
 "Confidence measures only whether birth-time error could change this chart result, not whether the traditional interpretation is correct.",
 "信頼度は出生時刻の誤差によってこの命盤結果が変わり得るかのみを測るもので、伝統的解釈が正しいかどうかは測りません。"
 ],
+"羊年": [
+"Year of the Goat",
+"未年（ひつじ）"
+],
 "美洲": [
 "Americas",
 "アメリカ大陸"
@@ -5998,6 +6178,10 @@ const UI_EXTRA = {
 "Hidden stems: ",
 "蔵干："
 ],
+"虎年": [
+"Year of the Tiger",
+"寅年（とら）"
+],
 "虚岁": [
 "Nominal age (xusui)",
 "数え年"
@@ -6009,6 +6193,14 @@ const UI_EXTRA = {
 "虚龄": [
 "age",
 "数え"
+],
+"蛇年": [
+"Year of the Snake",
+"巳年（へび）"
+],
+"蛾眉月": [
+"Waxing crescent",
+"三日月"
 ],
 "蜚廉": [
 "Fei Lian",
@@ -6610,6 +6802,10 @@ const UI_EXTRA = {
 "Select palace",
 "宮位を選択"
 ],
+"选择性别后显示大运": [
+"Choose a gender to show luck periods",
+"性別を選ぶと大運を表示します"
+],
 "选择核验后列出实测四柱、日期、节令距离和需要复核的输入假设。": [
 "After choosing verification, lists the computed Four Pillars, dates, solar term distances and input assumptions that need review.",
 "検証を選ぶと、実測の四柱・日付・節令までの距離・再確認が必要な入力仮定を列挙します。"
@@ -6902,6 +7098,10 @@ const UI_EXTRA = {
 "Hong Kong Observatory gives ",
 "香港天文台は "
 ],
+"马年": [
+"Year of the Horse",
+"午年（うま）"
+],
 "马德里": [
 "Madrid",
 "マドリード"
@@ -6918,9 +7118,21 @@ const UI_EXTRA = {
 "Kaohsiung",
 "高雄"
 ],
+"鸡年": [
+"Year of the Rooster",
+"酉年（とり）"
+],
+"鼠年": [
+"Year of the Rat",
+"子年（ねずみ）"
+],
 "鼠牛虎兔龙蛇马羊猴鸡狗猪": [
 "Rat Ox Tiger Rabbit Dragon Snake Horse Goat Monkey Rooster Dog Pig",
 "鼠牛虎兎龍蛇馬羊猿鶏犬猪"
+],
+"龙年": [
+"Year of the Dragon",
+"辰年（たつ）"
 ],
 "龙德": [
 "Long De",

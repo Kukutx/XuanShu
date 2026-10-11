@@ -12,8 +12,6 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <link rel="stylesheet" href="/static/style.css" />
   <script src="/static/theme.js"></script>
-  <script src="/static/zh-tw-map.js" defer></script>
-  <script src="/static/i18n-extra.js" defer></script>
   <script src="/static/markdown.js" defer></script>
   <script src="/static/chat.js" defer></script>
   <script src="/static/app.js" defer></script>
@@ -26,13 +24,14 @@
   <div class="ambient"></div>
   <main class="shell">
     <header class="header">
-      <div class="brand"><div class="brand-mark" aria-hidden="true">玄</div><div><strong>玄枢 <span class="brand-en">XUANSHU</span></strong><small>历法计算 × 传统文化 × Agent MCP</small></div></div>
-      <div class="header-right"><span class="status" id="status">● 本地优先 · 数据不自动保存</span><label class="ui-lang"><span>界面语言</span><select id="ui-language" aria-label="Interface language / 界面语言"></select></label><button type="button" class="theme-toggle" id="theme-toggle" aria-label="切换配色"><span aria-hidden="true" class="theme-icon">◐</span><span class="theme-label">跟随系统</span></button><a class="docs-link" href="/docs" target="_blank" rel="noopener">API 文档 ↗</a></div>
+      <div class="brand"><div class="brand-mark" aria-hidden="true" data-no-i18n>玄</div><div><strong>玄枢 <span class="brand-en">XUANSHU</span></strong><small>历法计算 × 传统文化 × Agent MCP</small></div></div>
+      <div class="header-right"><span class="status" id="status">● 本地优先 · 数据不自动保存</span><label class="ui-lang"><span>界面语言</span><select id="ui-language" aria-label="Interface language / 界面语言"></select></label><button type="button" class="theme-toggle" id="theme-toggle" aria-label="切换配色"><span aria-hidden="true" class="theme-icon" data-mode="system"></span><span class="theme-label">跟随系统</span></button><a class="docs-link" href="/docs" target="_blank" rel="noopener">API 文档 ↗</a></div>
     </header>
 
     <section class="hero">
       <div>
         <div class="eyebrow"><span>✳</span> CHART ENGINE / v.0.1.0</div>
+        <button type="button" class="today-chip" id="today-chip" hidden aria-label="打开今日历法"></button>
         <h1>从你的问题出发，<em>调用可核验的术数工具。</em></h1>
         <p>八字、紫微斗数、时家奇门与历法排盘全部由本地确定性工具计算；AI 对话的每个结论都能展开查看依据的工具调用，并可由另一次独立调用逐条核验。</p>
       </div>
@@ -150,8 +149,8 @@
         <p id="stale-birth-warning" class="stale-birth-warning" role="status" aria-live="polite" hidden>出生参数已修改。下方旧命盘不再对应当前输入；请点击「生成命盘」重新计算，才能导出。</p>
         <div class="tool-finder" role="search" aria-label="工作台功能查找">
           <label for="tool-search">查找需要的功能</label>
-          <input id="tool-search" type="search" placeholder="搜索八字、择时、报告等 26 项能力" autocomplete="off" aria-controls="workspace-tabs" />
-          <button id="tool-toggle-all" type="button" class="tiny-button" aria-controls="workspace-tabs" aria-expanded="false">展开全部 26 项</button>
+          <input id="tool-search" type="search" placeholder="搜索八字、择时、报告等 27 项能力" autocomplete="off" aria-controls="workspace-tabs" />
+          <button id="tool-toggle-all" type="button" class="tiny-button" aria-controls="workspace-tabs" aria-expanded="false">展开全部 27 项</button>
           <small id="tool-visible-count" role="status" aria-live="polite"></small>
           <span class="tool-keyboard-hint">Ctrl+K 搜索 · ← / → 切换功能</span>
         </div>
@@ -168,6 +167,7 @@
           <button class="tab" data-tab="annual" role="tab" aria-selected="false">年干四化</button>
           <button class="tab" data-tab="dayun" role="tab" aria-selected="false">大运干支</button>
           <span class="tab-group" aria-hidden="true">择时与历法</span>
+          <button class="tab" data-tab="today" role="tab" aria-selected="false">今日历法</button>
           <button class="tab" data-tab="date-scan" role="tab" aria-selected="false">择日择时</button>
           <button class="tab" data-tab="officers" role="tab" aria-selected="false">建除值日</button>
           <button class="tab" data-tab="calendar" role="tab" aria-selected="false">历法日历</button>
@@ -193,7 +193,7 @@
         <div id="result" role="tabpanel" tabindex="-1"><div class="empty-state"><div class="empty-orbit">☯</div><h3>历法可核验，规则可追溯</h3><p>确认出生资料后生成命盘，八字、紫微和四化会一起算好。</p></div></div>
       </section>
     </div>
-    <footer><span>玄枢 · XuanShu v.0.1.0 · AGPL-3.0</span><div class="feature-strips" aria-label="Agent 接入能力"><span>30 MCP TOOLS</span><span>15 PROMPTS</span><span>17 RESOURCES</span><span>18 AGENT SKILLS</span></div><span>部分紫微排盘 · 传统术数未经科学预测验证，不作医疗、金融或其他关键决策依据</span></footer>
+    <footer><span>玄枢 · XuanShu v.0.1.0 · AGPL-3.0</span><div class="feature-strips" aria-label="Agent 接入能力"><span>31 MCP TOOLS</span><span>15 PROMPTS</span><span>17 RESOURCES</span><span>18 AGENT SKILLS</span></div><span>部分紫微排盘 · 传统术数未经科学预测验证，不作医疗、金融或其他关键决策依据</span></footer>
   </main>
 </body>
 </html>
