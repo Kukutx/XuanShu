@@ -13,6 +13,7 @@ let chatBusy = false;
 let chatDraft = '';
 let chatLanguage = 'zh-CN';
 let chatUseBirth = true;
+let chatMode = 'single';   // 'panel': one specialist per school, then a synthesizer
 let chatVerify = true;     // second, independent model call that checks claims against tool results
 let chatUncertainty = 15;  // minutes the recorded birth time may be off
 let chatPartnerOK = false;  // the user's own consent tick; never set by the model
@@ -85,7 +86,7 @@ function chatPayload() {
   const profile = chatProfile();
   const now = new Date();
   const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-  const payload = {language: chatLanguage, messages: [], partner_authorized: chatPartnerOK, today, verify: chatVerify};
+  const payload = {language: chatLanguage, messages: [], partner_authorized: chatPartnerOK, today, verify: chatVerify, mode: chatMode};
   if (profile || chatUseBirth) {
     const stored = profile ? profileMemory(profile.id) : {memory:[], life_events:[]};
     payload.profile = {label: profile ? profile.label.slice(0, 50) : '当前参数', memory: stored.memory,
@@ -116,7 +117,8 @@ async function sendChat(text) {
     const data = await postJSON('/api/chat', chatPayload());
     chatMessages.push({role:'assistant', content: data.reply || '（模型没有返回文字）', trace: data.trace || [],
       memory_suggestions: data.memory_suggestions || [], model: data.model,
-      verification: data.verification || null, chart_confidence: data.chart_confidence || null});
+      verification: data.verification || null, chart_confidence: data.chart_confidence || null,
+      panel: Array.isArray(data.panel) ? data.panel : null});
   } catch (err) {
     chatMessages.push({role:'assistant', content: '请求失败：' + err.message, error: true});
   } finally {
@@ -129,7 +131,8 @@ function exportChatMarkdown() {
   const lines = ['# 玄枢 AI 对话', '', '档案：' + (profile ? profile.label : '未选择'), ''];
   chatMessages.forEach(m => {
     lines.push(m.role === 'user' ? '## 我' : '## 玄枢', '', m.content, '');
-    (m.trace || []).forEach(t => lines.push('- 工具 ' + t.step + '：' + t.tool + (t.ok ? '' : '（失败：' + (t.error || '') + '）')));
+    (m.panel || []).forEach(p => lines.push('### ' + p.label, '', p.reply, ''));
+    (m.trace || []).forEach(t => lines.push('- 工具 ' + t.step + '：' + (t.agent ? agentLabel(t.agent) + ' · ' : '') + t.tool + (t.ok ? '' : '（失败：' + (t.error || '') + '）')));
     if ((m.trace || []).length) lines.push('');
     if (m.verification && m.verification.status === 'ok') {
       lines.push('核验：' + m.verification.overall, '');
@@ -148,11 +151,23 @@ function renderTrace(parent, trace) {
   append(box, 'summary', null, '推理过程 · ' + trace.length + ' 次工具调用');
   trace.forEach(t => {
     const row = append(box, 'div', 'chat-trace-step' + (t.ok ? '' : ' failed'));
-    append(row, 'strong', null, t.step + '. ' + t.tool);
+    append(row, 'strong', null, t.step + '. ' + (t.agent ? agentLabel(t.agent) + ' · ' : '') + t.tool);
     append(row, 'span', null, t.ok ? (t.summary || '') : ('失败：' + (t.error || '')));
     const args = append(row, 'code', null, JSON.stringify(t.arguments));
     args.title = '调用参数';
     if (t.result_sha256) append(row, 'small', null, '结果 SHA-256 ' + t.result_sha256.slice(0, 16) + '…');
+  });
+}
+const AGENT_LABELS = {bazi: '八字专家', ziwei: '紫微斗数专家', qimen: '奇门与择时专家'};
+function agentLabel(key) {return AGENT_LABELS[key] || key;}
+function renderPanel(parent, panel) {
+  if (!Array.isArray(panel) || !panel.length) return;
+  const box = append(parent, 'details', 'chat-trace chat-panel-reports');
+  append(box, 'summary', null, '各流派专家意见 · ' + panel.length + ' 位');
+  panel.forEach(p => {
+    const row = append(box, 'div', 'chat-trace-step');
+    append(row, 'strong', null, agentLabel(p.agent) + ' · ' + p.tool_calls + ' 次工具调用');
+    append(row, 'div', 'chat-text', p.reply || '（没有返回文字）');
   });
 }
 const TIER_LABELS = {high: '高', medium: '中', low: '低'};
@@ -303,6 +318,12 @@ function renderChat() {
   const birth = append(birthLabel, 'input'); birth.type = 'checkbox'; birth.id = 'chat-use-birth'; birth.checked = chatUseBirth;
   birthLabel.append(' 附带左侧出生参数');
   birth.addEventListener('change', () => {chatUseBirth = birth.checked;});
+  const modeLabel = append(controls, 'label', null, '回答方式 ');
+  const mode = append(modeLabel, 'select'); mode.id = 'chat-mode';
+  [['single', '单一助手'], ['panel', '多流派会诊（多次模型调用）']].forEach(([value, label]) => {
+    const op = append(mode, 'option', null, label); op.value = value;
+  });
+  mode.value = chatMode; mode.addEventListener('change', () => {chatMode = mode.value;});
   const verifyLabel = append(controls, 'label', 'check-line');
   const verify = append(verifyLabel, 'input'); verify.type = 'checkbox'; verify.id = 'chat-verify'; verify.checked = chatVerify;
   verifyLabel.append(' 独立核验回答（多一次模型调用）');
@@ -336,9 +357,9 @@ function renderChat() {
     const bubble = append(log, 'div', 'chat-msg ' + message.role + (message.error ? ' error' : ''));
     append(bubble, 'small', null, message.role === 'user' ? '我' : '玄枢');
     append(bubble, 'div', 'chat-text', message.content);
-    if (message.role === 'assistant') {renderTrace(bubble, message.trace); renderConfidence(bubble, message); renderMemorySuggestions(bubble, message);}
+    if (message.role === 'assistant') {renderPanel(bubble, message.panel); renderTrace(bubble, message.trace); renderConfidence(bubble, message); renderMemorySuggestions(bubble, message);}
   });
-  if (chatBusy) append(log, 'p', 'inline-msg', '正在调用工具和模型…');
+  if (chatBusy) append(log, 'p', 'inline-msg', chatMode === 'panel' ? '各流派专家正在分别排盘，随后综合…' : '正在调用工具和模型…');
 
   const input = append(area, 'textarea'); input.id = 'chat-input'; input.rows = 3; input.maxLength = 4000;
   input.placeholder = '输入问题，Ctrl+Enter 发送'; input.value = chatDraft; input.disabled = chatBusy;
