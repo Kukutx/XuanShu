@@ -1,6 +1,7 @@
 """Pillars-to-dates reverse lookup, pasted-chart checks and static asset delivery."""
 from __future__ import annotations
 
+import time
 from datetime import datetime
 
 import pytest
@@ -87,6 +88,15 @@ def test_traditional_text_and_labelled_pillars_parse():
     assert parsed['ming_branch'] == '午' and parsed['palace_major_stars'] == {'命宫': ['紫微'], '官禄宫': ['廉贞', '天府']}
     assert parse_chart_text('子女宫：太阳 天梁\n身宫在子女')['shen_palace'] == '子女宫'
     assert 'ming_branch' not in parse_chart_text('命宫 子女宫 天机')
+
+
+def test_long_padding_neither_changes_the_parse_nor_slows_it():
+    padded = parse_chart_text('年柱：' + ' ' * 40 + '庚辰\n\n\n\n月柱：甲申　日柱：丙午\t\t時柱：庚寅\n\n命宮' + ' ' * 30 + '午')
+    assert padded['pillars']['year'] == '庚辰' and padded['ming_branch'] == '午'
+    started = time.perf_counter()
+    for text in ('命宫' + ' ' * 5990 + 'x', '身宫' + '\n' * 5990 + 'x', ('年柱：' + ' ' * 2990) * 2):
+        parse_chart_text(text)
+    assert time.perf_counter() - started < 0.3  # quadratic backtracking took about 0.6 s for one of these
 
 
 def test_a_chart_cast_with_the_late_zi_rule_is_traced_to_that_rule():

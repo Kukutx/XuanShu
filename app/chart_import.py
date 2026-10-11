@@ -48,7 +48,8 @@ def _valid_pair(stem: str, branch: str) -> bool:
 
 def parse_chart_text(text: str) -> dict:
     """Fields recognized in pasted chart text; absent fields are left out."""
-    text = text.translate(TRADITIONAL)
+    # One character per whitespace run keeps the optional-separator patterns below linear on long padding.
+    text = re.sub(r'\s+', lambda m: '\n' if '\n' in m.group() else ' ', text.translate(TRADITIONAL))
     parsed: dict = {}
     pillars = {}
     for key, label in PILLAR_NAMES.items():
