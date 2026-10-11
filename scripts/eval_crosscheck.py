@@ -311,9 +311,9 @@ def _iztro_values(birth: datetime, gender: str, hour_index: int | None = None) -
             'transformations': dict(sorted(transformations.items()))}
 
 
-def _xuanshu_values(birth: datetime, gender: str) -> dict:
+def _xuanshu_values(birth: datetime, gender: str, rollover: bool = False) -> dict:
     chart = calculate_ziwei(BirthInput(birth_datetime=birth.isoformat(timespec='minutes'), timezone='Asia/Shanghai',
-                                       gender=gender))
+                                       gender=gender, late_zi_day_rollover=rollover))
     stars = {}
     for palace in chart['palaces']:
         for star in palace['main_stars']:
@@ -336,24 +336,50 @@ def _sample_births(count: int, seed: int, late: bool) -> list[tuple[datetime, st
     return births
 
 
+def _iztro_keeps_month(birth: datetime) -> bool:
+    """True when iztro's late-Zi index 12 and XuanShu's 23:00 rollover use different lunar months.
+
+    iztro adds one to the day number but keeps the birth day's lunar month and skips the leap-month fix at
+    index 12 (``fix_lunar_month_index`` and ``fix_lunar_day_index``); XuanShu takes the whole next lunar date.
+    The two only part ways at the end of a month and in the second half of a leap month.
+    """
+    today, following = chinese_lunar_date(birth.date()), chinese_lunar_date(birth.date() + timedelta(days=1))
+    ours = following['month'] + (1 if following['is_leap_month'] and following['day'] > 15 else 0)
+    return ours != today['month']
+
+
+ZIWEI_KEYS = ('lunar', 'ming', 'shen', 'bureau', 'stars', 'transformations')
+
+
 def compare_ziwei(count: int, late_count: int) -> dict:
-    def run(births, hour_index: int | None = None) -> dict:
+    def run(births, hour_index: int | None = None, rollover: bool = False, keys=ZIWEI_KEYS) -> dict:
         tally = Tally()
         for birth, gender in births:
-            ours, theirs = _xuanshu_values(birth, gender), _iztro_values(birth, gender, hour_index)
+            ours, theirs = _xuanshu_values(birth, gender, rollover), _iztro_values(birth, gender, hour_index)
             example = {'birth': birth.isoformat(timespec='minutes'), 'gender': gender}
-            for key in ('lunar', 'ming', 'shen', 'bureau', 'stars', 'transformations'):
+            for key in keys:
                 tally.check(key, ours[key], theirs[key], example)
         return tally.report()
     late = _sample_births(late_count, 1123, late=True)
+    kept = [item for item in late if _iztro_keeps_month(item[0])]
+    # iztro reports the birth day's lunar date while placing stars by the next day, so the date is not compared.
+    next_day_keys = tuple(key for key in ZIWEI_KEYS if key != 'lunar')
     return {
         'sample': {'births': count, 'years': '1930–2049', 'hours': '00:00–22:59', 'seed': 20261011,
                    'rules': 'clock time; second half of a leap month as the next month'},
         'results': run(_sample_births(count, 20261011, late=False)),
         'late_zi': {'births': late_count,
-                    'note': "XuanShu's Zi Wei keeps the same lunar day for 23:00-23:59 (as iztro's early-Zi index 0); "
-                            "iztro's late-Zi index 12 uses the next day's lunar day.",
-                    'vs_iztro_late_zi': run(late, 12), 'vs_iztro_same_day_zi': run(late, 0)},
+                    'note': "By default XuanShu keeps the same lunar day for 23:00-23:59 (iztro's early-Zi index 0); "
+                            "with late_zi_day_rollover it takes the next day's whole lunar date. iztro's late-Zi "
+                            "index 12 adds one to the day but keeps the month, so births on the last day of a month "
+                            "or in the second half of a leap month are counted separately.",
+                    'default_vs_iztro_same_day_zi': run(late, 0),
+                    'rollover_vs_iztro_late_zi': run([item for item in late if item not in kept], 12, rollover=True,
+                                                     keys=next_day_keys),
+                    'iztro_keeps_month': {'births': len(kept),
+                                          'examples': [item[0].isoformat(timespec='minutes') for item in kept[:EXAMPLES]],
+                                          'comparison': run(kept, 12, rollover=True, keys=next_day_keys)},
+                    'default_vs_iztro_late_zi': run(late, 12, keys=next_day_keys)},
     }
 
 
@@ -377,6 +403,12 @@ def write_markdown(result: dict, path: Path) -> None:
 
     def agree(section, key):
         return f"{section[key]['checked'] - section[key]['mismatches']}/{section[key]['checked']}"
+
+    def late_agreement(section):
+        names = {'ming': '命宫', 'shen': '身宫', 'bureau': '五行局', 'stars': '十四主星', 'transformations': '生年四化'}
+        if not any(section[key]['mismatches'] for key in names):
+            return f"{'、'.join(names.values())}全部一致（{agree(section, 'stars')}）"
+        return '，'.join(f'{label}一致 {agree(section, key)}' for key, label in names.items())
 
     def row(label, mismatches_checked):
         mismatches, checked = mismatches_checked
@@ -458,10 +490,13 @@ def write_markdown(result: dict, path: Path) -> None:
         row('十四主星落宫', total(zr, 'stars')),
         row('生年四化', total(zr, 'transformations')),
         '',
-        f"23:00–23:59 出生另抽 {ziwei['late_zi']['births']} 个。玄枢紫微在这一小时仍用当天的农历日，"
-        f"与 iztro 的“早子时”（时辰序号 0）对照，十四主星一致 {agree(ziwei['late_zi']['vs_iztro_same_day_zi'], 'stars')} 个；"
-        f"iztro 的“晚子时”（序号 12）改用次日农历日，与玄枢一致 {agree(ziwei['late_zi']['vs_iztro_late_zi'], 'stars')} 个。"
-        '这是流派规则不同（晚子时算当日还是次日），不是计算错误。',
+        f"23:00–23:59 出生另抽 {ziwei['late_zi']['births']} 个。玄枢默认 23:00 不换日，用当天的农历日，"
+        f"与 iztro 的“早子时”（时辰序号 0）对照，十四主星一致 {agree(ziwei['late_zi']['default_vs_iztro_same_day_zi'], 'stars')}；"
+        f"选择「23:00 换日」后按次日的农历日期排，与 iztro 的“晚子时”（序号 12）对照，{late_agreement(ziwei['late_zi']['rollover_vs_iztro_late_zi'])}。"
+        f"另有 {ziwei['late_zi']['iztro_keeps_month']['births']} 个出生在月末最后一天或闰月后半月：iztro 晚子时只把日数加一、"
+        '不进月，也不按闰月后半月进位（源码 `fix_lunar_month_index`、`fix_lunar_day_index`），玄枢按次日完整的农历日期排，'
+        f"这些出生里命宫不同的有 {ziwei['late_zi']['iztro_keeps_month']['comparison']['ming']['mismatches']} 个。"
+        '晚子时算当日还是次日是流派规则的不同，两种规则玄枢都支持。',
         '',
         '## 不一致的原因',
         '',
@@ -544,8 +579,9 @@ def summary(result: dict) -> dict:
                   'rows': [{'field': key, 'reference': 'iztro_py', **counts(ziwei['results'][key])}
                            for key in ('lunar', 'ming', 'shen', 'bureau', 'stars', 'transformations')],
                   'late_zi_births': late['births'],
-                  'late_zi_same_day': counts(late['vs_iztro_same_day_zi']['stars']),
-                  'late_zi_next_day': counts(late['vs_iztro_late_zi']['stars'])},
+                  'late_zi_same_day': counts(late['default_vs_iztro_same_day_zi']['stars']),
+                  'late_zi_next_day': counts(late['rollover_vs_iztro_late_zi']['stars']),
+                  'late_zi_month_kept': late['iztro_keeps_month']['births']},
         'differences': [{'first': run['first'], 'last': run['last'], 'references': run['references'],
                          'minutes_from_midnight': run['minutes_from_midnight'], 'cause': _cause(run)}
                         for run in days['lunar_month_differences']],

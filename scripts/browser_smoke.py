@@ -215,6 +215,18 @@ def main() -> None:
             page.keyboard.press('Enter')
             page.wait_for_function("() => document.querySelectorAll('.group-node.is-focus').length === 1 && document.activeElement.id === 'group-node-0'", timeout=30000)
             page.screenshot(path=str(screenshot_dir / '36-group.png'), full_page=True)
+            # The members can go to the AI chat as a draft; without a configured model the button says why it is off.
+            assert page.locator('#group-ask-ai').is_disabled() and 'AI 对话尚未启用' in page.locator('.group-ask').inner_text()
+            page.evaluate("() => { chatStatus.enabled = true; chatDraft = '先前没发的问题'; }")
+            for _ in range(2):  # an unsent question is kept and a second click does not add the members twice
+                page.locator('[data-tab="group"]').click()
+                page.locator('#group-ask-ai:not([disabled])').click()
+                page.locator('[data-tab="chat"][aria-selected="true"]').wait_for(timeout=30000)
+            draft = page.locator('#chat-input').input_value()
+            assert draft.startswith('先前没发的问题\n\n请结合多人关系对照') and draft.count('\n- ') == 3, draft
+            assert '- 同事 · 1992-06-06 09:00 · ' in draft, draft
+            page.screenshot(path=str(screenshot_dir / '39-group-to-chat.png'), full_page=True)
+            page.evaluate("() => { chatStatus.enabled = false; chatDraft = ''; }")
 
             # Rule differences: the chart recomputed under each common rule choice.
             page.locator('[data-tab="rule-matrix"]').click()

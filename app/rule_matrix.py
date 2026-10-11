@@ -87,7 +87,7 @@ def _hints(birth: BirthInput, hour_unknown: bool) -> list[str]:
             hints.append(f'出生时刻离{jie["name"]}交节约 {hours:.1f} 小时：节气时刻或时区处理稍有不同，月柱就可能不同。')
     hour = int(bazi['time_basis']['effective_local_reading'][11:13])
     if hour == 23 and not hour_unknown:
-        hints.append('出生在 23:00 之后：各家对子时是否换日（早晚子时）规则不同，日柱可能不同。')
+        hints.append('出生在 23:00 之后：各家对子时是否换日（早晚子时）规则不同，日柱和紫微所用的农历日可能不同。')
     if bazi['lunar_date']['is_leap_month']:
         hints.append('出生在农历闰月：闰月前后半月归属哪个月，各家规则不同，紫微命盘可能不同。')
     if dt.dst():
@@ -134,7 +134,7 @@ def rule_matrix(req: RuleMatrixRequest) -> dict:
     notes = [
         '每一行把当前出生资料换成一种常见的不同规则（或两种规则的组合）重新排盘，标出与当前设置不同的格子。',
         '这只说明规则选择会改变哪些字段，不判断哪种规则正确；以出生资料和你采用的流派为准。',
-        '紫微按农历正月初一换年、不按 23:00 换日；八字按立春换年，两者的年柱可能不同，这是规则本身的差别。',
+        '紫微按农历正月初一换年，八字按立春换年，两者的年柱可能不同，这是规则本身的差别。',
     ]
     if skipped:
         notes.append('以下规则换算后无法排盘，未列出：' + '；'.join(skipped))

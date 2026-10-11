@@ -42,6 +42,10 @@ def test_committed_report_matches_its_data():
         assert f"| 农历日期 vs {key} | {item['checked']:,} | {item['mismatches']:,} |" in readme
     for item in data['ziwei']['results'].values():
         assert item['checked'] == 3000
+    # With the 23:00 day change XuanShu matches iztro's late Zi except where iztro keeps the month.
+    late = data['ziwei']['late_zi']
+    assert all(item['mismatches'] == 0 for item in late['rollover_vs_iztro_late_zi'].values())
+    assert late['rollover_vs_iztro_late_zi']['stars']['checked'] + late['iztro_keeps_month']['births'] == late['births']
     assert set(data['references']) == {'sxtwl', 'lunar_python', 'lunardate', 'ephem', 'iztro_py', 'pyswisseph'}
     # The page summary is written from the same run.
     page = json.loads((ROOT / 'static/crosscheck-summary.json').read_text(encoding='utf-8'))
@@ -52,6 +56,7 @@ def test_committed_report_matches_its_data():
     assert [d['first'] for d in page['differences']] == [d['first'] for d in days['lunar_month_differences']]
     assert all(d['cause'] in {'forecast', 'old_almanac', 'table'} for d in page['differences'])
     assert page['fixes'][0]['cause'] == 'beijing_meridian' and len(page['daily']) + len(page['ziwei']['rows']) == 16
+    assert page['ziwei']['late_zi_month_kept'] == late['iztro_keeps_month']['births']
     app_js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     assert "fetch('/static/crosscheck-summary.json')" in app_js and 'id="crosscheck-open"' in (ROOT / 'static/index.html').read_text(encoding='utf-8')
     pins = (ROOT / 'docs/evals/requirements.txt').read_text(encoding='utf-8')

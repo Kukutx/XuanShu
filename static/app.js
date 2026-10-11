@@ -1168,7 +1168,27 @@ function renderGroup() {
   if (groupKey !== JSON.stringify(members)) append(result, 'p', 'feature-note', '成员已改变，下面仍是上一次的结果；点「对照关系」更新。');
   renderGroupResult(groupResult);
 }
+// The members of a group result as a chat question; birth data goes to the model only when the user sends it.
+function groupChatDraft(g) {
+  const tr = text => typeof translateText === 'function' ? translateText(text) : text;
+  const lines = g.members.map(m => '- ' + m.label + ' · ' + m.birth_datetime.slice(0, 10) + ' '
+    + (m.hour_unknown ? tr('时辰不详') : m.birth_datetime.slice(11, 16)) + ' · ' + m.timezone);
+  return [tr('请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。'), ...lines].join('\n');
+}
 function renderGroupResult(g) {
+  const ask = append(result, 'div', 'group-ask');
+  const askButton = append(ask, 'button', 'tiny-button', '带进 AI 对话'); askButton.type = 'button'; askButton.id = 'group-ask-ai';
+  const chatReady = Boolean(chatStatus && chatStatus.enabled);
+  askButton.disabled = !chatReady;
+  append(ask, 'small', 'muted', chatReady ? '把成员的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。'
+    : 'AI 对话尚未启用，配置语言模型后可以把这些成员带进对话。');
+  askButton.addEventListener('click', () => {
+    // Keep anything the user had already typed; clicking again does not add the members twice.
+    const draft = groupChatDraft(g);
+    if (!chatDraft.includes(draft)) chatDraft = chatDraft.trim() ? chatDraft.trimEnd() + '\n\n' + draft : draft;
+    activateTab(tabs.find(t => t.dataset.tab === 'chat'));
+    const box = $('#chat-input'); if (box) {box.focus(); box.setSelectionRange(box.value.length, box.value.length);}
+  });
   const cards = append(result, 'div', 'group-members');
   g.members.forEach((m, i) => {
     const card = append(cards, 'article', 'group-member');
@@ -2766,8 +2786,10 @@ function renderCrosscheck(dialog) {
   append(dialog, 'h4', null, '紫微斗数对照');
   texts(append(dialog, 'p', 'field-help'), '随机出生时刻', ' ' + zw.births.toLocaleString('en-US'));
   countRows(dialog, zw.rows);
-  texts(append(dialog, 'p', 'field-help'), '23:00 以后出生', ' · ', '玄枢紫微仍用当天的农历日，与 iztro 的“早子时”一致', ' ' + (zw.late_zi_same_day.checked - zw.late_zi_same_day.mismatches) + '/' + zw.late_zi_same_day.checked + ' · ',
-    'iztro 的“晚子时”改用次日农历日', ' ' + (zw.late_zi_next_day.checked - zw.late_zi_next_day.mismatches) + '/' + zw.late_zi_next_day.checked + ' · ', '这是流派规则不同，不是计算错误。');
+  texts(append(dialog, 'p', 'field-help'), '23:00 以后出生', ' · ', '默认 23:00 不换日，与 iztro 的“早子时”一致', ' ' + (zw.late_zi_same_day.checked - zw.late_zi_same_day.mismatches) + '/' + zw.late_zi_same_day.checked + ' · ',
+    '选择「23:00 换日」后与 iztro 的“晚子时”一致', ' ' + (zw.late_zi_next_day.checked - zw.late_zi_next_day.mismatches) + '/' + zw.late_zi_next_day.checked);
+  if (zw.late_zi_month_kept) texts(append(dialog, 'p', 'field-help'), '另有', ' ' + zw.late_zi_month_kept + ' ',
+    '个出生在月末最后一天或闰月后半月：iztro 晚子时只把日数加一、不进月，玄枢按次日完整的农历日期排，这是规则不同，不是计算错误。');
   append(dialog, 'h4', null, '仍有差异的月份');
   const list = append(dialog, 'ul', 'crosscheck-list'); list.id = 'crosscheck-differences';
   if (!d.differences.length) append(list, 'li', 'muted', '—');

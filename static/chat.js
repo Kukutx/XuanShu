@@ -575,7 +575,7 @@ function renderChatSettings(area) {
   };
   check('chat-use-birth', '附带出生信息', chatUseBirth, v => {chatUseBirth = v;});
   check('chat-verify', '独立核验回答（多一次模型调用）', chatVerify, v => {chatVerify = v;});
-  check('chat-partner-ok', '已获第二人同意使用其出生资料', chatPartnerOK, v => {chatPartnerOK = v;});
+  check('chat-partner-ok', '已获对方同意使用其出生资料（双人或多人）', chatPartnerOK, v => {chatPartnerOK = v;});
   const profile = chatProfile();
   const loadBtn = append(checks, 'button', 'tiny-button', '载入本档案对话'); loadBtn.type = 'button'; loadBtn.id = 'chat-load-history';
   loadBtn.disabled = !profile || !profileMemory(profile.id).keep_history || chatBusy;

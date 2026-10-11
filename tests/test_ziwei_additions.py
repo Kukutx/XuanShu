@@ -54,3 +54,18 @@ def test_ziwei_reference_deterministic_across_python_hash_seeds():
         run=subprocess.run([sys.executable, '-c', code],cwd=root,env=env,capture_output=True,text=True,check=True,timeout=30)
         outputs.append(run.stdout)
     assert outputs[0] == outputs[1]
+
+
+def test_late_zi_rollover_takes_the_next_lunar_date():
+    # 2026-03-18 is lunar 1-30. With the 23:00 day change, 23:27 counts as 2-1, the same day as the bazi day pillar.
+    birth = dict(birth_datetime='2026-03-18T23:27', gender='female')
+    same_day = calculate_ziwei(BirthInput(**birth))
+    next_day = calculate_ziwei(BirthInput(**birth, late_zi_day_rollover=True))
+    assert (same_day['lunar_date']['month'], same_day['lunar_date']['day']) == (1, 30)
+    assert (next_day['lunar_date']['month'], next_day['lunar_date']['day']) == (2, 1)
+    assert next_day['rules']['late_zi_day_rollover_in_ziwei'] is True
+    ming = [next(p['branch'] for p in chart['palaces'] if p['is_ming']) for chart in (same_day, next_day)]
+    assert ming == ['寅', '卯']
+    # Only 23:00-23:59 changes day.
+    before = calculate_ziwei(BirthInput(birth_datetime='2026-03-18T22:59', gender='female', late_zi_day_rollover=True))
+    assert before['lunar_date']['day'] == 30

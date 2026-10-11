@@ -191,7 +191,7 @@ SYSTEM_PROMPT = """你是玄枢（XuanShu）的术数文化咨询助手，帮助
 def build_system(req: ChatRequest) -> list[str]:
     """Stable instructions first (cacheable), then per-request context."""
     today = req.today.isoformat() + '（用户本地日期）' if req.today else datetime.now(timezone.utc).date().isoformat() + '（UTC）'
-    consent = '用户已勾选：已获第二人同意。' if req.partner_authorized else '用户未勾选第二人同意。'
+    consent = '用户已勾选：已获对方同意（双人或多人）。' if req.partner_authorized else '用户未勾选对方同意。'
     context = [f"本次回答语言：{LANGUAGE_NAMES[req.language]}。今天日期：{today}。{consent}"]
     profile = req.profile
     if profile is not None:

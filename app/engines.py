@@ -282,7 +282,10 @@ def _star_positions(lunar_day: int, bureau: int, adjusted_month: int,
 def calculate_ziwei(inp: BirthInput) -> dict:
     dt = normalized_dt(inp)
     effective, time_meta = time_basis(dt, inp.time_mode, inp.longitude)
-    lunar = chinese_lunar_date(effective.date())
+    # With the 23:00 day change, 23:00-23:59 takes the next day's whole lunar date, as the
+    # bazi day pillar does. (iztro's late-Zi hour adds a day but keeps the month; see docs/evals.)
+    late_zi = inp.late_zi_day_rollover and effective.hour == 23
+    lunar = chinese_lunar_date(effective.date() + (timedelta(days=1) if late_zi else timedelta()))
     month = lunar['month']
     if lunar['is_leap_month'] and inp.leap_month_second_half_as_next and lunar['day'] > 15:
         month = month % 12 + 1
@@ -377,7 +380,7 @@ def calculate_ziwei(inp: BirthInput) -> dict:
         'transformation_school': TRANSFORMATION_SCHOOL,
         'rules': {
             'year_boundary': '农历正月初一',
-            'late_zi_day_rollover_in_ziwei': False,
+            'late_zi_day_rollover_in_ziwei': inp.late_zi_day_rollover,
             'leap_month_second_half_as_next': inp.leap_month_second_half_as_next,
             'star_coverage': '14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派与流曜',
             'additional_star_rules': 'iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导',

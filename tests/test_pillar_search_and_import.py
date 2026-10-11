@@ -126,7 +126,9 @@ def test_a_chart_cast_with_the_late_zi_rule_is_traced_to_that_rule():
     late = dict(BIRTH, birth_datetime='2000-08-16T23:30')
     other = dict(late, late_zi_day_rollover=True)
     out = chart_import_check(ChartImportRequest(birth=late, text=chart_text(other)))
-    assert out['summary']['mismatched'] == 2  # day and hour pillars; Zi Wei ignores the rule
+    # Day and hour pillars, plus the Zi Wei fields that follow the next day's lunar date.
+    assert out['summary']['mismatched'] > 2
+    assert {f['key'] for f in out['fields'] if not f['match']} >= {'pillar.day', 'pillar.hour'}
     assert out['reproducing_variants'][0] == '23:00 换日（早晚子时）'
     assert out['variants'][0]['settings']['late_zi_day_rollover'] is True
     assert any('23:00' in c for c in out['possible_causes'])
