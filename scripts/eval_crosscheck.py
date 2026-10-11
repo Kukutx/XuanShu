@@ -2,15 +2,17 @@
 
 Every day from 1901 to 2099 is compared for the lunar date and the four pillars;
 every solar term and principal moon phase is compared for its instant; a fixed
-random sample of births is compared for the Zi Wei Dou Shu chart. The results
-are written to docs/evals/crosscheck.json and docs/evals/README.md.
+random sample of births is compared for the Zi Wei Dou Shu chart. A full run
+writes docs/evals/crosscheck.json, docs/evals/README.md and the page summary
+static/crosscheck-summary.json together; a quick run writes only to
+build/evals-quick/ so it never replaces the committed report.
 
 The reference libraries are not XuanShu dependencies. Install the pinned set in
 a separate environment, then run the script:
 
     pip install -r requirements.txt -r docs/evals/requirements.txt
     python scripts/eval_crosscheck.py            # full run
-    python scripts/eval_crosscheck.py --quick    # every tenth year, smaller Zi Wei sample
+    python scripts/eval_crosscheck.py --quick    # every tenth year, smaller Zi Wei sample, build/evals-quick/
 
 References: sxtwl (寿星天文历 by 许剑伟), lunar_python (6tail), lunardate
 (table based), PyEphem (libastro, VSOP87) and iztro-py (port of iztro).
@@ -554,8 +556,10 @@ def summary(result: dict) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--quick', action='store_true', help='every tenth year and a smaller Zi Wei sample')
-    parser.add_argument('--output', type=Path, default=ROOT / 'docs' / 'evals')
+    parser.add_argument('--output', type=Path, help='default: docs/evals, or build/evals-quick with --quick')
     args = parser.parse_args()
+    committed = ROOT / 'docs' / 'evals'
+    output = args.output or (ROOT / 'build' / 'evals-quick' if args.quick else committed)
     years = list(range(1901, 2100, 10)) + [2099] if args.quick else list(range(1901, 2100))
     result = {
         'system': 'xuanshu-crosscheck', 'generated': date.today().isoformat(), 'quick': args.quick,
@@ -572,13 +576,14 @@ def main() -> None:
     print('zi wei…', flush=True)
     result['ziwei'] = compare_ziwei(300 if args.quick else 3000, 50 if args.quick else 300)
     result['findings'] = findings(result)
-    args.output.mkdir(parents=True, exist_ok=True)
-    (args.output / 'crosscheck.json').write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
-    write_markdown(result, args.output / 'README.md')
-    if not args.quick:
+    output.mkdir(parents=True, exist_ok=True)
+    (output / 'crosscheck.json').write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    write_markdown(result, output / 'README.md')
+    # The page summary must stay in step with the committed report, so only a full run into docs/evals writes it.
+    if not args.quick and output.resolve() == committed.resolve():
         (ROOT / 'static' / 'crosscheck-summary.json').write_text(
             json.dumps(summary(result), ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
-    print('wrote', args.output / 'crosscheck.json')
+    print('wrote', output / 'crosscheck.json')
 
 
 if __name__ == '__main__':
