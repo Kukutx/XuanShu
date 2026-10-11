@@ -117,9 +117,14 @@ def _ten_god(day_stem: int, other_stem: int) -> str:
     return names[delta][0 if same_yin_yang else 1]
 
 
-def calculate_bazi(inp: BirthInput) -> dict:
-    dt = normalized_dt(inp)
-    effective, time_meta = time_basis(dt, inp.time_mode, inp.longitude)
+def pillar_indices(dt: datetime, late_zi_day_rollover: bool = False, time_mode: str = 'clock',
+                   longitude: float | None = None) -> tuple[tuple[int, int, int, int], datetime, dict]:
+    """Sexagenary indices (0 = 甲子) of the year, month, day and hour pillars for an aware instant.
+
+    Year and month follow the astronomical instant (立春 and the twelve jie);
+    day and hour follow the effective local reading of the chosen time basis.
+    """
+    effective, time_meta = time_basis(dt, time_mode, longitude)
     li_chun = from_jd(solar_term_jd(dt.year, 315))
     solar_year = dt.year if dt >= li_chun else dt.year - 1
     year_idx = (solar_year - 1984) % 60
@@ -132,12 +137,19 @@ def calculate_bazi(inp: BirthInput) -> dict:
     month_stem = (2 + 2 * (year_stem % 5) + month_offset) % 10
     month_idx = _sexagenary_by_pair(month_stem, month_branch)
 
-    day_date = effective.date() + (timedelta(days=1) if inp.late_zi_day_rollover and effective.hour == 23 else timedelta())
+    day_date = effective.date() + (timedelta(days=1) if late_zi_day_rollover and effective.hour == 23 else timedelta())
     # Independently verified anchor: 2000-01-01 is 戊午日 (index 54).
     day_idx = (54 + (day_date - date(2000,1,1)).days) % 60
     hour_branch = hour_branch_index(effective.hour)
     hour_stem = (2 * (day_idx % 5) + hour_branch) % 10
     hour_idx = _sexagenary_by_pair(hour_stem, hour_branch)
+    return (year_idx, month_idx, day_idx, hour_idx), effective, time_meta
+
+
+def calculate_bazi(inp: BirthInput) -> dict:
+    dt = normalized_dt(inp)
+    (year_idx, month_idx, day_idx, hour_idx), effective, time_meta = pillar_indices(
+        dt, inp.late_zi_day_rollover, inp.time_mode, inp.longitude)
 
     pillars = {
         'year': _sexagenary(year_idx),

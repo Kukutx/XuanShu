@@ -346,6 +346,70 @@ function elementBars(parent, primary, secondary) {
     const b2 = append(legend, 'span'); append(b2, 'i', 'secondary'); b2.append('藏干（不加权）');
   }
 }
+// Decade (大运) and annual (流年) pillars on one strip. A year opens the Zi Wei year layer for the same year.
+const STEM_ELEMENTS = '木木火火土土金金水水', BRANCH_ELEMENTS = '水土木木土火火土金金土水', PHASES = '木火土金水';
+const TEN_GODS = [['比肩', '劫财'], ['食神', '伤官'], ['偏财', '正财'], ['七杀', '正官'], ['偏印', '正印']];
+function tenGodOf(dayStem, stem) {
+  const d = STEM_ORDER.indexOf(dayStem), o = STEM_ORDER.indexOf(stem);
+  const delta = (PHASES.indexOf(STEM_ELEMENTS[o]) - PHASES.indexOf(STEM_ELEMENTS[d]) + 5) % 5;
+  return TEN_GODS[delta][d % 2 === o % 2 ? 0 : 1];
+}
+const yearPillarOf = year => {const i = ((year - 1984) % 60 + 60) % 60; return STEM_ORDER[i % 10] + BRANCH_ORDER[i % 12];};
+const stemClass = stem => elementClass(STEM_ELEMENTS[STEM_ORDER.indexOf(stem)]);
+const branchClass = branch => elementClass(BRANCH_ELEMENTS[BRANCH_ORDER.indexOf(branch)]);
+let luckData = null, luckKey = null, luckPending = false, luckDecade = null;
+function ensureLuck() {
+  const key = JSON.stringify(currentInput);
+  if (luckKey === key || luckPending) return;
+  luckPending = true;
+  postJSON('/api/dayun', {birth: currentInput, periods: 9}).then(data => {luckData = data;}).catch(() => {luckData = null;})
+    .finally(() => {luckPending = false; luckKey = key; luckDecade = null; if (active === 'bazi') render();});
+}
+function renderLuckStrip(parent, b) {
+  const box = append(parent, 'section', 'luck');
+  append(box, 'h4', 'subheading', '大运与流年');
+  if (currentInput.gender === 'unspecified') {append(box, 'p', 'field-help', '在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。'); return;}
+  if (luckKey !== JSON.stringify(currentInput)) {ensureLuck(); append(box, 'p', 'field-help', '正在排大运…'); return;}
+  if (!luckData) {append(box, 'p', 'inline-msg', '大运暂时排不出来，可以在「大运干支」里单独计算。'); return;}
+  // 虚龄 counts from the lunar birth year, which is the previous civil year for births before the new year.
+  const birthYear = b.lunar_date.year, thisYear = new Date().getFullYear();
+  const decades = luckData.periods.map(d => ({...d, from: Number(d.approx_start_local.slice(0, 4)), to: Number(d.approx_end_local_exclusive.slice(0, 4))}));
+  const now = decades.findIndex(d => thisYear >= d.from && thisYear < d.to);
+  if (luckDecade === null) luckDecade = Math.max(now, 0);
+  const strip = append(box, 'div', 'luck-strip');
+  decades.forEach((d, i) => {
+    const btn = append(strip, 'button', 'luck-cell luck-decade' + (i === luckDecade ? ' active' : '') + (i === now ? ' now' : ''));
+    btn.type = 'button'; btn.id = 'luck-decade-' + i; btn.setAttribute('aria-pressed', String(i === luckDecade));
+    append(btn, 'small', 'luck-god', tenGodOf(b.day_master, d.pillar[0]));
+    append(btn, 'b', 'luck-char ' + stemClass(d.pillar[0]), d.pillar[0]);
+    append(btn, 'b', 'luck-char ' + branchClass(d.pillar[1]), d.pillar[1]);
+    append(btn, 'small', null, d.from + '–' + (d.to - 1));
+    const age = append(btn, 'small', 'luck-age'); age.append('起运'); age.append(' ' + Math.round(d.approx_start_age_years));
+    btn.addEventListener('click', () => {luckDecade = i; render();});
+  });
+  const d = decades[luckDecade];
+  append(box, 'p', 'luck-caption', `${d.pillar} 大运 · ${d.from}–${d.to - 1}`);
+  const years = append(box, 'div', 'luck-years');
+  for (let y = d.from; y < d.to; y++) {
+    const pillar = yearPillarOf(y);
+    const btn = append(years, 'button', 'luck-cell luck-year' + (y === thisYear ? ' now' : ''));
+    btn.type = 'button'; btn.id = 'luck-year-' + y;
+    const supported = y >= 1901 && y <= 2099;
+    btn.title = supported ? '在紫微盘打开 ' + y + ' 年流年层' : '超出 1901–2099 的计算范围';
+    append(btn, 'small', null, String(y));
+    const chars = append(btn, 'span', 'luck-pair');
+    append(chars, 'b', stemClass(pillar[0]), pillar[0]); append(chars, 'b', branchClass(pillar[1]), pillar[1]);
+    append(btn, 'small', 'luck-god', tenGodOf(b.day_master, pillar[0]));
+    const age = append(btn, 'small', 'luck-age'); age.append('虚龄'); age.append(' ' + (y - birthYear + 1));
+    if (!supported) {btn.disabled = true; continue;}
+    btn.addEventListener('click', () => {
+      ziweiLayer = {mode: 'year', decade: null, year: y};
+      activateTab(tabs.find(t => t.dataset.tab === 'ziwei'));
+      announce('紫微盘已切到 ' + y + ' 年流年层');
+    });
+  }
+  append(box, 'p', 'field-help', '十神按日主看天干。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。');
+}
 function renderBazi(b) {
   title(result, '四柱命式', '太阳节令 · 藏干十神 · 纳音');
   const grid = append(result, 'div', 'pillar-grid');
@@ -365,6 +429,7 @@ function renderBazi(b) {
     });
     append(box, 'div', 'pillar-nayin', '纳音：' + p.na_yin);
   }
+  renderLuckStrip(result, b);
   append(result, 'h4', 'subheading', '明干 + 地支本气 · 五行数量');
   const five = append(result, 'div', 'five-row');
   Object.entries(b.surface_five_elements).forEach(([name, value]) => {
@@ -895,6 +960,149 @@ function renderDecision() {
     `去掉「${x.omitted_criterion}」后首位：${x.leaders_without_it.join('、')}${x.leader_changed?' · 结果变化':' · 不变'}`));
   decisionResult.limitations.forEach(x=>note(result,x));
 }
+// Reverse lookup: four pillars -> every matching birth interval in 1901–2099.
+const JIAZI = Array.from({length: 60}, (_, i) => STEM_ORDER[i % 10] + BRANCH_ORDER[i % 12]);
+let pillarDraft = null, pillarResult = null;
+function renderPillarSearch() {
+  title(result, '四柱反查出生时间', '给出四柱，列出 1901–2099 年间所有对得上的出生时段');
+  append(result, 'p', 'info-inline', '时区、时制和经度沿用出生资料；边界用和排盘相同的计算逐秒校准。');
+  if (!pillarDraft) {
+    const p = current ? current.bazi.pillars : null;
+    pillarDraft = {year: p ? p.year.text : JIAZI[0], month: p ? p.month.text : JIAZI[2], day: p ? p.day.text : JIAZI[0], hour: p ? p.hour.text : '',
+      start_year: 1901, end_year: 2099, late_zi_day_rollover: readInput().late_zi_day_rollover};
+  }
+  const row = append(result, 'div', 'inline-control pillar-pickers');
+  const pickers = {};
+  [['year', '年柱'], ['month', '月柱'], ['day', '日柱'], ['hour', '时柱（可不选）']].forEach(([key, label]) => {
+    const wrap = append(row, 'label', null, label);
+    const select = append(wrap, 'select'); select.id = 'pillar-' + key;
+    if (key === 'hour') {const op = append(select, 'option', null, '不限'); op.value = '';}
+    JIAZI.forEach(text => {const op = append(select, 'option', null, text); op.value = text;});
+    select.value = pillarDraft[key];
+    pickers[key] = select;
+  });
+  const options = append(result, 'div', 'inline-control');
+  const from = createInput('起始年', 'number', String(pillarDraft.start_year), options); from.id = 'pillar-from'; from.min = '1901'; from.max = '2099';
+  const to = createInput('结束年', 'number', String(pillarDraft.end_year), options); to.id = 'pillar-to'; to.min = '1901'; to.max = '2099';
+  const lateLine = append(options, 'label', 'check-line');
+  const late = append(lateLine, 'input'); late.type = 'checkbox'; late.id = 'pillar-late-zi'; late.checked = pillarDraft.late_zi_day_rollover;
+  lateLine.append(' 23:00 换日（早晚子时）');
+  const actions = append(result, 'div', 'inline-control');
+  if (current) {
+    const mine = append(actions, 'button', 'tiny-button', '填入当前命盘的四柱'); mine.type = 'button'; mine.id = 'pillar-mine';
+    mine.addEventListener('click', () => {pillarDraft = null; pillarResult = null; render();});
+  }
+  const run = append(actions, 'button', null, '反查'); run.type = 'button'; run.id = 'pillar-search-run';
+  const message = append(result, 'p', 'inline-msg');
+  run.addEventListener('click', async () => {
+    pillarDraft = {year: pickers.year.value, month: pickers.month.value, day: pickers.day.value, hour: pickers.hour.value,
+      start_year: Number(from.value), end_year: Number(to.value), late_zi_day_rollover: late.checked};
+    const input = readInput();
+    const body = {year: pillarDraft.year, month: pillarDraft.month, day: pillarDraft.day, hour: pillarDraft.hour || null,
+      timezone: input.timezone, time_mode: input.time_mode, longitude: input.longitude,
+      late_zi_day_rollover: pillarDraft.late_zi_day_rollover, start_year: pillarDraft.start_year, end_year: pillarDraft.end_year};
+    run.disabled = true; message.className = 'inline-msg progress'; message.textContent = '正在逐年反查…';
+    try {pillarResult = await postJSON('/api/pillars-to-dates', body); render(); announce('四柱反查完成：' + pillarResult.count + ' 个时段');}
+    catch (e) {pillarResult = null; message.className = 'inline-msg'; message.textContent = '反查失败：' + e.message;}
+    finally {run.disabled = false;}
+  });
+  if (!pillarResult) return;
+  const r = pillarResult;
+  r.impossible_combination.forEach(x => append(result, 'p', 'inline-msg', x));
+  meta(result, [`${r.pillars.year} ${r.pillars.month} ${r.pillars.day} ${r.pillars.hour || ''}`.trim(), `${r.count} 个时段`,
+    `${r.range.start_year}–${r.range.end_year}`, `换日 ${r.rules.day_boundary}`, r.timezone]);
+  if (!r.count && !r.impossible_combination.length) append(result, 'p', 'info-inline', '这段年份里没有对得上的时间。可以放宽年份，或切换换日规则再试。');
+  if (r.count) {
+    const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table');
+    const head = append(append(table, 'thead'), 'tr');
+    ['起（含）', '止（不含）', '时长', '农历', ''].forEach(x => append(head, 'th', null, x));
+    const body = append(table, 'tbody');
+    r.matches.forEach((m, i) => {
+      const tr = append(body, 'tr');
+      append(tr, 'td', null, m.start.slice(0, 19).replace('T', ' '));
+      append(tr, 'td', null, m.end_exclusive.slice(0, 19).replace('T', ' '));
+      append(tr, 'td', null, m.duration_minutes >= 120 ? (m.duration_minutes / 60).toFixed(1) + ' 小时' : m.duration_minutes + ' 分钟');
+      append(tr, 'td', null, `${m.lunar_date.year}年${m.lunar_date.is_leap_month ? '闰' : ''}${m.lunar_date.month}月${m.lunar_date.day}日`);
+      const cell = append(tr, 'td');
+      if (!m.suggested_local) {append(cell, 'small', 'field-help', '整段落在夏令时重复或跳过的钟点，请手动填写'); return;}
+      const use = append(cell, 'button', 'tiny-button', '用这个时间排盘'); use.type = 'button'; use.id = 'pillar-use-' + i;
+      use.addEventListener('click', () => {
+        $('#birth_datetime').value = m.suggested_local; $('#late_zi_day_rollover').checked = r.rules.day_boundary === '23:00';
+        $('#hour_unknown').checked = !r.pillars.hour; updateHourUnknown(); updateStaleBirthNotice();
+        activateTab(tabs.find(t => t.dataset.tab === 'bazi'));
+        form.requestSubmit();
+      });
+    });
+    if (r.truncated) note(result, '结果较多，只列出前 40 个时段。');
+  }
+  r.limitations.forEach(x => note(result, x));
+}
+
+// Paste a chart from other software and compare it with XuanShu field by field.
+let importDraft = '', importResult = null;
+function renderImportCheck() {
+  title(result, '外部命盘导入核对', '粘贴其他软件排出的命盘，逐项比对，并找出对方用的规则');
+  append(result, 'p', 'info-inline', '按出生资料里的信息排出玄枢的盘再比较。粘贴的内容只用于本次核对，服务器不保存。');
+  append(result, 'p', 'field-help', '支持简体或繁体的命盘文字；没识别到的部分会略过。');
+  const area = append(result, 'textarea', 'import-text'); area.id = 'import-text'; area.rows = 8; area.maxLength = 6000;
+  area.setAttribute('data-no-i18n', '');  // the example shows the Chinese formats the parser reads
+  area.placeholder = '例如：\n乾造 庚辰 甲申 丙午 庚寅\n命宫在午，身宫在官禄，木三局，命主破军，身主文昌\n官禄宫：廉贞 天府\n太阳化禄 武曲化权 太阴化科 天同化忌';
+  area.value = importDraft;
+  area.addEventListener('input', () => {importDraft = area.value;});
+  const actions = append(result, 'div', 'inline-control');
+  const run = append(actions, 'button', null, '核对'); run.type = 'button'; run.id = 'import-check-run';
+  const message = append(result, 'p', 'inline-msg');
+  run.addEventListener('click', async () => {
+    if (!area.value.trim()) {message.textContent = '先粘贴命盘文字。'; return;}
+    run.disabled = true; message.className = 'inline-msg progress'; message.textContent = '正在比对…';
+    try {importResult = await postJSON('/api/chart-import-check', {birth: readInput(), text: area.value}); render();
+      announce(`核对完成：${importResult.summary.matched} 项一致，${importResult.summary.mismatched} 项不同`);}
+    catch (e) {importResult = null; message.className = 'inline-msg'; message.textContent = '核对失败：' + e.message;}
+    finally {run.disabled = false;}
+  });
+  if (!importResult) return;
+  const r = importResult;
+  if (!r.recognized_count) {
+    append(result, 'p', 'inline-msg', '没有识别到可以比对的字段。支持的写法：');
+    const list = append(result, 'ul', 'plain-list'); r.accepted_formats.forEach(x => append(list, 'li', null, x));
+    return;
+  }
+  meta(result, [`已识别字段 ${r.recognized_count}`, `一致 ${r.summary.matched}`, `不同 ${r.summary.mismatched}`]);
+  if (r.reproducing_variants.length) {
+    const box = append(result, 'div', 'import-verdict ok');
+    append(box, 'b', null, '改用下面的规则后，粘贴的命盘与玄枢完全一致：');
+    r.variants.filter(v => !v.mismatched).slice(0, 3).forEach((v, i) => {
+      const line = append(box, 'div', 'import-variant');
+      append(line, 'span', null, v.label);
+      const apply = append(line, 'button', 'tiny-button', '套用到出生资料'); apply.type = 'button'; apply.id = 'import-apply-' + i;
+      apply.addEventListener('click', () => {setInput(v.settings); importResult = null; form.requestSubmit(); setFeedback('已套用：' + v.label);});
+    });
+  } else if (!r.summary.mismatched) {
+    append(result, 'div', 'import-verdict ok', '识别到的字段全部一致。');
+  }
+  const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table import-table');
+  const head = append(append(table, 'thead'), 'tr');
+  ['项目', '粘贴的命盘', '玄枢', '结果'].forEach(x => append(head, 'th', null, x));
+  const body = append(table, 'tbody');
+  r.fields.forEach(f => {
+    const tr = append(body, 'tr', f.match ? null : 'mismatch');
+    append(tr, 'td', null, f.label); append(tr, 'td', null, f.theirs); append(tr, 'td', null, f.ours || '—');
+    append(tr, 'td', 'import-result ' + (f.match ? 'same' : 'diff'), f.match ? '✓ 一致' : '✗ 不同');
+  });
+  if (r.possible_causes.length) {
+    append(result, 'h4', 'subheading', '可能的原因');
+    const list = append(result, 'ul', 'plain-list'); r.possible_causes.forEach(x => append(list, 'li', null, x));
+  }
+  const near = r.variants.filter(v => v.mismatched).slice(0, 4);
+  if (near.length && !r.reproducing_variants.length) {
+    append(result, 'h4', 'subheading', '换成其他规则后仍不一致的项目');
+    const t2 = append(append(result, 'div', 'table-wrap'), 'table', 'data-table');
+    const h2 = append(append(t2, 'thead'), 'tr'); ['规则', '仍不一致'].forEach(x => append(h2, 'th', null, x));
+    const b2 = append(t2, 'tbody');
+    near.forEach(v => {const tr = append(b2, 'tr'); append(tr, 'td', null, v.label); append(tr, 'td', null, v.mismatched_fields.join('、'));});
+  }
+  r.limitations.forEach(x => note(result, x));
+}
 function renderLunarInverseSection(){
   append(result,'h4','subheading','农历 → 公历反查（支持闰月）');
   const row=append(result,'div','inline-control');
@@ -1332,7 +1540,7 @@ function renderIntegration() {
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
-  return {birth_hour_unknown:currentHourUnknown, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
+  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
 }
 function renderConsultation() {
   title(result, '问题驱动咨询工作流', '真实执行工具 · 保留证据来源 · 不在服务器保存对话');
@@ -1485,6 +1693,8 @@ function renderView() {
   if (active === 'quality') return renderQualityAudit();
   if (active === 'report') return renderReport();
   if (active === 'deep') return renderDeep();
+  if (active === 'pillar-search') return renderPillarSearch();
+  if (active === 'import-check') return renderImportCheck();
   if (!current) {
     const empty = append(result, 'div', 'empty-state');
     append(empty, 'div', 'empty-orbit', '☯');

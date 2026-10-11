@@ -9,7 +9,7 @@
 
 ## AI 对话（可选，需要自备模型 API Key）
 
-工作台首页「AI 对话」用自然语言提问，由你配置的语言模型调用玄枢的 28 个确定性工具回答；模型不自己排盘，每次工具调用的参数、结果摘要和 SHA-256 都能在「推理过程」里展开核对。对应天府 Agent 的对话、主动追问、跨对话档案记忆、人生事件回溯和多语言输出，对齐清单见 [docs/research/TIANFU_PARITY.md](docs/research/TIANFU_PARITY.md)。
+工作台首页「AI 对话」用自然语言提问，由你配置的语言模型调用玄枢的 30 个确定性工具回答；模型不自己排盘，每次工具调用的参数、结果摘要和 SHA-256 都能在「推理过程」里展开核对。对应天府 Agent 的对话、主动追问、跨对话档案记忆、人生事件回溯和多语言输出，对齐清单见 [docs/research/TIANFU_PARITY.md](docs/research/TIANFU_PARITY.md)。
 
 ```bash
 # Claude（官方 Anthropic SDK，默认 claude-opus-5-5）
@@ -21,7 +21,7 @@ python -m pip install '.[chat-openai]'
 export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_BASE_URL=https://api.deepseek.com/v1 XUANSHU_LLM_API_KEY=...
 ```
 
-- REST：`GET /api/chat/status`、`POST /api/chat`，以及同样参数的 `POST /api/chat/stream`（逐行 JSON：工具调用开始与完成、命盘卡片、回答文字、最后是完整结果；断开连接即停止）。不提供 MCP 版本：MCP 客户端本身就是模型，直接调用 28 个工具即可。
+- REST：`GET /api/chat/status`、`POST /api/chat`，以及同样参数的 `POST /api/chat/stream`（逐行 JSON：工具调用开始与完成、命盘卡片、回答文字、最后是完整结果；断开连接即停止）。不提供 MCP 版本：MCP 客户端本身就是模型，直接调用 30 个工具即可。
 - 对话体验：回答边写边显示，可随时停止（Esc）或重新回答、编辑上一个问题；回答按 Markdown 排版；模型排出的八字、紫微、奇门盘以小卡片嵌在回答里；每条回答后按本次用到的工具给出追问建议。
 - 择日择时：工作台「择日择时」或 `POST /api/date-scan`（MCP `date_candidate_scan`），在最多 93 天里按建除值日、交节日、本命相冲筛选候选日，可附加指定时刻的时家奇门盘；按日期列出，不打吉凶分。
 - 人生事件回溯：档案里记录人生事件后可一键对照（`POST /api/life-path`，MCP `life_path_review`），把每个事件与大运、流年干支、年度四化和本命地支关系并列，不需要配置模型。
@@ -42,6 +42,10 @@ export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_B
 - 奇门起局时刻：默认取此刻（本机时区），也可指定时间或沿用出生时间。
 - 分享卡片：本机绘制 PNG，不上传；出生日期、时间默认不显示。打印或存为 PDF 有专门的打印样式。
 - 手机上出生表单折叠成一行摘要，紫微盘横向滑动保持可读字号。
+- 大运流年时间条：四柱下方横排十步大运（十神、干支、起止年份、起运年龄），点选一步大运展开其中十年流年；点某一年直接打开紫微盘的同年流年层。
+- 四柱反查（`POST /api/pillars-to-dates`，MCP `pillars_to_dates`）：给出年月日柱（时柱可选），列出 1901–2099 年间所有对得上的出生时段，起止时刻用与排盘相同的计算逐秒校准；天干组合不合五虎遁、五鼠遁时直接说明不可能；每个时段可一键排盘。
+- 命盘导入核对（`POST /api/chart-import-check`，MCP `chart_import_check`）：粘贴其他软件排出的命盘（简体或繁体），识别四柱、命宫、身宫、五行局、命主身主、各宫主星和生年四化，与玄枢逐项比对；有差异时换用常见的不同规则（23:00 换日、闰月归属、平太阳时或真太阳时、扣除夏令时，以及两两组合）重算，列出能完全复现对方命盘的规则，可一键套用。
+- 性能：页面与静态资源 gzip 压缩，并按 ETag 校验缓存（未改动的文件返回 304）；API 与对话流不压缩。
 
 **Python 3.15 与体验改造（2026-10-10）：** Windows 系统用户默认及本项目虚拟环境已升级至 Python 3.15.0，uv 更新为 0.13.0；旧 3.13.7 安装和虚拟环境保留回退。界面提供常用功能优先、搜索全部 22 项、五类快捷咨询、折叠选项、草稿保留与可复制的本地 MCP 配置。详情见 docs/research/UX_AUDIT.md。Linux Docker 仍使用已验证的 Python 3.12。
 
@@ -63,7 +67,7 @@ export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_B
 
 ## 全工具验收与 Windows 本地检查（开发阶段）
 
-新增严格的全工具契约审计：逐项测试 **28 个 MCP Tool 与对应 REST 的输出一致性**。未安装的可选 `iztro-py` 必须明确返回「依赖未安装」，不允许被计算成功计数。运行：
+新增严格的全工具契约审计：逐项测试 **30 个 MCP Tool 与对应 REST 的输出一致性**。未安装的可选 `iztro-py` 必须明确返回「依赖未安装」，不允许被计算成功计数。运行：
 
 ```bash
 python scripts/full_functional_audit.py
@@ -96,7 +100,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\windows_acceptance.ps1
 | 双人盘 | 4 组四柱和地支传统关系对照 | 不给虚假关系匹配分数 |
 | Web 工作台 | **24 个视图**（含 AI 对话、择日择时），包含大运与边界地图、十二宫可点击、四化/时制查询、档案管理、JSON 导出 | 无云端账户/云同步 |
 | 浏览器隐私 | 可选 localStorage 保存/删除；WebCrypto AES-256-GCM 加密导出/导入，PBKDF2 口令推导 | **保存到浏览器的记录是明文**；仅加密备份文件，不替代磁盘加密 |
-| MCP / Agent | **28 Tools、17 Resources、15 Prompts、18 Skills**；HTTP+stdio 共用计算函数 | 外部 OAuth JWT 资源服务器；无实际授权服务器、租户隔离、主动 SSE 或公网连接验收 |
+| MCP / Agent | **30 Tools、17 Resources、15 Prompts、18 Skills**；HTTP+stdio 共用计算函数 | 外部 OAuth JWT 资源服务器；无实际授权服务器、租户隔离、主动 SSE 或公网连接验收 |
 | 工程交付 | Docker、Compose、Windows PowerShell 启动、Linux/macOS shell、CLI、GitHub CI、pytest / MCP / HTTP 校验 | 永久公网 HTTPS 部署需使用自己的授权主机及域名 |
 
 ## 问题驱动咨询执行器（已实现，可运行的确定性工作流）
@@ -316,7 +320,7 @@ curl -s http://127.0.0.1:8000/api/combined \
 
 ## ChatGPT / Claude / Codex 与 Skills
 
-- MCP 服务器 **28 个 Tools、17 个 Markdown Resources、15 个 Prompts**，位于 `app/mcp.py`；**18 个 Agent Skills** 在 `skills/`。
+- MCP 服务器 **30 个 Tools、17 个 Markdown Resources、15 个 Prompts**，位于 `app/mcp.py`；**18 个 Agent Skills** 在 `skills/`。
 - `python -m app.stdio` 可作为 Claude Desktop / Codex 的 MCP 子进程。
 - 公网宿主需要**公网 HTTPS URL + 合适鉴权方式 + 用户自行授权连接**。此工程还没有公共服务地址或安装到 ChatGPT / Claude 账户。
 - MCP 支持新版 **`2026-07-28` 无握手元数据机制**和旧版 `2025-03-26`、`2025-06-18`、`2025-11-25` 握手机制（stdio / 无状态 HTTP JSON）。新版校验请求元数据中的版本和 `clientCapabilities` 对象、`MCP-Protocol-Version`、`Mcp-Method` 和必要的 `Mcp-Name` 头；列表与规则读取回复带缓存提示；支持外部 OAuth JWT 资源服务器（需提供商与 HTTPS），不提供内建授权码登录服务、主动 SSE 订阅或需要多轮模型交互的扩展。

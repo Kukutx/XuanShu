@@ -37,7 +37,7 @@ def test_mcp_initialize_list_and_call():
     assert init.status_code==200
     assert init.json()['result']['protocolVersion']=='2025-11-25'
     names={t['name'] for t in CLIENT.post('/mcp',json=rpc('tools/list')).json()['result']['tools']}
-    assert names=={'bazi_chart','ziwei_chart','combined_chart','symbolic_reading','solar_terms','calendar_days','pair_comparison','palace_detail','annual_transformations','time_basis_audit','rule_comparison','structured_report','lunar_to_gregorian','birth_time_window','chart_quality_audit','day_officers','annual_timeline','decision_matrix','bazi_dayun','birth_boundary_map','qimen_hour_chart','ziwei_professional_chart','qimen_reference_audit','deep_evidence_review','consultation_execute','date_candidate_scan','life_path_review','ziwei_pair_overlay'}
+    assert names=={'bazi_chart','ziwei_chart','combined_chart','symbolic_reading','solar_terms','calendar_days','pair_comparison','palace_detail','annual_transformations','time_basis_audit','rule_comparison','structured_report','lunar_to_gregorian','birth_time_window','chart_quality_audit','day_officers','annual_timeline','decision_matrix','bazi_dayun','birth_boundary_map','qimen_hour_chart','ziwei_professional_chart','qimen_reference_audit','deep_evidence_review','consultation_execute','date_candidate_scan','life_path_review','ziwei_pair_overlay','pillars_to_dates','chart_import_check'}
     a=CLIENT.post('/mcp',json=rpc('tools/call',{'name':'ziwei_chart','arguments':{'birth_datetime':'2000-08-16T04:00'}}))
     assert a.status_code==200
     assert a.json()['result']['structuredContent']['ming_palace']=='午'

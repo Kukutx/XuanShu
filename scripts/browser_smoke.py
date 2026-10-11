@@ -123,7 +123,7 @@ def main() -> None:
             assert page.evaluate("JSON.parse(localStorage.getItem('xuanshu-profiles-v2'))[0].id") == 'legacy-1'
             assert page.evaluate("localStorage.getItem('oriental-astro-profiles-v2') !== null")
 
-            assert page.locator('.tab').count() == 24
+            assert page.locator('.tab').count() == 26
             # Question-first consultation keeps its opt-in birth input.
             assert page.locator('#consult-question').count() == 1
             page.locator('#consult-question').fill('2027年职业选择')
@@ -144,7 +144,43 @@ def main() -> None:
             page.locator('#run-btn').click()
             page.locator('.pillar-stem').first.wait_for(timeout=30000)
             assert page.locator('.pillar-stem').count() == 4
+            # Decade and annual pillars under the BaZi chart; a year opens the Zi Wei year layer.
+            page.locator('#luck-decade-0').wait_for(timeout=30000)
+            assert page.locator('.luck-decade').count() == 9 and page.locator('.luck-year').count() == 10
+            page.locator('#luck-decade-1').click()
+            assert page.locator('#luck-decade-1').get_attribute('aria-pressed') == 'true'
+            assert page.locator('#luck-year-2015').count() == 1
             page.screenshot(path=str(screenshot_dir / '01-bazi-desktop.png'), full_page=True)
+            page.locator('#luck-year-2015').click()
+            page.locator('#ziwei-board').wait_for(timeout=30000)
+            assert 'active' in page.locator('#ziwei-layer-year').get_attribute('class')
+            assert '2015' in page.locator('.layer-bar').inner_text()
+            page.locator('#ziwei-layer-natal').click()
+
+            # Pillars to dates: prefilled from the chart, every interval listed, one click casts it.
+            page.locator('[data-tab="pillar-search"]').click()
+            assert page.locator('#pillar-year').input_value() == '庚辰' and page.locator('#pillar-hour').input_value() == '庚寅'
+            page.locator('#pillar-search-run').click()
+            page.locator('#pillar-use-1').wait_for(timeout=30000)
+            assert page.locator('#result tbody tr').count() == 2
+            assert '2000-08-16 03:00:00' in page.locator('#result').inner_text()
+            page.screenshot(path=str(screenshot_dir / '27-pillar-search.png'), full_page=True)
+            page.locator('#pillar-use-1').click()
+            assert page.locator('#birth_datetime').input_value() == '2000-08-16T04:00'
+            page.locator('.pillar-stem').first.wait_for(timeout=30000)
+
+            # Pasted chart check: matching fields, then a differing hour pillar.
+            page.locator('[data-tab="import-check"]').click()
+            page.locator('#import-text').fill('乾造 庚辰 甲申 丙午 庚寅\n命宫在午，木三局，命主：破军')
+            page.locator('#import-check-run').click()
+            page.locator('.import-table').wait_for(timeout=30000)
+            assert '识别到的字段全部一致' in page.locator('#result').inner_text()
+            page.locator('#import-text').fill('乾造 庚辰 甲申 丙午 辛卯\n命宫在午')
+            page.locator('#import-check-run').click()
+            page.wait_for_function("() => document.querySelectorAll('.import-table tr.mismatch').length === 1", timeout=30000)
+            assert '可能的原因' in page.locator('#result').inner_text()
+            page.screenshot(path=str(screenshot_dir / '28-import-check.png'), full_page=True)
+            page.locator('[data-tab="bazi"]').click()
             page.locator('[data-tab="annual"]').click()
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)
             page.locator('[data-tab="time"]').click()

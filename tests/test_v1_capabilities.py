@@ -198,7 +198,7 @@ def test_oversized_request_rejected():
 
 
 def test_mcp_all_tools_and_resources_and_prompts_resolve():
-    assert len(TOOL_DEFS)==28
+    assert len(TOOL_DEFS)==30
     assert len(RESOURCES)==17
     assert len(PROMPTS)==15
     for resource in RESOURCES:
@@ -244,7 +244,7 @@ def test_plugin_metadata_and_web_vault_have_no_external_analytics():
     root=Path(__file__).resolve().parents[1]
     html=(root/'static/index.html').read_text(encoding='utf-8')
     vault=(root/'static/vault.js').read_text(encoding='utf-8')
-    assert html.count('data-tab=') == 24
+    assert html.count('data-tab=') == 26
     assert '/static/vault.js' in html
     assert 'PBKDF2' in vault and 'AES-GCM' in vault and 'subtle.decrypt' in vault
     assert 'fetch(' not in vault

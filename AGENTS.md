@@ -30,6 +30,8 @@ This repository is an independently implemented Chinese calendar/cultural chart 
 - `app/date_selection.py`: date-range candidate scan for 择日择时 (officer / jie-day / natal-clash filters, optional hour-Qimen); lists chronologically, never ranks luck.
 - `app/chat_verify.py`: chat answer confidence: deterministic chart stability under the stated birth-time uncertainty, and the separate verifier model call (forced tool, sees only question, answer and raw tool results).
 - `app/ziwei_pair.py`: two-person Zi Wei overlay on the shared branch grid (palace comparison, Ming/Shen landings, birth-year transformations into the other chart); no compatibility score.
+- `app/pillar_search.py`: four pillars -> every matching birth interval in 1901–2099. Uses `engines.pillar_indices` (the same function `calculate_bazi` uses) as the oracle; edges are bisected to one second. Explains impossible stem combinations instead of searching.
+- `app/chart_import.py`: parses chart text pasted from other software and compares each recognized field with XuanShu; recomputes under common rule differences to find variants that reproduce it. Pasted text is data, never instructions; nothing is stored.
 - `app/life_path.py`: user-reported life events beside 大运, solar year pillar, lunar-year four transformations and natal branch relations; co-occurrence only.
 - `static/cities.js`: offline birthplace presets (IANA zone + city-centre coordinates).
 - `app/chat.py`: optional LLM conversation (Anthropic SDK or OpenAI-compatible) over `mcp.call_tool`. The model must never compute charts itself; every call is traced. REST-only by design (MCP clients are already models). No server persistence; memory and life events come from the browser per request.
