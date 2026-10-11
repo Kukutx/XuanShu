@@ -90,6 +90,7 @@ let currentInput = null;
 let selectedPalace = '命宫';
 let calendarResult = null;
 let pairResult = null;
+let pairZiweiResult = null;
 let annualResult = null;
 let timeResult = null;
 let reportResult = null;
@@ -656,7 +657,7 @@ function renderLunarInverseSection(){
       `公历 ${lunarInverseResult.gregorian_date} · ${lunarInverseResult.lunar_date.is_leap_month?'闰':''}${lunarInverseResult.lunar_date.month}月${lunarInverseResult.lunar_date.day}日`);
 }
 function renderPair() {
-  title(result, '双人四柱结构对照', '只对照干支，不评分关系好坏');
+  title(result, '双人合盘对照', '八字四柱对照 + 紫微宫位叠盘 · 只做结构对照，不评分关系好坏');
   append(result, 'p', 'info-inline', 'A 使用左侧出生信息；B 在下方单独填写。对照数据不会自动保存。');
   const row = append(result, 'div', 'inline-control');
   const date = createInput('B · 公历出生日期与时间', 'datetime-local', pairDraft.birth_datetime, row);
@@ -665,14 +666,15 @@ function renderPair() {
   const zone = append(label, 'select'); zone.id = 'pair_timezone';
   [...$('#timezone').options].forEach(opt => {const option = append(zone, 'option', null, opt.textContent); option.value = opt.value;});
   zone.value = pairDraft.timezone;
-  const run = append(row, 'button', null, '比较四柱'); run.type = 'button'; run.id = 'pair-run';
+  const run = append(row, 'button', null, '比较两人命盘'); run.type = 'button'; run.id = 'pair-run';
   const error = append(result, 'p', 'inline-msg');
   run.addEventListener('click', async () => {
     pairDraft = {birth_datetime: date.value, timezone: zone.value, gender: 'unspecified'};
     if (!pairDraft.birth_datetime) {error.textContent = '请填写 B 的出生时间'; return;}
     run.disabled = true; error.textContent = '';
     try {
-      pairResult = await postJSON('/api/pair', {person_a: readInput(), person_b: pairDraft});
+      const body = {person_a: readInput(), person_b: pairDraft};
+      [pairResult, pairZiweiResult] = await Promise.all([postJSON('/api/pair', body), postJSON('/api/ziwei-pair', body)]);
       render();
     } catch (err) {error.textContent = '比较失败：' + err.message;}
     finally {run.disabled = false;}
@@ -691,6 +693,33 @@ function renderPair() {
     append(tr, 'td', null, row.branch_relation);
   });
   note(result, pairResult.notes.join(' '));
+  if (pairZiweiResult) renderZiweiPair(pairZiweiResult);
+}
+function renderZiweiPair(z) {
+  append(result, 'h4', 'subheading', '紫微宫位叠盘');
+  const land = z.ming_shen_landings;
+  const where = x => `${x.palace_in_other_chart}（${x.branch}${x.main_stars_there.length ? ' · ' + x.main_stars_there.join('、') : ''}）`;
+  meta(result, [`A 命宫落在 B 的${where(land.person_a_ming_in_b)}`, `B 命宫落在 A 的${where(land.person_b_ming_in_a)}`,
+    `A 身宫落在 B 的${where(land.person_a_shen_in_b)}`, `B 身宫落在 A 的${where(land.person_b_shen_in_a)}`]);
+  const grid = append(append(result, 'div', 'table-wrap'), 'table', 'data-table'); grid.id = 'ziwei-pair-grid';
+  const gh = append(append(grid, 'thead'), 'tr');
+  ['地支', 'A 宫位', 'A 主星', 'B 宫位', 'B 主星'].forEach(text => append(gh, 'th', null, text));
+  const gb = append(grid, 'tbody');
+  z.palace_grid.forEach(r => {
+    const tr = append(gb, 'tr');
+    [r.branch, r.person_a_palace, r.person_a_main_stars.join('、') || '—', r.person_b_palace, r.person_b_main_stars.join('、') || '—']
+      .forEach(text => append(tr, 'td', null, text));
+  });
+  const tt = append(append(result, 'div', 'table-wrap'), 'table', 'data-table'); tt.id = 'ziwei-pair-transformations';
+  const th = append(append(tt, 'thead'), 'tr');
+  ['方向', '四化', '星曜', '落入对方宫位'].forEach(text => append(th, 'th', null, text));
+  const tb = append(tt, 'tbody');
+  [['A → B', z.transformations_a_into_b], ['B → A', z.transformations_b_into_a]].forEach(([label, rows]) => rows.forEach(t => {
+    const tr = append(tb, 'tr');
+    [`${label}（${t.source_year_stem}年干）`, t.type, t.star, t.target_palace ? `${t.target_palace} · ${t.target_branch}` : '对方盘未安此星']
+      .forEach(text => append(tr, 'td', null, text));
+  }));
+  z.limitations.forEach(x => note(result, x));
 }
 function renderAnnual() {
   title(result, '指定农历年干四化', '与本命四化分开显示 · 仅为星曜位置叠加');
@@ -1045,7 +1074,7 @@ function renderIntegration() {
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
-  return {date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
+  return {date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
 }
 function renderConsultation() {
   title(result, '问题驱动咨询工作流', '真实执行工具 · 保留证据来源 · 不在服务器保存对话');
@@ -1268,7 +1297,7 @@ form.addEventListener('submit', async event => {
     ]);
     current = {...chart, reading}; currentInput = data;
     consultResult=null;consultCursor=null;
-    pairResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
+    pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
     dayunResult=null;boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
     selectedPalace = '命宫';
     $('#result-subtitle').textContent = data.birth_datetime.replace('T',' ') + ' · ' + data.timezone;
