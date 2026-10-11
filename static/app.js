@@ -1027,12 +1027,12 @@ function renderRuleMatrix() {
       else append(append(tr, 'td'), 'span', 'muted', '＝');
     });
     const action = append(tr, 'td');
-    if (!row.is_baseline && row.differs.length) {
+    if (!row.is_baseline && row.differs.length && row.applicable) {
       const apply = append(action, 'button', 'tiny-button', '套用'); apply.type = 'button'; apply.id = 'rule-apply-' + i;
       apply.addEventListener('click', () => {setInput(row.settings); form.requestSubmit(); setFeedback('已套用：' + row.label);});
-    }
+    } else if (!row.is_baseline && row.differs.length) append(action, 'small', 'muted', '需手动改时间');
   });
-  append(result, 'p', 'field-help', '“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。');
+  append(result, 'p', 'field-help', '“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。扣除夏令时改的是出生时间本身的读法，不能直接套用；确认出生记录用的是夏令时后，请手动改出生时间。');
   m.notes.forEach(text => note(result, text));
 }
 // Group relations: two to eight charts from the current form, local profiles and members added here.
@@ -1683,6 +1683,11 @@ function renderImportCheck() {
     r.variants.filter(v => !v.mismatched).slice(0, 3).forEach((v, i) => {
       const line = append(box, 'div', 'import-variant');
       append(line, 'span', null, v.label);
+      // A different reading of the birth time itself (daylight saving) is not applied automatically.
+      const base = readInput();
+      if (v.settings.birth_datetime !== base.birth_datetime || (v.settings.timezone || 'Asia/Shanghai') !== base.timezone) {
+        append(line, 'small', 'muted', '需手动改时间'); return;
+      }
       const apply = append(line, 'button', 'tiny-button', '套用到出生资料'); apply.type = 'button'; apply.id = 'import-apply-' + i;
       apply.addEventListener('click', () => {setInput(v.settings); importResult = null; form.requestSubmit(); setFeedback('已套用：' + v.label);});
     });
@@ -2402,6 +2407,7 @@ form.addEventListener('submit', async event => {
     consultResult=null;consultCursor=null;
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
     dayunResult=null;boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
+    ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
     selectedPalace = '命宫'; ziweiLayer.decade = null; currentHourUnknown = $('#hour_unknown').checked;
     $('#result-subtitle').textContent = data.birth_datetime.replace('T',' ') + ' · ' + data.timezone;
     $('#download-json').disabled = false;

@@ -30,7 +30,10 @@ def test_late_birth_with_longitude_and_daylight_saving():
     assert late['values']['pillar.day'] == '癸未' and out['rows'][0]['values']['pillar.day'] == '壬午'
     solar = rows['真太阳时']
     assert solar['effective_reading'] == '1990-05-17T22:19' and 'ming' in solar['differs'] and 'bureau' in solar['differs']
-    assert rows['扣除夏令时（按标准时）']['changes'] == {'birth_datetime': '1990-05-17T22:30'}
+    # Standard time reads the same instant in a fixed UTC+8 zone; it changes the birth time, so it is not applied directly.
+    dst = rows['扣除夏令时（按标准时）']
+    assert dst['changes'] == {'birth_datetime': '1990-05-17T22:30', 'timezone': 'Etc/GMT-8'} and dst['applicable'] is False
+    assert dst['values']['pillar.month'] == out['rows'][0]['values']['pillar.month'] and late['applicable'] is True
     assert rows['闰月整月按本月']['differs'] == []
     assert out['summary']['stable_fields'] == ['年柱', '月柱', '农历', '生年四化']
     assert any('23:00' in h for h in out['hints']) and any('夏令时' in h for h in out['hints'])
@@ -51,13 +54,46 @@ def test_ordinary_birth_is_stable_and_missing_longitude_is_explained():
 def test_unknown_hour_and_range_edge():
     birth = {'birth_datetime': '1990-05-17T12:00', 'timezone': 'Asia/Shanghai', 'longitude': 116.4}
     out = rule_matrix(RuleMatrixRequest(birth=birth, hour_unknown=True))
-    assert out['hour_unknown'] and [f['key'] for f in out['fields']] == ['pillar.year', 'pillar.month', 'pillar.day', 'lunar', 'transformations']
-    assert all(set(r['differs']) <= {'pillar.year', 'pillar.month', 'pillar.day', 'lunar', 'transformations'} for r in out['rows'])
+    # The 23:00 rule moves the day at 23:59 and solar time moves the date near midnight, so the day pillar
+    # and the lunar date depend on the unknown hour as well.
+    assert out['hour_unknown'] and [f['key'] for f in out['fields']] == ['pillar.year', 'pillar.month', 'transformations']
+    assert out['uncertain_fields'] == ['日柱', '农历']
+    assert all(set(r['differs']) <= {'pillar.year', 'pillar.month', 'transformations'} for r in out['rows'])
     assert '时柱' not in out['summary']['stable_fields'] and any('时辰不详' in h for h in out['hints'])
-    # Solar time moves 1901-01-01 00:10 back into 1900: that variant is skipped and named, not a failure.
+    # Solar time moves 1901-01-01 00:10 back into 1900: that variant is skipped with its reason, not a failure.
     edge = rule_matrix(RuleMatrixRequest(birth={'birth_datetime': '1901-01-01T00:10', 'timezone': 'Asia/Shanghai', 'longitude': 75}))
     labels = [r['label'] for r in edge['rows']]
-    assert '平太阳时' not in labels and any('平太阳时' in n and '1901–2099' in n for n in edge['notes'])
+    assert '平太阳时' not in labels and any('平太阳时' in n and '1901' in n and '无法排盘' in n for n in edge['notes'])
+
+
+def test_unknown_hour_drops_fields_that_change_within_the_day():
+    # 2026-02-04: 立春 at 04:02 Beijing, so the year and month pillars depend on the unknown hour.
+    out = rule_matrix(RuleMatrixRequest(birth={'birth_datetime': '2026-02-04T12:00', 'timezone': 'Asia/Shanghai'}, hour_unknown=True))
+    keys = [f['key'] for f in out['fields']]
+    assert 'pillar.year' not in keys and 'pillar.month' not in keys and out['uncertain_fields'][:2] == ['年柱', '月柱']
+    # The 23:00 day-change rule makes the day pillar differ at 23:59, so it is dropped too.
+    assert 'pillar.day' not in keys and '日柱' in out['uncertain_fields']
+    assert any('同样不参与对照' in h and '年柱' in h for h in out['hints'])
+    assert '年柱' not in out['summary']['stable_fields']
+
+
+def test_dst_reading_near_a_clock_change_is_kept():
+    # 03:30 on the morning Rome moves to summer time: 02:30 standard time does not exist on the wall clock,
+    # but it is a valid reading in a fixed UTC+1 zone.
+    out = rule_matrix(RuleMatrixRequest(birth={'birth_datetime': '2026-03-29T03:30', 'timezone': 'Europe/Rome'}))
+    row = next(r for r in out['rows'] if r['label'] == '扣除夏令时（按标准时）')
+    assert row['changes'] == {'birth_datetime': '2026-03-29T02:30', 'timezone': 'Etc/GMT-1'}
+    assert row['effective_reading'] == '2026-03-29T02:30' and not any('无法排盘' in n for n in out['notes'])
+
+
+def test_ics_lines_are_folded_at_75_octets():
+    text = solar_terms_ics(2026, moon=True)
+    lines = text.split('\r\n')
+    assert all(len(line.encode('utf-8')) <= 75 for line in lines)
+    assert any(line.startswith(' ') for line in lines)
+    # Unfolding restores the original description, and no UTF-8 character is split.
+    unfolded = text.replace('\r\n ', '')
+    assert 'DESCRIPTION:日月地心黄经差到达 0°、90°、180° 或 270° 的时刻（UTC）。' in unfolded
 
 
 def test_requests_api_and_mcp():

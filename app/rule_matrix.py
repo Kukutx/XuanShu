@@ -24,6 +24,9 @@ FIELDS = (
 )
 # Fields that depend on the birth hour; left out when the hour is unknown.
 HOUR_FIELDS = frozenset({'pillar.hour', 'ming', 'shen', 'bureau', 'ming_stars'})
+# With an unknown hour any time of the day is possible: these are checked at its first and last minute.
+DAY_STARTS = ('00:00', '00:30', '01:00', '02:00')
+DAY_ENDS = ('23:59', '23:30', '23:00', '22:00')
 
 
 class RuleMatrixRequest(BaseModel):
@@ -48,12 +51,35 @@ def _values(birth: BirthInput) -> tuple[dict[str, str], str]:
     return values, bazi['time_basis']['effective_local_reading'][:16]
 
 
+def _values_at(birth: BirthInput, times: tuple[str, ...]) -> dict[str, str]:
+    """Values at the first of ``times`` on the birth date that exists in the zone."""
+    day = birth.birth_datetime[:10]
+    for clock in times:
+        try:
+            return _values(birth.model_copy(update={'birth_datetime': f'{day}T{clock}'}))[0]
+        except ValueError:
+            continue
+    raise ValueError(f'no valid local time found on {day}')
+
+
+def _day_dependent(births: list[BirthInput], keys: list[str]) -> set[str]:
+    """Fields that differ between the first and last minute of the birth date under any of the rule choices."""
+    found = set()
+    for birth in births:
+        try:
+            start, end = _values_at(birth, DAY_STARTS), _values_at(birth, DAY_ENDS)
+        except ValueError:
+            continue
+        found |= {key for key in keys if start[key] != end[key]}
+    return found
+
+
 def _hints(birth: BirthInput, hour_unknown: bool) -> list[str]:
     bazi = calculate_bazi(birth)
     dt = normalized_dt(birth)
     hints = []
     if hour_unknown:
-        hints.append('出生时辰不详：填写的时间只是占位，时柱、命宫、身宫、五行局和命宫主星不参与对照；当天若交节，年柱或月柱也可能不同。')
+        hints.append('出生时辰不详：填写的时间只是占位，时柱、命宫、身宫、五行局和命宫主星不参与对照。')
     for side in ('previous', 'next'):
         jie = bazi['jie_boundaries'][side]
         hours = abs((dt - datetime.fromisoformat(jie['instant'])).total_seconds()) / 3600
@@ -77,18 +103,25 @@ def rule_matrix(req: RuleMatrixRequest) -> dict:
     baseline, reading = _values(req.birth)
     rows = [{'label': '当前设置', 'is_baseline': True, 'changes': {}, 'settings': base,
              'effective_reading': reading, 'values': baseline, 'differs': []}]
-    skipped = []
+    computed, skipped = [], []
     for label, variant in _variants(req.birth):
         try:
-            values, reading = _values(variant)
-        except ValueError:
-            # A solar-time or day-change shift can move a date at the edge of the range out of it.
-            skipped.append(label)
-            continue
+            computed.append((label, variant, *_values(variant)))
+        except ValueError as exc:
+            # For example a solar-time shift that leaves 1901-2099; the reason is kept.
+            skipped.append(f'{label}（{exc}）')
+    uncertain = []
+    if req.hour_unknown:
+        moving = _day_dependent([req.birth] + [item[1] for item in computed], [key for key, _ in fields])
+        uncertain = [name for key, name in fields if key in moving]
+        fields = [(key, name) for key, name in fields if key not in moving]
+    for label, variant, values, reading in computed:
         settings = variant.model_dump()
+        changes = {k: v for k, v in settings.items() if base.get(k) != v}
         rows.append({
-            'label': label, 'is_baseline': False,
-            'changes': {k: v for k, v in settings.items() if base.get(k) != v},
+            'label': label, 'is_baseline': False, 'changes': changes,
+            # Rules that only flip a setting can be applied to the birth form; a reading of the time itself cannot.
+            'applicable': not {'birth_datetime', 'timezone'} & set(changes),
             'settings': settings, 'effective_reading': reading, 'values': values,
             'differs': [key for key, _ in fields if values[key] != baseline[key]],
         })
@@ -104,14 +137,18 @@ def rule_matrix(req: RuleMatrixRequest) -> dict:
         '紫微按农历正月初一换年、不按 23:00 换日；八字按立春换年，两者的年柱可能不同，这是规则本身的差别。',
     ]
     if skipped:
-        notes.append('以下规则换算后超出支持的 1901–2099 年，未列出：' + '；'.join(skipped))
+        notes.append('以下规则换算后无法排盘，未列出：' + '；'.join(skipped))
+    hints = _hints(req.birth, req.hour_unknown)
+    if uncertain:
+        hints.append('出生当天的不同时刻这些字段也会不同（当天交节、按 23:00 换日或换用太阳时），同样不参与对照：' + '、'.join(uncertain))
     return {
         'system': 'rule-sensitivity-matrix',
         'hour_unknown': req.hour_unknown,
+        'uncertain_fields': uncertain,
         'fields': [{'key': key, 'label': name} for key, name in fields],
         'rows': rows,
         'summary': {'variants': len(rows) - 1, 'identical_variants': sum(not r['differs'] for r in rows[1:]),
                     'stable_fields': stable, 'sensitive_fields': sensitive},
-        'hints': _hints(req.birth, req.hour_unknown),
+        'hints': hints,
         'notes': notes,
     }

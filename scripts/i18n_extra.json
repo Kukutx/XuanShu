@@ -583,9 +583,9 @@
   "mcp claude chatgpt codex plugin integration configuration",
   "mcp claude chatgpt codex plugin 接続 設定"
  ],
- "“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。": [
-  "“＝” means the same as the current settings; highlighted cells change under that rule. Apply writes the rule into the birth details and recalculates the chart.",
-  "「＝」は現在の設定と同じ、色付きのセルはそのルールで変わる結果です。「適用」はそのルールを出生情報に書き込み、命盤を再計算します。"
+ "“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。扣除夏令时改的是出生时间本身的读法，不能直接套用；确认出生记录用的是夏令时后，请手动改出生时间。": [
+  "“＝” means the same as the current settings; highlighted cells are results that change under that rule. Apply writes the rule into the birth details and recalculates. Removing daylight saving time changes how the birth time itself is read, so it cannot be applied directly; once you have confirmed the record used summer time, edit the birth time by hand.",
+  "「＝」は現在の設定と同じ、色付きのセルはその規則で変わる結果です。「適用」は規則を出生情報に書き込んで再計算します。夏時間を差し引く規則は出生時刻そのものの読み方を変えるため直接適用できません。記録が夏時間だったと確認できたら、出生時刻を手動で修正してください。"
  ],
  "← 左右滑动查看完整十二宫 →": [
   "← Swipe sideways to see all twelve palaces →",
@@ -1235,9 +1235,9 @@
   "Representative local time",
   "代表ローカル時刻"
  ],
- "以下规则换算后超出支持的 1901–2099 年，未列出：": [
-  "These rule choices move the date outside the supported years 1901–2099 and are not listed: ",
-  "次の規則は換算後に対応範囲（1901〜2099 年）を外れるため表示していません："
+ "以下规则换算后无法排盘，未列出：": [
+  "These rule choices could not be charted and are not listed: ",
+  "次の規則は換算後に命盤を作れないため表示していません："
  ],
  "以出生资料里的时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。": [
   "Samples the error window around the birth time and lists the distinct BaZi charts and Life/Body palaces found. Differences between sample points can still be missed.",
@@ -1915,6 +1915,10 @@
   "Birth year branch",
   "出生年の地支"
  ],
+ "出生当天的不同时刻这些字段也会不同（当天交节、按 23:00 换日或换用太阳时），同样不参与对照：": [
+  "These fields also differ at different times of the birth date (a solar term that day, the 23:00 day change or solar time), so they are left out too: ",
+  "出生当日の時刻によって次の項目も変わるため（当日の節入り、23:00 の日替わり、太陽時）、同じく比較しません："
+ ],
  "出生数据与排盘边界审计": [
   "Birth data and charting boundary audit",
   "出生データと排盤境界の監査"
@@ -1955,9 +1959,9 @@
   "Birth hour unknown: 12:00 is only a placeholder, so a Qimen chart cast from it means nothing.",
   "出生時刻不明：12:00 は仮の値なので、これで立てた奇門盤には意味がありません。"
  ],
- "出生时辰不详：填写的时间只是占位，时柱、命宫、身宫、五行局和命宫主星不参与对照；当天若交节，年柱或月柱也可能不同。": [
-  "Birth hour unknown: the time entered is only a placeholder, so the hour pillar, Life and Body palaces, five-element bureau and Life-palace major stars are left out. If a solar term begins that day, the year or month pillar may differ too.",
-  "出生時刻不明：入力した時刻は仮の値のため、時柱・命宮・身宮・五行局・命宮主星は比較しません。当日に節入りがある場合、年柱や月柱も変わる可能性があります。"
+ "出生时辰不详：填写的时间只是占位，时柱、命宫、身宫、五行局和命宫主星不参与对照。": [
+  "Birth hour unknown: the time entered is only a placeholder, so the hour pillar, Life and Body palaces, five-element bureau and Life-palace major stars are left out.",
+  "出生時刻不明：入力した時刻は仮の値のため、時柱・命宮・身宮・五行局・命宮主星は比較しません。"
  ],
  "出生时间": [
   "Birth time",
@@ -7394,6 +7398,10 @@
  "雨水": [
   "Rain Water (Yushui)",
   "雨水"
+ ],
+ "需手动改时间": [
+  "Edit the time by hand",
+  "時刻を手動で修正"
  ],
  "需要出生公历时间、出生地时区与所选排盘口径；不在后台猜测或恢复出生资料": [
   "Requires the Gregorian birth time, the birthplace time zone, and the selected charting convention; birth data is not guessed or recovered in the background",

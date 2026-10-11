@@ -4,6 +4,20 @@ from datetime import datetime, timezone
 from .astronomy import get_solar_terms
 
 
+def _fold(line: str) -> list[str]:
+    """RFC 5545 line folding: at most 75 octets per line, never splitting a UTF-8 character."""
+    parts, current, size = [], '', 0
+    for char in line:
+        width = len(char.encode('utf-8'))
+        if size + width > (75 if not parts else 74):
+            parts.append(current)
+            current, size = '', 0
+        current += char
+        size += width
+    parts.append(current)
+    return [parts[0]] + [' ' + part for part in parts[1:]]
+
+
 def _ics_text(value: str) -> str:
     return value.replace('\\', '\\\\').replace(';', '\\;').replace(',', '\\,').replace('\n', '\\n')
 
@@ -38,6 +52,5 @@ def solar_terms_ics(year: int, moon: bool = False) -> str:
                 'END:VEVENT',
             ]
     rows.append('END:VCALENDAR')
-    # RFC 5545 mandates CRLF. UTF-8 octet line folding can be added later,
-    # all current property value lines comfortably fit typical length limits.
-    return '\r\n'.join(rows) + '\r\n'
+    # RFC 5545: CRLF line ends, long lines folded at 75 octets.
+    return '\r\n'.join(part for row in rows for part in _fold(row)) + '\r\n'
