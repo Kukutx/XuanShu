@@ -1,5 +1,6 @@
 # 更新记录 · v.0.1.0（未发布）
 
+- 2026-10-11 天府功能对齐第五批（仍为 v.0.1.0）：English / 日本語界面覆盖计算结果。新增 `static/i18n-extra.js`（约 1400 条，由 `scripts/build_i18n_extra.py` 从 `scripts/i18n_extra.json` 生成），包含界面标签、宫位星曜等术语、引擎返回的说明与限制文字，以及模板拼接片段；整段没有对应条目时按已知词组就地替换。测试要求 static/ 与 app/ 中每条中文字符串都有英日对照。
 - 2026-10-11 天府功能对齐第四批（仍为 v.0.1.0）：AI 对话新增「多流派会诊」模式。请求 `mode: "panel"` 时，八字、紫微、奇门择时三位专家并行作答，每位只能调用本流派工具和共用的边界、历法工具（越界调用会被拒绝并记入 trace）；综合者不调用工具，只依据专家报告作答。`panel_agents` 可缩小专家范围。响应新增 `mode`、`panel`，trace 每步标注 `agent`。
 - 2026-10-11 天府功能对齐第三批（仍为 v.0.1.0）：AI 对话回答附带置信度（`app/chat_verify.py`）。排盘置信度按出生时间误差重算四柱与命身宫；独立核验 Agent 另行调用模型，逐条标注回答中的计算陈述是否有工具依据。请求新增 `verify` 与 `profile.birth_time_uncertainty_minutes`，响应新增 `verification`、`chart_confidence`。
 - 2026-10-11 天府功能对齐第二批（仍为 v.0.1.0）：新增双人紫微宫位叠盘（`app/ziwei_pair.py`、`POST /api/ziwei-pair`、MCP `ziwei_pair_overlay`，工具增至 28 个），「双人对照」页同时显示八字与紫微对照；新增界面语言切换（简体、繁體、English、日本語），繁體由 OpenCC 数据生成的字词表转换并保留术数术语。

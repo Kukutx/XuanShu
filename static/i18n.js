@@ -2,8 +2,11 @@
 // Interface language. Simplified Chinese is the source text. 繁體中文 is
 // converted character by character (zh-tw-map.js, generated from OpenCC), so
 // every label and computed result switches. English and 日本語 use the table
-// below for the interface shell, tab names and panel headings; computed chart
-// terms (干支、星曜、宫位) and any text without an entry stay in Chinese.
+// below for the interface shell, plus UI_EXTRA (i18n-extra.js, generated from
+// scripts/i18n_extra.json) for the remaining labels and the engines' result
+// text. A text node that matches no entry whole has its known phrases replaced
+// in place, longest first, so composed labels translate too; computed values
+// such as 干支 pillars stay as characters.
 // Text the user typed and model replies (.chat-text) are never rewritten.
 const UI_LANG_KEY = 'xuanshu-ui-language';
 const UI_LANGS = {'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'en': 'English', 'ja': '日本語'};
@@ -151,7 +154,15 @@ const UI_TEXT = [
 let uiLang = 'zh-CN';
 let uiObserver = null;
 const uiIndex = {};
+if (typeof UI_EXTRA === 'object') Object.entries(UI_EXTRA).forEach(([zh, [en, ja]]) => {uiIndex[zh] = {en, ja};});
 UI_TEXT.forEach(([zh, en, ja]) => {uiIndex[zh] = {en, ja};});
+// Phrases of two or more characters, longest first, for in-place replacement.
+const uiPhraseMap = {};  // trimmed phrase -> entry; an exact (untrimmed) key wins
+Object.keys(uiIndex).forEach(k => {const t = k.trim(); if (!uiPhraseMap[t] || k === t) uiPhraseMap[t] = uiIndex[k];});
+const uiPhrases = Object.keys(uiPhraseMap).filter(k => k.length >= 2 && /[㐀-鿿]/.test(k))
+  .sort((a, b) => b.length - a.length);
+const uiPhraseRe = uiPhrases.length
+  ? new RegExp(uiPhrases.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g') : null;
 const UI_ATTRS = ['placeholder', 'title', 'aria-label'];
 const uiOriginal = new WeakMap();  // text node -> source text
 
@@ -172,10 +183,18 @@ function translateText(source) {
   if (uiLang === 'zh-CN' || !/[㐀-鿿]/.test(source)) return source;
   if (uiLang === 'zh-TW') return toTraditional(source);
   const trimmed = source.trim();
-  const entry = uiIndex[trimmed] || uiIndex[source];
-  if (!entry) return source;
-  const target = entry[uiLang];
-  return uiIndex[source] ? target : source.replace(trimmed, target);
+  const entry = uiIndex[source] || uiIndex[trimmed];
+  if (entry) return uiIndex[source] ? entry[uiLang] : source.replace(trimmed, entry[uiLang].trim());
+  if (!uiPhraseRe) return source;
+  const gap = uiLang === 'en' ? ' ' : '';
+  // Composed text: replace each known phrase; English gets spaces between replaced words and Chinese.
+  return source.replace(uiPhraseRe, (hit, offset, whole) => {
+    const target = uiPhraseMap[hit][uiLang].trim();
+    const before = offset > 0 && /[^\s(（·:：,，、/]/.test(whole[offset - 1]) ? gap : '';
+    const next = whole[offset + hit.length];
+    const after = next && /[^\s)）·:：,，、。/]/.test(next) ? gap : '';
+    return before + target + after;
+  });
 }
 function skipNode(el) {
   return !el || el.closest('script,style,textarea,code,pre,.chat-text,[data-no-i18n]') !== null;

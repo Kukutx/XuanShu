@@ -51,6 +51,7 @@ def main() -> None:
     vault_js = (ROOT / 'static/vault.js').read_text(encoding='utf-8')
     zh_tw_js = (ROOT / 'static/zh-tw-map.js').read_text(encoding='utf-8')
     i18n_js = (ROOT / 'static/i18n.js').read_text(encoding='utf-8')
+    i18n_extra_js = (ROOT / 'static/i18n-extra.js').read_text(encoding='utf-8')
     client = TestClient(app)
     counts = {'requests': 0}
 
@@ -88,6 +89,7 @@ def main() -> None:
             page.evaluate('''() => window.localStorage.setItem('oriental-astro-profiles-v2',
               JSON.stringify([{id:'legacy-1',label:'既有档案',data:{birth_datetime:'2000-08-16T04:00',timezone:'Asia/Shanghai'}}]))''')
             page.add_script_tag(content=zh_tw_js)
+            page.add_script_tag(content=i18n_extra_js)
             page.add_script_tag(content=chat_js)
             page.add_script_tag(content=js)
             page.add_script_tag(content=vault_js)
@@ -339,6 +341,14 @@ def main() -> None:
             page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
             assert page.get_by_text('紫微宮位疊盤', exact=True).count() == 1
             page.screenshot(path=str(screenshot_dir / '29-ui-traditional.png'), full_page=True)
+            # Computed results follow the interface language too: palace names in the overlay grid.
+            page.locator('#ui-language').select_option('en')
+            grid = page.locator('#ziwei-pair-grid').inner_text()
+            assert 'Life Palace' in grid and '命宫' not in grid, grid[:300]
+            page.screenshot(path=str(screenshot_dir / '30-results-english.png'), full_page=True)
+            page.locator('#ui-language').select_option('ja')
+            grid = page.locator('#ziwei-pair-grid').inner_text()
+            assert '命宮' in grid and '命宫' not in grid, grid[:300]
             page.locator('#ui-language').select_option('zh-CN')
             assert page.locator('[data-tab="calendar"]').inner_text() == '历法日历'
             assert page.get_by_text('紫微宫位叠盘', exact=True).count() == 1
