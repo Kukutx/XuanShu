@@ -126,6 +126,10 @@ const UI_TEXT = [
   [' 在本机保存这个档案的对话（明文）', ' Keep this profile’s chats in this browser (plain text)', ' このプロフィールの会話をこのブラウザに保存（平文）'],
   ['保存', 'Save', '保存'], ['先选择档案', 'Choose a profile first', '先にプロフィールを選択'],
   ['对话由你配置的语言模型生成；命盘计算只来自本地确定性工具。服务器不保存对话、记忆或出生资料。传统术数未经科学预测效力验证。', 'Replies come from the language model you configured; chart calculations come only from local deterministic tools. The server stores no chats, memory or birth data. Traditional systems are not scientifically validated predictors.', '回答は設定した言語モデルが生成し、命盤の計算はローカルの決定的ツールのみによります。サーバーは会話・記憶・出生データを保存しません。伝統術数は科学的な予測として検証されていません。'],
+  [' 独立核验回答（多一次模型调用）', ' Independently verify answers (one more model call)', ' 回答を独立に検証（モデル呼び出しが 1 回増える）'],
+  ['出生时间误差 ', 'Birth-time uncertainty ', '出生時刻の誤差 '],
+  ['±2 分钟', '±2 min', '±2 分'], ['±15 分钟', '±15 min', '±15 分'], ['±30 分钟', '±30 min', '±30 分'],
+  ['±1 小时', '±1 h', '±1 時間'], ['±2 小时', '±2 h', '±2 時間'],
   // Date selection
   ['起始日', 'Start date', '開始日'], ['扫描天数', 'Days to scan', 'スキャン日数'],
   ['候选时刻（选填，逗号分隔，如 09:00,15:00）', 'Candidate times (optional, comma-separated, e.g. 09:00,15:00)', '候補時刻（任意、カンマ区切り。例：09:00,15:00）'],

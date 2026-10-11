@@ -18,6 +18,7 @@ from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
+from .chat_verify import VERIFIERS, VerifyFn, chart_confidence, run_verifier
 from .engines import BirthInput
 from .life_path import LifeEvent
 from .mcp import TOOL_DEFS, call_tool
@@ -49,6 +50,8 @@ class ChatProfile(BaseModel):
     birth: BirthInput | None = None
     memory: list[str] = Field(default_factory=list, max_length=30)
     life_events: list[LifeEvent] = Field(default_factory=list, max_length=30)
+    # How far off the recorded birth time may be; drives the chart confidence labels.
+    birth_time_uncertainty_minutes: int = Field(default=15, ge=1, le=720)
 
     @field_validator('memory')
     @classmethod
@@ -68,6 +71,8 @@ class ChatRequest(BaseModel):
     partner_authorized: bool = False
     # The browser's local calendar date, so "today" matches the user rather than the server zone.
     today: date | None = None
+    # Run the separate verifier call that labels each chart claim against the tool results.
+    verify: bool = True
 
     @model_validator(mode='after')
     def ends_with_user(self):
@@ -190,6 +195,7 @@ class ChatRun:
     trace: list[dict] = field(default_factory=list)
     memory_suggestions: list[str] = field(default_factory=list)
     partner_authorized: bool = False
+    evidence: list[dict] = field(default_factory=list)
 
     def execute(self, name: str, args: Any) -> tuple[str, bool]:
         """Run one tool call; return (content for the model, is_error)."""
@@ -230,6 +236,7 @@ class ChatRun:
         entry.update(ok=True, result_sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(),
                      summary=('返回字段：' + '、'.join(list(result)[:12])) if isinstance(result, dict) else '已返回结果')
         self.trace.append(entry)
+        self.evidence.append({'step': step, 'tool': name, 'arguments': args, 'result': result})
         if len(text) > MAX_TOOL_RESULT_CHARS:
             text = _compact(result, len(text))
         return text, False
@@ -342,7 +349,8 @@ def openai_loop(config: ChatConfig, system: list[str], history: list[dict], tool
 LOOPS: dict[str, LoopFn] = {'anthropic': anthropic_loop, 'openai': openai_loop}
 
 
-def run_chat(req: ChatRequest, config: ChatConfig | None = None, loop: LoopFn | None = None) -> dict:
+def run_chat(req: ChatRequest, config: ChatConfig | None = None, loop: LoopFn | None = None,
+             verify: VerifyFn | None = None) -> dict:
     if config is None:
         status = chat_status()
         if not status['enabled']:
@@ -352,6 +360,15 @@ def run_chat(req: ChatRequest, config: ChatConfig | None = None, loop: LoopFn | 
     run = ChatRun(partner_authorized=req.partner_authorized)
     history = [m.model_dump() for m in req.messages]
     reply, stop = (loop or LOOPS[config.provider])(config, build_system(req), history, tool_specs(), run.execute)
+    verification = None
+    if req.verify and reply and stop not in ('refusal', 'max_rounds'):
+        verification = run_verifier(verify or VERIFIERS[config.provider], config, req.messages[-1].content, reply, run.evidence)
+    confidence = None
+    if req.profile is not None and req.profile.birth is not None:
+        try:
+            confidence = chart_confidence(req.profile.birth, req.profile.birth_time_uncertainty_minutes)
+        except ValueError:
+            confidence = None
     return {
         'reply': reply,
         'stop_reason': stop,
@@ -360,9 +377,12 @@ def run_chat(req: ChatRequest, config: ChatConfig | None = None, loop: LoopFn | 
         'language': req.language,
         'trace': run.trace,
         'memory_suggestions': run.memory_suggestions,
+        'verification': verification,
+        'chart_confidence': confidence,
         'limitations': [
             '回答由语言模型根据工具结果组织，计算事实以 trace 中的工具调用为准；模型文字仍可能出错，请核对。',
             '服务器不保存对话、档案记忆或出生资料；它们只保存在你的浏览器里。',
+            '核验由另一次独立的模型调用完成，只对照本轮工具结果，同样可能出错；排盘置信度只反映出生时间误差的影响。',
             '传统术数未经科学预测效力验证，不作医疗、投资、法律等决策依据。',
         ],
     }

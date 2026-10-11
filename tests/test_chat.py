@@ -19,6 +19,14 @@ BIRTH = {'birth_datetime': '2000-08-16T04:00', 'timezone': 'Asia/Shanghai', 'gen
 CONFIG = ChatConfig('anthropic', 'test-model')
 
 
+@pytest.fixture(autouse=True)
+def no_network_verifier(monkeypatch):
+    """Tests never reach a real provider; individual tests pass their own verifier."""
+    def offline(config, system, user_text):
+        raise RuntimeError('offline')
+    monkeypatch.setattr(chat_module, 'VERIFIERS', {'anthropic': offline, 'openai': offline})
+
+
 def scripted_loop(calls):
     def loop(config, system, history, tools, execute):
         loop.system, loop.history, loop.tools = system, history, tools
@@ -165,3 +173,62 @@ def test_rest_endpoints(monkeypatch):
     data = CLIENT.post('/api/chat', json=body).json()
     assert data['trace'][0]['tool'] == 'solar_terms' and data['trace'][0]['ok']
     assert data['provider'] == 'anthropic' and data['limitations']
+
+
+def fake_verifier(output):
+    def verify(config, system, user_text):
+        verify.system, verify.user_text = system, user_text
+        return output
+    return verify
+
+
+def test_verifier_sub_agent_labels_claims_from_tool_evidence():
+    verdict = {'claims': [{'claim': '日柱丙午', 'support': 'tool_backed', 'confidence': 'high', 'reason': 'bazi_chart.pillars.day'},
+                          {'claim': '今年必定升职', 'support': 'unsupported', 'confidence': 'high', 'reason': '工具没有此结论'}],
+               'overall': '一条有依据，一条没有。'}
+    verify = fake_verifier(verdict)
+    req = ChatRequest(messages=[{'role': 'user', 'content': '看看八字'}], profile={'birth': BIRTH})
+    out = run_chat(req, config=CONFIG, loop=scripted_loop([('bazi_chart', BIRTH)]), verify=verify)
+    assert out['verification']['status'] == 'ok'
+    assert out['verification']['counts'] == {'tool_backed': 1, 'partially_backed': 0, 'unsupported': 1}
+    # The verifier sees the question, the answer and the raw tool result, and nothing else.
+    assert '看看八字' in verify.user_text and '基于工具结果的回答' in verify.user_text and '丙午' in verify.user_text
+    assert 'report_verification' in verify.system
+
+
+def test_verifier_failures_never_break_the_answer():
+    req = ChatRequest(messages=[{'role': 'user', 'content': '八字'}])
+    bad = run_chat(req, config=CONFIG, loop=scripted_loop([]), verify=fake_verifier({'claims': 'x'}))
+    assert bad['reply'] and bad['verification']['status'] == 'failed'
+    crashed = run_chat(req, config=CONFIG, loop=scripted_loop([]))
+    assert crashed['verification'] == {'status': 'failed', 'error': '核验调用失败：RuntimeError'}
+    skipped = run_chat(ChatRequest(messages=[{'role': 'user', 'content': '八字'}], verify=False), config=CONFIG,
+                       loop=scripted_loop([]), verify=fake_verifier(None))
+    assert skipped['verification'] is None
+
+
+def test_chart_confidence_follows_the_stated_uncertainty():
+    near_hour = {**BIRTH, 'birth_datetime': '2000-08-16T04:55'}
+    tight = run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False,
+                                 profile={'birth': near_hour, 'birth_time_uncertainty_minutes': 2}),
+                     config=CONFIG, loop=scripted_loop([]))
+    loose = run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False,
+                                 profile={'birth': near_hour, 'birth_time_uncertainty_minutes': 15}),
+                     config=CONFIG, loop=scripted_loop([]))
+    tiers = lambda out: {f['fact']: f['confidence'] for f in out['chart_confidence']['facts']}
+    # 04:55 is 5 minutes before the 卯 hour: safe for ±2 minutes, unstable for ±15.
+    assert tiers(tight)['八字时柱'] == 'high' and tiers(loose)['八字时柱'] == 'low'
+    assert tiers(loose)['八字日柱'] == 'high' and loose['chart_confidence']['review_needed']
+    assert run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False),
+                    config=CONFIG, loop=scripted_loop([]))['chart_confidence'] is None
+
+
+def test_year_pillar_confidence_uses_lichun_not_any_jie():
+    from app.chat_verify import chart_confidence
+    from app.engines import BirthInput
+    # Seven minutes from 2024 立春: year and month pillars are both unstable at ±30 minutes.
+    lichun = {f['fact']: f['confidence'] for f in chart_confidence(BirthInput(birth_datetime='2024-02-04T16:20', timezone='Asia/Shanghai'), 30)['facts']}
+    assert lichun['八字年柱'] == 'low' and lichun['八字月柱'] == 'low'
+    # Near 白露 (a jie that is not 立春) only the month pillar moves.
+    bailu = {f['fact']: f['confidence'] for f in chart_confidence(BirthInput(birth_datetime='2024-09-07T11:00', timezone='Asia/Shanghai'), 120)['facts']}
+    assert bailu['八字年柱'] == 'high' and bailu['八字月柱'] == 'low'
