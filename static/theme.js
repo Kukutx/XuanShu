@@ -6,7 +6,7 @@
 (function () {
   const KEY = 'xuanshu-theme';
   const ORDER = [null, 'light', 'dark'];
-  const LABELS = {system: ['◐', '跟随系统'], light: ['☀', '浅色'], dark: ['☾', '深色']};
+  const LABELS = {system: '跟随系统', light: '浅色', dark: '深色'};
   const root = document.documentElement;
   const media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   function stored() {
@@ -21,8 +21,8 @@
     if (meta) meta.content = dark ? '#0d1118' : '#f6f2ea';
     const button = document.getElementById('theme-toggle');
     if (!button) return;
-    const [icon, label] = LABELS[choice || 'system'];
-    button.querySelector('.theme-icon').textContent = icon;
+    const mode = choice || 'system', label = LABELS[mode];
+    button.querySelector('.theme-icon').dataset.mode = mode;  // drawn in CSS
     button.querySelector('.theme-label').textContent = label;
     button.title = '配色：' + label + '（点击切换）';
   }

@@ -27,9 +27,9 @@ def test_mcp_resource_files_shipped_in_docker():
 def test_ui_feature_count_in_html_and_js():
     html = (ROOT/'static/index.html').read_text(encoding='utf-8')
     js = (ROOT/'static/app.js').read_text(encoding='utf-8')
-    assert html.count('data-tab=') == 26
+    assert html.count('data-tab=') == 27
     assert '18 AGENT SKILLS' in html
-    assert '30 MCP TOOLS' in html and '15 PROMPTS' in html and '17 RESOURCES' in html
+    assert '31 MCP TOOLS' in html and '15 PROMPTS' in html and '17 RESOURCES' in html
     for endpoint in ('/api/combined','/api/analyze','/api/calendar','/api/pair'):
         assert endpoint in js
 

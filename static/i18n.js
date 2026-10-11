@@ -16,7 +16,7 @@ const UI_TEXT = [
   ['历法计算 × 传统文化 × Agent MCP', 'Calendar computation × traditional culture × Agent MCP', '暦法計算 × 伝統文化 × Agent MCP'],
   ['● 本地优先 · 数据不自动保存', '● Local-first · nothing saved automatically', '● ローカル優先 · 自動保存なし'],
   ['API 文档 ↗', 'API docs ↗', 'API ドキュメント ↗'],
-  ['从你的问题出发，', 'Start from your question,', 'あなたの問いから、'],
+  ['从你的问题出发，', 'Start from your question, ', 'あなたの問いから、'],
   ['调用可核验的术数工具。', 'and call verifiable traditional tools.', '検証できる術数ツールを呼び出す。'],
   ['时制审计与节令 · 八字藏干十神 · 农历反查 · 时刻误差采样 · 紫微三方四正与四化 · 时家奇门拆补九宫 · 双盘对照 · 建除值日 · 年度轨迹 · 大运十年干支 · 出生边界地图 · 透明决策矩阵 · 加密本地备份。所有计算结果可由 ChatGPT、Claude 与 Codex 通过 MCP 读取。',
     'Time-basis audit and solar terms · BaZi hidden stems and ten gods · lunar date lookup · birth-time uncertainty sampling · Zi Wei trines and four transformations · hour Qimen nine palaces · two-person comparison · twelve day officers · annual trajectory · decade periods · birth boundary map · transparent decision matrix · encrypted local backup. Every result can be read by ChatGPT, Claude and Codex over MCP.',
@@ -66,8 +66,8 @@ const UI_TEXT = [
   ['导出 JSON ↓', 'Export JSON ↓', 'JSON を書き出す ↓'],
   ['出生参数已修改。下方旧命盘不再对应当前输入；请点击左侧「生成命盘」重新计算，才能导出。', 'Birth inputs changed. The chart below no longer matches; click “Generate chart” to recalculate before exporting.', '出生情報が変更されました。下の命盤は現在の入力と一致しません。書き出す前に「命盤を作成」で再計算してください。'],
   ['查找需要的功能', 'Find a feature', '機能を探す'],
-  ['搜索八字、择时、报告等 26 项能力', 'Search 26 features: BaZi, date selection, reports…', '八字・日取り・レポートなど 26 機能を検索'],
-  ['展开全部 26 项', 'Show all 26', '26 項目をすべて表示'],
+  ['搜索八字、择时、报告等 27 项能力', 'Search 27 features: BaZi, date selection, reports…', '八字・日取り・レポートなど 27 機能を検索'],
+  ['展开全部 27 项', 'Show all 27', '27 項目をすべて表示'],
   ['Ctrl+K 搜索 · ← / → 切换功能', 'Ctrl+K search · ← / → switch', 'Ctrl+K 検索 · ← / → 切替'],
   ['AI 对话', 'AI chat', 'AI チャット'], ['AI 咨询工作流', 'AI consultation workflow', 'AI 相談ワークフロー'],
   ['四柱八字', 'BaZi four pillars', '四柱推命'], ['奇门遁甲', 'Qimen Dunjia', '奇門遁甲'],
@@ -79,7 +79,7 @@ const UI_TEXT = [
   ['年度轨迹', 'Annual trajectory', '年次推移'], ['方案决策', 'Decision matrix', '選択肢の比較'],
   ['历法日历', 'Calendar', '暦'], ['双人对照', 'Two-person comparison', '二人の対照'],
   ['排盘质量审计', 'Chart quality audit', '命盤品質監査'], ['文化解读', 'Cultural reading', '文化的解説'],
-  ['深度证据', 'Deep evidence', '詳細エビデンス'], ['四柱反查', 'Pillars to dates', '四柱逆引き'], ['命盘导入核对', 'Chart import check', '命盤インポート照合'], ['综合报告', 'Full report', '総合レポート'],
+  ['深度证据', 'Deep evidence', '詳細エビデンス'], ['四柱反查', 'Pillars to dates', '四柱逆引き'], ['今日历法', 'Today', '今日の暦'], ['命盘导入核对', 'Chart import check', '命盤インポート照合'], ['综合报告', 'Full report', '総合レポート'],
   ['Agent 集成', 'Agent integration', 'Agent 連携'], ['JSON 数据', 'JSON data', 'JSON データ'],
   ['历法可核验，规则可追溯', 'Verifiable calendar, traceable rules', '検証できる暦、追跡できる規則'],
   ['点击「生成命盘」开始计算', 'Click “Generate chart” to start', '「命盤を作成」で計算を開始'],
@@ -155,21 +155,48 @@ const UI_TEXT = [
 let uiLang = 'zh-CN';
 let uiObserver = null;
 const uiIndex = {};
-if (typeof UI_EXTRA === 'object') Object.entries(UI_EXTRA).forEach(([zh, [en, ja]]) => {uiIndex[zh] = {en, ja};});
-UI_TEXT.forEach(([zh, en, ja]) => {uiIndex[zh] = {en, ja};});
-// Phrases of two or more characters, longest first, for in-place replacement.
-const uiPhraseMap = {};  // trimmed phrase -> entry; an exact (untrimmed) key wins
-Object.keys(uiIndex).forEach(k => {const t = k.trim(); if (!uiPhraseMap[t] || k === t) uiPhraseMap[t] = uiIndex[k];});
 // One-character entries join only for the five elements, which results compose as 木 / 水.
 const UI_SINGLE_TOKENS = '木火土金水';
-const uiPhrases = Object.keys(uiPhraseMap).filter(k => (k.length >= 2 || UI_SINGLE_TOKENS.includes(k)) && /[㐀-鿿]/.test(k))
-  .sort((a, b) => b.length - a.length);
-const uiPhraseRe = uiPhrases.length
-  ? new RegExp(uiPhrases.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g') : null;
+let uiPhraseMap = {};  // trimmed phrase -> entry; an exact (untrimmed) key wins
+let uiPhrases = [], uiPhraseRe = null;
+function buildUiIndex() {
+  Object.keys(uiIndex).forEach(k => {delete uiIndex[k];});
+  if (typeof UI_EXTRA === 'object') Object.entries(UI_EXTRA).forEach(([zh, [en, ja]]) => {uiIndex[zh] = {en, ja};});
+  UI_TEXT.forEach(([zh, en, ja]) => {uiIndex[zh] = {en, ja};});
+  // Phrases of two or more characters, longest first, for in-place replacement.
+  uiPhraseMap = {};
+  Object.keys(uiIndex).forEach(k => {const t = k.trim(); if (!uiPhraseMap[t] || k === t) uiPhraseMap[t] = uiIndex[k];});
+  uiPhrases = Object.keys(uiPhraseMap).filter(k => (k.length >= 2 || UI_SINGLE_TOKENS.includes(k)) && /[㐀-鿿]/.test(k))
+    .sort((a, b) => b.length - a.length);
+  uiPhraseRe = uiPhrases.length
+    ? new RegExp(uiPhrases.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g') : null;
+}
+buildUiIndex();
+// The two large tables load only for the language that uses them, so 简体中文 visitors never download them.
+const UI_TABLES = {
+  en: ['i18n-extra.js', () => typeof UI_EXTRA === 'object'],
+  ja: ['i18n-extra.js', () => typeof UI_EXTRA === 'object'],
+  'zh-TW': ['zh-tw-map.js', () => typeof ZH_TW_CHARS === 'object'],
+};
+const uiTableLoads = {};
+function loadUiTable(lang) {
+  const table = UI_TABLES[lang];
+  if (!table || table[1]()) return Promise.resolve();
+  const file = table[0];
+  if (!uiTableLoads[file]) uiTableLoads[file] = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = '/static/' + file;
+    script.onload = () => {if (file === 'i18n-extra.js') buildUiIndex(); resolve();};
+    script.onerror = () => {delete uiTableLoads[file]; script.remove(); reject(new Error('Could not load ' + file));};
+    document.head.append(script);
+  });
+  return uiTableLoads[file];
+}
 const UI_ATTRS = ['placeholder', 'title', 'aria-label'];
 const uiOriginal = new WeakMap();  // text node -> source text
 
 function toTraditional(text) {
+  if (typeof ZH_TW_CHARS !== 'object') return text;
   let out = '';
   for (let i = 0; i < text.length;) {
     let hit = null;
@@ -232,8 +259,17 @@ function translateAttrs(el) {
     if (el.getAttribute(attr) !== value) el.setAttribute(attr, value);
   }
 }
+let uiRequested = 'zh-CN';
 function applyUiLanguage(lang) {
-  uiLang = UI_LANGS[lang] ? lang : 'zh-CN';
+  const wanted = UI_LANGS[lang] ? lang : 'zh-CN';
+  uiRequested = wanted;
+  // Without its table 繁體 cannot convert; English and 日本語 still have the interface shell above.
+  loadUiTable(wanted).then(() => true, () => wanted !== 'zh-TW').then(ok => {
+    if (uiRequested === wanted) applyLoadedLanguage(ok ? wanted : 'zh-CN');
+  });
+}
+function applyLoadedLanguage(lang) {
+  uiLang = lang;
   document.documentElement.lang = uiLang;
   if (uiObserver) uiObserver.disconnect();
   translateNode(document.body);
