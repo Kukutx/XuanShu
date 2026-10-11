@@ -42,11 +42,13 @@ def main() -> None:
         raise SystemExit(f'Chromium binary not found: {args.chromium}')
 
     html = (ROOT / 'static/index.html').read_text(encoding='utf-8')
-    html = re.sub(r'<script\s+src="/static/.*?"\s+defer></script>', '', html)
+    html = re.sub(r'<script\s+src="/static/.*?"(\s+defer)?></script>', '', html)
     html = re.sub(r'<link\s+rel="stylesheet"\s+href="/static/style.css"\s*/>', '', html)
     css = (ROOT / 'static/style.css').read_text(encoding='utf-8')
     js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     chat_js = (ROOT / 'static/chat.js').read_text(encoding='utf-8')
+    theme_js = (ROOT / 'static/theme.js').read_text(encoding='utf-8')
+    markdown_js = (ROOT / 'static/markdown.js').read_text(encoding='utf-8')
     cities_js = (ROOT / 'static/cities.js').read_text(encoding='utf-8')
     vault_js = (ROOT / 'static/vault.js').read_text(encoding='utf-8')
     zh_tw_js = (ROOT / 'static/zh-tw-map.js').read_text(encoding='utf-8')
@@ -88,8 +90,10 @@ def main() -> None:
             # Exercise one-time profile migration when the project is rebranded.
             page.evaluate('''() => window.localStorage.setItem('oriental-astro-profiles-v2',
               JSON.stringify([{id:'legacy-1',label:'既有档案',data:{birth_datetime:'2000-08-16T04:00',timezone:'Asia/Shanghai'}}]))''')
+            page.add_script_tag(content=theme_js)
             page.add_script_tag(content=zh_tw_js)
             page.add_script_tag(content=i18n_extra_js)
+            page.add_script_tag(content=markdown_js)
             page.add_script_tag(content=chat_js)
             page.add_script_tag(content=js)
             page.add_script_tag(content=vault_js)
@@ -149,6 +153,8 @@ def main() -> None:
             # New 开发阶段 hour-Qimen page: click through real UI, verify 3x3 Lo Shu cells,
             # and ensure an edited input cannot silently reuse an old chart.
             page.locator('[data-tab="qimen"]').click()
+            assert page.locator('#qimen-moment').input_value() == 'now'
+            page.locator('#qimen-moment').select_option('birth')
             page.locator('#qimen-run').click()
             page.locator('.qimen-cell').first.wait_for(timeout=30000)
             assert page.locator('.qimen-cell').count() == 9
@@ -163,7 +169,65 @@ def main() -> None:
             page.locator('#qimen-run').click()
             page.locator('.qimen-cell').first.wait_for(timeout=30000)
             assert '芒种' in page.locator('#result').inner_text()
+            # A chart cast for another moment is discarded when the moment changes.
+            page.locator('#qimen-moment').select_option('now')
+            assert page.locator('.qimen-cell').count() == 0, 'Qimen chart survived a change of moment'
+            page.locator('#qimen-moment').select_option('birth')
             page.locator('#birth_datetime').fill('2000-08-16T04:00')
+
+            # Zi Wei time layers relabel the board; focus stays on the control that was used.
+            page.locator('[data-tab="ziwei"]').click()
+            assert page.locator('.palace-layer').count() == 0
+            page.locator('#ziwei-layer-decade').click()
+            assert page.locator('.palace-layer').count() == 12
+            assert page.locator('.palace.layer-anchor').count() == 1
+            assert page.locator('#ziwei-board .hua.layer').count() == 4
+            page.locator('#ziwei-layer-year').click()
+            page.locator('#ziwei-layer-next').click()
+            assert page.evaluate('document.activeElement.id') == 'ziwei-layer-next'
+            assert '流年四化' in page.locator('.palace-panel').inner_text()
+            page.screenshot(path=str(screenshot_dir / '31-ziwei-annual-layer.png'), full_page=True)
+            page.locator('#ziwei-layer-natal').click()
+
+            # Share card: drawn locally; birth date and time stay off unless ticked.
+            page.locator('#share-card').click()
+            assert page.locator('#share-dialog').is_visible()
+            assert not page.locator('#share-date').is_checked() and not page.locator('#share-time').is_checked()
+            full = page.evaluate("document.querySelector('#share-canvas').height")
+            page.locator('#share-bazi').uncheck()
+            assert page.evaluate("document.querySelector('#share-canvas').height") < full
+            page.locator('#share-close').click()
+
+            # Lunar birthday entry fills the Gregorian field; an unknown hour gets a twelve-hour comparison.
+            page.locator('#lunar-entry summary').click()
+            page.locator('#lunar_year').fill('1990')
+            page.locator('#lunar_month').select_option('4')
+            page.locator('#lunar_day').select_option('23')
+            page.locator('#lunar_hour').select_option('')
+            page.locator('#lunar-fill').click()
+            page.wait_for_function("() => document.querySelector('#birth_datetime').value === '1990-05-17T12:00'", timeout=30000)
+            assert page.locator('#hour_unknown').is_checked()
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => document.querySelector('#result-subtitle').textContent.startsWith('1990-05-17')", timeout=30000)
+            page.locator('[data-tab="bazi"]').click()
+            page.locator('#hour-compare').click()
+            page.locator('.hour-unknown tbody tr').first.wait_for(timeout=30000)
+            assert page.locator('.hour-unknown tbody tr').count() == 13
+            assert '日柱 壬午 · 全天不变' in page.locator('.stable-list').inner_text()
+            page.screenshot(path=str(screenshot_dir / '32-hour-unknown.png'), full_page=True)
+            page.locator('#hour_unknown').uncheck()
+            page.locator('#lunar-entry summary').click()
+            page.locator('#birth_datetime').fill('2000-08-16T04:00')
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => document.querySelector('#result-subtitle').textContent.startsWith('2000-08-16')", timeout=30000)
+            assert page.locator('.hour-unknown').count() == 0
+
+            # Theme toggle cycles system → light → dark → system and stores only an explicit choice.
+            page.locator('#theme-toggle').click()
+            assert page.evaluate('document.documentElement.dataset.theme') == 'light'
+            page.locator('#theme-toggle').click()
+            page.locator('#theme-toggle').click()
+            assert page.evaluate("document.documentElement.dataset.theme === undefined && localStorage.getItem('xuanshu-theme') === null")
 
             # Real Chromium exercise for installed or unavailable optional provider.
             from app.professional_ziwei import professional_provider_available

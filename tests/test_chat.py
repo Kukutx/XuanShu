@@ -289,3 +289,134 @@ def test_panel_agents_can_be_narrowed_and_must_be_unique():
     single = run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False), config=CONFIG,
                       loop=scripted_loop([]))
     assert single['mode'] == 'single' and single['panel'] is None
+
+
+def streaming_loop(calls, text='流式回答'):
+    def loop(config, system, history, tools, execute, emit=None, cancelled=None):
+        loop.cancelled = cancelled
+        for name, args in calls:
+            execute(name, args)
+        if emit:
+            emit({'type': 'text', 'text': text})
+        return text, 'end_turn'
+    return loop
+
+
+def stream_events(response):
+    return [json.loads(line) for line in response.text.splitlines() if line.strip()]
+
+
+def test_stream_endpoint_reports_tools_charts_text_then_the_full_result(monkeypatch):
+    monkeypatch.setattr(chat_module, 'chat_status', lambda: {'enabled': True})
+    monkeypatch.setattr(chat_module, 'chat_config', lambda: CONFIG)
+    monkeypatch.setitem(chat_module.LOOPS, 'anthropic', streaming_loop([('bazi_chart', BIRTH), ('solar_terms', {'year': 2026})]))
+    response = CLIENT.post('/api/chat/stream', json={'messages': [{'role': 'user', 'content': '八字'}], 'verify': False})
+    assert response.status_code == 200 and response.headers['content-type'].startswith('application/x-ndjson')
+    events = stream_events(response)
+    kinds = [e['type'] for e in events]
+    assert kinds == ['tool_start', 'tool', 'tool_start', 'tool', 'text', 'done']
+    bazi = events[1]
+    assert bazi['tool'] == 'bazi_chart' and bazi['ok'] and 'arguments' not in bazi
+    assert bazi['chart']['pillars']['day']['text']
+    assert 'chart' not in events[3]  # only chart tools carry a chart card
+    result = events[-1]['result']
+    assert result['reply'] == '流式回答' and [c['tool'] for c in result['charts']] == ['bazi_chart']
+    assert [t['tool'] for t in result['trace']] == ['bazi_chart', 'solar_terms']
+
+
+def test_stream_endpoint_reports_errors_as_events(monkeypatch):
+    monkeypatch.setattr(chat_module, 'chat_status', lambda: {'enabled': False, 'reason': '未配置'})
+    events = stream_events(CLIENT.post('/api/chat/stream', json={'messages': [{'role': 'user', 'content': 'x'}]}))
+    assert events == [{'type': 'error', 'status': 503, 'detail': '未配置'}]
+    assert CLIENT.post('/api/chat/stream', json={'messages': []}).status_code == 422
+
+
+def test_cancelled_run_stops_before_verification():
+    loop = streaming_loop([])
+    req = ChatRequest(messages=[{'role': 'user', 'content': 'x'}])
+    with pytest.raises(chat_module.ChatCancelled):
+        run_chat(req, config=CONFIG, loop=loop, cancelled=lambda: True)
+    assert loop.cancelled() is True
+
+
+def test_only_the_latest_chart_of_each_kind_is_kept():
+    other = dict(BIRTH, birth_datetime='1990-05-17T08:30')
+    out = run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False), config=CONFIG,
+                   loop=scripted_loop([('bazi_chart', BIRTH), ('bazi_chart', other), ('ziwei_chart', BIRTH)]))
+    assert [c['tool'] for c in out['charts']] == ['bazi_chart', 'ziwei_chart']
+    assert out['charts'][0]['result']['birth_datetime'].startswith('1990-05-17')
+
+
+def test_echo_after_fallback_keeps_only_text_written_before_the_marker():
+    class Block:
+        def __init__(self, kind): self.type = kind
+    text, thinking, fallback, tool = Block('text'), Block('thinking'), Block('fallback'), Block('tool_use')
+    assert chat_module._echo_content([text, tool]) == [text, tool]
+    assert chat_module._echo_content([thinking, text, fallback, tool]) == [text, tool]
+
+
+def openai_stream_client(rounds, log):
+    """Fake OpenAI client: each create(stream=True) returns the next list of chunks."""
+    import types
+
+    def chunk(content=None, calls=None, finish=None):
+        delta = types.SimpleNamespace(content=content, tool_calls=calls)
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(delta=delta, finish_reason=finish)])
+
+    def part(index, id=None, name=None, arguments=None):
+        return types.SimpleNamespace(index=index, id=id, function=types.SimpleNamespace(name=name, arguments=arguments))
+
+    class Stream:
+        def __init__(self, chunks): self.chunks = chunks
+        def __iter__(self): return iter(self.chunks)
+        def close(self): log.append('closed')
+
+    built = iter([[chunk(*c) for c in r] for r in rounds(chunk, part)])
+
+    def create(**kw):
+        log.append(('stream' if kw.get('stream') else 'plain', len(kw['messages'])))
+        return Stream(next(built))
+    return types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=create)))
+
+
+def test_openai_replies_stream_text_and_assemble_tool_calls_from_pieces(monkeypatch):
+    import sys
+    import types
+    log, events = [], []
+    args = json.dumps(BIRTH)
+    rounds = lambda chunk, part: [
+        [(None, [part(0, 'c1', 'bazi_chart', args[:10])]), (None, [part(0, None, None, args[10:])], 'tool_calls')],
+        [('先看', None), ('日柱。', None, 'stop')],
+    ]
+    client = openai_stream_client(rounds, log)
+    monkeypatch.setitem(sys.modules, 'openai', types.SimpleNamespace(OpenAI=lambda **kw: client))
+    out = run_chat(ChatRequest(messages=[{'role': 'user', 'content': '八字'}], verify=False),
+                   config=ChatConfig('openai', 'm'), emit=events.append)
+    assert out['reply'] == '先看日柱。'
+    assert [t['tool'] for t in out['trace']] == ['bazi_chart'] and out['trace'][0]['ok']
+    assert [e['text'] for e in events if e['type'] == 'text'] == ['先看', '日柱。']
+    assert log == [('stream', 2), 'closed', ('stream', 4), 'closed']  # system + user, then + assistant call + tool result
+
+
+def test_openai_stream_is_closed_when_the_user_stops(monkeypatch):
+    import sys
+    import types
+    log, stop = [], []
+    rounds = lambda chunk, part: [[('一', None), ('二', None), ('三', None, 'stop')]]
+    client = openai_stream_client(rounds, log)
+    monkeypatch.setitem(sys.modules, 'openai', types.SimpleNamespace(OpenAI=lambda **kw: client))
+
+    def emit(event):
+        if event['type'] == 'text':
+            stop.append(event['text'])
+    with pytest.raises(chat_module.ChatCancelled):
+        run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False),
+                 config=ChatConfig('openai', 'm'), emit=emit, cancelled=lambda: bool(stop))
+    assert stop == ['一'] and log[-1] == 'closed'
+
+
+def test_unknown_birth_hour_is_flagged_to_the_model():
+    flagged = ChatRequest(messages=[{'role': 'user', 'content': 'x'}], profile={'birth': BIRTH, 'birth_hour_unknown': True})
+    assert '用户不知道出生时辰' in build_system(flagged)[1]
+    plain = ChatRequest(messages=[{'role': 'user', 'content': 'x'}], profile={'birth': BIRTH})
+    assert '用户不知道出生时辰' not in build_system(plain)[1]

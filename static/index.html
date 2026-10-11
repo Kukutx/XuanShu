@@ -11,8 +11,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/theme.js"></script>
   <script src="/static/zh-tw-map.js" defer></script>
   <script src="/static/i18n-extra.js" defer></script>
+  <script src="/static/markdown.js" defer></script>
   <script src="/static/chat.js" defer></script>
   <script src="/static/app.js" defer></script>
   <script src="/static/vault.js" defer></script>
@@ -20,60 +22,101 @@
   <script src="/static/i18n.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#result">跳到工作台</a>
   <div class="ambient"></div>
   <main class="shell">
     <header class="header">
       <div class="brand"><div class="brand-mark" aria-hidden="true">玄</div><div><strong>玄枢 <span class="brand-en">XUANSHU</span></strong><small>历法计算 × 传统文化 × Agent MCP</small></div></div>
-      <div class="header-right"><label class="ui-lang"><span>界面语言</span><select id="ui-language" aria-label="Interface language / 界面语言"></select></label><span class="status" id="status">● 本地优先 · 数据不自动保存</span><a href="/docs" target="_blank" rel="noopener">API 文档 ↗</a></div>
+      <div class="header-right"><span class="status" id="status">● 本地优先 · 数据不自动保存</span><label class="ui-lang"><span>界面语言</span><select id="ui-language" aria-label="Interface language / 界面语言"></select></label><button type="button" class="theme-toggle" id="theme-toggle" aria-label="切换配色"><span aria-hidden="true" class="theme-icon">◐</span><span class="theme-label">跟随系统</span></button><a class="docs-link" href="/docs" target="_blank" rel="noopener">API 文档 ↗</a></div>
     </header>
 
     <section class="hero">
-      <div class="eyebrow"><span>✳</span> CHART ENGINE / v.0.1.0</div>
-      <h1>从你的问题出发，<em>调用可核验的术数工具。</em></h1>
-      <p>时制审计与节令 · 八字藏干十神 · 农历反查 · 时刻误差采样 · 紫微三方四正与四化 · 时家奇门拆补九宫 · 双盘对照 · 建除值日 · 年度轨迹 · 大运十年干支 · 出生边界地图 · 透明决策矩阵 · 加密本地备份。所有计算结果可由 ChatGPT、Claude 与 Codex 通过 MCP 读取。</p>
-      <div class="feature-strips"><span>28 MCP TOOLS</span><span>15 PROMPTS</span><span>17 RESOURCES</span><span>18 AGENT SKILLS</span></div>
+      <div>
+        <div class="eyebrow"><span>✳</span> CHART ENGINE / v.0.1.0</div>
+        <h1>从你的问题出发，<em>调用可核验的术数工具。</em></h1>
+        <p>八字、紫微斗数、时家奇门与历法排盘全部由本地确定性工具计算；AI 对话的每个结论都能展开查看依据的工具调用，并可由另一次独立调用逐条核验。</p>
+      </div>
+      <ul class="hero-points">
+        <li>每个命盘事实可追溯到工具调用</li>
+        <li>出生资料只用于当次计算，服务器不保存</li>
+        <li>多流派会诊与独立核验</li>
+        <li>开源，可接入 Claude、ChatGPT、Codex</li>
+      </ul>
     </section>
 
     <div class="main-grid">
-      <aside class="panel input-panel">
+      <aside class="panel input-panel" id="input-panel">
+        <div class="birth-summary"><span id="birth-summary-text">出生信息未填写</span><button type="button" class="tiny-button" id="birth-summary-toggle" aria-controls="input-panel" aria-expanded="false">修改出生信息</button></div>
         <div class="section-head"><span class="section-num">01</span><div><h2>出生信息</h2><p>出生地当地钟表时间 · 可追溯计算规则</p></div></div>
         <form id="birth-form">
           <label for="birth_datetime">公历出生日期与时间</label>
           <input id="birth_datetime" name="birth_datetime" type="datetime-local" value="2000-08-16T04:00" min="1901-01-01T00:00" max="2099-12-31T23:59" required />
-          <div class="field-help">示例日期为公开排盘基准；可以替换为自己的测试数据</div>
+          <div class="field-help">24 小时制，填出生地当时的钟表时间。只知道农历生日或不知道时辰，用下面两个选项。</div>
+          <label class="check-line hour-unknown-line"><input type="checkbox" id="hour_unknown" /> 不知道出生时辰</label>
+          <p class="field-help" id="hour-unknown-help" hidden>时间已按 12:00 占位。时柱和紫微宫位会随时辰变化，命盘页会列出十二个时辰的对照，并标出不受时辰影响的部分。</p>
+          <details class="form-section" id="lunar-entry">
+            <summary>只知道农历生日 <small>换算后填入公历</small></summary>
+            <div class="form-section-body">
+              <div class="form-row">
+                <div><label for="lunar_year">农历年</label><input id="lunar_year" type="number" min="1901" max="2099" value="2000" /></div>
+                <div class="lunar-leap"><label class="check-line"><input type="checkbox" id="lunar_leap" /> 闰月</label></div>
+              </div>
+              <div class="form-row">
+                <div><label for="lunar_month">月</label><select id="lunar_month"></select></div>
+                <div><label for="lunar_day">日</label><select id="lunar_day"></select></div>
+              </div>
+              <label for="lunar_hour">时辰</label><select id="lunar_hour"></select>
+              <button type="button" class="tiny-button" id="lunar-fill">换算并填入公历</button>
+              <p class="inline-msg" id="lunar-msg" role="status"></p>
+              <p class="field-help">按现行中国农历换算（UTC+8 天文朔望，农历 1901–2099 年）。</p>
+            </div>
+          </details>
           <p class="demo-data-notice" id="demo-birth-warning" role="status">当前使用演示出生资料。个人分析前请替换为实际出生时间。</p>
-          <label for="timezone">时区</label>
-          <select id="timezone" name="timezone">
-            <option value="Asia/Shanghai">Asia/Shanghai · 中国</option>
-            <option value="Asia/Hong_Kong">Asia/Hong_Kong · 香港</option>
-            <option value="Asia/Taipei">Asia/Taipei · 台北</option>
-            <option value="Asia/Tokyo">Asia/Tokyo · 东京</option>
-            <option value="Europe/Rome">Europe/Rome · 罗马</option>
-            <option value="Europe/London">Europe/London · 伦敦</option>
-            <option value="America/New_York">America/New_York · 纽约</option>
-            <option value="America/Los_Angeles">America/Los_Angeles · 洛杉矶</option>
-            <option value="UTC">UTC</option>
-          </select>
-          <label for="gender">传统顺逆方向参数（紫微大限 / 八字大运）</label>
-          <select id="gender" name="gender"><option value="unspecified">不指定</option><option value="male">男</option><option value="female" selected>女</option></select>
-          <div class="switch-row"><div><b>23:00 子初换日</b><small>仅影响八字日柱和时干</small></div><input type="checkbox" id="late_zi_day_rollover" aria-label="23点换日" /></div>
-          <div class="switch-row"><div><b>闰月后半月顺延</b><small>影响紫微命盘月份</small></div><input type="checkbox" id="leap_month_second_half_as_next" checked aria-label="闰月后半月顺延" /></div>
-          <div class="location-panel">
-            <div class="section-kicker">时制 / GEO-TIME</div>
-            <label for="time_mode">传统时辰计算时基</label>
-            <select id="time_mode" name="time_mode">
-              <option value="clock">当地钟表时间（默认）</option>
-              <option value="mean_solar">平太阳时（按经度）</option>
-              <option value="apparent_solar">真太阳时（经度 + 均时差）</option>
-            </select>
-            <label for="birth_city">出生城市（选填，自动填写时区和经度）</label>
-            <select id="birth_city"><option value="">手动填写</option></select>
-            <label for="longitude">出生地经度（东正西负）</label>
-            <input id="longitude" name="longitude" type="number" min="-180" max="180" step="0.0001" placeholder="如 104.0667（成都示例）" />
-            <p class="field-help">太阳时模式必须填写准确经度。城市坐标取市中心，内置在页面里，不联网查询、不上传位置。</p>
+          <label for="birth_city">出生城市（选填，自动填写时区和经度）</label>
+          <select id="birth_city"><option value="">手动填写</option></select>
+          <div class="form-row">
+            <div>
+              <label for="timezone">时区</label>
+              <select id="timezone" name="timezone">
+                <option value="Asia/Shanghai">Asia/Shanghai · 中国</option>
+                <option value="Asia/Hong_Kong">Asia/Hong_Kong · 香港</option>
+                <option value="Asia/Taipei">Asia/Taipei · 台北</option>
+                <option value="Asia/Tokyo">Asia/Tokyo · 东京</option>
+                <option value="Europe/Rome">Europe/Rome · 罗马</option>
+                <option value="Europe/London">Europe/London · 伦敦</option>
+                <option value="America/New_York">America/New_York · 纽约</option>
+                <option value="America/Los_Angeles">America/Los_Angeles · 洛杉矶</option>
+                <option value="UTC">UTC</option>
+              </select>
+            </div>
+            <div>
+              <label for="gender">性别（定顺逆）</label>
+              <select id="gender" name="gender" title="传统顺逆方向参数（紫微大限 / 八字大运）"><option value="unspecified">不指定</option><option value="male">男</option><option value="female" selected>女</option></select>
+            </div>
           </div>
-          <label for="api_token">API 访问令牌（本地默认留空）</label>
-          <input id="api_token" type="password" autocomplete="off" placeholder="Docker/私有服务器需要填写，本机直接运行可留空" />
+          <label for="longitude">出生地经度（东正西负）</label>
+          <input id="longitude" name="longitude" type="number" min="-180" max="180" step="0.0001" placeholder="如 104.0667（成都示例）" />
+          <details class="form-section location-panel" id="advanced-rules">
+            <summary>高级排盘规则 <small id="advanced-rules-summary">钟表时间 · 闰月顺延</small></summary>
+            <div class="form-section-body">
+              <label for="time_mode">传统时辰计算时基</label>
+              <select id="time_mode" name="time_mode">
+                <option value="clock">当地钟表时间（默认）</option>
+                <option value="mean_solar">平太阳时（按经度）</option>
+                <option value="apparent_solar">真太阳时（经度 + 均时差）</option>
+              </select>
+              <p class="field-help">太阳时模式必须填写准确经度。城市坐标取市中心，内置在页面里，不联网查询、不上传位置。</p>
+              <label class="switch-row"><span><b>23:00 子初换日</b><small>仅影响八字日柱和时干</small></span><input type="checkbox" id="late_zi_day_rollover" /></label>
+              <label class="switch-row"><span><b>闰月后半月顺延</b><small>影响紫微命盘月份</small></span><input type="checkbox" id="leap_month_second_half_as_next" checked /></label>
+            </div>
+          </details>
+          <details class="form-section" id="connection-settings">
+            <summary>连接设置 <small>本机运行可跳过</small></summary>
+            <div class="form-section-body">
+              <label for="api_token">API 访问令牌（本地默认留空）</label>
+              <input id="api_token" type="password" autocomplete="off" placeholder="Docker/私有服务器需要填写，本机直接运行可留空" />
+            </div>
+          </details>
           <button class="primary-btn" type="submit" id="run-btn"><span>生成命盘</span><span>↗</span></button>
           <p id="error" class="error" role="alert" hidden></p>
         </form>
@@ -86,25 +129,25 @@
           <label for="profiles">已保存的档案</label>
           <select id="profiles"><option value="">暂无本地档案</option></select>
           <div class="profile-actions"><button id="load-profile" type="button" class="tiny-button">载入</button><button id="remove-profile" type="button" class="tiny-button danger-btn">删除</button></div>
-          <div class="vault-pane">
-            <strong>加密备份 · WebCrypto</strong>
+          <details class="vault-pane">
+            <summary>加密备份 · WebCrypto</summary>
             <label for="vault-password">备份口令（至少 12 字符，仅本次使用）</label>
             <input id="vault-password" type="password" autocomplete="new-password" placeholder="只用于加密 / 解密备份" />
             <div class="profile-actions"><button type="button" id="vault-export" class="tiny-button">加密导出</button><button type="button" id="vault-import" class="tiny-button">导入备份</button></div>
             <input id="vault-file" type="file" accept=".json,.astro" hidden />
             <button type="button" id="clear-profiles" class="tiny-button danger-btn clear-all">清空全部本地档案</button>
-          </div>
+          </details>
           <p class="field-help" id="profile-feedback" role="status">本地保存为明文；导出备份可额外加密。不要在公共电脑存储真实出生资料。</p>
         </div>
         <div class="sidebar-note"><span>◎</span><div><strong>历法与文化工具</strong><p>服务器不保留出生记录；解读为传统文化符号，不提供科学意义上的命运预测。</p></div></div>
       </aside>
 
-      <section class="workspace panel">
+      <section class="workspace panel" id="workspace">
         <div class="workspace-top">
           <div class="section-head"><span class="section-num">03</span><div><h2>命盘工作台</h2><p id="result-subtitle">选择参数后开始生成</p></div></div>
-          <div class="toolbar"><button type="button" id="download-json" class="tiny-button" disabled>导出 JSON ↓</button><div class="mini-badge">ENGINE DEV</div></div>
+          <div class="toolbar"><button type="button" id="share-card" class="tiny-button">分享卡片</button><button type="button" id="print-view" class="tiny-button">打印 / 存为 PDF</button><button type="button" id="download-json" class="tiny-button" disabled>导出 JSON ↓</button></div>
         </div>
-        <p id="stale-birth-warning" class="stale-birth-warning" role="status" aria-live="polite" hidden>出生参数已修改。下方旧命盘不再对应当前输入；请点击左侧「生成命盘」重新计算，才能导出。</p>
+        <p id="stale-birth-warning" class="stale-birth-warning" role="status" aria-live="polite" hidden>出生参数已修改。下方旧命盘不再对应当前输入；请点击「生成命盘」重新计算，才能导出。</p>
         <div class="tool-finder" role="search" aria-label="工作台功能查找">
           <label for="tool-search">查找需要的功能</label>
           <input id="tool-search" type="search" placeholder="搜索八字、择时、报告等 24 项能力" autocomplete="off" aria-controls="workspace-tabs" />
@@ -113,35 +156,42 @@
           <span class="tool-keyboard-hint">Ctrl+K 搜索 · ← / → 切换功能</span>
         </div>
         <div class="tabbar" id="workspace-tabs" role="tablist" aria-label="工作台功能">
+          <span class="tab-group" aria-hidden="true">对话</span>
           <button class="tab active" data-tab="chat" role="tab" aria-selected="true">AI 对话</button>
           <button class="tab" data-tab="consult" role="tab" aria-selected="false">AI 咨询工作流</button>
+          <span class="tab-group" aria-hidden="true">命盘</span>
           <button class="tab" data-tab="bazi" role="tab" aria-selected="false">四柱八字</button>
-          <button class="tab" data-tab="qimen" role="tab" aria-selected="false">奇门遁甲</button>
           <button class="tab" data-tab="ziwei" role="tab" aria-selected="false">紫微十二宫</button>
+          <button class="tab" data-tab="qimen" role="tab" aria-selected="false">奇门遁甲</button>
           <button class="tab" data-tab="professional" role="tab" aria-selected="false">专业紫微（可选）</button>
-          <button class="tab" data-tab="qimen-audit" role="tab" aria-selected="false">奇门逐宫核验</button>
           <button class="tab" data-tab="transform" role="tab" aria-selected="false">四化飞星</button>
           <button class="tab" data-tab="annual" role="tab" aria-selected="false">年干四化</button>
-          <button class="tab" data-tab="time" role="tab" aria-selected="false">太阳时审计</button>
           <button class="tab" data-tab="dayun" role="tab" aria-selected="false">大运干支</button>
-          <button class="tab" data-tab="boundaries" role="tab" aria-selected="false">生时边界地图</button>
+          <span class="tab-group" aria-hidden="true">择时与历法</span>
           <button class="tab" data-tab="date-scan" role="tab" aria-selected="false">择日择时</button>
           <button class="tab" data-tab="officers" role="tab" aria-selected="false">建除值日</button>
-          <button class="tab" data-tab="timeline" role="tab" aria-selected="false">年度轨迹</button>
-          <button class="tab" data-tab="decision" role="tab" aria-selected="false">方案决策</button>
           <button class="tab" data-tab="calendar" role="tab" aria-selected="false">历法日历</button>
+          <button class="tab" data-tab="timeline" role="tab" aria-selected="false">年度轨迹</button>
+          <span class="tab-group" aria-hidden="true">关系与决策</span>
           <button class="tab" data-tab="pair" role="tab" aria-selected="false">双人对照</button>
+          <button class="tab" data-tab="decision" role="tab" aria-selected="false">方案决策</button>
+          <span class="tab-group" aria-hidden="true">核验</span>
+          <button class="tab" data-tab="time" role="tab" aria-selected="false">太阳时审计</button>
+          <button class="tab" data-tab="boundaries" role="tab" aria-selected="false">生时边界地图</button>
           <button class="tab" data-tab="quality" role="tab" aria-selected="false">排盘质量审计</button>
-          <button class="tab" data-tab="reading" role="tab" aria-selected="false">文化解读</button>
+          <button class="tab" data-tab="qimen-audit" role="tab" aria-selected="false">奇门逐宫核验</button>
           <button class="tab" data-tab="deep" role="tab" aria-selected="false">深度证据</button>
+          <span class="tab-group" aria-hidden="true">报告与集成</span>
+          <button class="tab" data-tab="reading" role="tab" aria-selected="false">文化解读</button>
           <button class="tab" data-tab="report" role="tab" aria-selected="false">综合报告</button>
           <button class="tab" data-tab="integration" role="tab" aria-selected="false">Agent 集成</button>
           <button class="tab" data-tab="json" role="tab" aria-selected="false">JSON 数据</button>
         </div>
-        <div id="result" aria-live="polite"><div class="empty-state"><div class="empty-orbit">☯</div><h3>历法可核验，规则可追溯</h3><p>点击「生成命盘」开始计算</p></div></div>
+        <div id="live-status" class="visually-hidden" role="status" aria-live="polite"></div>
+        <div id="result" role="tabpanel" tabindex="-1"><div class="empty-state"><div class="empty-orbit">☯</div><h3>历法可核验，规则可追溯</h3><p>确认出生资料后生成命盘，八字、紫微和四化会一起算好。</p></div></div>
       </section>
     </div>
-    <footer><span>玄枢 · XuanShu v.0.1.0 · AGPL-3.0</span><span>部分紫微排盘 · 传统术数未经科学预测验证，不作医疗、金融或其他关键决策依据</span></footer>
+    <footer><span>玄枢 · XuanShu v.0.1.0 · AGPL-3.0</span><div class="feature-strips" aria-label="Agent 接入能力"><span>28 MCP TOOLS</span><span>15 PROMPTS</span><span>17 RESOURCES</span><span>18 AGENT SKILLS</span></div><span>部分紫微排盘 · 传统术数未经科学预测验证，不作医疗、金融或其他关键决策依据</span></footer>
   </main>
 </body>
 </html>
