@@ -178,6 +178,10 @@ const UI_EXTRA = {
 " hours from it: the other program may use a different solar-term instant, timezone or daylight-saving handling.",
 " 時間：相手の節気時刻、タイムゾーン、夏時間の扱いが異なる可能性があります。"
 ],
+" 小时：节气时刻或时区处理稍有不同，月柱就可能不同。": [
+" hours from it: a slightly different solar-term instant or timezone handling can change the month pillar.",
+" 時間：節気時刻やタイムゾーンの扱いが少し違うだけで月柱が変わることがあります。"
+],
 " 年": [
 " years",
 " 年"
@@ -510,6 +514,10 @@ const UI_EXTRA = {
 "DESCRIPTION:Astronomical solar term arrival times, converted from China Standard Time to UTC.",
 "DESCRIPTION:天文節気の到達時刻。中国標準時からUTCへ変換。"
 ],
+"DESCRIPTION:日月地心黄经差到达 0°、90°、180° 或 270° 的时刻（UTC）。": [
+"DESCRIPTION:Instant (UTC) at which the geocentric longitude difference of Moon and Sun reaches 0°, 90°, 180° or 270°.",
+"DESCRIPTION:月と太陽の地心黄経差が 0°・90°・180°・270° に達する時刻（UTC）。"
+],
 "Drop these 建除 officers": [
 "Drop these 建除 officers",
 "これらの建除の値日を除外"
@@ -577,6 +585,10 @@ const UI_EXTRA = {
 "mcp claude chatgpt codex plugin 接入 配置": [
 "mcp claude chatgpt codex plugin integration configuration",
 "mcp claude chatgpt codex plugin 接続 設定"
+],
+"“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。扣除夏令时改的是出生时间本身的读法，不能直接套用；确认出生记录用的是夏令时后，请手动改出生时间。": [
+"“＝” means the same as the current settings; highlighted cells are results that change under that rule. Apply writes the rule into the birth details and recalculates. Removing daylight saving time changes how the birth time itself is read, so it cannot be applied directly; once you have confirmed the record used summer time, edit the birth time by hand.",
+"「＝」は現在の設定と同じ、色付きのセルはその規則で変わる結果です。「適用」は規則を出生情報に書き込んで再計算します。夏時間を差し引く規則は出生時刻そのものの読み方を変えるため直接適用できません。記録が夏時間だったと確認できたら、出生時刻を手動で修正してください。"
 ],
 "← 左右滑动查看完整十二宫 →": [
 "← Swipe sideways to see all twelve palaces →",
@@ -742,6 +754,10 @@ const UI_EXTRA = {
 "Download failed: ",
 "ダウンロード失敗："
 ],
+"下载本年节气与月相日历（ICS）": [
+"Download this year's solar terms and moon phases (ICS)",
+"今年の節気と月相カレンダーをダウンロード（ICS）"
+],
 "下面的命盘按 12:00 占位。比较十二个时辰，可以看出哪些柱位和宫位在整天里都不变，哪些需要先确定时辰。": [
 "The chart below uses 12:00 as a placeholder. Comparing the twelve double hours shows which pillars and palaces stay the same all day and which need the hour first.",
 "下の命盤は 12:00 を仮の時刻にしています。十二時辰を比べると、終日変わらない柱や宮と、先に時辰を確定すべきものが分かります。"
@@ -753,6 +769,10 @@ const UI_EXTRA = {
 "不会自动保存出生资料或经度；审计结果包含具体时差与命盘差异。": [
 "Birth data and longitude are not saved automatically; audit results include the exact time offsets and chart differences.",
 "出生データや経度は自動保存されません。監査結果には具体的な時差と命盤の差異が含まれます。"
+],
+"不受规则影响": [
+"Not affected by the rules",
+"ルールの影響を受けない"
 ],
 "不变": [
 "Unchanged",
@@ -1038,6 +1058,10 @@ const UI_EXTRA = {
 "24 Solar Terms",
 "二十四節気"
 ],
+"二十四节气与月相": [
+"24 solar terms and moon phases",
+"二十四節気と月相"
+],
 "二月": [
 "Month 2",
 "二月"
@@ -1092,6 +1116,10 @@ const UI_EXTRA = {
 ],
 "交节只有约 ": [
 "is only about ",
+"の節入りまで約 "
+],
+"交节约 ": [
+" is about ",
 "の節入りまで約 "
 ],
 "亥卯未": [
@@ -1210,6 +1238,10 @@ const UI_EXTRA = {
 "Representative local time",
 "代表ローカル時刻"
 ],
+"以下规则换算后无法排盘，未列出：": [
+"These rule choices could not be charted and are not listed: ",
+"次の規則は換算後に命盤を作れないため表示していません："
+],
 "以出生资料里的时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。": [
 "Samples the error window around the birth time and lists the distinct BaZi charts and Life/Body palaces found. Differences between sample points can still be missed.",
 "出生情報の時刻を中心に誤差範囲を離散的にサンプリングし、実際に現れる八字と命宮・身宮を列挙します。サンプル点の間に検出されない違いが残る可能性があります。"
@@ -1233,6 +1265,10 @@ const UI_EXTRA = {
 "休门": [
 "Rest Door (Xiu)",
 "休門"
+],
+"会随规则变化": [
+"Changes with the rules",
+"ルールによって変わる"
 ],
 "传统 符号 分析": [
 "traditional symbol analysis",
@@ -1858,9 +1894,17 @@ const UI_EXTRA = {
 "Born after 23:00: programs differ on whether the Zi hour starts a new day (early/late Zi hour).",
 "23:00 以降の出生：子の刻で日を替えるか（早子・晩子）は流派で異なります。"
 ],
+"出生在 23:00 之后：各家对子时是否换日（早晚子时）规则不同，日柱可能不同。": [
+"Born after 23:00: schools differ on whether the day changes at the Zi hour (early and late Zi), so the day pillar may differ.",
+"23:00 以降の出生：子の刻で日を替えるか（早子・晩子）は流派で異なり、日柱が変わることがあります。"
+],
 "出生在农历闰月：闰月前后半月归属哪个月，各家规则不同。": [
 "Born in a leap lunar month: programs differ on which month each half of a leap month belongs to.",
 "旧暦の閏月生まれ：閏月の前半・後半をどの月に数えるかは流派で異なります。"
+],
+"出生在农历闰月：闰月前后半月归属哪个月，各家规则不同，紫微命盘可能不同。": [
+"Born in a lunar leap month: schools differ on which month each half belongs to, so the Zi Wei chart may differ.",
+"旧暦の閏月の出生：閏月の前半・後半をどの月に入れるかは流派で異なり、紫微の命盤が変わることがあります。"
 ],
 "出生在立春与春节之间：玄枢八字以立春换年，对方可能以春节（正月初一）换年。": [
 "Born between Lichun and Chinese New Year: XuanShu BaZi changes the year at Lichun; the other program may change it at Chinese New Year (first day of the first lunar month).",
@@ -1873,6 +1917,10 @@ const UI_EXTRA = {
 "出生年地支": [
 "Birth year branch",
 "出生年の地支"
+],
+"出生当天的不同时刻这些字段也会不同（当天交节、按 23:00 换日或换用太阳时），同样不参与对照：": [
+"These fields also differ at different times of the birth date (a solar term that day, the 23:00 day change or solar time), so they are left out too: ",
+"出生当日の時刻によって次の項目も変わるため（当日の節入り、23:00 の日替わり、太陽時）、同じく比較しません："
 ],
 "出生数据与排盘边界审计": [
 "Birth data and charting boundary audit",
@@ -1913,6 +1961,10 @@ const UI_EXTRA = {
 "出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。": [
 "Birth hour unknown: 12:00 is only a placeholder, so a Qimen chart cast from it means nothing.",
 "出生時刻不明：12:00 は仮の値なので、これで立てた奇門盤には意味がありません。"
+],
+"出生时辰不详：填写的时间只是占位，时柱、命宫、身宫、五行局和命宫主星不参与对照。": [
+"Birth hour unknown: the time entered is only a placeholder, so the hour pillar, Life and Body palaces, five-element bureau and Life-palace major stars are left out.",
+"出生時刻不明：入力した時刻は仮の値のため、時柱・命宮・身宮・五行局・命宮主星は比較しません。"
 ],
 "出生时间": [
 "Birth time",
@@ -2390,6 +2442,10 @@ const UI_EXTRA = {
 "Compares only user-provided fields; missing fields do not count as passing",
 "ユーザー提供のフィールドのみ比較し、欠落フィールドは合格に数えない"
 ],
+"只看结果不同的方案": [
+"Only rules that change the result",
+"結果が変わるルールだけ表示"
+],
 "只知道农历生日": [
 "I only know the lunar birthday",
 "旧暦の誕生日しか分からない"
@@ -2493,6 +2549,10 @@ const UI_EXTRA = {
 "吊客": [
 "Diao Ke",
 "弔客"
+],
+"同一份出生资料换用各家常见规则重排 · 看哪些字段会变": [
+"The same birth details recalculated under common rule choices · see which fields change",
+"同じ出生情報を各流派の一般的なルールで再計算 · どの項目が変わるか"
 ],
 "同一历法依赖意味着两者相同不构成算法独立认证；不同时要核对临界时刻。": [
 "The same calendar dependency means agreement between the two does not constitute independent algorithmic certification; when they differ, check the critical moments.",
@@ -3250,6 +3310,10 @@ const UI_EXTRA = {
 "Zou Shu",
 "奏書"
 ],
+"套用": [
+"Apply",
+"適用"
+],
 "套用到出生资料": [
 "Apply to birth details",
 "出生情報に適用"
@@ -3962,6 +4026,10 @@ const UI_EXTRA = {
 "Within this check range, the current model detected no change of hour, day boundary, solar term or time zone.",
 "この確認範囲内で、現行モデルは時辰・日界・節令・タイムゾーンの変化を検出しませんでした。"
 ],
+"当前设置": [
+"Current settings",
+"現在の設定"
+],
 "当地钟表时间": [
 "Local clock time",
 "現地の時計時刻"
@@ -4293,6 +4361,10 @@ const UI_EXTRA = {
 "换算后填入公历": [
 "converted into the Gregorian date",
 "西暦に換算して入力"
+],
+"换算后时间": [
+"Converted time",
+"換算後の時刻"
 ],
 "换算失败：": [
 "Conversion failed: ",
@@ -5330,6 +5402,10 @@ const UI_EXTRA = {
 "Writing the answer…",
 "回答を作成中…"
 ],
+"正在按各种规则重新排盘…": [
+"Recalculating under each rule…",
+"各ルールで再計算しています…"
+],
 "正在按问题调用计算工具…": [
 "Calling calculation tools for your question…",
 "質問に応じて計算ツールを呼び出し中…"
@@ -5430,6 +5506,10 @@ const UI_EXTRA = {
 "Waning crescent",
 "有明月（欠けていく三日月）"
 ],
+"每一行把当前出生资料换成一种常见的不同规则（或两种规则的组合）重新排盘，标出与当前设置不同的格子。": [
+"Each row recalculates the current birth details under one common alternative rule (or a pair of them) and highlights the cells that differ from the current settings.",
+"各行は現在の出生情報を一般的な別ルール（または 2 つの組み合わせ）で再計算し、現在の設定と異なるセルを示します。"
+],
 "每个命盘事实可追溯到工具调用": [
 "Every chart fact traces back to a tool call",
 "命盤の各事実はツール呼び出しまで遡れます"
@@ -5489,6 +5569,10 @@ const UI_EXTRA = {
 "没有匹配项，请尝试八字、择时、MCP 等关键词": [
 "No matches; try keywords like BaZi, timing or MCP",
 "一致なし。八字・択時・MCP などのキーワードを試してください"
+],
+"没有填写出生地经度，表中不含平太阳时与真太阳时；在出生资料里填写经度后会一起比较。": [
+"No birthplace longitude, so mean and apparent solar time are not in the table; add a longitude in the birth details to compare them too.",
+"出生地の経度がないため、平均太陽時と真太陽時は表にありません。出生情報に経度を入力すると一緒に比較します。"
 ],
 "没有成员的年支或日支凑齐申子辰、亥卯未、寅午戌、巳酉丑。": [
 "No members' year or day branches complete Shen–Zi–Chen, Hai–Mao–Wei, Yin–Wu–Xu or Si–You–Chou.",
@@ -6018,6 +6102,10 @@ const UI_EXTRA = {
 "Autumn Equinox (Qiufen)",
 "秋分"
 ],
+"种不同规则下结果与当前完全相同": [
+"alternative rules give exactly the same result",
+"通りの別ルールで結果がまったく同じ"
+],
 "称呼": [
 "Name",
 "呼び名"
@@ -6153,6 +6241,10 @@ const UI_EXTRA = {
 "紫微局数：": [
 "Zi Wei bureau number: ",
 "紫微局数："
+],
+"紫微按农历正月初一换年、不按 23:00 换日；八字按立春换年，两者的年柱可能不同，这是规则本身的差别。": [
+"Zi Wei changes the year at the lunar new year and does not change the day at 23:00; BaZi changes the year at Lichun. Their year pillars can differ: that is a difference in the rules themselves.",
+"紫微は旧正月で年を替え、23:00 では日を替えません。八字は立春で年を替えるため、両者の年柱が異なることがあります。これはルール自体の違いです。"
 ],
 "紫微排盘": [
 "Zi Wei chart",
@@ -6370,6 +6462,10 @@ const UI_EXTRA = {
 "Astronomical definition of solar terms; BaZi day boundary/school follows this project's own rules",
 "節気の天文学的定義。八字の日境界・流派は本プロジェクトの規則に別途従います"
 ],
+"节气与月相 ICS": [
+"Solar terms + moon phases ICS",
+"節気と月相 ICS"
+],
 "节气查询": [
 "Solar terms",
 "節気の照会"
@@ -6510,6 +6606,10 @@ const UI_EXTRA = {
 "Rule ID: ",
 "ルール ID："
 ],
+"规则 流派 差异 换日 子时 闰月 太阳时 夏令时 对照 敏感 rules school": [
+"rules school difference day-change zi-hour leap-month solar-time daylight-saving comparison sensitivity",
+"ルール 流派 差 日替わり 子の刻 閏月 太陽時 夏時間 対照 感度 rules school"
+],
 "规则分歧": [
 "Rule divergence",
 "ルールの相違"
@@ -6526,9 +6626,17 @@ const UI_EXTRA = {
 "Rule differences",
 "規則の違い"
 ],
+"规则差异对照表": [
+"Rule difference table",
+"ルール差の対照表"
+],
 "规则差异对照需要第二套明确的出生时基或流派选项；本模块不会虚构另一套排盘结果": [
 "A rule-difference comparison requires a second explicit birth time basis or school option; this module will not fabricate an alternative chart result",
 "規則の違いの比較には、2つ目の明示的な出生時刻の基準または流派オプションが必要です。本モジュールは別の命盤結果を捏造しません"
+],
+"规则方案": [
+"Rule choice",
+"ルール"
 ],
 "规则证据与跨体系差异复核": [
 "Rule evidence and cross-system difference review",
@@ -7014,6 +7122,10 @@ const UI_EXTRA = {
 "This is only a time-system sensitivity comparison; it does not judge which time system has predictive power.",
 "これは時刻制度の感度比較にすぎず、どの時刻体系に予測力があるかは判断しません。"
 ],
+"这只说明规则选择会改变哪些字段，不判断哪种规则正确；以出生资料和你采用的流派为准。": [
+"This only shows which fields a rule choice changes; it does not say which rule is correct. Go by the birth details and the school you follow.",
+"ルールの選び方でどの項目が変わるかを示すだけで、どのルールが正しいかは判断しません。出生情報とご自身の流派に従ってください。"
+],
 "这是一份确定性多工具计算报告，未运行外部大语言模型，不是自主推理结果。": [
 "This is a deterministic multi-tool calculation report; no external large language model was run, and it is not the result of autonomous reasoning.",
 "これは決定論的な複数ツールの計算レポートです。外部の大規模言語モデルは実行しておらず、自律的な推論の結果ではありません。"
@@ -7289,6 +7401,10 @@ const UI_EXTRA = {
 "雨水": [
 "Rain Water (Yushui)",
 "雨水"
+],
+"需手动改时间": [
+"Edit the time by hand",
+"時刻を手動で修正"
 ],
 "需要出生公历时间、出生地时区与所选排盘口径；不在后台猜测或恢复出生资料": [
 "Requires the Gregorian birth time, the birthplace time zone, and the selected charting convention; birth data is not guessed or recovered in the background",

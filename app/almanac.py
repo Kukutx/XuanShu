@@ -123,6 +123,24 @@ def _next_phase(jd: float, target: float) -> float:
     return guess
 
 
+PHASE_EVENTS = ((0, '新月'), (90, '上弦月'), (180, '满月'), (270, '下弦月'))
+
+
+def moon_phases(year: int) -> list[dict]:
+    """Instants of the four principal moon phases within a calendar year in China time."""
+    if not 1901 <= year <= 2099:
+        raise ValueError('Supported years: 1901–2099')
+    china = ZoneInfo('Asia/Shanghai')
+    start, end = to_jd(datetime(year, 1, 1, tzinfo=china)), to_jd(datetime(year + 1, 1, 1, tzinfo=china))
+    events = []
+    for target, name in PHASE_EVENTS:
+        jd = start
+        while (hit := _next_phase(jd, target)) < end:
+            events.append({'name': name, 'elongation': target, 'instant': from_jd(hit)})
+            jd = hit + 1
+    return sorted(events, key=lambda e: e['instant'])
+
+
 def _moon(instant: datetime) -> dict:
     jd = to_jd(instant)
     angle, _ = _elongation(jd)

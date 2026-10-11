@@ -219,7 +219,7 @@ def build_system(req: ChatRequest) -> list[str]:
 # Boundary and calendar tools every specialist may use.
 SHARED_TOOLS = ('time_basis_audit', 'chart_quality_audit', 'birth_time_window', 'birth_boundary_map',
                 'solar_terms', 'lunar_to_gregorian', 'rule_comparison', 'symbolic_reading', 'chart_import_check',
-                'daily_almanac')
+                'daily_almanac', 'rule_sensitivity_matrix')
 SPECIALISTS: dict[str, dict[str, Any]] = {
     'bazi': {'label': '八字专家', 'school': '八字（四柱）',
              'tools': ('bazi_chart', 'bazi_dayun', 'life_path_review', 'pair_comparison', 'group_relations', 'pillars_to_dates')},

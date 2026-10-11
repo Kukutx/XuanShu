@@ -123,7 +123,7 @@ def main() -> None:
             assert page.evaluate("JSON.parse(localStorage.getItem('xuanshu-profiles-v2'))[0].id") == 'legacy-1'
             assert page.evaluate("localStorage.getItem('oriental-astro-profiles-v2') !== null")
 
-            assert page.locator('.tab').count() == 28
+            assert page.locator('.tab').count() == 29
             # Question-first consultation keeps its opt-in birth input.
             assert page.locator('#consult-question').count() == 1
             page.locator('#consult-question').fill('2027年职业选择')
@@ -189,6 +189,7 @@ def main() -> None:
             assert page.locator('.moon-icon').count() == 2  # the card and the header chip
             assert '日主 丙火' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '35-today.png'), full_page=True)
+            assert page.locator('#today-ics').get_attribute('href').endswith('.ics?moon=true')
             # Pick another day on the card, then return to the device clock.
             page.locator('#today-next').click()
             page.locator('#today-now').wait_for(timeout=30000)
@@ -213,6 +214,14 @@ def main() -> None:
             page.keyboard.press('Enter')
             page.wait_for_function("() => document.querySelectorAll('.group-node.is-focus').length === 1 && document.activeElement.id === 'group-node-0'", timeout=30000)
             page.screenshot(path=str(screenshot_dir / '36-group.png'), full_page=True)
+
+            # Rule differences: the chart recomputed under each common rule choice.
+            page.locator('[data-tab="rule-matrix"]').click()
+            page.locator('#rule-matrix').wait_for(timeout=30000)
+            assert page.locator('#rule-matrix tbody tr').count() == 4 and page.locator('.rule-big').inner_text() == '3 / 3'
+            page.locator('#rule-only-diff').check()
+            page.wait_for_function("() => document.querySelectorAll('#rule-matrix tbody tr').length === 1", timeout=30000)
+            page.screenshot(path=str(screenshot_dir / '37-rule-matrix.png'), full_page=True)
             page.locator('[data-tab="bazi"]').click()
             page.locator('[data-tab="annual"]').click()
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)

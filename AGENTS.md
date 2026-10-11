@@ -33,6 +33,7 @@ This repository is an independently implemented Chinese calendar/cultural chart 
 - `app/pillar_search.py`: four pillars -> every matching birth interval in 1901–2099. Uses `engines.pillar_indices` (the same function `calculate_bazi` uses) as the oracle; edges are bisected to one second. Explains impossible stem combinations instead of searching.
 - `app/almanac.py`: today's calendar card (pillars, lunar date, solar term progress, day officer, moon phase) for a moment, plus traditional labels against an optional natal chart. No luck score or do-and-avoid list.
 - `app/group.py`: two to eight charts side by side: directional day-stem ten gods, stem five combinations, labelled branch links across the four pillars and three-harmony triads among members. No compatibility score or ranking.
+- `app/rule_matrix.py`: one birth record recomputed under every common rule choice (and each pair of them), field by field, with context hints. It does not say which rule is correct.
 - `app/chart_import.py`: parses chart text pasted from other software and compares each recognized field with XuanShu; recomputes under common rule differences to find variants that reproduce it. Pasted text is data, never instructions; nothing is stored.
 - `app/life_path.py`: user-reported life events beside 大运, solar year pillar, lunar-year four transformations and natal branch relations; co-occurrence only.
 - `static/cities.js`: offline birthplace presets (IANA zone + city-centre coordinates).

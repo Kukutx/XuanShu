@@ -161,7 +161,13 @@ def _variants(birth: BirthInput) -> list[tuple[str, BirthInput]]:
     dt = normalized_dt(birth)
     if dt.dst():
         standard = (dt - dt.dst()).replace(tzinfo=None).isoformat(timespec='minutes')
-        options.append(('扣除夏令时（按标准时）', {'birth_datetime': standard}))
+        # Read the same instant on standard time: a fixed-offset zone keeps the instant and avoids
+        # nonexistent wall times. Etc/GMT zones exist for whole hours only (their sign is inverted).
+        hours, rest = divmod(int((dt.utcoffset() - dt.dst()).total_seconds()), 3600)
+        change = {'birth_datetime': standard}
+        if not rest:
+            change['timezone'] = f'Etc/GMT{-hours:+d}' if hours else 'Etc/GMT'
+        options.append(('扣除夏令时（按标准时）', change))
     singles = [(label, BirthInput(**{**base, **change})) for label, change in options]
     # Pairs of changes too: programs often differ in more than one rule at once.
     pairs = []

@@ -28,6 +28,7 @@ from .pillar_search import PillarSearchRequest, pillars_to_dates
 from .chart_import import ChartImportRequest, chart_import_check
 from .almanac import DailyAlmanacRequest, daily_almanac
 from .group import GroupRequest, group_relations
+from .rule_matrix import RuleMatrixRequest, rule_matrix
 from .evidence import DeepReviewRequest, deep_evidence_review
 from .consultation import ConsultationRequest, execute_consultation
 from .extended import LunarToGregorianRequest, BirthWindowRequest, lunar_to_gregorian, birth_window
@@ -484,6 +485,16 @@ def group(request: GroupRequest, http_request: Request):
         raise HTTPException(422, detail=str(exc)) from exc
 
 
+@app.post('/api/rule-matrix')
+def rules_matrix(request: RuleMatrixRequest, http_request: Request):
+    if not _validate_auth(http_request):
+        raise HTTPException(401, detail='Unauthorized')
+    try:
+        return rule_matrix(request)
+    except ValueError as exc:
+        raise HTTPException(422, detail=str(exc)) from exc
+
+
 @app.post('/api/birth-window')
 def time_window(request: BirthWindowRequest, http_request: Request):
     if not _validate_auth(http_request):
@@ -549,13 +560,14 @@ def lunar(day: date):
 
 
 @app.get('/api/solar-terms/{year}.ics')
-def ics(year: int):
+def ics(year: int, moon: bool = False):
     try:
-        content = solar_terms_ics(year)
+        content = solar_terms_ics(year, moon)
     except ValueError as exc:
         raise HTTPException(422, detail=str(exc)) from exc
+    name = f'solar-terms-moon-{year}.ics' if moon else f'solar-terms-{year}.ics'
     return Response(content, media_type='text/calendar; charset=utf-8',
-                    headers={'Content-Disposition': f'attachment; filename="solar-terms-{year}.ics"'})
+                    headers={'Content-Disposition': f'attachment; filename="{name}"'})
 
 @app.get('/api/capabilities')
 def capabilities():
@@ -566,7 +578,7 @@ def capabilities():
                      'solar-time-clock-mean-apparent', 'ziwei-14-major-44-selected-auxiliary', 'ziwei-optional-iztro-py-professional', 'qimen-field-level-reference-audit',
                      'natal-cycles-four-twelve-label-series', 'natal-small-limit-nominal-ages', 'natal-transformations', 'palace-flying-mappings', 'palace-trine-opposite',
                      'annual-stem-overlay', 'calendar-days', 'solar-terms-ics', 'lunar-to-gregorian', 'sampled-birth-time-window',
-                     'bazi-traditional-dayun', 'hour-qimen-chabu-rotating', 'modeled-birth-boundary-map', 'jianchu-day-officers', 'annual-four-transformation-timeline', 'transparent-decision-matrix', 'pair-comparison', 'ziwei-pair-overlay', 'pillar-reverse-lookup', 'external-chart-import-check', 'daily-almanac-card', 'group-relations', 'rule-sensitivity', 'chart-boundary-quality-audit', 'structured-multitool-report', 'traceable-deep-evidence-review', 'stateless-question-first-consultation', 'local-profile-backups'],
+                     'bazi-traditional-dayun', 'hour-qimen-chabu-rotating', 'modeled-birth-boundary-map', 'jianchu-day-officers', 'annual-four-transformation-timeline', 'transparent-decision-matrix', 'pair-comparison', 'ziwei-pair-overlay', 'pillar-reverse-lookup', 'external-chart-import-check', 'daily-almanac-card', 'group-relations', 'rule-sensitivity', 'rule-sensitivity-matrix', 'moon-phase-ics', 'chart-boundary-quality-audit', 'structured-multitool-report', 'traceable-deep-evidence-review', 'stateless-question-first-consultation', 'local-profile-backups'],
         'counts': {'mcp_tools': len(TOOL_DEFS), 'mcp_resources': len(RESOURCES),
                    'mcp_prompts': len(PROMPTS), 'agent_skills': len(list((ROOT/'skills').glob('*/SKILL.md')))},
         'privacy': 'No server-side birth-record persistence; browser localStorage opt-in.',
