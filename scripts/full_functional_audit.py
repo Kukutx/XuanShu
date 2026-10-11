@@ -64,6 +64,7 @@ CASES = OrderedDict([
     ('pillars_to_dates', ('/api/pillars-to-dates', {'year': '庚辰', 'month': '甲申', 'day': '丙午', 'hour': '庚寅'})),
     ('chart_import_check', ('/api/chart-import-check', {'birth': BIRTH, 'text': '庚辰 甲申 丙午 庚寅\n命宫在午 木三局'})),
     ('daily_almanac', ('/api/daily-almanac', {'moment': '2026-10-11T09:30', 'birth': BIRTH})),
+    ('group_relations', ('/api/group-relations', {'members': [{'label': 'A', 'birth': BIRTH}, {'label': 'B', 'birth': dict(BIRTH, birth_datetime='1996-08-08T12:00')}, {'label': 'C', 'birth': dict(BIRTH, birth_datetime='1992-06-06T09:00'), 'hour_unknown': True}]})),
 ])
 
 VERSION = '2026-07-28'

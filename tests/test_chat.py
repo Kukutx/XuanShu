@@ -37,7 +37,7 @@ def scripted_loop(calls):
 
 def test_tool_specs_cover_every_mcp_tool_and_memory_proposal():
     names = [t['name'] for t in tool_specs()]
-    assert len(names) == len(set(names)) == 32
+    assert len(names) == len(set(names)) == 33
     assert 'bazi_chart' in names and 'propose_memory' in names
 
 
@@ -84,6 +84,12 @@ def test_partner_tools_need_the_users_consent_tick():
     assert not denied['trace'][0]['ok']
     allowed = run_chat(ChatRequest(messages=message, partner_authorized=True), config=CONFIG,
                        loop=scripted_loop([('pair_comparison', pair)]))
+    assert allowed['trace'][0]['ok']
+    group = {'members': [{'label': 'A', 'birth': BIRTH}, {'label': 'B', 'birth': pair['person_b']}]}
+    denied = run_chat(ChatRequest(messages=message), config=CONFIG, loop=scripted_loop([('group_relations', group)]))
+    assert not denied['trace'][0]['ok'] and '已获对方同意' in denied['trace'][0]['error']
+    allowed = run_chat(ChatRequest(messages=message, partner_authorized=True), config=CONFIG,
+                       loop=scripted_loop([('group_relations', group)]))
     assert allowed['trace'][0]['ok']
 
 

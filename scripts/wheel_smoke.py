@@ -80,12 +80,12 @@ print('Installed wheel Web/REST/MCP/resources/Skills/consultation: OK')
                        env=env, timeout=35)
         cli = subprocess.run([sys.executable, '-m', 'app.cli', 'tools'], cwd=external,
                              env=env, text=True, capture_output=True, timeout=20, check=True)
-        assert len(json.loads(cli.stdout)['tools']) == 31
+        assert len(json.loads(cli.stdout)['tools']) == 32
         line = json.dumps({'jsonrpc': '2.0', 'method': 'tools/list', 'id': 8}) + '\n'
         stdio = subprocess.run([sys.executable, '-m', 'app.stdio'], cwd=external,
                                env=env, input=line, text=True, capture_output=True,
                                timeout=20, check=True)
-        assert len(json.loads(stdio.stdout)['result']['tools']) == 31
+        assert len(json.loads(stdio.stdout)['result']['tools']) == 32
         assert not stdio.stderr
         print('PASS: isolated wheel installation, Web, REST, MCP HTTP+stdio, CLI, 18 Skills')
 
