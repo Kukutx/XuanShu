@@ -45,6 +45,7 @@ CASES = OrderedDict([
     ('solar_terms', ('/api/solar-terms/2026', {'year': 2026})),
     ('calendar_days', ('/api/calendar', {'start_date': '2024-02-10', 'days': 3})),
     ('pair_comparison', ('/api/pair', {'person_a': BIRTH, 'person_b': MOMENT})),
+    ('ziwei_pair_overlay', ('/api/ziwei-pair', {'person_a': BIRTH, 'person_b': MOMENT})),
     ('annual_transformations', ('/api/annual', {'birth': BIRTH, 'lunar_year': 2026})),
     ('time_basis_audit', ('/api/time-audit', {'birth': {**BIRTH, 'longitude': 116.4}})),
     ('rule_comparison', ('/api/rules-compare', {'original': BIRTH, 'alternative': BIRTH})),

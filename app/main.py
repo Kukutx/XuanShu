@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import __version__
 from .analysis import symbolic_reading
+from .ziwei_pair import ziwei_pair_overlay
 from .evidence import DeepReviewRequest, deep_evidence_review
 from .consultation import ConsultationRequest, execute_consultation
 from .extended import LunarToGregorianRequest, BirthWindowRequest, lunar_to_gregorian, birth_window
@@ -290,6 +291,16 @@ def pair(request: PairInput, http_request: Request):
         raise HTTPException(422, detail=str(exc)) from exc
 
 
+@app.post('/api/ziwei-pair')
+def ziwei_pair(request: PairInput, http_request: Request):
+    if not _validate_auth(http_request):
+        raise HTTPException(401, detail='Unauthorized')
+    try:
+        return ziwei_pair_overlay(request)
+    except ValueError as exc:
+        raise HTTPException(422, detail=str(exc)) from exc
+
+
 @app.post('/api/palace')
 def palace(request: PalaceRequest, http_request: Request):
     if not _validate_auth(http_request):
@@ -443,7 +454,7 @@ def capabilities():
                      'solar-time-clock-mean-apparent', 'ziwei-14-major-44-selected-auxiliary', 'ziwei-optional-iztro-py-professional', 'qimen-field-level-reference-audit',
                      'natal-cycles-four-twelve-label-series', 'natal-small-limit-nominal-ages', 'natal-transformations', 'palace-flying-mappings', 'palace-trine-opposite',
                      'annual-stem-overlay', 'calendar-days', 'solar-terms-ics', 'lunar-to-gregorian', 'sampled-birth-time-window',
-                     'bazi-traditional-dayun', 'hour-qimen-chabu-rotating', 'modeled-birth-boundary-map', 'jianchu-day-officers', 'annual-four-transformation-timeline', 'transparent-decision-matrix', 'pair-comparison', 'rule-sensitivity', 'chart-boundary-quality-audit', 'structured-multitool-report', 'traceable-deep-evidence-review', 'stateless-question-first-consultation', 'local-profile-backups'],
+                     'bazi-traditional-dayun', 'hour-qimen-chabu-rotating', 'modeled-birth-boundary-map', 'jianchu-day-officers', 'annual-four-transformation-timeline', 'transparent-decision-matrix', 'pair-comparison', 'ziwei-pair-overlay', 'rule-sensitivity', 'chart-boundary-quality-audit', 'structured-multitool-report', 'traceable-deep-evidence-review', 'stateless-question-first-consultation', 'local-profile-backups'],
         'counts': {'mcp_tools': len(TOOL_DEFS), 'mcp_resources': len(RESOURCES),
                    'mcp_prompts': len(PROMPTS), 'agent_skills': len(list((ROOT/'skills').glob('*/SKILL.md')))},
         'privacy': 'No server-side birth-record persistence; browser localStorage opt-in.',

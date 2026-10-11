@@ -1,5 +1,6 @@
 # 更新记录 · v.0.1.0（未发布）
 
+- 2026-10-11 天府功能对齐第二批（仍为 v.0.1.0）：新增双人紫微宫位叠盘（`app/ziwei_pair.py`、`POST /api/ziwei-pair`、MCP `ziwei_pair_overlay`，工具增至 28 个），「双人对照」页同时显示八字与紫微对照；新增界面语言切换（简体、繁體、English、日本語），繁體由 OpenCC 数据生成的字词表转换并保留术数术语。
 - 2026-10-10 天府功能对齐（仍为 v.0.1.0）：新增 `docs/research/TIANFU_PARITY.md` 逐项对照天府 Agent 公开功能。新增可选 AI 对话（`app/chat.py`、`POST /api/chat`、工作台「AI 对话」）：Claude 官方 SDK 或 OpenAI 兼容接口驱动现有确定性工具，展示每步工具调用；浏览器端档案记忆、人生事件、可选对话保存与 Markdown 导出；四种回答语言。服务器不保存对话。新增择日择时区间扫描（`date_candidate_scan`）与人生事件回溯（`life_path_review`），MCP 工具增至 27 个；内置 65 个城市的时区与经纬度；新增 Web App Manifest 支持添加到主屏幕。
 
 - 2026-10-10（仍为 v.0.1.0）：修复 Linux Python 3.15 虚拟环境符号链接触发发行脚本误报；新增跨环境回归。优化工作台全局搜索、键盘导航、工具直达、过期命盘提示及 Markdown 复制。保留旧 Python 版本以兼容其他项目。

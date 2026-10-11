@@ -11,24 +11,26 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/zh-tw-map.js" defer></script>
   <script src="/static/chat.js" defer></script>
   <script src="/static/app.js" defer></script>
   <script src="/static/vault.js" defer></script>
   <script src="/static/cities.js" defer></script>
+  <script src="/static/i18n.js" defer></script>
 </head>
 <body>
   <div class="ambient"></div>
   <main class="shell">
     <header class="header">
       <div class="brand"><div class="brand-mark" aria-hidden="true">玄</div><div><strong>玄枢 <span class="brand-en">XUANSHU</span></strong><small>历法计算 × 传统文化 × Agent MCP</small></div></div>
-      <div class="header-right"><span class="status" id="status">● 本地优先 · 数据不自动保存</span><a href="/docs" target="_blank" rel="noopener">API 文档 ↗</a></div>
+      <div class="header-right"><label class="ui-lang"><span>界面语言</span><select id="ui-language" aria-label="Interface language / 界面语言"></select></label><span class="status" id="status">● 本地优先 · 数据不自动保存</span><a href="/docs" target="_blank" rel="noopener">API 文档 ↗</a></div>
     </header>
 
     <section class="hero">
       <div class="eyebrow"><span>✳</span> CHART ENGINE / v.0.1.0</div>
       <h1>从你的问题出发，<em>调用可核验的术数工具。</em></h1>
       <p>时制审计与节令 · 八字藏干十神 · 农历反查 · 时刻误差采样 · 紫微三方四正与四化 · 时家奇门拆补九宫 · 双盘对照 · 建除值日 · 年度轨迹 · 大运十年干支 · 出生边界地图 · 透明决策矩阵 · 加密本地备份。所有计算结果可由 ChatGPT、Claude 与 Codex 通过 MCP 读取。</p>
-      <div class="feature-strips"><span>27 MCP TOOLS</span><span>15 PROMPTS</span><span>17 RESOURCES</span><span>18 AGENT SKILLS</span></div>
+      <div class="feature-strips"><span>28 MCP TOOLS</span><span>15 PROMPTS</span><span>17 RESOURCES</span><span>18 AGENT SKILLS</span></div>
     </section>
 
     <div class="main-grid">

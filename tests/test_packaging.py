@@ -29,7 +29,7 @@ def test_ui_feature_count_in_html_and_js():
     js = (ROOT/'static/app.js').read_text(encoding='utf-8')
     assert html.count('data-tab=') == 24
     assert '18 AGENT SKILLS' in html
-    assert '27 MCP TOOLS' in html and '15 PROMPTS' in html and '17 RESOURCES' in html
+    assert '28 MCP TOOLS' in html and '15 PROMPTS' in html and '17 RESOURCES' in html
     for endpoint in ('/api/combined','/api/analyze','/api/calendar','/api/pair'):
         assert endpoint in js
 

@@ -49,6 +49,8 @@ def main() -> None:
     chat_js = (ROOT / 'static/chat.js').read_text(encoding='utf-8')
     cities_js = (ROOT / 'static/cities.js').read_text(encoding='utf-8')
     vault_js = (ROOT / 'static/vault.js').read_text(encoding='utf-8')
+    zh_tw_js = (ROOT / 'static/zh-tw-map.js').read_text(encoding='utf-8')
+    i18n_js = (ROOT / 'static/i18n.js').read_text(encoding='utf-8')
     client = TestClient(app)
     counts = {'requests': 0}
 
@@ -85,10 +87,12 @@ def main() -> None:
             # Exercise one-time profile migration when the project is rebranded.
             page.evaluate('''() => window.localStorage.setItem('oriental-astro-profiles-v2',
               JSON.stringify([{id:'legacy-1',label:'既有档案',data:{birth_datetime:'2000-08-16T04:00',timezone:'Asia/Shanghai'}}]))''')
+            page.add_script_tag(content=zh_tw_js)
             page.add_script_tag(content=chat_js)
             page.add_script_tag(content=js)
             page.add_script_tag(content=vault_js)
             page.add_script_tag(content=cities_js)
+            page.add_script_tag(content=i18n_js)
             page.locator('#birth_city').select_option('温哥华')
             assert page.locator('#timezone').input_value() == 'America/Vancouver'
             assert page.locator('#longitude').input_value() == '-123.1207'
@@ -192,8 +196,10 @@ def main() -> None:
 
             page.locator('[data-tab="pair"]').click()
             page.locator('#pair-run').click()
-            page.locator('#result tbody tr').first.wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() == 4
+            page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
+            # 4 pillar rows + 12 branch rows + 8 cross-chart transformations.
+            assert page.locator('#result tbody tr').count() == 4 + 12 + 8
+            assert page.get_by_text('A 命宫落在 B 的', exact=False).count() == 1
             page.screenshot(path=str(screenshot_dir / '06-pair.png'), full_page=True)
 
             # 开发阶段 decade cycles and exact modeled birth-time boundaries.
@@ -314,6 +320,27 @@ def main() -> None:
             page.locator('[data-tab="quality"]').click()
             assert page.locator('#quality-run').is_visible()
             page.screenshot(path=str(screenshot_dir / '13-quality-mobile.png'), full_page=True)
+            # Interface language: English shell, 繁體 conversion of computed text, and back.
+            page.set_viewport_size({'width': 1440, 'height': 920})
+            page.locator('[data-tab="pair"]').click()
+            page.locator('#ui-language').select_option('en')
+            assert page.locator('[data-tab="pair"]').inner_text() == 'Two-person comparison'
+            assert page.locator('#run-btn span').first.inner_text() == 'Generate chart'
+            assert page.locator('#profile_name').get_attribute('placeholder') == 'e.g. Test chart A'
+            page.locator('[data-tab="chat"]').click()
+            page.locator('#chat-send').get_by_text('Send').wait_for(timeout=10000)
+            assert page.locator('#chat-language').input_value() == 'en'
+            page.screenshot(path=str(screenshot_dir / '28-ui-english.png'), full_page=True)
+            page.locator('#ui-language').select_option('zh-TW')
+            assert page.locator('[data-tab="calendar"]').inner_text() == '曆法日曆'
+            page.locator('[data-tab="pair"]').click()
+            page.locator('#pair-run').click()
+            page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
+            assert page.get_by_text('紫微宮位疊盤', exact=True).count() == 1
+            page.screenshot(path=str(screenshot_dir / '29-ui-traditional.png'), full_page=True)
+            page.locator('#ui-language').select_option('zh-CN')
+            assert page.locator('[data-tab="calendar"]').inner_text() == '历法日历'
+            assert page.get_by_text('紫微宫位叠盘', exact=True).count() == 1
             if errors:
                 raise AssertionError(f'Chromium page errors: {errors}')
             if counts['requests'] < 15:

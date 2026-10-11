@@ -198,7 +198,7 @@ def test_oversized_request_rejected():
 
 
 def test_mcp_all_tools_and_resources_and_prompts_resolve():
-    assert len(TOOL_DEFS)==27
+    assert len(TOOL_DEFS)==28
     assert len(RESOURCES)==17
     assert len(PROMPTS)==15
     for resource in RESOURCES:

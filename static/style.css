@@ -104,3 +104,4 @@
 #result .check-line input[type=checkbox]{width:16px;height:16px;min-width:0;margin:0;padding:0}
 .chat-panel .profile-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .chat-panel .profile-actions button{width:auto;flex:0 0 auto;min-height:38px;padding:0 16px}
+.ui-lang{display:flex;align-items:center;gap:6px}.ui-lang select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:12px}@media(max-width:510px){.ui-lang span{display:none}}

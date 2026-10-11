@@ -29,7 +29,7 @@ MAX_ROUNDS = 8
 MAX_TOOL_RESULT_CHARS = 20000
 MEMORY_TOOL = 'propose_memory'
 # Tools that take a second person's birth data; they run only with explicit user consent.
-PARTNER_TOOLS = {'pair_comparison': 'person_b', 'consultation_execute': 'partner'}
+PARTNER_TOOLS = {'pair_comparison': 'person_b', 'ziwei_pair_overlay': 'person_b', 'consultation_execute': 'partner'}
 
 
 def _clean(value: str) -> str:
@@ -157,7 +157,7 @@ SYSTEM_PROMPT = """你是玄枢（XuanShu）的术数文化咨询助手，帮助
 6. 择日择时：先问清日期范围、事项和在意的传统条件，再调用 date_candidate_scan（可附带时刻排时家奇门）；用户给出具体候选时刻时也可逐一调用 qimen_hour_chart。按日期列出，说明这只是文化标签，不保证效果。
 7. 用户要求完整分析时，按「核心结论 / 详细分析 / 行动建议 / 术语解释」组织；行动建议必须是现实中可执行、与命盘无关也成立的建议。
 8. 发现值得长期记住的背景（如职业、正在面对的选择），可以调用 propose_memory 提议保存，由用户决定。
-9. 第二个人的出生资料只有在用户勾选「已获对方同意」后才能使用；未勾选时 pair_comparison 和带 partner 的 consultation_execute 会被拒绝，请提示用户先勾选。"""
+9. 第二个人的出生资料只有在用户勾选「已获对方同意」后才能使用；未勾选时 pair_comparison、ziwei_pair_overlay 和带 partner 的 consultation_execute 会被拒绝，请提示用户先勾选。"""
 
 
 def build_system(req: ChatRequest) -> list[str]:

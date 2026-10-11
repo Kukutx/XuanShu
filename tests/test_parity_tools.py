@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from app.date_selection import MAX_QIMEN_CHARTS, DateScanRequest, date_candidate_scan
 from app.life_path import LifePathRequest, life_path_review
+from app.engines import BirthInput
 from app.main import app
 from app.workflows import DayOfficerRequest, day_officer_calendar
 
@@ -125,3 +126,32 @@ def test_installable_web_app_manifest():
     manifest = CLIENT.get('/static/manifest.json').json()
     assert manifest['display'] == 'standalone' and manifest['start_url'] == '/'
     assert CLIENT.get(manifest['icons'][0]['src']).status_code == 200
+
+
+def test_ziwei_pair_overlay_reads_charts_across_the_branch_grid():
+    from app.engines import calculate_ziwei
+    from app.features import PairInput
+    from app.ziwei_pair import ziwei_pair_overlay
+    partner = {'birth_datetime': '1999-03-02T10:00', 'timezone': 'Asia/Shanghai'}
+    out = ziwei_pair_overlay(PairInput(person_a=BIRTH, person_b=partner))
+    a, b = calculate_ziwei(BirthInput(**BIRTH)), calculate_ziwei(BirthInput(**partner))
+    assert len(out['palace_grid']) == 12 and out['compatibility_score'] is None
+    by_branch_b = {p['branch']: p['name'] for p in b['palaces']}
+    assert all(row['person_b_palace'] == by_branch_b[row['branch']] for row in out['palace_grid'])
+    # A (庚辰) 命宫午 sits in B's 子女宫; B (己卯) 化忌文曲 falls in A's 命宫.
+    assert out['ming_shen_landings']['person_a_ming_in_b']['palace_in_other_chart'] == '子女宫'
+    assert {'type': '化忌', 'star': '文曲', 'source_year_stem': '己', 'target_branch': '午', 'target_palace': '命宫'} \
+        in out['transformations_b_into_a']
+    assert len(out['focus_palaces']) == 12
+    # Against one's own chart the overlay reproduces the chart's own birth-year transformations.
+    self_pair = ziwei_pair_overlay(PairInput(person_a=BIRTH, person_b=BIRTH))
+    assert [(t['type'], t['star'], t['target_palace']) for t in self_pair['transformations_a_into_b']] == \
+        [(t['type'], t['star'], t['palace_name']) for t in a['birth_year_transformations']]
+
+
+def test_ziwei_pair_rest_mcp_parity():
+    body = {'person_a': BIRTH, 'person_b': {'birth_datetime': '1999-03-02T10:00', 'timezone': 'Asia/Shanghai'}}
+    rest = CLIENT.post('/api/ziwei-pair', json=body).json()
+    mcp = CLIENT.post('/mcp', json={'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call',
+                                    'params': {'name': 'ziwei_pair_overlay', 'arguments': body}}).json()
+    assert mcp['result']['structuredContent'] == rest

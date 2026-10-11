@@ -9,7 +9,7 @@
 
 ## AI 对话（可选，需要自备模型 API Key）
 
-工作台首页「AI 对话」用自然语言提问，由你配置的语言模型调用玄枢的 27 个确定性工具回答；模型不自己排盘，每次工具调用的参数、结果摘要和 SHA-256 都能在「推理过程」里展开核对。对应天府 Agent 的对话、主动追问、跨对话档案记忆、人生事件回溯和多语言输出，对齐清单见 [docs/research/TIANFU_PARITY.md](docs/research/TIANFU_PARITY.md)。
+工作台首页「AI 对话」用自然语言提问，由你配置的语言模型调用玄枢的 28 个确定性工具回答；模型不自己排盘，每次工具调用的参数、结果摘要和 SHA-256 都能在「推理过程」里展开核对。对应天府 Agent 的对话、主动追问、跨对话档案记忆、人生事件回溯和多语言输出，对齐清单见 [docs/research/TIANFU_PARITY.md](docs/research/TIANFU_PARITY.md)。
 
 ```bash
 # Claude（官方 Anthropic SDK，默认 claude-opus-5-5）
@@ -21,11 +21,13 @@ python -m pip install '.[chat-openai]'
 export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_BASE_URL=https://api.deepseek.com/v1 XUANSHU_LLM_API_KEY=...
 ```
 
-- REST：`GET /api/chat/status`、`POST /api/chat`。不提供 MCP 版本：MCP 客户端本身就是模型，直接调用 27 个工具即可。
+- REST：`GET /api/chat/status`、`POST /api/chat`。不提供 MCP 版本：MCP 客户端本身就是模型，直接调用 28 个工具即可。
 - 择日择时：工作台「择日择时」或 `POST /api/date-scan`（MCP `date_candidate_scan`），在最多 93 天里按建除值日、交节日、本命相冲筛选候选日，可附加指定时刻的时家奇门盘；按日期列出，不打吉凶分。
 - 人生事件回溯：档案里记录人生事件后可一键对照（`POST /api/life-path`，MCP `life_path_review`），把每个事件与大运、流年干支、年度四化和本命地支关系并列，不需要配置模型。
 - 出生城市：内置 65 个国内外城市的时区和市中心经纬度，选中即自动填写；页面可「添加到主屏幕」。
 - 回答语言：简体中文、繁體中文、English、日本語。
+- 界面语言：右上角切换简体中文、繁體中文、English、日本語，只记住所选语言代码。繁體按字词表转换全部界面和计算结果（`static/zh-tw-map.js` 由 `scripts/build_zh_tw_map.py` 从 OpenCC 数据生成，保留天干「干」、地支「丑」、「斗数」「台辅」「咸池」等术语）；English 与日本語翻译界面、标签页和面板标题，干支、星曜、宫位等计算术语保持中文。
+- 双人合盘：「双人对照」页同时给出八字四柱对照和紫微宫位叠盘（`POST /api/ziwei-pair`，MCP `ziwei_pair_overlay`）：两张命盘按十二地支对齐，列出各自命宫、身宫落在对方哪一宫，以及一方生年四化落入对方命盘的宫位；不打匹配分。AI 对话中需勾选「已获第二人同意」才会调用。
 - 档案记忆与人生事件按本机档案隔离，**只存在浏览器里**，随每次提问发送；模型只能“提议”记忆，你点击后才保存。对话历史默认不保存，需在档案里主动勾选。服务器不保存任何对话或出生资料。
 - 未配置模型时页面会提示如何启用，其余工具照常使用。
 
@@ -49,7 +51,7 @@ export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_B
 
 ## 全工具验收与 Windows 本地检查（开发阶段）
 
-新增严格的全工具契约审计：逐项测试 **27 个 MCP Tool 与对应 REST 的输出一致性**。未安装的可选 `iztro-py` 必须明确返回「依赖未安装」，不允许被计算成功计数。运行：
+新增严格的全工具契约审计：逐项测试 **28 个 MCP Tool 与对应 REST 的输出一致性**。未安装的可选 `iztro-py` 必须明确返回「依赖未安装」，不允许被计算成功计数。运行：
 
 ```bash
 python scripts/full_functional_audit.py
@@ -82,7 +84,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\windows_acceptance.ps1
 | 双人盘 | 4 组四柱和地支传统关系对照 | 不给虚假关系匹配分数 |
 | Web 工作台 | **24 个视图**（含 AI 对话、择日择时），包含大运与边界地图、十二宫可点击、四化/时制查询、档案管理、JSON 导出 | 无云端账户/云同步 |
 | 浏览器隐私 | 可选 localStorage 保存/删除；WebCrypto AES-256-GCM 加密导出/导入，PBKDF2 口令推导 | **保存到浏览器的记录是明文**；仅加密备份文件，不替代磁盘加密 |
-| MCP / Agent | **27 Tools、17 Resources、15 Prompts、18 Skills**；HTTP+stdio 共用计算函数 | 外部 OAuth JWT 资源服务器；无实际授权服务器、租户隔离、主动 SSE 或公网连接验收 |
+| MCP / Agent | **28 Tools、17 Resources、15 Prompts、18 Skills**；HTTP+stdio 共用计算函数 | 外部 OAuth JWT 资源服务器；无实际授权服务器、租户隔离、主动 SSE 或公网连接验收 |
 | 工程交付 | Docker、Compose、Windows PowerShell 启动、Linux/macOS shell、CLI、GitHub CI、pytest / MCP / HTTP 校验 | 永久公网 HTTPS 部署需使用自己的授权主机及域名 |
 
 ## 问题驱动咨询执行器（已实现，可运行的确定性工作流）
@@ -302,7 +304,7 @@ curl -s http://127.0.0.1:8000/api/combined \
 
 ## ChatGPT / Claude / Codex 与 Skills
 
-- MCP 服务器 **27 个 Tools、17 个 Markdown Resources、15 个 Prompts**，位于 `app/mcp.py`；**18 个 Agent Skills** 在 `skills/`。
+- MCP 服务器 **28 个 Tools、17 个 Markdown Resources、15 个 Prompts**，位于 `app/mcp.py`；**18 个 Agent Skills** 在 `skills/`。
 - `python -m app.stdio` 可作为 Claude Desktop / Codex 的 MCP 子进程。
 - 公网宿主需要**公网 HTTPS URL + 合适鉴权方式 + 用户自行授权连接**。此工程还没有公共服务地址或安装到 ChatGPT / Claude 账户。
 - MCP 支持新版 **`2026-07-28` 无握手元数据机制**和旧版 `2025-03-26`、`2025-06-18`、`2025-11-25` 握手机制（stdio / 无状态 HTTP JSON）。新版校验请求元数据中的版本和 `clientCapabilities` 对象、`MCP-Protocol-Version`、`Mcp-Method` 和必要的 `Mcp-Name` 头；列表与规则读取回复带缓存提示；支持外部 OAuth JWT 资源服务器（需提供商与 HTTPS），不提供内建授权码登录服务、主动 SSE 订阅或需要多轮模型交互的扩展。

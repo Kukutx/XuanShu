@@ -20,6 +20,7 @@ from .consultation import ConsultationRequest, execute_consultation
 from .qimen import QimenRequest, qimen_chart
 from .date_selection import DateScanRequest, date_candidate_scan
 from .life_path import LifePathRequest, life_path_review
+from .ziwei_pair import ziwei_pair_overlay
 from .professional_ziwei import ProfessionalZiweiRequest, professional_ziwei_chart
 from .chart_audit import QimenAuditRequest, qimen_reference_audit
 from .extended import LunarToGregorianRequest, BirthWindowRequest, lunar_to_gregorian, birth_window
@@ -50,6 +51,7 @@ TOOL_DEFS = [
     {'name': 'solar_terms', 'title': '二十四节气', 'description': 'Get China-time instants of 24 solar terms in one Gregorian year.', 'inputSchema': {'type': 'object', 'properties': {'year': {'type': 'integer', 'minimum': 1901, 'maximum': 2099}}, 'required': ['year'], 'additionalProperties': False}},
     {'name': 'calendar_days', 'title': '连续农历日历', 'description': 'List 1–31 days with lunar dates, day stems/branches and solar-term occurrences; no auspicious-day claims.', 'inputSchema': CalendarRequest.model_json_schema()},
     {'name': 'pair_comparison', 'title': '双人四柱对照', 'description': 'Compare two sets of pillars and traditional branch harmony/clash labels; no compatibility score.', 'inputSchema': PairInput.model_json_schema()},
+    {'name': 'ziwei_pair_overlay', 'title': '双人紫微宫位叠盘', 'description': 'Overlay two Zi Wei charts on the shared twelve-branch grid: palace-by-palace comparison, where each Ming/Shen palace lands in the other chart, and each birth-year stem four-transformation looked up in the other chart; no compatibility score.', 'inputSchema': PairInput.model_json_schema()},
     {'name': 'annual_transformations', 'title': '指定农历年干四化', 'description': 'Map a named lunar year stem four-transformations to natal star positions (not a complete annual chart).', 'inputSchema': AnnualRequest.model_json_schema()},
     {'name': 'time_basis_audit', 'title': '时制敏感性分析', 'description': 'Compare clock, longitude-based mean solar and apparent solar time for a birth with longitude.', 'inputSchema': TimeAuditRequest.model_json_schema()},
     {'name': 'rule_comparison', 'title': '两套排盘规则对照', 'description': 'Compare BaZi pillars and Zi Wei major natal indices using two parameter configurations.', 'inputSchema': RuleComparisonRequest.model_json_schema()},
@@ -128,6 +130,7 @@ def call_tool(name: str, args: dict) -> Any:
         'symbolic_reading': (BirthInput, symbolic_reading),
         'calendar_days': (CalendarRequest, calendar_days),
         'pair_comparison': (PairInput, compare_charts),
+        'ziwei_pair_overlay': (PairInput, ziwei_pair_overlay),
         'palace_detail': (PalaceRequest, palace_detail),
         'annual_transformations': (AnnualRequest, annual_transformations),
         'time_basis_audit': (TimeAuditRequest, time_audit),
@@ -184,7 +187,7 @@ def _prompt_get(params: dict) -> dict:
         'compare-options': '先让使用者定义方案、核验过的评价维度、权重和0至5评分，再调用 decision_matrix。解释评分主观性与剔除单一指标敏感性，不引用出生数据来决定现实结果。',
         'explain-dayun': '先确认出生信息和大运顺逆（性别未指定时要求显式方向），调用 bazi_dayun，核对本命月柱、十二节交接、三日一岁折算，清楚标明公历投影仅为近似，不能预测事件。',
         'audit-birth-boundaries': '先调用 birth_boundary_map 按模型边界分段，说明1秒定位精度仅是算法数值，不等于实际出生时刻已知；对每段比较八字和部分紫微，禁止作命运预测。',
-        'compare-charts': '请先分别确认两个人的出生资料，再调用 pair_comparison，只呈现干支结构和传统关系标签，不给匹配分数。',
+        'compare-charts': '请先分别确认两个人的出生资料，再调用 pair_comparison（八字四柱）和 ziwei_pair_overlay（紫微宫位叠盘），只呈现结构对照和传统关系标签，不给匹配分数。',
         'audit-solar-time': '先确认出生时区及出生地经度，再调用 time_basis_audit 比较三种时制的有效时间与四柱/命宫差异。',
         'audit-quality': '先核对出生信息、时区及流派配置，再调用 chart_quality_audit；如位于香港天文台发布的远期不确定新月区间，必须披露差异，禁止未经证实地调整日期。',
     }
