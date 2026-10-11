@@ -203,7 +203,7 @@ function renderMemorySuggestions(parent, message) {
   const profile = chatProfile();
   items.forEach(item => {
     const row = append(box, 'div', 'chat-memory-row');
-    append(row, 'span', null, item);
+    append(row, 'span', 'user-text', item);
     const btn = append(row, 'button', 'tiny-button', profile ? '保存' : '先选择档案'); btn.type = 'button';
     btn.disabled = !profile;
     btn.addEventListener('click', () => {
@@ -217,7 +217,8 @@ function renderMemorySuggestions(parent, message) {
 function renderMemoryPanel(parent) {
   const profile = chatProfile();
   const panel = append(parent, 'details', 'consult-advanced chat-memory-panel'); panel.id = 'chat-memory-panel';
-  append(panel, 'summary', null, '档案记忆与人生事件' + (profile ? ' · ' + profile.label : ''));
+  const summary = append(panel, 'summary', null, '档案记忆与人生事件');
+  if (profile) {summary.append(' · '); append(summary, 'span', 'user-text', profile.label);}
   if (!profile) {
     append(panel, 'p', 'field-help', '先在左侧「本机档案」保存并选择一个档案。每个档案的记忆、人生事件和对话彼此独立，只保存在这个浏览器。');
     return;
@@ -235,7 +236,7 @@ function renderMemoryPanel(parent) {
   if (!stored.memory.length) append(panel, 'p', 'field-help', '还没有记忆。AI 提议的内容或你手动添加的背景会显示在这里，并随每次提问发送给模型。');
   stored.memory.forEach((item, index) => {
     const row = append(panel, 'div', 'chat-memory-row');
-    append(row, 'span', null, item);
+    append(row, 'span', 'user-text', item);
     const del = append(row, 'button', 'tiny-button danger-btn', '删除'); del.type = 'button';
     del.addEventListener('click', () => {stored.memory.splice(index, 1); saveProfileMemory(profile.id, stored); render();});
   });
@@ -251,7 +252,7 @@ function renderMemoryPanel(parent) {
   append(panel, 'p', 'field-help', '记录已经发生的重要事件，AI 会把事件日期和大运、流年干支、年度四化并列对照。只陈述结构对应，不声称因果。');
   stored.life_events.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(event => {
     const row = append(panel, 'div', 'chat-memory-row');
-    append(row, 'span', null, event.date + ' · ' + event.title + (event.note ? '：' + event.note : ''));
+    append(row, 'span', 'user-text', event.date + ' · ' + event.title + (event.note ? '：' + event.note : ''));
     const del = append(row, 'button', 'tiny-button danger-btn', '删除'); del.type = 'button';
     del.addEventListener('click', () => {
       stored.life_events = stored.life_events.filter(x => x !== event); saveProfileMemory(profile.id, stored); render();
@@ -290,7 +291,7 @@ function renderMemoryPanel(parent) {
       const rel = e.solar_year_branch_relations.map(r => r.with + r.type).join('、') || '—';
       const ji = e.annual_transformations.find(t => t.type === '化忌');
       [e.date, e.title, e.nominal_age_xusui, e.dayun ? e.dayun.pillar : '未指定方向', e.solar_year_pillar, rel,
-        ji ? ji.star + '→' + ji.natal_palace : '—'].forEach(x => append(tr, 'td', null, x));
+        ji ? ji.star + '→' + ji.natal_palace : '—'].forEach((x, i) => append(tr, 'td', i === 1 ? 'user-text' : null, x));
     });
     lifePathResult.notes.concat(lifePathResult.limitations).forEach(x => note(panel, x));
   }

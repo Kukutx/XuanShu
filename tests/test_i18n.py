@@ -22,7 +22,7 @@ def _tables():
 def test_scripts_load_in_dependency_order():
     html = TestClient(app).get('/').text
     order = re.findall(r'<script src="/static/([\w.-]+)" defer>', html)
-    assert order == ['zh-tw-map.js', 'chat.js', 'app.js', 'vault.js', 'cities.js', 'i18n.js']
+    assert order == ['zh-tw-map.js', 'i18n-extra.js', 'chat.js', 'app.js', 'vault.js', 'cities.js', 'i18n.js']
     assert 'id="ui-language"' in html
     assert TestClient(app).get('/static/i18n.js').status_code == 200
 
@@ -54,3 +54,15 @@ def test_dictionary_entries_are_complete_and_unique():
     html = (ROOT / 'static/index.html').read_text(encoding='utf-8')
     for tab in re.findall(r'role="tab" aria-selected="\w+">([^<]+)</button>', html):
         assert f"'{tab}'" in zh, tab
+
+
+def test_extra_table_is_generated_and_covers_every_source_string():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('build_i18n_extra', ROOT / 'scripts/build_i18n_extra.py')
+    build = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build)
+    data = build.load()
+    assert (ROOT / 'static/i18n-extra.js').read_text(encoding='utf-8') == build.render(data)
+    # New Chinese text in static/ or app/ needs an English and Japanese entry.
+    assert build.missing() == []
+    assert data['命宫'][0] == 'Life Palace' and data['命宫'][1] == '命宮'

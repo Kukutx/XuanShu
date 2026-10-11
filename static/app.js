@@ -628,9 +628,9 @@ function renderDecision() {
   const hr=append(append(table,'thead'),'tr');['方案','主观加权分数（0–5）','分数来源'].forEach(x=>append(hr,'th',null,x));
   const body=append(table,'tbody');
   decisionResult.ranked_options.forEach(o=>{
-    const tr=append(body,'tr');append(tr,'td',null,o.name);
+    const tr=append(body,'tr');append(tr,'td','user-text',o.name);
     append(tr,'td',null,String(o.score));
-    append(tr,'td',null,o.contributions.map(c=>`${c.criterion} ${c.rating}×${(100*c.normalized_weight).toFixed(0)}%`).join(' + '));
+    append(tr,'td','user-text',o.contributions.map(c=>`${c.criterion} ${c.rating}×${(100*c.normalized_weight).toFixed(0)}%`).join(' + '));
   });
   append(result,'h4','subheading','单指标剔除敏感性');
   decisionResult.leave_one_out_sensitivity.forEach(x=>append(result,'div','feature-note',
@@ -1327,7 +1327,7 @@ function showProfiles() {
   select.replaceChildren();
   const list = loadProfiles();
   if (!list.length) {const op = append(select, 'option', null, '暂无本地档案'); op.value = ''; return;}
-  list.forEach(x => {const op = append(select, 'option', null, x.label); op.value = x.id;});
+  list.forEach(x => {const op = append(select, 'option', 'user-text', x.label); op.value = x.id;});
   if (list.some(x => x.id === currentID)) select.value = currentID;
 }
 $('#save-profile').addEventListener('click', () => {

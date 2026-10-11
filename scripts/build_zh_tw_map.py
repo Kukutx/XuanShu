@@ -18,7 +18,8 @@ from pathlib import Path
 import opencc
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = [*ROOT.glob('static/*.js'), ROOT / 'static/index.html', *ROOT.glob('app/*.py')]
+# i18n-extra.js holds English/Japanese values; its Chinese keys already occur in the other sources.
+SOURCES = [p for p in ROOT.glob('static/*.js') if p.name != 'i18n-extra.js'] + [ROOT / 'static/index.html', *ROOT.glob('app/*.py')]
 OUT = ROOT / 'static/zh-tw-map.js'
 CJK = re.compile('[\u3400-\u9fff]')
 # Domain overrides. None keeps the character: 干 is the heavenly stem (年干、宫干), 丑 the earthly
