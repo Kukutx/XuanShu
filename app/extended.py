@@ -69,8 +69,8 @@ def lunar_to_gregorian(request: LunarToGregorianRequest) -> dict:
         'gregorian_date': civil.isoformat(),
         'lunar_date': reverse,
         'timezone': 'Asia/Shanghai',
-        'method': 'astronomical-new-moon-china-utc8',
-        'limitations': 'Uses modern China UTC+8 month conventions, not all historical regional calendar conventions.',
+        'method': reverse['method'],
+        'limitations': 'Uses the 120°E meridian (UTC+8) since 1929 and the Beijing meridian 116°25\'E for 1912–1928; the Qing calendar before 1912 and regional almanacs may differ.',
     }
 
 

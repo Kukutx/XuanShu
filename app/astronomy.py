@@ -5,8 +5,10 @@ winter solstice lies in month 11; the first month without a principal solar
 term in a 13-month sui is leap. Supports Gregorian 1901–2099.
 
 This computes dates dynamically, not using the Korean lunar-calendar tables.
-Some rare month-assignment conventions and historical timezone changes are
-out of scope; all event dates are computed using modern China UTC+08 rules.
+Event dates use the 120°E meridian (UTC+08), as the Chinese calendar has since
+1929. From 1912 to 1928 the calendar was computed for the Beijing meridian,
+116°25'E (local mean time UTC+07:45:40), so those years use it. The Qing
+calendar (1901-1911) used older astronomy that is not reproduced here.
 """
 from __future__ import annotations
 
@@ -17,6 +19,12 @@ import swisseph as swe
 
 CHINA = timezone(timedelta(hours=8))
 UTC = timezone.utc
+# Before 1929 the calendar was computed for the Beijing meridian, 116°25'E
+# (Aslaksen, "The Mathematics of the Chinese Calendar", sections 4.2 and 4.6).
+# Applied from 1912, the first Republican calendar year.
+BEIJING_MEAN = timezone(timedelta(hours=7, minutes=45, seconds=40))
+BEIJING_MERIDIAN_START = datetime(1912, 1, 1, tzinfo=BEIJING_MEAN)
+BEIJING_MERIDIAN_END = datetime(1929, 1, 1, tzinfo=CHINA)
 FLAG = swe.FLG_MOSEPH | swe.FLG_SPEED
 
 # Actual 24 solar terms with tropical geocentric solar longitudes.
@@ -100,8 +108,14 @@ def new_moon_jd(k: int) -> float:
     return jd
 
 
+def calendar_zone(moment: datetime) -> timezone:
+    """The time zone whose dates the Chinese calendar used at an instant."""
+    return BEIJING_MEAN if BEIJING_MERIDIAN_START <= moment < BEIJING_MERIDIAN_END else CHINA
+
+
 def _local_date(jd: float) -> date:
-    return from_jd(jd).astimezone(CHINA).date()
+    moment = from_jd(jd)
+    return moment.astimezone(calendar_zone(moment)).date()
 
 
 def _new_moons_between(jd_start: float, jd_end: float) -> list[float]:
@@ -175,7 +189,7 @@ def chinese_lunar_date(solar_date: date) -> dict:
         "day": (solar_date - days[target]).days + 1,
         "is_leap_month": is_leap,
         "month_days": (days[target + 1] - days[target]).days,
-        "method": "astronomical-new-moon-china-utc8",
+        "method": "astronomical-new-moon-beijing-116e25" if 1912 <= solar_date.year <= 1928 else "astronomical-new-moon-china-utc8",
     }
 
 

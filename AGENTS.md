@@ -24,6 +24,8 @@ This repository is an independently implemented Chinese calendar/cultural chart 
 - `app/extended.py`: astronomical lunar inverse and sampled birth-time uncertainty, with explicit limitations.
 - `app/advanced.py`: traditional BaZi decade sequence and event-based modeled birth-boundary map; keep datetime calculations on true UTC instants, with school limitations.
 - `app/astronomy.py`: `jie_neighbors` and `solar_month_offset` own all Jie event comparisons, including exact event instants; do not introduce separate floating-angle month calculation.
+- `app/astronomy.py`: `calendar_zone` decides which civil date a new moon or solar term falls on: the Beijing meridian 116°25'E (UTC+07:45:40) for 1912–1928, UTC+8 otherwise. Lunar-calendar code must use `_local_date`, not a fixed UTC+8.
+- `scripts/eval_crosscheck.py`: compares the calendar, pillars, solar terms, moon phases and Zi Wei charts with independent libraries (sxtwl, lunar_python, lunardate, PyEphem, iztro-py) for 1901–2099. They are not runtime dependencies; install `docs/evals/requirements.txt` in a separate environment. After changing `app/astronomy.py`, `app/engines.py` or the Zi Wei engine, rerun it and commit `docs/evals/` and `static/crosscheck-summary.json`.
 - `app/qimen.py`: explicitly school-scoped Qimen rotating hour chart; not externally certified.
 - `app/consultation.py`: deterministic six-scenario question-first executable orchestration. Not an autonomous LLM; no server persistence; partner records require explicit authorization.
 - `app/oauth_resource.py`: JWT resource server backed by an external OAuth issuer, not an OAuth authorization server.

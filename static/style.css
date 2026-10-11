@@ -717,3 +717,17 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ziwei-board,.pillar,.qimen-cell,.palace,.chat-msg{break-inside:avoid}
   a[href^="http"]::after{content:' (' attr(href) ')';font-size:10px;color:#555}
 }
+/* Calculation cross-check dialog */
+.hero-link,.footer-link{appearance:none;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.hero-link:hover,.footer-link:hover{color:var(--gold)}
+.hero-link:focus-visible,.footer-link:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:2px}
+.crosscheck-dialog{width:min(780px,calc(100vw - 32px))}
+.crosscheck-dialog h4{margin:18px 0 6px;font-size:14px}
+.crosscheck-dialog p{margin:6px 0}
+.crosscheck-table td.num,.crosscheck-table td.mono{font-variant-numeric:tabular-nums;white-space:nowrap}
+.crosscheck-table td.num{text-align:right}
+.crosscheck-table tr.has-diff td{background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.crosscheck-list{margin:4px 0;padding-left:18px;font-size:13px;line-height:1.6}
+.crosscheck-list li{margin:4px 0}
+.crosscheck-dialog .docs-link{display:inline-block;margin-top:10px}
+@media(max-width:600px){.crosscheck-dialog{padding:14px 12px}.crosscheck-table th,.crosscheck-table td{padding:8px 6px;font-size:12px}.crosscheck-table td:first-child{white-space:nowrap}}

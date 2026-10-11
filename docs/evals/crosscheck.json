@@ -1,0 +1,2473 @@
+{
+ "system": "xuanshu-crosscheck",
+ "generated": "2026-10-11",
+ "quick": false,
+ "years": [
+  1901,
+  2099
+ ],
+ "references": {
+  "sxtwl": "2.0.7",
+  "lunar_python": "1.4.8",
+  "lunardate": "0.3.0",
+  "ephem": "4.2.1",
+  "iztro_py": "0.5.0",
+  "pyswisseph": "2.10.3.2"
+ },
+ "delta_t_seconds": {
+  "1901": -0.1,
+  "1950": 29.1,
+  "2000": 64.0,
+  "2025": 69.0,
+  "2026": 68.8,
+  "2050": 74.7,
+  "2075": 83.0,
+  "2099": 92.9
+ },
+ "days": {
+  "lunar_dates": {
+   "lunar_python": {
+    "checked": 72684,
+    "mismatches": 30,
+    "examples": [
+     {
+      "date": "2097-08-07",
+      "xuanshu": [
+       2097,
+       6,
+       30,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       1,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-08",
+      "xuanshu": [
+       2097,
+       7,
+       1,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       2,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-09",
+      "xuanshu": [
+       2097,
+       7,
+       2,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       3,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-10",
+      "xuanshu": [
+       2097,
+       7,
+       3,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       4,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-11",
+      "xuanshu": [
+       2097,
+       7,
+       4,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       5,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-12",
+      "xuanshu": [
+       2097,
+       7,
+       5,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       6,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-13",
+      "xuanshu": [
+       2097,
+       7,
+       6,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       7,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-14",
+      "xuanshu": [
+       2097,
+       7,
+       7,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       8,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-15",
+      "xuanshu": [
+       2097,
+       7,
+       8,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       9,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-16",
+      "xuanshu": [
+       2097,
+       7,
+       9,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       10,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-17",
+      "xuanshu": [
+       2097,
+       7,
+       10,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       11,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-18",
+      "xuanshu": [
+       2097,
+       7,
+       11,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       12,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-19",
+      "xuanshu": [
+       2097,
+       7,
+       12,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       13,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-20",
+      "xuanshu": [
+       2097,
+       7,
+       13,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       14,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-21",
+      "xuanshu": [
+       2097,
+       7,
+       14,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       15,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-22",
+      "xuanshu": [
+       2097,
+       7,
+       15,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       16,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-23",
+      "xuanshu": [
+       2097,
+       7,
+       16,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       17,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-24",
+      "xuanshu": [
+       2097,
+       7,
+       17,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       18,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-25",
+      "xuanshu": [
+       2097,
+       7,
+       18,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       19,
+       false
+      ]
+     },
+     {
+      "date": "2097-08-26",
+      "xuanshu": [
+       2097,
+       7,
+       19,
+       false
+      ],
+      "reference": [
+       2097,
+       7,
+       20,
+       false
+      ]
+     }
+    ]
+   },
+   "lunardate": {
+    "checked": 72684,
+    "mismatches": 150,
+    "examples": [
+     {
+      "date": "1933-07-22",
+      "xuanshu": [
+       1933,
+       5,
+       30,
+       true
+      ],
+      "reference": [
+       1933,
+       6,
+       1,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-23",
+      "xuanshu": [
+       1933,
+       6,
+       1,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       2,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-24",
+      "xuanshu": [
+       1933,
+       6,
+       2,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       3,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-25",
+      "xuanshu": [
+       1933,
+       6,
+       3,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       4,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-26",
+      "xuanshu": [
+       1933,
+       6,
+       4,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       5,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-27",
+      "xuanshu": [
+       1933,
+       6,
+       5,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       6,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-28",
+      "xuanshu": [
+       1933,
+       6,
+       6,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       7,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-29",
+      "xuanshu": [
+       1933,
+       6,
+       7,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       8,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-30",
+      "xuanshu": [
+       1933,
+       6,
+       8,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       9,
+       false
+      ]
+     },
+     {
+      "date": "1933-07-31",
+      "xuanshu": [
+       1933,
+       6,
+       9,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       10,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-01",
+      "xuanshu": [
+       1933,
+       6,
+       10,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       11,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-02",
+      "xuanshu": [
+       1933,
+       6,
+       11,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       12,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-03",
+      "xuanshu": [
+       1933,
+       6,
+       12,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       13,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-04",
+      "xuanshu": [
+       1933,
+       6,
+       13,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       14,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-05",
+      "xuanshu": [
+       1933,
+       6,
+       14,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       15,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-06",
+      "xuanshu": [
+       1933,
+       6,
+       15,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       16,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-07",
+      "xuanshu": [
+       1933,
+       6,
+       16,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       17,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-08",
+      "xuanshu": [
+       1933,
+       6,
+       17,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       18,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-09",
+      "xuanshu": [
+       1933,
+       6,
+       18,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       19,
+       false
+      ]
+     },
+     {
+      "date": "1933-08-10",
+      "xuanshu": [
+       1933,
+       6,
+       19,
+       false
+      ],
+      "reference": [
+       1933,
+       6,
+       20,
+       false
+      ]
+     }
+    ]
+   },
+   "sxtwl": {
+    "checked": 72684,
+    "mismatches": 60,
+    "examples": [
+     {
+      "date": "2057-09-28",
+      "xuanshu": [
+       2057,
+       8,
+       30,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       1,
+       false
+      ]
+     },
+     {
+      "date": "2057-09-29",
+      "xuanshu": [
+       2057,
+       9,
+       1,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       2,
+       false
+      ]
+     },
+     {
+      "date": "2057-09-30",
+      "xuanshu": [
+       2057,
+       9,
+       2,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       3,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-01",
+      "xuanshu": [
+       2057,
+       9,
+       3,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       4,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-02",
+      "xuanshu": [
+       2057,
+       9,
+       4,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       5,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-03",
+      "xuanshu": [
+       2057,
+       9,
+       5,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       6,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-04",
+      "xuanshu": [
+       2057,
+       9,
+       6,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       7,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-05",
+      "xuanshu": [
+       2057,
+       9,
+       7,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       8,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-06",
+      "xuanshu": [
+       2057,
+       9,
+       8,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       9,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-07",
+      "xuanshu": [
+       2057,
+       9,
+       9,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       10,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-08",
+      "xuanshu": [
+       2057,
+       9,
+       10,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       11,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-09",
+      "xuanshu": [
+       2057,
+       9,
+       11,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       12,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-10",
+      "xuanshu": [
+       2057,
+       9,
+       12,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       13,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-11",
+      "xuanshu": [
+       2057,
+       9,
+       13,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       14,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-12",
+      "xuanshu": [
+       2057,
+       9,
+       14,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       15,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-13",
+      "xuanshu": [
+       2057,
+       9,
+       15,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       16,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-14",
+      "xuanshu": [
+       2057,
+       9,
+       16,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       17,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-15",
+      "xuanshu": [
+       2057,
+       9,
+       17,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       18,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-16",
+      "xuanshu": [
+       2057,
+       9,
+       18,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       19,
+       false
+      ]
+     },
+     {
+      "date": "2057-10-17",
+      "xuanshu": [
+       2057,
+       9,
+       19,
+       false
+      ],
+      "reference": [
+       2057,
+       9,
+       20,
+       false
+      ]
+     }
+    ]
+   }
+  },
+  "lunar_month_differences": [
+   {
+    "first": "1933-07-22",
+    "last": "1933-08-20",
+    "days": 30,
+    "references": [
+     "lunardate"
+    ],
+    "xuanshu": [
+     1933,
+     5,
+     30,
+     true
+    ],
+    "sxtwl": [
+     1933,
+     5,
+     30,
+     true
+    ],
+    "lunar_python": [
+     1933,
+     5,
+     30,
+     true
+    ],
+    "lunardate": [
+     1933,
+     6,
+     1,
+     false
+    ],
+    "new_moon_calendar_time": "1933-07-23T00:03:03+08:00",
+    "minutes_from_midnight": 3.0
+   },
+   {
+    "first": "1954-11-25",
+    "last": "1954-12-24",
+    "days": 30,
+    "references": [
+     "lunardate"
+    ],
+    "xuanshu": [
+     1954,
+     11,
+     1,
+     false
+    ],
+    "sxtwl": [
+     1954,
+     11,
+     1,
+     false
+    ],
+    "lunar_python": [
+     1954,
+     11,
+     1,
+     false
+    ],
+    "lunardate": [
+     1954,
+     10,
+     30,
+     false
+    ],
+    "new_moon_calendar_time": "1954-11-25T20:30:22+08:00",
+    "minutes_from_midnight": 209.6
+   },
+   {
+    "first": "1978-09-02",
+    "last": "1978-10-01",
+    "days": 30,
+    "references": [
+     "lunardate"
+    ],
+    "xuanshu": [
+     1978,
+     7,
+     30,
+     false
+    ],
+    "sxtwl": [
+     1978,
+     7,
+     30,
+     false
+    ],
+    "lunar_python": [
+     1978,
+     7,
+     30,
+     false
+    ],
+    "lunardate": [
+     1978,
+     8,
+     1,
+     false
+    ],
+    "new_moon_calendar_time": "1978-09-03T00:08:53+08:00",
+    "minutes_from_midnight": 8.9
+   },
+   {
+    "first": "2057-09-28",
+    "last": "2057-10-27",
+    "days": 30,
+    "references": [
+     "sxtwl",
+     "lunardate"
+    ],
+    "xuanshu": [
+     2057,
+     8,
+     30,
+     false
+    ],
+    "sxtwl": [
+     2057,
+     9,
+     1,
+     false
+    ],
+    "lunar_python": [
+     2057,
+     8,
+     30,
+     false
+    ],
+    "lunardate": [
+     2057,
+     9,
+     1,
+     false
+    ],
+    "new_moon_calendar_time": "2057-09-29T00:00:35+08:00",
+    "minutes_from_midnight": 0.6
+   },
+   {
+    "first": "2097-08-07",
+    "last": "2097-09-05",
+    "days": 30,
+    "references": [
+     "sxtwl",
+     "lunar_python",
+     "lunardate"
+    ],
+    "xuanshu": [
+     2097,
+     6,
+     30,
+     false
+    ],
+    "sxtwl": [
+     2097,
+     7,
+     1,
+     false
+    ],
+    "lunar_python": [
+     2097,
+     7,
+     1,
+     false
+    ],
+    "lunardate": [
+     2097,
+     7,
+     1,
+     false
+    ],
+    "new_moon_calendar_time": "2097-08-08T00:01:27+08:00",
+    "minutes_from_midnight": 1.4
+   }
+  ],
+  "pillars_at_noon": {
+   "lunar_python.day": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "lunar_python.hour": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "lunar_python.month": {
+    "checked": 72684,
+    "mismatches": 1,
+    "examples": [
+     {
+      "moment": "2095-08-07T12:00:00+08:00",
+      "xuanshu": "癸未",
+      "reference": "甲申"
+     }
+    ]
+   },
+   "lunar_python.year": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "sxtwl.day": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   }
+  }
+ },
+ "jie_boundaries": {
+  "offset_seconds": 120,
+  "results": {
+   "month": {
+    "checked": 4776,
+    "mismatches": 0,
+    "examples": []
+   },
+   "year": {
+    "checked": 398,
+    "mismatches": 0,
+    "examples": []
+   }
+  }
+ },
+ "solar_terms": {
+  "events": 4776,
+  "sxtwl": {
+   "all": {
+    "count": 4776,
+    "mean_abs_seconds": 26.84,
+    "p95_abs_seconds": 109.36,
+    "max_abs_seconds": 126.25,
+    "within_60s": 3730
+   },
+   "through_2025": {
+    "count": 3000,
+    "mean_abs_seconds": 1.33,
+    "p95_abs_seconds": 6.48,
+    "max_abs_seconds": 17.41,
+    "within_60s": 3000
+   },
+   "after_2025": {
+    "count": 1776,
+    "mean_abs_seconds": 69.93,
+    "p95_abs_seconds": 119.5,
+    "max_abs_seconds": 126.25,
+    "within_60s": 730
+   }
+  },
+  "ephem": {
+   "all": {
+    "count": 4776,
+    "mean_abs_seconds": 28.01,
+    "p95_abs_seconds": 118.24,
+    "max_abs_seconds": 145.79,
+    "within_60s": 3880
+   },
+   "through_2025": {
+    "count": 3000,
+    "mean_abs_seconds": 6.26,
+    "p95_abs_seconds": 13.97,
+    "max_abs_seconds": 18.19,
+    "within_60s": 3000
+   },
+   "after_2025": {
+    "count": 1776,
+    "mean_abs_seconds": 64.74,
+    "p95_abs_seconds": 131.03,
+    "max_abs_seconds": 145.79,
+    "within_60s": 880
+   }
+  },
+  "china_date_differs_from_sxtwl": [
+   {
+    "year": 2084,
+    "term": "春分",
+    "xuanshu_china": "2084-03-20T00:00:31+08:00",
+    "sxtwl_china": "2084-03-19T23:58:51+08:00"
+   }
+  ],
+  "worst_vs_sxtwl": [
+   {
+    "year": 2099,
+    "term": "白露",
+    "xuanshu_utc": "2099-09-07T06:35:42+00:00",
+    "sxtwl": -126.2,
+    "ephem": -135.3
+   },
+   {
+    "year": 2099,
+    "term": "立秋",
+    "xuanshu_utc": "2099-08-07T03:11:45+00:00",
+    "sxtwl": -125.9,
+    "ephem": -131.0
+   },
+   {
+    "year": 2099,
+    "term": "大暑",
+    "xuanshu_utc": "2099-07-22T10:34:28+00:00",
+    "sxtwl": -125.8,
+    "ephem": -128.7
+   },
+   {
+    "year": 2099,
+    "term": "夏至",
+    "xuanshu_utc": "2099-06-20T23:43:10+00:00",
+    "sxtwl": -125.7,
+    "ephem": -128.1
+   },
+   {
+    "year": 2099,
+    "term": "小暑",
+    "xuanshu_utc": "2099-07-06T17:13:14+00:00",
+    "sxtwl": -125.5,
+    "ephem": -128.2
+   },
+   {
+    "year": 2099,
+    "term": "冬至",
+    "xuanshu_utc": "2099-12-21T14:05:52+00:00",
+    "sxtwl": -125.4,
+    "ephem": -145.8
+   },
+   {
+    "year": 2099,
+    "term": "寒露",
+    "xuanshu_utc": "2099-10-07T22:53:43+00:00",
+    "sxtwl": -125.4,
+    "ephem": -139.4
+   },
+   {
+    "year": 2099,
+    "term": "小满",
+    "xuanshu_utc": "2099-05-20T16:09:51+00:00",
+    "sxtwl": -125.4,
+    "ephem": -131.9
+   },
+   {
+    "year": 2099,
+    "term": "大雪",
+    "xuanshu_utc": "2099-12-06T20:04:48+00:00",
+    "sxtwl": -125.2,
+    "ephem": -145.3
+   },
+   {
+    "year": 2099,
+    "term": "立夏",
+    "xuanshu_utc": "2099-05-05T03:30:36+00:00",
+    "sxtwl": -125.1,
+    "ephem": -134.4
+   },
+   {
+    "year": 2099,
+    "term": "芒种",
+    "xuanshu_utc": "2099-06-05T07:09:18+00:00",
+    "sxtwl": -125.0,
+    "ephem": -130.1
+   },
+   {
+    "year": 2099,
+    "term": "立春",
+    "xuanshu_utc": "2099-02-03T13:11:01+00:00",
+    "sxtwl": -125.0,
+    "ephem": -143.9
+   },
+   {
+    "year": 2099,
+    "term": "立冬",
+    "xuanshu_utc": "2099-11-07T02:44:10+00:00",
+    "sxtwl": -124.9,
+    "ephem": -143.2
+   },
+   {
+    "year": 2098,
+    "term": "处暑",
+    "xuanshu_utc": "2098-08-22T12:13:09+00:00",
+    "sxtwl": -124.8,
+    "ephem": -130.8
+   },
+   {
+    "year": 2099,
+    "term": "惊蛰",
+    "xuanshu_utc": "2099-03-05T06:44:09+00:00",
+    "sxtwl": -124.8,
+    "ephem": -142.4
+   },
+   {
+    "year": 2099,
+    "term": "清明",
+    "xuanshu_utc": "2099-04-04T10:52:58+00:00",
+    "sxtwl": -124.7,
+    "ephem": -138.4
+   },
+   {
+    "year": 2099,
+    "term": "小雪",
+    "xuanshu_utc": "2099-11-22T00:24:08+00:00",
+    "sxtwl": -124.6,
+    "ephem": -144.1
+   },
+   {
+    "year": 2099,
+    "term": "谷雨",
+    "xuanshu_utc": "2099-04-19T17:39:29+00:00",
+    "sxtwl": -124.5,
+    "ephem": -136.3
+   },
+   {
+    "year": 2098,
+    "term": "大暑",
+    "xuanshu_utc": "2098-07-22T04:52:29+00:00",
+    "sxtwl": -124.4,
+    "ephem": -127.3
+   },
+   {
+    "year": 2099,
+    "term": "小寒",
+    "xuanshu_utc": "2099-01-05T01:40:47+00:00",
+    "sxtwl": -124.4,
+    "ephem": -143.7
+   }
+  ]
+ },
+ "moon_phases": {
+  "events": 9845,
+  "ephem": {
+   "all": {
+    "count": 9845,
+    "mean_abs_seconds": 23.29,
+    "p95_abs_seconds": 111.83,
+    "max_abs_seconds": 133.32,
+    "within_60s": 8106
+   },
+   "through_2025": {
+    "count": 6184,
+    "mean_abs_seconds": 1.35,
+    "p95_abs_seconds": 3.24,
+    "max_abs_seconds": 8.17,
+    "within_60s": 6184
+   },
+   "after_2025": {
+    "count": 3661,
+    "mean_abs_seconds": 60.36,
+    "p95_abs_seconds": 124.79,
+    "max_abs_seconds": 133.32,
+    "within_60s": 1922
+   }
+  },
+  "near_midnight_minutes": 10,
+  "new_moons_near_china_midnight": [
+   {
+    "new_moon_calendar_time": "1906-04-24T00:06:24+08:00",
+    "minutes_from_midnight": 6.4
+   },
+   {
+    "new_moon_calendar_time": "1916-02-03T23:50:53+07:45:40",
+    "minutes_from_midnight": 9.1
+   },
+   {
+    "new_moon_calendar_time": "1916-04-03T00:06:18+07:45:40",
+    "minutes_from_midnight": 6.3
+   },
+   {
+    "new_moon_calendar_time": "1920-11-10T23:50:27+07:45:40",
+    "minutes_from_midnight": 9.5
+   },
+   {
+    "new_moon_calendar_time": "1933-07-23T00:03:03+08:00",
+    "minutes_from_midnight": 3.0
+   },
+   {
+    "new_moon_calendar_time": "1942-09-10T23:52:39+08:00",
+    "minutes_from_midnight": 7.3
+   },
+   {
+    "new_moon_calendar_time": "1950-06-15T23:52:45+08:00",
+    "minutes_from_midnight": 7.2
+   },
+   {
+    "new_moon_calendar_time": "1953-08-10T00:09:56+08:00",
+    "minutes_from_midnight": 9.9
+   },
+   {
+    "new_moon_calendar_time": "1954-02-03T23:55:21+08:00",
+    "minutes_from_midnight": 4.7
+   },
+   {
+    "new_moon_calendar_time": "1955-02-22T23:54:15+08:00",
+    "minutes_from_midnight": 5.8
+   },
+   {
+    "new_moon_calendar_time": "1967-12-02T00:09:42+08:00",
+    "minutes_from_midnight": 9.7
+   },
+   {
+    "new_moon_calendar_time": "1978-09-03T00:08:53+08:00",
+    "minutes_from_midnight": 8.9
+   },
+   {
+    "new_moon_calendar_time": "1988-02-17T23:54:11+08:00",
+    "minutes_from_midnight": 5.8
+   },
+   {
+    "new_moon_calendar_time": "1989-08-02T00:05:35+08:00",
+    "minutes_from_midnight": 5.6
+   },
+   {
+    "new_moon_calendar_time": "2006-06-26T00:05:14+08:00",
+    "minutes_from_midnight": 5.2
+   },
+   {
+    "new_moon_calendar_time": "2009-03-27T00:05:54+08:00",
+    "minutes_from_midnight": 5.9
+   },
+   {
+    "new_moon_calendar_time": "2012-08-17T23:54:26+08:00",
+    "minutes_from_midnight": 5.6
+   },
+   {
+    "new_moon_calendar_time": "2013-06-08T23:56:17+08:00",
+    "minutes_from_midnight": 3.7
+   },
+   {
+    "new_moon_calendar_time": "2018-11-08T00:02:02+08:00",
+    "minutes_from_midnight": 2.0
+   },
+   {
+    "new_moon_calendar_time": "2019-03-07T00:03:59+08:00",
+    "minutes_from_midnight": 4.0
+   },
+   {
+    "new_moon_calendar_time": "2023-05-19T23:53:15+08:00",
+    "minutes_from_midnight": 6.8
+   },
+   {
+    "new_moon_calendar_time": "2026-10-10T23:50:06+08:00",
+    "minutes_from_midnight": 9.9
+   },
+   {
+    "new_moon_calendar_time": "2027-02-06T23:56:09+08:00",
+    "minutes_from_midnight": 3.8
+   },
+   {
+    "new_moon_calendar_time": "2029-07-11T23:51:05+08:00",
+    "minutes_from_midnight": 8.9
+   },
+   {
+    "new_moon_calendar_time": "2030-02-03T00:07:29+08:00",
+    "minutes_from_midnight": 7.5
+   },
+   {
+    "new_moon_calendar_time": "2037-04-16T00:07:42+08:00",
+    "minutes_from_midnight": 7.7
+   },
+   {
+    "new_moon_calendar_time": "2056-05-15T00:06:28+08:00",
+    "minutes_from_midnight": 6.5
+   },
+   {
+    "new_moon_calendar_time": "2057-09-29T00:00:35+08:00",
+    "minutes_from_midnight": 0.6
+   },
+   {
+    "new_moon_calendar_time": "2059-10-06T23:50:09+08:00",
+    "minutes_from_midnight": 9.8
+   },
+   {
+    "new_moon_calendar_time": "2060-09-24T23:53:56+08:00",
+    "minutes_from_midnight": 6.1
+   },
+   {
+    "new_moon_calendar_time": "2070-03-12T23:52:50+08:00",
+    "minutes_from_midnight": 7.2
+   },
+   {
+    "new_moon_calendar_time": "2082-07-25T23:55:26+08:00",
+    "minutes_from_midnight": 4.6
+   },
+   {
+    "new_moon_calendar_time": "2089-09-04T23:59:04+08:00",
+    "minutes_from_midnight": 0.9
+   },
+   {
+    "new_moon_calendar_time": "2097-08-08T00:01:27+08:00",
+    "minutes_from_midnight": 1.4
+   },
+   {
+    "new_moon_calendar_time": "2098-08-26T23:54:14+08:00",
+    "minutes_from_midnight": 5.8
+   }
+  ]
+ },
+ "ziwei": {
+  "sample": {
+   "births": 3000,
+   "years": "1930–2049",
+   "hours": "00:00–22:59",
+   "seed": 20261011,
+   "rules": "clock time; second half of a leap month as the next month"
+  },
+  "results": {
+   "bureau": {
+    "checked": 3000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "lunar": {
+    "checked": 3000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "ming": {
+    "checked": 3000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "shen": {
+    "checked": 3000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "stars": {
+    "checked": 3000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "transformations": {
+    "checked": 3000,
+    "mismatches": 0,
+    "examples": []
+   }
+  },
+  "late_zi": {
+   "births": 300,
+   "note": "XuanShu's Zi Wei keeps the same lunar day for 23:00-23:59 (as iztro's early-Zi index 0); iztro's late-Zi index 12 uses the next day's lunar day.",
+   "vs_iztro_late_zi": {
+    "bureau": {
+     "checked": 300,
+     "mismatches": 3,
+     "examples": [
+      {
+       "birth": "1976-10-16T23:19",
+       "gender": "female",
+       "xuanshu": "木三局",
+       "reference": "火六局"
+      },
+      {
+       "birth": "1974-06-14T23:21",
+       "gender": "female",
+       "xuanshu": "土五局",
+       "reference": "木三局"
+      },
+      {
+       "birth": "1930-08-15T23:26",
+       "gender": "female",
+       "xuanshu": "水二局",
+       "reference": "木三局"
+      }
+     ]
+    },
+    "lunar": {
+     "checked": 300,
+     "mismatches": 0,
+     "examples": []
+    },
+    "ming": {
+     "checked": 300,
+     "mismatches": 6,
+     "examples": [
+      {
+       "birth": "1976-10-16T23:19",
+       "gender": "female",
+       "xuanshu": "戌",
+       "reference": "酉"
+      },
+      {
+       "birth": "1936-05-14T23:32",
+       "gender": "female",
+       "xuanshu": "巳",
+       "reference": "辰"
+      },
+      {
+       "birth": "1974-06-14T23:21",
+       "gender": "female",
+       "xuanshu": "午",
+       "reference": "巳"
+      },
+      {
+       "birth": "1930-08-15T23:26",
+       "gender": "female",
+       "xuanshu": "申",
+       "reference": "未"
+      },
+      {
+       "birth": "2047-07-14T23:54",
+       "gender": "female",
+       "xuanshu": "未",
+       "reference": "午"
+      },
+      {
+       "birth": "2039-07-13T23:54",
+       "gender": "female",
+       "xuanshu": "未",
+       "reference": "午"
+      }
+     ]
+    },
+    "shen": {
+     "checked": 300,
+     "mismatches": 6,
+     "examples": [
+      {
+       "birth": "1976-10-16T23:19",
+       "gender": "female",
+       "xuanshu": "戌",
+       "reference": "酉"
+      },
+      {
+       "birth": "1936-05-14T23:32",
+       "gender": "female",
+       "xuanshu": "巳",
+       "reference": "辰"
+      },
+      {
+       "birth": "1974-06-14T23:21",
+       "gender": "female",
+       "xuanshu": "午",
+       "reference": "巳"
+      },
+      {
+       "birth": "1930-08-15T23:26",
+       "gender": "female",
+       "xuanshu": "申",
+       "reference": "未"
+      },
+      {
+       "birth": "2047-07-14T23:54",
+       "gender": "female",
+       "xuanshu": "未",
+       "reference": "午"
+      },
+      {
+       "birth": "2039-07-13T23:54",
+       "gender": "female",
+       "xuanshu": "未",
+       "reference": "午"
+      }
+     ]
+    },
+    "stars": {
+     "checked": 300,
+     "mismatches": 273,
+     "examples": [
+      {
+       "birth": "1980-04-08T23:19",
+       "gender": "male",
+       "xuanshu": {
+        "廉贞": "子",
+        "天相": "子",
+        "天梁": "丑",
+        "七杀": "寅",
+        "天同": "卯",
+        "武曲": "辰",
+        "太阳": "巳",
+        "破军": "午",
+        "天机": "未",
+        "紫微": "申",
+        "天府": "申",
+        "太阴": "酉",
+        "贪狼": "戌",
+        "巨门": "亥"
+       },
+       "reference": {
+        "太阳": "寅",
+        "巨门": "寅",
+        "天相": "卯",
+        "天机": "辰",
+        "天梁": "辰",
+        "紫微": "巳",
+        "七杀": "巳",
+        "廉贞": "酉",
+        "破军": "酉",
+        "天府": "亥",
+        "天同": "子",
+        "太阴": "子",
+        "武曲": "丑",
+        "贪狼": "丑"
+       }
+      },
+      {
+       "birth": "1982-05-09T23:54",
+       "gender": "male",
+       "xuanshu": {
+        "贪狼": "子",
+        "天同": "丑",
+        "巨门": "丑",
+        "武曲": "寅",
+        "天相": "寅",
+        "太阳": "卯",
+        "天梁": "卯",
+        "七杀": "辰",
+        "天机": "巳",
+        "紫微": "午",
+        "破军": "申",
+        "廉贞": "戌",
+        "天府": "戌",
+        "太阴": "亥"
+       },
+       "reference": {
+        "天机": "寅",
+        "太阴": "寅",
+        "紫微": "卯",
+        "贪狼": "卯",
+        "巨门": "辰",
+        "天相": "巳",
+        "天梁": "午",
+        "廉贞": "未",
+        "七杀": "未",
+        "天同": "戌",
+        "武曲": "亥",
+        "破军": "亥",
+        "太阳": "子",
+        "天府": "丑"
+       }
+      },
+      {
+       "birth": "1930-12-04T23:00",
+       "gender": "male",
+       "xuanshu": {
+        "武曲": "子",
+        "天府": "子",
+        "太阳": "丑",
+        "太阴": "丑",
+        "贪狼": "寅",
+        "天机": "卯",
+        "巨门": "卯",
+        "紫微": "辰",
+        "天相": "辰",
+        "天梁": "巳",
+        "七杀": "午",
+        "廉贞": "申",
+        "破军": "戌",
+        "天同": "亥"
+       },
+       "reference": {
+        "天同": "辰",
+        "武曲": "巳",
+        "破军": "巳",
+        "太阳": "午",
+        "天府": "未",
+        "天机": "申",
+        "太阴": "申",
+        "紫微": "酉",
+        "贪狼": "酉",
+        "巨门": "戌",
+        "天相": "亥",
+        "天梁": "子",
+        "廉贞": "丑",
+        "七杀": "丑"
+       }
+      },
+      {
+       "birth": "2035-11-17T23:20",
+       "gender": "female",
+       "xuanshu": {
+        "巨门": "子",
+        "天相": "丑",
+        "天同": "寅",
+        "天梁": "寅",
+        "武曲": "卯",
+        "七杀": "卯",
+        "太阳": "辰",
+        "天机": "午",
+        "紫微": "未",
+        "破军": "未",
+        "天府": "酉",
+        "太阴": "戌",
+        "廉贞": "亥",
+        "贪狼": "亥"
+       },
+       "reference": {
+        "贪狼": "寅",
+        "天机": "卯",
+        "巨门": "卯",
+        "紫微": "辰",
+        "天相": "辰",
+        "天梁": "巳",
+        "七杀": "午",
+        "廉贞": "申",
+        "破军": "戌",
+        "天同": "亥",
+        "武曲": "子",
+        "天府": "子",
+        "太阳": "丑",
+        "太阴": "丑"
+       }
+      },
+      {
+       "birth": "2011-06-22T23:53",
+       "gender": "female",
+       "xuanshu": {
+        "武曲": "子",
+        "天府": "子",
+        "太阳": "丑",
+        "太阴": "丑",
+        "贪狼": "寅",
+        "天机": "卯",
+        "巨门": "卯",
+        "紫微": "辰",
+        "天相": "辰",
+        "天梁": "巳",
+        "七杀": "午",
+        "廉贞": "申",
+        "破军": "戌",
+        "天同": "亥"
+       },
+       "reference": {
+        "天同": "辰",
+        "武曲": "巳",
+        "破军": "巳",
+        "太阳": "午",
+        "天府": "未",
+        "天机": "申",
+        "太阴": "申",
+        "紫微": "酉",
+        "贪狼": "酉",
+        "巨门": "戌",
+        "天相": "亥",
+        "天梁": "子",
+        "廉贞": "丑",
+        "七杀": "丑"
+       }
+      },
+      {
+       "birth": "2007-03-05T23:14",
+       "gender": "female",
+       "xuanshu": {
+        "天同": "子",
+        "太阴": "子",
+        "武曲": "丑",
+        "贪狼": "丑",
+        "太阳": "寅",
+        "巨门": "寅",
+        "天相": "卯",
+        "天机": "辰",
+        "天梁": "辰",
+        "紫微": "巳",
+        "七杀": "巳",
+        "廉贞": "酉",
+        "破军": "酉",
+        "天府": "亥"
+       },
+       "reference": {
+        "天机": "寅",
+        "太阴": "寅",
+        "紫微": "卯",
+        "贪狼": "卯",
+        "巨门": "辰",
+        "天相": "巳",
+        "天梁": "午",
+        "廉贞": "未",
+        "七杀": "未",
+        "天同": "戌",
+        "武曲": "亥",
+        "破军": "亥",
+        "太阳": "子",
+        "天府": "丑"
+       }
+      },
+      {
+       "birth": "1933-06-24T23:25",
+       "gender": "male",
+       "xuanshu": {
+        "贪狼": "子",
+        "天同": "丑",
+        "巨门": "丑",
+        "武曲": "寅",
+        "天相": "寅",
+        "太阳": "卯",
+        "天梁": "卯",
+        "七杀": "辰",
+        "天机": "巳",
+        "紫微": "午",
+        "破军": "申",
+        "廉贞": "戌",
+        "天府": "戌",
+        "太阴": "亥"
+       },
+       "reference": {
+        "廉贞": "卯",
+        "破军": "卯",
+        "天府": "巳",
+        "天同": "午",
+        "太阴": "午",
+        "武曲": "未",
+        "贪狼": "未",
+        "太阳": "申",
+        "巨门": "申",
+        "天相": "酉",
+        "天机": "戌",
+        "天梁": "戌",
+        "紫微": "亥",
+        "七杀": "亥"
+       }
+      },
+      {
+       "birth": "1978-09-28T23:51",
+       "gender": "female",
+       "xuanshu": {
+        "天梁": "子",
+        "廉贞": "丑",
+        "七杀": "丑",
+        "天同": "辰",
+        "武曲": "巳",
+        "破军": "巳",
+        "太阳": "午",
+        "天府": "未",
+        "天机": "申",
+        "太阴": "申",
+        "紫微": "酉",
+        "贪狼": "酉",
+        "巨门": "戌",
+        "天相": "亥"
+       },
+       "reference": {
+        "廉贞": "寅",
+        "破军": "辰",
+        "天同": "巳",
+        "武曲": "午",
+        "天府": "午",
+        "太阳": "未",
+        "太阴": "未",
+        "贪狼": "申",
+        "天机": "酉",
+        "巨门": "酉",
+        "紫微": "戌",
+        "天相": "戌",
+        "天梁": "亥",
+        "七杀": "子"
+       }
+      },
+      {
+       "birth": "2016-08-12T23:20",
+       "gender": "female",
+       "xuanshu": {
+        "天同": "子",
+        "太阴": "子",
+        "武曲": "丑",
+        "贪狼": "丑",
+        "太阳": "寅",
+        "巨门": "寅",
+        "天相": "卯",
+        "天机": "辰",
+        "天梁": "辰",
+        "紫微": "巳",
+        "七杀": "巳",
+        "廉贞": "酉",
+        "破军": "酉",
+        "天府": "亥"
+       },
+       "reference": {
+        "紫微": "寅",
+        "天府": "寅",
+        "太阴": "卯",
+        "贪狼": "辰",
+        "巨门": "巳",
+        "廉贞": "午",
+        "天相": "午",
+        "天梁": "未",
+        "七杀": "申",
+        "天同": "酉",
+        "武曲": "戌",
+        "太阳": "亥",
+        "破军": "子",
+        "天机": "丑"
+       }
+      },
+      {
+       "birth": "2049-05-23T23:37",
+       "gender": "female",
+       "xuanshu": {
+        "廉贞": "卯",
+        "破军": "卯",
+        "天府": "巳",
+        "天同": "午",
+        "太阴": "午",
+        "武曲": "未",
+        "贪狼": "未",
+        "太阳": "申",
+        "巨门": "申",
+        "天相": "酉",
+        "天机": "戌",
+        "天梁": "戌",
+        "紫微": "亥",
+        "七杀": "亥"
+       },
+       "reference": {
+        "七杀": "寅",
+        "天同": "卯",
+        "武曲": "辰",
+        "太阳": "巳",
+        "破军": "午",
+        "天机": "未",
+        "紫微": "申",
+        "天府": "申",
+        "太阴": "酉",
+        "贪狼": "戌",
+        "巨门": "亥",
+        "廉贞": "子",
+        "天相": "子",
+        "天梁": "丑"
+       }
+      },
+      {
+       "birth": "2044-03-17T23:06",
+       "gender": "male",
+       "xuanshu": {
+        "武曲": "子",
+        "天府": "子",
+        "太阳": "丑",
+        "太阴": "丑",
+        "贪狼": "寅",
+        "天机": "卯",
+        "巨门": "卯",
+        "紫微": "辰",
+        "天相": "辰",
+        "天梁": "巳",
+        "七杀": "午",
+        "廉贞": "申",
+        "破军": "戌",
+        "天同": "亥"
+       },
+       "reference": {
+        "破军": "寅",
+        "廉贞": "辰",
+        "天府": "辰",
+        "太阴": "巳",
+        "贪狼": "午",
+        "天同": "未",
+        "巨门": "未",
+        "武曲": "申",
+        "天相": "申",
+        "太阳": "酉",
+        "天梁": "酉",
+        "七杀": "戌",
+        "天机": "亥",
+        "紫微": "子"
+       }
+      },
+      {
+       "birth": "1985-10-03T23:01",
+       "gender": "female",
+       "xuanshu": {
+        "七杀": "子",
+        "廉贞": "寅",
+        "破军": "辰",
+        "天同": "巳",
+        "武曲": "午",
+        "天府": "午",
+        "太阳": "未",
+        "太阴": "未",
+        "贪狼": "申",
+        "天机": "酉",
+        "巨门": "酉",
+        "紫微": "戌",
+        "天相": "戌",
+        "天梁": "亥"
+       },
+       "reference": {
+        "廉贞": "卯",
+        "破军": "卯",
+        "天府": "巳",
+        "天同": "午",
+        "太阴": "午",
+        "武曲": "未",
+        "贪狼": "未",
+        "太阳": "申",
+        "巨门": "申",
+        "天相": "酉",
+        "天机": "戌",
+        "天梁": "戌",
+        "紫微": "亥",
+        "七杀": "亥"
+       }
+      },
+      {
+       "birth": "1961-11-25T23:14",
+       "gender": "female",
+       "xuanshu": {
+        "巨门": "子",
+        "天相": "丑",
+        "天同": "寅",
+        "天梁": "寅",
+        "武曲": "卯",
+        "七杀": "卯",
+        "太阳": "辰",
+        "天机": "午",
+        "紫微": "未",
+        "破军": "未",
+        "天府": "酉",
+        "太阴": "戌",
+        "廉贞": "亥",
+        "贪狼": "亥"
+       },
+       "reference": {
+        "廉贞": "寅",
+        "破军": "辰",
+        "天同": "巳",
+        "武曲": "午",
+        "天府": "午",
+        "太阳": "未",
+        "太阴": "未",
+        "贪狼": "申",
+        "天机": "酉",
+        "巨门": "酉",
+        "紫微": "戌",
+        "天相": "戌",
+        "天梁": "亥",
+        "七杀": "子"
+       }
+      },
+      {
+       "birth": "2018-07-17T23:09",
+       "gender": "male",
+       "xuanshu": {
+        "天机": "子",
+        "紫微": "丑",
+        "破军": "丑",
+        "天府": "卯",
+        "太阴": "辰",
+        "廉贞": "巳",
+        "贪狼": "巳",
+        "巨门": "午",
+        "天相": "未",
+        "天同": "申",
+        "天梁": "申",
+        "武曲": "酉",
+        "七杀": "酉",
+        "太阳": "戌"
+       },
+       "reference": {
+        "紫微": "寅",
+        "天府": "寅",
+        "太阴": "卯",
+        "贪狼": "辰",
+        "巨门": "巳",
+        "廉贞": "午",
+        "天相": "午",
+        "天梁": "未",
+        "七杀": "申",
+        "天同": "酉",
+        "武曲": "戌",
+        "太阳": "亥",
+        "破军": "子",
+        "天机": "丑"
+       }
+      },
+      {
+       "birth": "1971-01-09T23:48",
+       "gender": "female",
+       "xuanshu": {
+        "廉贞": "卯",
+        "破军": "卯",
+        "天府": "巳",
+        "天同": "午",
+        "太阴": "午",
+        "武曲": "未",
+        "贪狼": "未",
+        "太阳": "申",
+        "巨门": "申",
+        "天相": "酉",
+        "天机": "戌",
+        "天梁": "戌",
+        "紫微": "亥",
+        "七杀": "亥"
+       },
+       "reference": {
+        "七杀": "寅",
+        "天同": "卯",
+        "武曲": "辰",
+        "太阳": "巳",
+        "破军": "午",
+        "天机": "未",
+        "紫微": "申",
+        "天府": "申",
+        "太阴": "酉",
+        "贪狼": "戌",
+        "巨门": "亥",
+        "廉贞": "子",
+        "天相": "子",
+        "天梁": "丑"
+       }
+      },
+      {
+       "birth": "1955-07-23T23:00",
+       "gender": "male",
+       "xuanshu": {
+        "破军": "子",
+        "天机": "丑",
+        "紫微": "寅",
+        "天府": "寅",
+        "太阴": "卯",
+        "贪狼": "辰",
+        "巨门": "巳",
+        "廉贞": "午",
+        "天相": "午",
+        "天梁": "未",
+        "七杀": "申",
+        "天同": "酉",
+        "武曲": "戌",
+        "太阳": "亥"
+       },
+       "reference": {
+        "天机": "寅",
+        "太阴": "寅",
+        "紫微": "卯",
+        "贪狼": "卯",
+        "巨门": "辰",
+        "天相": "巳",
+        "天梁": "午",
+        "廉贞": "未",
+        "七杀": "未",
+        "天同": "戌",
+        "武曲": "亥",
+        "破军": "亥",
+        "太阳": "子",
+        "天府": "丑"
+       }
+      },
+      {
+       "birth": "1941-03-04T23:25",
+       "gender": "male",
+       "xuanshu": {
+        "贪狼": "子",
+        "天同": "丑",
+        "巨门": "丑",
+        "武曲": "寅",
+        "天相": "寅",
+        "太阳": "卯",
+        "天梁": "卯",
+        "七杀": "辰",
+        "天机": "巳",
+        "紫微": "午",
+        "破军": "申",
+        "廉贞": "戌",
+        "天府": "戌",
+        "太阴": "亥"
+       },
+       "reference": {
+        "天机": "寅",
+        "太阴": "寅",
+        "紫微": "卯",
+        "贪狼": "卯",
+        "巨门": "辰",
+        "天相": "巳",
+        "天梁": "午",
+        "廉贞": "未",
+        "七杀": "未",
+        "天同": "戌",
+        "武曲": "亥",
+        "破军": "亥",
+        "太阳": "子",
+        "天府": "丑"
+       }
+      },
+      {
+       "birth": "1941-06-10T23:38",
+       "gender": "female",
+       "xuanshu": {
+        "天同": "子",
+        "太阴": "子",
+        "武曲": "丑",
+        "贪狼": "丑",
+        "太阳": "寅",
+        "巨门": "寅",
+        "天相": "卯",
+        "天机": "辰",
+        "天梁": "辰",
+        "紫微": "巳",
+        "七杀": "巳",
+        "廉贞": "酉",
+        "破军": "酉",
+        "天府": "亥"
+       },
+       "reference": {
+        "天机": "寅",
+        "太阴": "寅",
+        "紫微": "卯",
+        "贪狼": "卯",
+        "巨门": "辰",
+        "天相": "巳",
+        "天梁": "午",
+        "廉贞": "未",
+        "七杀": "未",
+        "天同": "戌",
+        "武曲": "亥",
+        "破军": "亥",
+        "太阳": "子",
+        "天府": "丑"
+       }
+      },
+      {
+       "birth": "1944-04-12T23:09",
+       "gender": "female",
+       "xuanshu": {
+        "巨门": "子",
+        "天相": "丑",
+        "天同": "寅",
+        "天梁": "寅",
+        "武曲": "卯",
+        "七杀": "卯",
+        "太阳": "辰",
+        "天机": "午",
+        "紫微": "未",
+        "破军": "未",
+        "天府": "酉",
+        "太阴": "戌",
+        "廉贞": "亥",
+        "贪狼": "亥"
+       },
+       "reference": {
+        "七杀": "寅",
+        "天同": "卯",
+        "武曲": "辰",
+        "太阳": "巳",
+        "破军": "午",
+        "天机": "未",
+        "紫微": "申",
+        "天府": "申",
+        "太阴": "酉",
+        "贪狼": "戌",
+        "巨门": "亥",
+        "廉贞": "子",
+        "天相": "子",
+        "天梁": "丑"
+       }
+      },
+      {
+       "birth": "2004-05-12T23:26",
+       "gender": "female",
+       "xuanshu": {
+        "天梁": "子",
+        "廉贞": "丑",
+        "七杀": "丑",
+        "天同": "辰",
+        "武曲": "巳",
+        "破军": "巳",
+        "太阳": "午",
+        "天府": "未",
+        "天机": "申",
+        "太阴": "申",
+        "紫微": "酉",
+        "贪狼": "酉",
+        "巨门": "戌",
+        "天相": "亥"
+       },
+       "reference": {
+        "破军": "寅",
+        "廉贞": "辰",
+        "天府": "辰",
+        "太阴": "巳",
+        "贪狼": "午",
+        "天同": "未",
+        "巨门": "未",
+        "武曲": "申",
+        "天相": "申",
+        "太阳": "酉",
+        "天梁": "酉",
+        "七杀": "戌",
+        "天机": "亥",
+        "紫微": "子"
+       }
+      }
+     ]
+    },
+    "transformations": {
+     "checked": 300,
+     "mismatches": 0,
+     "examples": []
+    }
+   },
+   "vs_iztro_same_day_zi": {
+    "bureau": {
+     "checked": 300,
+     "mismatches": 0,
+     "examples": []
+    },
+    "lunar": {
+     "checked": 300,
+     "mismatches": 0,
+     "examples": []
+    },
+    "ming": {
+     "checked": 300,
+     "mismatches": 0,
+     "examples": []
+    },
+    "shen": {
+     "checked": 300,
+     "mismatches": 0,
+     "examples": []
+    },
+    "stars": {
+     "checked": 300,
+     "mismatches": 0,
+     "examples": []
+    },
+    "transformations": {
+     "checked": 300,
+     "mismatches": 0,
+     "examples": []
+    }
+   }
+  }
+ },
+ "findings": [
+  "- 节气时刻：2025 年以前与寿星天文历最大相差 17.41 秒。之后最大相差 126.25 秒，来自两边对未来 ΔT 的预报不同（Swiss Ephemeris 预报 2026 年 ΔT 为 68.8 秒）。只有出生或事件离交节只差这么几分钟时，月柱才可能因此不同。",
+  "- 1933-07-22 至 1933-08-20（30 天）：朔在 1933-07-23 00:03:03+08:00，离午夜 3.0 分钟。只有 lunardate 不同，sxtwl 和 lunar_python 都与玄枢一致。旧算法容易把这样的朔算到午夜另一侧（Aslaksen 记载 1978 年以前香港、台湾历书仍沿用 1908 年的旧历法）。",
+  "- 1954-11-25 至 1954-12-24（30 天）：朔在 1954-11-25 20:30:22+08:00，离午夜 209.6 分钟，按天象这一天就是初一。只有 lunardate 不同，sxtwl 和 lunar_python 都与玄枢一致，是这份表的月份长度与天象不符。",
+  "- 1978-09-02 至 1978-10-01（30 天）：朔在 1978-09-03 00:08:53+08:00，离午夜 8.9 分钟。只有 lunardate 不同，sxtwl 和 lunar_python 都与玄枢一致。旧算法容易把这样的朔算到午夜另一侧（Aslaksen 记载 1978 年以前香港、台湾历书仍沿用 1908 年的旧历法）。",
+  "- 2057-09-28 至 2057-10-27（30 天）：朔在 2057-09-29 00:00:35+08:00，离午夜 0.6 分钟，sxtwl、lunardate 与玄枢差一天。离午夜太近，要看 ΔT 预报，现在无法确定哪边对。",
+  "- 2097-08-07 至 2097-09-05（30 天）：朔在 2097-08-08 00:01:27+08:00，离午夜 1.4 分钟，sxtwl、lunar_python、lunardate 与玄枢差一天。离午夜太近，要看 ΔT 预报，现在无法确定哪边对。",
+  "- 2095-08-07 正午的月柱（玄枢 癸未，lunar_python 甲申）：这天正午前后交节，两边的 ΔT 预报差一两分钟。",
+  "- 2084 年春分：玄枢 2084-03-20 00:00:31，sxtwl 2084-03-19 23:58:51，落在午夜两侧，同样是 ΔT 预报不同。"
+ ]
+}

@@ -2722,6 +2722,101 @@ function openShareCard() {
 }
 $('#share-card').addEventListener('click', openShareCard);
 
+// Calculation cross-check: the summary that scripts/eval_crosscheck.py writes.
+const CROSSCHECK_FIELDS = {lunar: '农历日期', day: '日柱', year: '年柱', month: '月柱', hour: '时柱',
+  jie_month: '交节前后月柱', jie_year: '立春前后年柱', solar_terms: '节气时刻', moon_phases: '月相时刻',
+  ming: '命宫', shen: '身宫', bureau: '五行局', stars: '十四主星落宫', transformations: '生年四化'};
+const CROSSCHECK_CAUSES = {
+  forecast: '朔离午夜太近，取决于 ΔT 预报，现在无法确定哪边对。',
+  old_almanac: '只有 lunardate 不同；旧历书的算法容易把这样的朔算到午夜另一侧。',
+  table: '只有 lunardate 不同；这份表的月份长度与天象不符。',
+  unexplained: '尚未解释。'};
+const CROSSCHECK_FIXES = {beijing_meridian: '1914、1916、1920 年各有一个月，初一原来比三家参考晚一天：民国初年按北京地方平时（东经 116°25′）编历，已改正。'};
+const CROSSCHECK_REPORT = 'https://github.com/Kukutx/XuanShu/blob/master/docs/evals/README.md';
+let crosscheckData = null;
+function crosscheckTable(parent, columns, rows, cells) {
+  const table = append(append(parent, 'div', 'table-wrap'), 'table', 'data-table crosscheck-table');
+  const head = append(append(table, 'thead'), 'tr');
+  columns.forEach(name => append(head, 'th', null, name));
+  const body = append(table, 'tbody');
+  rows.forEach(row => {
+    const tr = append(body, 'tr', row.mismatches ? 'has-diff' : null);
+    cells(row).forEach(([text, cls]) => append(tr, 'td', cls || null, text));
+  });
+  return table;
+}
+function countRows(parent, rows) {
+  return crosscheckTable(parent, ['对照项', '参考库', '核对数', '不一致', '一致率'], rows, row => [
+    [CROSSCHECK_FIELDS[row.field]], [row.reference, 'mono'], [row.checked.toLocaleString('en-US'), 'num'],
+    [String(row.mismatches), 'num'], [(100 * (row.checked - row.mismatches) / row.checked).toFixed(3) + '%', 'num']]);
+}
+function renderCrosscheck(dialog) {
+  const d = crosscheckData;
+  append(dialog, 'p', null, '玄枢把农历、四柱、节气、月相和紫微排盘与独立的开源库逐项对照。脚本、固定版本的参考库和原始数据都在仓库里，任何人都能重跑。');
+  texts(append(dialog, 'p', 'field-help'), '评测日期', ' ' + d.generated + ' · ', '年份', ' ' + d.years.join('–') + ' · ',
+    Object.entries(d.references).map(([name, version]) => name + ' ' + version).join(', '));
+  append(dialog, 'h4', null, '逐日对照（每天正午）');
+  countRows(dialog, d.daily);
+  append(dialog, 'h4', null, '节气与月相时刻（秒）');
+  crosscheckTable(dialog, ['对照项', '参考库', '年份', '平均差', '95% 分位', '最大差'], d.instants, row => [
+    [CROSSCHECK_FIELDS[row.field]], [row.reference, 'mono'], [row.period, 'mono'],
+    [String(row.mean_abs_seconds), 'num'], [String(row.p95_abs_seconds), 'num'], [String(row.max_abs_seconds), 'num']]);
+  append(dialog, 'p', 'field-help', '2025 年以后各库用各自的地球自转差（ΔT）预报，差距随年份变大；只有离交节或午夜只差几分钟时才会影响结果。');
+  const zw = d.ziwei;
+  append(dialog, 'h4', null, '紫微斗数对照');
+  texts(append(dialog, 'p', 'field-help'), '随机出生时刻', ' ' + zw.births.toLocaleString('en-US'));
+  countRows(dialog, zw.rows);
+  texts(append(dialog, 'p', 'field-help'), '23:00 以后出生', ' · ', '玄枢紫微仍用当天的农历日，与 iztro 的“早子时”一致', ' ' + (zw.late_zi_same_day.checked - zw.late_zi_same_day.mismatches) + '/' + zw.late_zi_same_day.checked + ' · ',
+    'iztro 的“晚子时”改用次日农历日', ' ' + (zw.late_zi_next_day.checked - zw.late_zi_next_day.mismatches) + '/' + zw.late_zi_next_day.checked + ' · ', '这是流派规则不同，不是计算错误。');
+  append(dialog, 'h4', null, '仍有差异的月份');
+  const list = append(dialog, 'ul', 'crosscheck-list'); list.id = 'crosscheck-differences';
+  if (!d.differences.length) append(list, 'li', 'muted', '—');
+  d.differences.forEach(item => {
+    const li = append(list, 'li');
+    texts(append(li, 'strong'), item.first + ' – ' + item.last);
+    texts(li, ' · ' + item.references.join(', ') + ' · ', '朔离午夜', ' ' + item.minutes_from_midnight + ' ', '分钟', ' · ', CROSSCHECK_CAUSES[item.cause] || CROSSCHECK_CAUSES.unexplained);
+  });
+  if (d.fixes.length) {
+    append(dialog, 'h4', null, '评测带来的修正');
+    const fixes = append(dialog, 'ul', 'crosscheck-list');
+    d.fixes.forEach(fix => append(fixes, 'li', null, CROSSCHECK_FIXES[fix.cause] || fix.months.join(', ')));
+  }
+  append(dialog, 'p', 'field-help', '这只核验计算是否正确，不评价命理解读是否应验。');
+  const link = append(dialog, 'a', 'docs-link', '完整报告与重跑方法 ↗');
+  link.href = CROSSCHECK_REPORT; link.target = '_blank'; link.rel = 'noopener';
+}
+async function openCrosscheck() {
+  let dialog = $('#crosscheck-dialog');
+  if (!dialog) {
+    dialog = elt('dialog', 'share-dialog crosscheck-dialog'); dialog.id = 'crosscheck-dialog';
+    dialog.setAttribute('aria-labelledby', 'crosscheck-title');
+    document.body.append(dialog);
+  }
+  const draw = (fill) => {
+    dialog.replaceChildren();
+    const head = append(dialog, 'div', 'share-head');
+    append(head, 'h3', null, '计算交叉核验').id = 'crosscheck-title';
+    const close = append(head, 'button', 'tiny-button', '关闭'); close.type = 'button'; close.id = 'crosscheck-close';
+    close.addEventListener('click', () => dialog.close());
+    fill();
+  };
+  if (crosscheckData) draw(() => renderCrosscheck(dialog));
+  else draw(() => append(dialog, 'p', 'field-help', '正在读取评测结果…'));
+  if (!dialog.open) {if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');}
+  if (crosscheckData) return;
+  try {
+    const response = await fetch('/static/crosscheck-summary.json');
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    crosscheckData = await response.json();
+  } catch (err) {
+    draw(() => append(dialog, 'p', 'inline-msg', '读取评测结果失败：' + err.message));
+    return;
+  }
+  draw(() => renderCrosscheck(dialog));
+}
+$('#crosscheck-open').addEventListener('click', openCrosscheck);
+$('#crosscheck-footer').addEventListener('click', openCrosscheck);
+
 // The demonstration date must remain explicitly identified until changed.
 function updateDemoBirthWarning() {
   $('#demo-birth-warning').hidden = $('#birth_datetime').value !== '2000-08-16T04:00';
