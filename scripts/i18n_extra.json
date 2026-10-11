@@ -399,6 +399,18 @@
   "14 main stars + 44 selected auxiliary/minor stars (26 newly added); not all schools or annual stars",
   "14主星＋選定した補助星・雑曜44個（うち新規26個）。全流派・流曜ではない"
  ],
+ "1914、1916、1920 年各有一个月，初一原来比三家参考晚一天：民国初年按北京地方平时（东经 116°25′）编历，已改正。": [
+  "In 1914, 1916 and 1920 one month each started a day later than in all three references: early Republican calendars were computed for Beijing local mean time (116°25′E). Fixed.",
+  "1914・1916・1920 年にそれぞれ 1 か月、朔日が 3 つの参照より 1 日遅れていました。民国初期の暦は北京地方平時（東経 116°25′）で編まれていたためで、修正済みです。"
+ ],
+ "2025 年以后各库用各自的地球自转差（ΔT）预报，差距随年份变大；只有离交节或午夜只差几分钟时才会影响结果。": [
+  "After 2025 each library relies on its own forecast of Earth's rotation (ΔT), so the gap grows over the years. It only changes a result when a solar term or midnight is a few minutes away.",
+  "2025 年以降は各ライブラリが独自の地球自転差（ΔT）予測を使うため、年を追うごとに差が広がります。節入りや真夜中まで数分しかない場合にだけ結果に影響します。"
+ ],
+ "23:00 以后出生": [
+  "Born after 23:00",
+  "23:00 以降の出生"
+ ],
  "23:00 换日": [
   "Day changes at 23:00",
   "23:00 日替わり"
@@ -414,6 +426,10 @@
  "24 小时制，填出生地当时的钟表时间。只知道农历生日或不知道时辰，用下面两个选项。": [
   "24-hour clock, local time at the birthplace. Only know the lunar birthday, or not the hour? Use the two options below.",
   "24 時間制で、出生地のその時の時計時刻を入力します。旧暦の誕生日しか分からない、または時辰が分からない場合は下の二つの項目を使います。"
+ ],
+ "95% 分位": [
+  "95th percentile",
+  "95% 分位点"
  ],
  "> 传统术数未经科学预测效力验证，不作医疗、投资、法律等决策依据。": [
   "> Traditional divination systems have not been scientifically validated for predictive power and must not be used as a basis for medical, investment, legal or similar decisions.",
@@ -571,6 +587,10 @@
   "\\nFocus: ",
   "\\n注目点："
  ],
+ "iztro 的“晚子时”改用次日农历日": [
+  "iztro's \"late Zi\" uses the next day's lunar date",
+  "iztro の「晩子時」は翌日の旧暦日を使用"
+ ],
  "iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导": [
   "iztro public star-placement formulas; derived from birth year, natal palace position, lunar month/day and double-hour",
   "iztro公開の安星訣。出生年、本命宮の位置、旧暦の月日と時辰から導出"
@@ -638,6 +658,10 @@
  "一致 ": [
   "Match ",
   "一致 "
+ ],
+ "一致率": [
+  "Agreement",
+  "一致率"
  ],
  "丁壬合木": [
   "Ding–Ren combine (Wood)",
@@ -1111,6 +1135,10 @@
   "Term transition",
   "節入り"
  ],
+ "交节前后月柱": [
+  "Month pillar around each jie",
+  "節入り前後の月柱"
+ ],
  "交节只有约 ": [
   "is only about ",
   "の節入りまで約 "
@@ -1222,6 +1250,10 @@
  "仍不一致": [
   "Still differing",
   "なお不一致"
+ ],
+ "仍有差异的月份": [
+  "Months that still differ",
+  "なお差異のある月"
  ],
  "从当前命盘、本机档案和在这里临时添加的成员中选 2 到 8 人。临时成员只留在本页，刷新后消失；服务器不保存。": [
   "Choose 2 to 8 people from the current chart, your local profiles and members added here. Members added here stay on this page only and disappear on reload; the server stores nothing.",
@@ -2247,6 +2279,10 @@
   "Day 14",
   "14日"
  ],
+ "十四主星落宫": [
+  "Palaces of the 14 major stars",
+  "十四主星の宮"
+ ],
  "十年干支": [
   "Decade stem-branch",
   "十年干支"
@@ -2323,6 +2359,10 @@
   "This will use the backup's ",
   "バックアップの "
  ],
+ "历法与排盘逐日交叉核验": [
+  "Calendar and charts cross-checked day by day",
+  "暦と命盤を毎日クロスチェック"
+ ],
  "历法计算与传统术数符号说明（非科学预测）": [
   "Calendar calculation and explanation of traditional divination symbols (not scientific prediction)",
   "暦法計算と伝統術数の記号の説明（科学的予測ではない）"
@@ -2338,6 +2378,10 @@
  "参数校验失败：": [
   "Parameter validation failed:",
   "パラメータ検証に失敗："
+ ],
+ "参考库": [
+  "Reference",
+  "参照ライブラリ"
  ],
  "参考文档只支持方法描述，不意味着 XuanShu 的逐盘算法通过独立认证。": [
   "Reference documents only support the method description and do not mean that XuanShu's chart-by-chart algorithm has passed independent certification.",
@@ -2426,6 +2470,14 @@
  "只是提议：用户在浏览器里点击确认后才会保存。不要提议保存出生资料以外的敏感信息。": [
   "Only a proposal: it is saved only after the user clicks confirm in the browser. Do not propose saving sensitive information other than birth data.",
   "提案のみです。ユーザーがブラウザで確認をクリックした後にのみ保存されます。出生情報以外の機微な情報の保存は提案しないでください。"
+ ],
+ "只有 lunardate 不同；旧历书的算法容易把这样的朔算到午夜另一侧。": [
+  "Only lunardate differs; older almanac methods easily put such a new moon on the other side of midnight.",
+  "lunardate のみ異なります。旧来の暦法ではこうした朔が真夜中の反対側に計算されやすいためです。"
+ ],
+ "只有 lunardate 不同；这份表的月份长度与天象不符。": [
+  "Only lunardate differs; its table gives month lengths that do not match the sky.",
+  "lunardate のみ異なります。この表の月の長さが天象と合いません。"
  ],
  "只校验实际给出的字段；未提供的逐宫字段不计为一致。": [
   "Only fields actually provided are checked; per-palace fields not provided are not counted as consistent.",
@@ -3379,6 +3431,10 @@
   "done · ",
   "完了 · "
  ],
+ "完整报告与重跑方法 ↗": [
+  "Full report and how to rerun ↗",
+  "完全なレポートと再実行方法 ↗"
+ ],
  "官府": [
   "Guan Fu (Officials)",
   "官府"
@@ -3499,6 +3555,10 @@
   "Years to compare",
   "対照年数"
  ],
+ "对照项": [
+  "Item",
+  "比較項目"
+ ],
  "对话": [
   "Chat",
   "チャット"
@@ -3582,6 +3642,10 @@
  "尚无已保存的本地档案": [
   "No saved local profiles yet",
   "保存済みのローカルプロフィールはまだありません"
+ ],
+ "尚未解释。": [
+  "Not yet explained.",
+  "未解明です。"
  ],
  "尚未起运": [
   "Luck periods not started yet",
@@ -3791,6 +3855,10 @@
   "Flatland Wood (Ping Di Mu)",
   "平地木"
  ],
+ "平均差": [
+  "Mean difference",
+  "平均差"
+ ],
  "平太阳时": [
   "Mean solar time",
   "平均太陽時"
@@ -3806,6 +3874,10 @@
  "年/月/日/时：": [
   "Year/Month/Day/Hour: ",
   "年/月/日/時："
+ ],
+ "年份": [
+  "Years",
+  "年"
  ],
  "年份 运势 轨迹": [
   "year fortune trajectory",
@@ -4955,6 +5027,10 @@
   "At most 20 can be saved; please delete old profiles first",
   "最大20件まで保存できます。先に古いプロフィールを削除してください"
  ],
+ "最大差": [
+  "Largest difference",
+  "最大差"
+ ],
  "月": [
   "Month",
   "月"
@@ -4982,6 +5058,10 @@
  "月相按地心黄经差计算，与当地实际所见可能相差数小时。": [
   "The moon phase uses the geocentric longitude difference and can differ from what you see locally by a few hours.",
   "月相は地心黄経差で計算するため、実際に見える様子と数時間ずれることがあります。"
+ ],
+ "月相时刻": [
+  "Moon phase instants",
+  "月相の時刻"
  ],
  "月解": [
   "Yue Jie",
@@ -5042,6 +5122,14 @@
  "服务返回了无法解析的响应（HTTP ": [
   "Service returned an unparseable response (HTTP ",
   "サービスが解析できない応答を返しました（HTTP "
+ ],
+ "朔离午夜": [
+  "New moon from midnight:",
+  "朔と真夜中の差"
+ ],
+ "朔离午夜太近，取决于 ΔT 预报，现在无法确定哪边对。": [
+  "The new moon is too close to midnight; it depends on the ΔT forecast, so no one can yet say which is right.",
+  "朔が真夜中に近すぎ、ΔT 予測次第のため、現時点ではどちらが正しいか決められません。"
  ],
  "木": [
   "Wood",
@@ -5279,6 +5367,10 @@
   "Check done: ",
   "照合完了："
  ],
+ "核对数": [
+  "Checked",
+  "照合数"
+ ],
  "核验": [
   "Verification",
   "検証"
@@ -5434,6 +5526,10 @@
  "正在计算所选时刻的四柱、节气和月相…": [
   "Calculating the pillars, solar term and moon phase for the chosen moment…",
   "選んだ時刻の四柱・節気・月相を計算しています…"
+ ],
+ "正在读取评测结果…": [
+  "Loading the evaluation…",
+  "評価結果を読み込み中…"
  ],
  "正在起局…": [
   "Casting…",
@@ -5811,6 +5907,14 @@
   "XuanShu · answering",
   "玄枢 · 回答中"
  ],
+ "玄枢把农历、四柱、节气、月相和紫微排盘与独立的开源库逐项对照。脚本、固定版本的参考库和原始数据都在仓库里，任何人都能重跑。": [
+  "XuanShu compares its lunar dates, four pillars, solar terms, moon phases and Zi Wei charts item by item with independent open-source libraries. The script, pinned reference versions and raw data are in the repository, so anyone can rerun it.",
+  "玄枢は旧暦日・四柱・二十四節気・月相・紫微命盤を、独立したオープンソースのライブラリと項目ごとに照合しています。スクリプト、固定バージョンの参照ライブラリ、生データはリポジトリにあり、誰でも再実行できます。"
+ ],
+ "玄枢紫微仍用当天的农历日，与 iztro 的“早子时”一致": [
+  "XuanShu's Zi Wei keeps the same day's lunar date, matching iztro's \"early Zi\"",
+  "玄枢の紫微は当日の旧暦日を使い、iztro の「早子時」と一致"
+ ],
  "玄武": [
   "Xuan Wu (Black Tortoise)",
   "玄武"
@@ -6143,6 +6247,10 @@
   "Start of Spring (Lichun)",
   "立春"
  ],
+ "立春前后年柱": [
+  "Year pillar around Lichun",
+  "立春前後の年柱"
+ ],
  "立春等节令交接": [
   "Solar-term transitions such as Start of Spring (Lichun)",
   "立春などの節気の切り替わり"
@@ -6258,6 +6366,10 @@
  "紫微斗数专家": [
   "Zi Wei Dou Shu expert",
   "紫微斗数エキスパート"
+ ],
+ "紫微斗数对照": [
+  "Zi Wei Dou Shu comparison",
+  "紫微斗数の照合"
  ],
  "紫微新增选定杂曜、四组十二神与虚岁小限；仍缺完整流曜、流月和流派逐宫验证": [
   "Zi Wei adds selected minor stars, four sets of twelve spirits, and nominal-age minor limits; still missing complete transit stars, monthly charts, and palace-by-palace school verification",
@@ -6463,6 +6575,14 @@
   "Solar terms + moon phases ICS",
   "節気と月相 ICS"
  ],
+ "节气与月相时刻（秒）": [
+  "Solar term and moon phase instants (seconds)",
+  "節気と月相の時刻（秒）"
+ ],
+ "节气时刻": [
+  "Solar term instants",
+  "節気の時刻"
+ ],
  "节气查询": [
   "Solar terms",
   "節気の照会"
@@ -6651,6 +6771,10 @@
   "Compute professional chart",
   "専門盤を計算"
  ],
+ "计算交叉核验": [
+  "Calculation cross-check",
+  "計算のクロスチェック"
+ ],
  "计算大运": [
   "Compute Luck Pillars",
   "大運を計算"
@@ -6679,6 +6803,10 @@
   "Calculation source: `",
   "計算ソース：`"
  ],
+ "计算核验": [
+  "Calculation check",
+  "計算の検証"
+ ],
  "计算结构、传统解释与现实事实必须分开；本执行器没有调用 LLM、不会自动查询现实事件。": [
   "Computed structure, traditional interpretation, and real-world facts must be kept separate; this executor did not call an LLM and will not automatically look up real-world events.",
   "計算構造、伝統的解釈、現実の事実は分けなければなりません。この実行器は LLM を呼び出しておらず、現実の出来事を自動で照会することもありません。"
@@ -6706,6 +6834,14 @@
  "评分": [
   "Score",
   "評価"
+ ],
+ "评测带来的修正": [
+  "Fixes this evaluation led to",
+  "評価で見つかった修正"
+ ],
+ "评测日期": [
+  "Evaluated",
+  "評価日"
  ],
  "识别到的字段全部一致。": [
   "Every recognized field matches.",
@@ -6842,6 +6978,10 @@
  "请选择要删除的档案": [
   "Please select a profile to delete",
   "削除するプロフィールを選択してください"
+ ],
+ "读取评测结果失败：": [
+  "Could not load the evaluation: ",
+  "評価結果を読み込めません："
  ],
  "调用参数": [
   "Call parameters",
@@ -7119,6 +7259,10 @@
   "This is only a time-system sensitivity comparison; it does not judge which time system has predictive power.",
   "これは時刻制度の感度比較にすぎず、どの時刻体系に予測力があるかは判断しません。"
  ],
+ "这只核验计算是否正确，不评价命理解读是否应验。": [
+  "This only checks that the calculations are correct; it does not judge whether readings come true.",
+  "これは計算の正しさだけを確かめるもので、命理の解釈が当たるかは評価しません。"
+ ],
  "这只说明规则选择会改变哪些字段，不判断哪种规则正确；以出生资料和你采用的流派为准。": [
   "This only shows which fields a rule choice changes; it does not say which rule is correct. Go by the birth details and the school you follow.",
   "ルールの選び方でどの項目が変わるかを示すだけで、どのルールが正しいかは判断しません。出生情報とご自身の流派に従ってください。"
@@ -7126,6 +7270,10 @@
  "这是一份确定性多工具计算报告，未运行外部大语言模型，不是自主推理结果。": [
   "This is a deterministic multi-tool calculation report; no external large language model was run, and it is not the result of autonomous reasoning.",
   "これは決定論的な複数ツールの計算レポートです。外部の大規模言語モデルは実行しておらず、自律的な推論の結果ではありません。"
+ ],
+ "这是流派规则不同，不是计算错误。": [
+  "This is a difference in school rules, not a calculation error.",
+  "これは流派の規則の違いで、計算ミスではありません。"
  ],
  "这是确定性工具编排，不是自主 LLM。不会根据传统命盘给出人生成功率或虚构事件。": [
   "This is deterministic tool orchestration, not an autonomous LLM. It will not give life success rates or invent events based on traditional charts.",
@@ -7214,6 +7362,10 @@
  "透明多方案决策矩阵": [
   "Transparent multi-option decision matrix",
   "透明な複数案意思決定マトリクス"
+ ],
+ "逐日对照（每天正午）": [
+  "Day by day (noon each day)",
+  "毎日の照合（各日正午）"
  ],
  "通过": [
   "Passed",
@@ -7394,6 +7546,10 @@
  "除": [
   "Chu (Remove)",
   "除"
+ ],
+ "随机出生时刻": [
+  "Random birth moments:",
+  "無作為の出生時刻"
  ],
  "雨水": [
   "Rain Water (Yushui)",

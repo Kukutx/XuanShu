@@ -92,7 +92,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\windows_acceptance.ps1
 
 | 范围 | 已完成（实际接口/源码） | 重要限制 |
 |---|---|---|
-| 现代中国农历 | 1901–2099 年公历转农历、**农历反查公历（含闰月校验）**、24 节气时刻；连续 1–31 日查询；ICS 节气订阅文件 | 现代中国 UTC+8 月相和中气规则，不等于历朝全部历史历法 |
+| 现代中国农历 | 1901–2099 年公历转农历、**农历反查公历（含闰月校验）**、24 节气时刻；连续 1–31 日查询；ICS 节气订阅文件 | 1929 年起按东经 120°（UTC+8），1912–1928 年按北京地方平时（东经 116°25′）；不复现清代时宪历的旧天文法 |
 | 八字四柱 | 立春年界、**精确十二节令瞬间月界**、日时柱、子初换日选项、十神、藏干、纳音、地支传统关系、五行统计 | 不生成科学的性格、吉凶、喜用神判断 |
 | 八字大运干支 | **顺逆方向**（可手动覆盖）、下一/上一十二节、三日一岁名义起运年龄、最多 12 个十年干支、近似时间轴 | 传统流派存在不同起运换算；**公历投影不是精确交运日**，不预测现实事件 |
 | 地理与时制 | IANA 时区、DST 缺失/重叠时刻校验、经度平太阳时、真太阳时（均时差）、三套时制审计、出生时间误差区间离散采样、**秒级数值精度的模型边界地图**、两套排盘规则比较 | 秒级是模型断点定位精度，并非实际出生记录可靠精度；历史时区和流派边界有差异 |
@@ -348,6 +348,7 @@ REST/MCP 可配置静态 Bearer（`MCP_BEARER_TOKEN`）；本机浏览器 Origin
 - 对照基准 `2000-08-16 04:00 Asia/Shanghai`（iztro 官方公开示例）：八字 `庚辰 / 甲申 / 丙午 / 庚寅`，命宫午、身宫戌、木三局。
 - 另将香港天文台 **2024、2033 年共 26 个独立农历月首**加入固定回归，并显式标出 **2057、2089、2097** 年公开的新月日界风险。质量检查默认敏感窗口 **15 分钟**。详见 [`docs/ADVANCED_AUDIT.md`、`docs/DEEP_AUDIT.md`](docs/DEEP_AUDIT.md)；
 - 采用 Swiss Ephemeris Moshier 模式计算节气、月相和均时差；**不能将现有测试结果等同于全 1901–2099 专业历法认证或全流派紫微验证**。
+- **逐日交叉核验**（`scripts/eval_crosscheck.py`，报告见 [`docs/evals/README.md`](docs/evals/README.md)，工作台页首与页脚「计算核验」可直接查看）：1901–2099 年 72,684 天的农历日期与四柱对照 sxtwl（寿星天文历）、lunar_python、lunardate；4,776 个节气、9,845 个月相时刻对照 sxtwl 与 PyEphem；3,000 个随机紫微盘对照 iztro-py。日柱、年柱、时柱以及紫微命宫、身宫、五行局、十四主星和生年四化全部一致；农历只有 2057、2097 年各一个月与 sxtwl 或 lunar_python 不同（朔离午夜 1–2 分钟，取决于未来 ΔT 预报），lunardate 另有 3 个月是查表差异。评测中查出 1914、1916、1920 年各一个月的初一晚了一天，原因是 1912–1928 年按北京地方平时（东经 116°25′）编历，已改正。参考库不是运行依赖，另装 `docs/evals/requirements.txt` 后可重跑。
 - 八字立春 / 月令规则、紫微四化流派、经度校正及禁预测原则详见 `docs/rules/`。
 - 当前没有完成：**奇门全流派/外部逐宫验收、紫微全星系与全运限、私有知识库、云端多用户账户、OAuth 授权服务器/实际远程登录、永久公网上线及跨客户端正式 Plugin 安装**。必须在有可靠规则来源和外部参考数据时再纳入已完成范围。
 
@@ -362,6 +363,7 @@ python scripts/init_docker_local.py       # 可选：Docker 首次创建随机�
 # docker compose up -d --build && python scripts/docker_smoke.py  # 可选：需 Docker CLI
 python scripts/browser_smoke.py         # 可选：本机需安装 Playwright + /usr/bin/chromium
 python scripts/build_release.py         # 将完整源码打包到上级目录
+python scripts/eval_crosscheck.py       # 可选：先 pip install -r docs/evals/requirements.txt，与独立开源库逐日对照
 ```
 
 `browser_smoke.py` 在真正的 Chromium 中执行 UI 交互，通过 Python 桥接调用实际 FastAPI TestClient；**不是公网网络 E2E**。实际测试数与环境详情详见 `TEST_REPORT.md`。发现与未完成项的严重级别见 [`docs/ADVANCED_AUDIT.md`、`docs/DEEP_AUDIT.md`](docs/DEEP_AUDIT.md)。

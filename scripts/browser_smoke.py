@@ -58,7 +58,8 @@ def main() -> None:
     counts = {'requests': 0}
 
     def call_api(path: str, data: dict):
-        if not path.startswith('/api/'):
+        # The page also reads one static data file (the cross-check summary) with fetch.
+        if not (path.startswith('/api/') or (data is None and path == '/static/crosscheck-summary.json')):
             raise ValueError('Only /api/ calls can use the local browser bridge')
         response = client.get(path) if data is None else client.post(path, json=data)
         counts['requests'] += 1
@@ -275,6 +276,15 @@ def main() -> None:
             page.locator('#share-bazi').uncheck()
             assert page.evaluate("document.querySelector('#share-canvas').height") < full
             page.locator('#share-close').click()
+
+            # Calculation cross-check: the committed evaluation summary in a dialog.
+            page.locator('#crosscheck-open').click()
+            page.locator('#crosscheck-differences li').first.wait_for(timeout=30000)
+            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 22
+            assert '100.000%' in page.locator('#crosscheck-dialog').inner_text()
+            page.locator('#crosscheck-dialog').screenshot(path=str(screenshot_dir / '38-crosscheck.png'))
+            page.locator('#crosscheck-close').click()
+            assert not page.locator('#crosscheck-dialog').is_visible()
 
             # Lunar birthday entry fills the Gregorian field; an unknown hour gets a twelve-hour comparison.
             page.locator('#lunar-entry summary').click()
