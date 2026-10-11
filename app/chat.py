@@ -221,7 +221,7 @@ SHARED_TOOLS = ('time_basis_audit', 'chart_quality_audit', 'birth_time_window', 
                 'daily_almanac')
 SPECIALISTS: dict[str, dict[str, Any]] = {
     'bazi': {'label': '八字专家', 'school': '八字（四柱）',
-             'tools': ('bazi_chart', 'bazi_dayun', 'life_path_review', 'pair_comparison', 'pillars_to_dates')},
+             'tools': ('bazi_chart', 'bazi_dayun', 'life_path_review', 'pair_comparison', 'group_relations', 'pillars_to_dates')},
     'ziwei': {'label': '紫微斗数专家', 'school': '紫微斗数',
               'tools': ('ziwei_chart', 'ziwei_professional_chart', 'palace_detail', 'annual_transformations',
                         'annual_timeline', 'life_path_review', 'ziwei_pair_overlay')},

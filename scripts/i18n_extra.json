@@ -99,6 +99,10 @@
   " main stars and ",
   " 主星と "
  ],
+ " 人": [
+  " people",
+  " 人"
+ ],
  " 位": [
   " places",
   " 件"
@@ -623,6 +627,10 @@
   "Match ",
   "一致 "
  ],
+ "丁壬合木": [
+  "Ding–Ren combine (Wood)",
+  "丁壬合木"
+ ],
  "七月": [
   "Month 7",
   "七月"
@@ -638,6 +646,10 @@
  "三台": [
   "San Tai",
   "三台"
+ ],
+ "三合": [
+  "Three harmony",
+  "三合"
  ],
  "三合：": [
   "Three Harmonies: ",
@@ -747,6 +759,10 @@
   "Differ ",
   "不一致 "
  ],
+ "不同成员的年支或日支凑齐申子辰、亥卯未、寅午戌、巳酉丑": [
+  "Different members' year or day branches complete Shen–Zi–Chen, Hai–Mao–Wei, Yin–Wu–Xu or Si–You–Chou",
+  "異なるメンバーの年支または日支で申子辰・亥卯未・寅午戌・巳酉丑がそろう"
+ ],
  "不同流派和节令日界可能产生合法差异；请逐字段核对。": [
   "Different schools and solar-term day boundaries may produce legitimate differences; check field by field.",
   "流派や節令の日界の違いにより正当な差異が生じることがあります。項目ごとに照合してください。"
@@ -807,6 +823,10 @@
   "Professional Zi Wei",
   "専門紫微"
  ],
+ "丙辛合水": [
+  "Bing–Xin combine (Water)",
+  "丙辛合水"
+ ],
  "东": [
   "East",
   "東"
@@ -822,6 +842,10 @@
  "东南": [
   "Southeast",
   "南東"
+ ],
+ "两两明细": [
+  "Pair by pair",
+  "ペアごとの明細"
  ],
  "两个人": [
   "Two people",
@@ -899,6 +923,10 @@
   "Lin Guan (Prosperity)",
   "臨官"
  ],
+ "临时添加": [
+  "Add for this page",
+  "この画面だけで追加"
+ ],
  "临界地图分钟数必须为1–120整数": [
   "Boundary map minutes must be an integer from 1–120",
   "境界マップの分数は1–120の整数で指定"
@@ -930,6 +958,10 @@
  "乌鲁木齐": [
   "Urumqi",
   "ウルムチ"
+ ],
+ "乙庚合金": [
+  "Yi–Geng combine (Metal)",
+  "乙庚合金"
  ],
  "九地": [
   "Nine Earth (Jiu Di)",
@@ -1059,6 +1091,10 @@
   "is only about ",
   "の節入りまで約 "
  ],
+ "亥卯未": [
+  "Hai–Mao–Wei",
+  "亥卯未"
+ ],
  "亥时 21–23": [
   "Hai hour 21–23",
   "亥の刻 21–23"
@@ -1159,6 +1195,14 @@
   "Still differing",
   "なお不一致"
  ],
+ "从当前命盘、本机档案和在这里临时添加的成员中选 2 到 8 人。临时成员只留在本页，刷新后消失；服务器不保存。": [
+  "Choose 2 to 8 people from the current chart, your local profiles and members added here. Members added here stay on this page only and disappear on reload; the server stores nothing.",
+  "現在の命盤、端末内のプロフィール、ここで追加したメンバーから 2〜8 人を選びます。ここで追加したメンバーはこの画面にだけ残り、再読み込みで消えます。サーバーには保存されません。"
+ ],
+ "从此人看 → 对方": [
+  "From this person → other",
+  "この人から → 相手"
+ ],
  "代表本地时刻": [
   "Representative local time",
   "代表ローカル時刻"
@@ -1166,6 +1210,10 @@
  "以出生资料里的时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。": [
   "Samples the error window around the birth time and lists the distinct BaZi charts and Life/Body palaces found. Differences between sample points can still be missed.",
   "出生情報の時刻を中心に誤差範囲を離散的にサンプリングし、実際に現れる八字と命宮・身宮を列挙します。サンプル点の間に検出されない違いが残る可能性があります。"
+ ],
+ "以各自日干为我，看对方日干": [
+  "Each person's day stem is the self; the other person's day stem is labelled from it",
+  "各自の日干を我として、相手の日干を見る"
  ],
  "以左侧时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。": [
   "Centered on the time at left, samples discretely across the error window and lists the distinct BaZi charts and Life/Body Palaces that actually occur. Undetected differences may still exist between sample points.",
@@ -1287,6 +1335,10 @@
   "Use second person's birth data (voluntary)",
   "2人目の出生データを使用（任意）"
  ],
+ "例如：妈妈": [
+  "e.g. Mum",
+  "例：母"
+ ],
  "例如：正在考虑转行做设计": [
   "e.g. considering a career change into design",
   "例：デザイン職への転職を検討中"
@@ -1382,6 +1434,10 @@
  "先填写档案标签": [
   "Enter a profile label first",
   "先にプロフィールのラベルを入力"
+ ],
+ "先填写称呼": [
+  "Enter a name first",
+  "先に呼び名を入力してください"
  ],
  "先核对出生信息、时区及流派配置，再调用 chart_quality_audit；如位于香港天文台发布的远期不确定新月区间，必须披露差异，禁止未经证实地调整日期。": [
   "First check the birth information, time zone and school configuration, then call chart_quality_audit; if the date falls within a future uncertain new-moon interval published by the Hong Kong Observatory, the difference must be disclosed, and adjusting the date without confirmation is prohibited.",
@@ -1651,6 +1707,10 @@
   "Relationship synastry requires birth information explicitly provided by, or authorized for use by, the other person",
   "関係の合盤には、相手が明示的に提供した、または使用を許可した出生情報が必要です"
  ],
+ "关系图": [
+  "Relation map",
+  "関係図"
+ ],
  "关闭": [
   "Close",
   "閉じる"
@@ -1843,6 +1903,10 @@
   "Daylight saving time was in force at the birth: some programs remove it before casting the chart.",
   "出生時に現地は夏時間でした：夏時間を差し引いてから命盤を出すソフトもあります。"
  ],
+ "出生时辰不详的成员不参与时柱的比较。": [
+  "Members whose birth hour is unknown are left out of hour-pillar comparisons.",
+  "出生時刻が不明なメンバーは時柱の比較に含めません。"
+ ],
  "出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。": [
   "Birth hour unknown: 12:00 is only a placeholder, so a Qimen chart cast from it means nothing.",
   "出生時刻不明：12:00 は仮の値なので、これで立てた奇門盤には意味がありません。"
@@ -1982,6 +2046,10 @@
  "删除所选档案？它在本机保存的对话、记忆和人生事件也会一起删除。": [
   "Delete the selected profile? Its conversation, memory and life events saved on this device are deleted too.",
   "選択したプロファイルを削除しますか？この端末に保存された会話・記憶・人生の出来事も削除されます。"
+ ],
+ "前一天": [
+  "Previous day",
+  "前日"
  ],
  "前六个干支：": [
   "First six stem-branch pairs:",
@@ -2147,6 +2215,10 @@
   "Ten gods are read from the stem against the day master. Decade start years come from the three-days-per-year rule and are approximate; annual pillars change at Lichun. Click a year to open the same year layer on the Zi Wei chart.",
   "十神は日主から見た天干です。交運年は三日一歳の換算による概算で、流年は立春で替わります。流年をクリックすると紫微盤で同じ年の流年層を開きます。"
  ],
+ "十神是有方向的：A 看 B 与 B 看 A 往往不同，两者都列出。": [
+  "Ten-god names have a direction: how A sees B usually differs from how B sees A, so both are listed.",
+  "十神には方向があります。A から見た B と B から見た A は多くの場合異なるため、両方を示します。"
+ ],
  "升职": [
   "promotion",
   "昇進"
@@ -2294,6 +2366,10 @@
  "只展示两个参数方案之间的计算差异；不评价命盘孰优孰劣。": [
   "Only shows calculation differences between two parameter sets; does not evaluate which chart is better.",
   "二つのパラメータ設定間の計算差異を示すのみで、命盤の優劣は評価しません。"
+ ],
+ "只并列各人的四柱并标出传统的十神、天干五合、地支六合、六冲、六害、相刑与三合标签，不评价关系好坏，也不给匹配分数或排名。": [
+  "Only places each person's four pillars side by side and marks the traditional ten-god, stem-combination, six-harmony, six-clash, six-harm, punishment and three-harmony labels. It does not judge any relationship and gives no compatibility score or ranking.",
+  "各人の四柱を並べ、十神・天干五合・地支六合・六冲・六害・相刑・三合という伝統的なラベルを示すだけです。関係の良し悪しは評価せず、相性スコアや順位も出しません。"
  ],
  "只是提议：用户在浏览器里点击确认后才会保存。不要提议保存出生资料以外的敏感信息。": [
   "Only a proposal: it is saved only after the user clicks confirm in the browser. Do not propose saving sensitive information other than birth data.",
@@ -2459,6 +2535,10 @@
   "Nominal starting age of Luck Pillars: ",
   "名目上の起運年齢："
  ],
+ "后一天": [
+  "Next day",
+  "翌日"
+ ],
  "后辈、教养与创造性表达": [
   "Juniors, upbringing and creative expression",
   "後輩、養育と創造的な表現"
@@ -2623,6 +2703,10 @@
   "Pillar search done: ",
   "四柱逆引き完了："
  ],
+ "四柱地支两两比较：同支、六合、六冲、六害、相刑": [
+  "Branches of all four pillars compared pairwise: same branch, six harmony, six clash, six harm, punishment",
+  "四柱の地支を総当たりで比較：同支・六合・六冲・六害・相刑"
+ ],
  "四柱（年/月/日/时）": [
   "Four Pillars (year/month/day/hour)",
   "四柱（年/月/日/時）"
@@ -2630,6 +2714,10 @@
  "四柱：「年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅」或连续的「庚辰 甲申 丙午 庚寅」": [
   "Pillars: \"年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅\", or simply \"庚辰 甲申 丙午 庚寅\" in a row",
   "四柱：「年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅」または続けて「庚辰 甲申 丙午 庚寅」"
+ ],
+ "回到此刻": [
+  "Back to now",
+  "現在に戻る"
  ],
  "回答完成": [
   "Answer complete",
@@ -2823,6 +2911,14 @@
   "Multiple candidate times: one ISO local time per line (max 5)",
   "複数の候補時刻：1行に1つの ISO ローカル時刻（最大5件）"
  ],
+ "多人 家人 家庭 团队 朋友 关系 三合 生肖 family team group": [
+  "group family household team friends relationship three-harmony zodiac",
+  "複数人 家族 家庭 チーム 友人 関係 三合 干支 family team group"
+ ],
+ "多人关系对照": [
+  "Group relations",
+  "複数人の関係対照"
+ ],
  "多伦多": [
   "Toronto",
   "トロント"
@@ -2978,6 +3074,10 @@
  "天干": [
   "Heaven stem",
   "天干"
+ ],
+ "天干五合": [
+  "Stem combination",
+  "天干五合"
  ],
  "天干十神": [
   "Stem ten god",
@@ -3279,6 +3379,14 @@
   "宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於",
   "宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於"
  ],
+ "家人、团队或朋友的四柱并排 · 只标传统标签，不打分": [
+  "Four pillars of family, team or friends side by side · traditional labels only, no score",
+  "家族・チーム・友人の四柱を並べる · 伝統的なラベルのみ、点数なし"
+ ],
+ "寅午戌": [
+  "Yin–Wu–Xu",
+  "寅午戌"
+ ],
  "寅时 03–05": [
   "Yin hour 03–05",
   "寅の刻 03–05"
@@ -3314,6 +3422,10 @@
  "对照": [
   "Comparison",
   "対照"
+ ],
+ "对照关系": [
+  "Compare",
+  "関係を対照"
  ],
  "对照失败：": [
   "Comparison failed: ",
@@ -3567,9 +3679,17 @@
   "Result returned",
   "結果を返しました"
  ],
+ "已选 ": [
+  "Selected ",
+  "選択 "
+ ],
  "巳时 09–11": [
   "Si hour 09–11",
   "巳の刻 09–11"
+ ],
+ "巳酉丑": [
+  "Si–You–Chou",
+  "巳酉丑"
  ],
  "巴黎": [
   "Paris",
@@ -3670,6 +3790,10 @@
  "年支": [
   "Year branch",
   "年支"
+ ],
+ "年支（生肖）": [
+  "Year branch (zodiac)",
+  "年支（干支の動物）"
  ],
  "年柱": [
   "Year pillar",
@@ -3795,9 +3919,21 @@
   "Current parameters",
   "現在のパラメータ"
  ],
+ "当前命盘": [
+  "Current chart",
+  "現在の命盤"
+ ],
  "当前命盘的出生时间晚于此刻，不列个人对照。": [
   "The current chart's birth time is later than this moment, so no personal comparison is shown.",
   "現在の命盤の出生時刻はこの時点より後のため、個人対照は表示しません。"
+ ],
+ "当前命盘的称呼": [
+  "Name for the current chart",
+  "現在の命盤の呼び名"
+ ],
+ "当前命盘（先生成命盘）": [
+  "Current chart (generate a chart first)",
+  "現在の命盤（先に命盤を作成）"
  ],
  "当前四柱无所列特定关系标签": [
   "The current Four Pillars have none of the listed relationship labels",
@@ -3826,6 +3962,18 @@
  "当地钟表时间": [
   "Local clock time",
   "現地の時計時刻"
+ ],
+ "当天": [
+  "That day",
+  "当日"
+ ],
+ "当天交节，节令前后值日不同": [
+  "A jie term begins that day; the day officer differs before and after it",
+  "当日は交節日で、節入りの前後で値日が異なります"
+ ],
+ "当日": [
+  "That day",
+  "当日"
  ],
  "怎么选": [
   "How to choose",
@@ -3887,6 +4035,10 @@
   "Wu Ji Geng Xin Ren Gui Ding Bing Yi",
   "戊己庚辛壬癸丁丙乙"
  ],
+ "戊癸合火": [
+  "Wu–Gui combine (Fire)",
+  "戊癸合火"
+ ],
  "戌时 19–21": [
   "Xu hour 19–21",
   "戌の刻 19–21"
@@ -3894,6 +4046,14 @@
  "成": [
   "Cheng (Success)",
   "成"
+ ],
+ "成员关系图": [
+  "Relation map of the members",
+  "メンバーの関係図"
+ ],
+ "成员已改变，下面仍是上一次的结果；点「对照关系」更新。": [
+  "The members have changed; the results below are still from last time. Click Compare to update.",
+  "メンバーが変わりました。下は前回の結果です。「関係を対照」で更新してください。"
  ],
  "成都": [
   "Chengdu",
@@ -3930,6 +4090,14 @@
  "所选宫位": [
   "Selected palace",
   "選択した宮位"
+ ],
+ "所选时刻 · 历法事实 · 不打吉凶分": [
+  "Chosen moment · calendar facts · no luck score",
+  "選んだ時刻 · 暦の事実 · 吉凶の点数なし"
+ ],
+ "所选时刻算不出来：": [
+  "The chosen moment could not be calculated: ",
+  "選んだ時刻を計算できません："
  ],
  "所选节令": [
   "Selected solar term",
@@ -4086,6 +4254,10 @@
  "按本机时区 ": [
   "Cast with this device's time zone ",
   "この端末のタイムゾーン "
+ ],
+ "按标签筛选关系线": [
+  "Filter the lines by label",
+  "ラベルで関係線を絞り込む"
  ],
  "按现行中国农历换算（UTC+8 天文朔望，农历 1901–2099 年）。": [
   "Converted with the current Chinese lunar calendar (UTC+8 astronomical new moons, lunar years 1901–2099).",
@@ -4303,6 +4475,10 @@
   "No basis",
   "根拠なし"
  ],
+ "无标记": [
+  "No labels",
+  "ラベルなし"
+ ],
  "无法自动复制，请手动选中上面的配置文本": [
   "Unable to copy automatically; please manually select the config text above",
   "自動コピーできません。上の設定テキストを手動で選択してください"
@@ -4342,6 +4518,10 @@
  "日历概念参考；不是两套算法的交叉认证": [
   "Calendar concept reference; not a cross-certification of the two algorithms",
   "暦の概念の参考。2つのアルゴリズムの相互認証ではありません"
+ ],
+ "日干十神（行看列）": [
+  "Day-stem ten gods (row sees column)",
+  "日干の十神（行から列を見る）"
  ],
  "日干支": [
   "Day stem-branch",
@@ -4559,6 +4739,10 @@
   "Length",
   "長さ"
  ],
+ "时间": [
+  "Time",
+  "時刻"
+ ],
  "时间已按 12:00 占位。时柱和紫微宫位会随时辰变化，命盘页会列出十二个时辰的对照，并标出不受时辰影响的部分。": [
   "The time is set to 12:00 as a placeholder. The hour pillar and Zi Wei palaces change with the hour; the chart page lists all twelve double hours and marks what stays the same.",
   "時刻は 12:00 を仮に入れています。時柱と紫微の宮は時辰で変わるため、命盤ページで十二時辰の比較を示し、時辰に左右されない部分を示します。"
@@ -4678,6 +4862,14 @@
  "曼谷": [
   "Bangkok",
   "バンコク"
+ ],
+ "最多 8 人": [
+  "At most 8 people",
+  "最大 8 人"
+ ],
+ "最多 8 人，请取消一些勾选": [
+  "At most 8 people; untick some",
+  "最大 8 人です。いくつかチェックを外してください"
  ],
  "最多保存 20 条，请先删除旧档案": [
   "At most 20 can be saved; please delete old profiles first",
@@ -4911,6 +5103,10 @@
   "Block Door (Du)",
   "杜門"
  ],
+ "条形是全体成员四柱天干地支的表面五行合计（不含藏干）；右侧是日主属该五行的成员。": [
+  "Bars total the surface elements of every member's stems and branches (hidden stems excluded); on the right are the members whose day master has that element.",
+  "棒は全メンバーの四柱の天干・地支の表面五行の合計です（蔵干は含みません）。右側はその五行の日主を持つメンバーです。"
+ ],
  "来源：": [
   "Source: ",
   "出典："
@@ -4974,6 +5170,10 @@
  "查询长度": [
   "Query length",
   "照会期間"
+ ],
+ "标签": [
+  "Labels",
+  "ラベル"
  ],
  "校时": [
   "Time correction",
@@ -5050,6 +5250,10 @@
  "桑柘木": [
   "Mulberry Wood (Sang Zhe Mu)",
   "桑柘木"
+ ],
+ "档案": [
+  "Profile",
+  "プロフィール"
  ],
  "档案标签：": [
   "Profile label: ",
@@ -5142,6 +5346,10 @@
  "正在计算今天的四柱、节气和月相…": [
   "Calculating today's pillars, solar term and moon phase…",
   "今日の四柱・節気・月相を計算しています…"
+ ],
+ "正在计算所选时刻的四柱、节气和月相…": [
+  "Calculating the pillars, solar term and moon phase for the chosen moment…",
+  "選んだ時刻の四柱・節気・月相を計算しています…"
  ],
  "正在起局…": [
   "Casting…",
@@ -5271,6 +5479,10 @@
   "No matches; try keywords like BaZi, timing or MCP",
   "一致なし。八字・択時・MCP などのキーワードを試してください"
  ],
+ "没有成员的年支或日支凑齐申子辰、亥卯未、寅午戌、巳酉丑。": [
+  "No members' year or day branches complete Shen–Zi–Chen, Hai–Mao–Wei, Yin–Wu–Xu or Si–You–Chou.",
+  "メンバーの年支・日支で申子辰・亥卯未・寅午戌・巳酉丑がそろう組はありません。"
+ ],
  "没有满足全部条件的日子，可以放宽条件或延长扫描天数。": [
   "No days meet all conditions; relax the conditions or extend the scan period.",
   "すべての条件を満たす日はありません。条件を緩めるかスキャン日数を延ばしてください。"
@@ -5374,6 +5586,10 @@
  "深色": [
   "Dark",
   "ダーク"
+ ],
+ "添加成员": [
+  "Add member",
+  "メンバーを追加"
  ],
  "清明": [
   "Clear and Bright (Qingming)",
@@ -5587,6 +5803,10 @@
   "Birth-time boundaries",
   "出生時刻の境界"
  ],
+ "生肖": [
+  "Zodiac",
+  "干支の動物"
+ ],
  "生门": [
   "Life Door (Sheng)",
   "生門"
@@ -5630,6 +5850,18 @@
  "甲乙丙丁戊己庚辛壬癸": [
   "Jia Yi Bing Ding Wu Ji Geng Xin Ren Gui",
   "甲乙丙丁戊己庚辛壬癸"
+ ],
+ "甲己、乙庚、丙辛、丁壬、戊癸五合": [
+  "The five stem combinations: Jia–Ji, Yi–Geng, Bing–Xin, Ding–Ren, Wu–Gui",
+  "甲己・乙庚・丙辛・丁壬・戊癸の五合"
+ ],
+ "甲己合土": [
+  "Jia–Ji combine (Earth)",
+  "甲己合土"
+ ],
+ "申子辰": [
+  "Shen–Zi–Chen",
+  "申子辰"
  ],
  "申时 15–17": [
   "Shen hour 15–17",
@@ -5770,6 +6002,14 @@
  "秋分": [
   "Autumn Equinox (Qiufen)",
   "秋分"
+ ],
+ "称呼": [
+  "Name",
+  "呼び名"
+ ],
+ "移除": [
+  "Remove",
+  "削除"
  ],
  "移除指标": [
   "Remove criterion",
@@ -5950,6 +6190,10 @@
  "纽约": [
   "New York",
   "ニューヨーク"
+ ],
+ "线上的数字是该标签（或全部标签）的条数；点成员只看与他相关的线，点线打开这一对的明细。": [
+  "The number on a line counts that label (or all labels). Click a member to show only their lines; click a line to open that pair's details.",
+  "線上の数字はそのラベル（または全ラベル）の件数です。メンバーをクリックするとその人の線だけを表示し、線をクリックするとそのペアの明細を開きます。"
  ],
  "经度与时制核对": [
   "Longitude and time-system check",
@@ -6403,6 +6647,10 @@
   "Please enter B's birth time",
   "B の出生時刻を入力してください"
  ],
+ "请填写出生时间": [
+  "Enter the birth time",
+  "出生時刻を入力してください"
+ ],
  "请填写至少 12 字符的备份口令": [
   "Please enter a backup passphrase of at least 12 characters",
   "12 文字以上のバックアップ用パスフレーズを入力してください"
@@ -6715,6 +6963,10 @@
   "What other life events could I add for comparison?",
   "比較のためにほかにどんな人生の出来事を加えられますか？"
  ],
+ "还没有本机档案。在出生资料下方保存档案后，可以在这里勾选。": [
+  "No local profiles yet. Save one below the birth details and it can be ticked here.",
+  "端末内のプロフィールはまだありません。出生情報の下で保存すると、ここでチェックできます。"
+ ],
  "还没有记忆。AI 提议的内容或你手动添加的背景会显示在这里，并随每次提问发送给模型。": [
   "No memory yet. Content suggested by the AI or background you add manually will appear here and be sent to the model with each question.",
   "まだ記憶はありません。AI が提案した内容や手動で追加した背景がここに表示され、質問のたびにモデルへ送信されます。"
@@ -6730,6 +6982,10 @@
  "这些日子里哪几个时辰更合适？": [
   "Which hours on these days suit better?",
   "これらの日のうち、どの時辰がより適していますか？"
+ ],
+ "这些是传统象征标签，不能据此预测关系结果，也不能替代沟通与了解对方。": [
+  "These are traditional symbolic labels. They cannot predict how a relationship turns out and are no substitute for talking with and getting to know each other.",
+  "これらは伝統的な象徴ラベルです。関係の行方を予測するものではなく、対話や相互理解の代わりにもなりません。"
  ],
  "这只是时制敏感性对照，不判断哪个时间体系具有预测效力。": [
   "This is only a time-system sensitivity comparison; it does not judge which time system has predictive power.",

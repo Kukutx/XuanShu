@@ -123,7 +123,7 @@ def main() -> None:
             assert page.evaluate("JSON.parse(localStorage.getItem('xuanshu-profiles-v2'))[0].id") == 'legacy-1'
             assert page.evaluate("localStorage.getItem('oriental-astro-profiles-v2') !== null")
 
-            assert page.locator('.tab').count() == 27
+            assert page.locator('.tab').count() == 28
             # Question-first consultation keeps its opt-in birth input.
             assert page.locator('#consult-question').count() == 1
             page.locator('#consult-question').fill('2027年职业选择')
@@ -189,6 +189,30 @@ def main() -> None:
             assert page.locator('.moon-icon').count() == 2  # the card and the header chip
             assert '日主 丙火' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '35-today.png'), full_page=True)
+            # Pick another day on the card, then return to the device clock.
+            page.locator('#today-next').click()
+            page.locator('#today-now').wait_for(timeout=30000)
+            page.locator('.today-hero').wait_for(timeout=30000)
+            assert '所选时刻' in page.locator('.result-intro').inner_text()
+            page.locator('#today-now').click()
+            page.wait_for_function("() => !document.getElementById('today-now') && document.querySelector('.today-hero')", timeout=30000)
+
+            # Group relations: the current chart, the migrated local profile and one member added on the page.
+            page.locator('[data-tab="group"]').click()
+            page.locator('#group-run').wait_for(timeout=30000)
+            page.locator('#group-profile-legacy-1').check()
+            page.locator('#group-extra-label').fill('同事')
+            page.locator('#group-extra-datetime').fill('1992-06-06T09:00')
+            page.locator('#group-extra-add').click()
+            page.locator('#group-run').click()
+            page.locator('#group-graph').wait_for(timeout=30000)
+            assert page.locator('.group-member').count() == 3 and page.locator('.group-edge').count() == 3
+            assert page.locator('#group-matrix tbody tr').count() == 3 and page.locator('.group-pair').count() == 3
+            page.locator('[data-filter="六冲"]').click()
+            page.locator('#group-node-0').focus()
+            page.keyboard.press('Enter')
+            page.wait_for_function("() => document.querySelectorAll('.group-node.is-focus').length === 1 && document.activeElement.id === 'group-node-0'", timeout=30000)
+            page.screenshot(path=str(screenshot_dir / '36-group.png'), full_page=True)
             page.locator('[data-tab="bazi"]').click()
             page.locator('[data-tab="annual"]').click()
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)

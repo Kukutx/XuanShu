@@ -171,12 +171,12 @@ def test_web_installable_docs_and_capabilities_wiring():
     root=Path(__file__).resolve().parents[1]
     html=(root/'static/index.html').read_text(encoding='utf-8')
     js=(root/'static/app.js').read_text(encoding='utf-8')
-    assert 'data-tab="consult"' in html and '31 MCP TOOLS' in html
+    assert 'data-tab="consult"' in html and '32 MCP TOOLS' in html
     assert 'consultation_execute' in (root/'app/mcp.py').read_text(encoding='utf-8')
     assert "'/api/consultation'" in js and 'function renderConsultation()' in js
     assert (root/'docs/rules/consultation.md').exists()
     assert '/api/consultation' in CLIENT.get('/openapi.json').json()['paths']
     counts=CLIENT.get('/api/capabilities').json()['counts']
-    assert counts['mcp_tools']==31 and counts['mcp_resources']==17
+    assert counts['mcp_tools']==32 and counts['mcp_resources']==17
     assert len(CLIENT.post('/mcp',json={'jsonrpc':'2.0','id':1,'method':'resources/read',
                        'params':{'uri':'astro://rules/consultation'}}).json()['result']['contents'][0]['text'])>200

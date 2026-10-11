@@ -9,7 +9,7 @@
 
 ## AI 对话（可选，需要自备模型 API Key）
 
-工作台首页「AI 对话」用自然语言提问，由你配置的语言模型调用玄枢的 31 个确定性工具回答；模型不自己排盘，每次工具调用的参数、结果摘要和 SHA-256 都能在「推理过程」里展开核对。对应天府 Agent 的对话、主动追问、跨对话档案记忆、人生事件回溯和多语言输出，对齐清单见 [docs/research/TIANFU_PARITY.md](docs/research/TIANFU_PARITY.md)。
+工作台首页「AI 对话」用自然语言提问，由你配置的语言模型调用玄枢的 32 个确定性工具回答；模型不自己排盘，每次工具调用的参数、结果摘要和 SHA-256 都能在「推理过程」里展开核对。对应天府 Agent 的对话、主动追问、跨对话档案记忆、人生事件回溯和多语言输出，对齐清单见 [docs/research/TIANFU_PARITY.md](docs/research/TIANFU_PARITY.md)。
 
 ```bash
 # Claude（官方 Anthropic SDK，默认 claude-opus-5-5）
@@ -21,7 +21,7 @@ python -m pip install '.[chat-openai]'
 export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_BASE_URL=https://api.deepseek.com/v1 XUANSHU_LLM_API_KEY=...
 ```
 
-- REST：`GET /api/chat/status`、`POST /api/chat`，以及同样参数的 `POST /api/chat/stream`（逐行 JSON：工具调用开始与完成、命盘卡片、回答文字、最后是完整结果；断开连接即停止）。不提供 MCP 版本：MCP 客户端本身就是模型，直接调用 31 个工具即可。
+- REST：`GET /api/chat/status`、`POST /api/chat`，以及同样参数的 `POST /api/chat/stream`（逐行 JSON：工具调用开始与完成、命盘卡片、回答文字、最后是完整结果；断开连接即停止）。不提供 MCP 版本：MCP 客户端本身就是模型，直接调用 32 个工具即可。
 - 对话体验：回答边写边显示，可随时停止（Esc）或重新回答、编辑上一个问题；回答按 Markdown 排版；模型排出的八字、紫微、奇门盘以小卡片嵌在回答里；每条回答后按本次用到的工具给出追问建议。
 - 择日择时：工作台「择日择时」或 `POST /api/date-scan`（MCP `date_candidate_scan`），在最多 93 天里按建除值日、交节日、本命相冲筛选候选日，可附加指定时刻的时家奇门盘；按日期列出，不打吉凶分。
 - 人生事件回溯：档案里记录人生事件后可一键对照（`POST /api/life-path`，MCP `life_path_review`），把每个事件与大运、流年干支、年度四化和本命地支关系并列，不需要配置模型。
@@ -45,7 +45,8 @@ export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_B
 - 大运流年时间条：四柱下方横排十步大运（十神、干支、起止年份、起运年龄），点选一步大运展开其中十年流年；点某一年直接打开紫微盘的同年流年层。
 - 四柱反查（`POST /api/pillars-to-dates`，MCP `pillars_to_dates`）：给出年月日柱（时柱可选），列出 1901–2099 年间所有对得上的出生时段，起止时刻用与排盘相同的计算逐秒校准；天干组合不合五虎遁、五鼠遁时直接说明不可能；每个时段可一键排盘。
 - 命盘导入核对（`POST /api/chart-import-check`，MCP `chart_import_check`）：粘贴其他软件排出的命盘（简体或繁体），识别四柱、命宫、身宫、五行局、命主身主、各宫主星和生年四化，与玄枢逐项比对；有差异时换用常见的不同规则（23:00 换日、闰月归属、平太阳时或真太阳时、扣除夏令时，以及两两组合）重算，列出能完全复现对方命盘的规则，可一键套用。
-- 今日历法（`POST /api/daily-almanac`，MCP `daily_almanac`）：按本机时间列出今天的四柱、农历、所在节气与距下一节气的进度、建除值日和月相（附下次满月、新月时刻）；生成命盘后再列出今天四柱对日主的十神，与本命四支的六冲、六合、同支，以及当前大运。页首有一行今日提示，点开即是完整卡片。只列历法事实，不打吉凶分、不给宜忌。
+- 今日历法（`POST /api/daily-almanac`，MCP `daily_almanac`）：按本机时间列出今天的四柱、农历、所在节气与距下一节气的进度、建除值日和月相（附下次满月、新月时刻）；生成命盘后再列出今天四柱对日主的十神，与本命四支的六冲、六合、同支，以及当前大运。页首有一行今日提示，点开即是完整卡片。只列历法事实，不打吉凶分、不给宜忌。卡片上可以选其他日期和时刻、逐日翻看；页面开着时整点自动刷新。
+- 多人关系（`POST /api/group-relations`，MCP `group_relations`）：从当前命盘、本机档案和临时添加的成员里选 2 到 8 人，列出成员四柱、可筛选的关系图、日干十神矩阵（行看列）、天干五合、地支六合/六冲/六害/相刑/同支明细、成员间凑齐的三合与五行分布。时辰不详的成员不参与时柱比较。只标传统标签，不打匹配分、不排名。
 - 性能：页面与静态资源 gzip 压缩，并按 ETag 校验缓存（未改动的文件返回 304）；API 与对话流不压缩。English、日本語与繁體的翻译表只在切换到该语言时才下载，简体中文首屏少下载约 245 KB。
 
 **Python 3.15 与体验改造（2026-10-10）：** Windows 系统用户默认及本项目虚拟环境已升级至 Python 3.15.0，uv 更新为 0.13.0；旧 3.13.7 安装和虚拟环境保留回退。界面提供常用功能优先、搜索全部 22 项、五类快捷咨询、折叠选项、草稿保留与可复制的本地 MCP 配置。详情见 docs/research/UX_AUDIT.md。Linux Docker 仍使用已验证的 Python 3.12。
@@ -68,7 +69,7 @@ export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_B
 
 ## 全工具验收与 Windows 本地检查（开发阶段）
 
-新增严格的全工具契约审计：逐项测试 **31 个 MCP Tool 与对应 REST 的输出一致性**。未安装的可选 `iztro-py` 必须明确返回「依赖未安装」，不允许被计算成功计数。运行：
+新增严格的全工具契约审计：逐项测试 **32 个 MCP Tool 与对应 REST 的输出一致性**。未安装的可选 `iztro-py` 必须明确返回「依赖未安装」，不允许被计算成功计数。运行：
 
 ```bash
 python scripts/full_functional_audit.py
@@ -282,6 +283,10 @@ python -m app.cli tools
 | `POST /api/analyze` | 非预测性文化规则说明 |
 | `POST /api/calendar` | 中国历法日历（1–31 天） |
 | `POST /api/pair` | 两人四柱结构对照 |
+| `POST /api/group-relations` | 2 到 8 人的十神、天干五合、地支关系与三合对照 |
+| `POST /api/daily-almanac` | 某一时刻的四柱、农历、节气进度、建除值日与月相，可附本命对照 |
+| `POST /api/pillars-to-dates` | 四柱反查 1901–2099 年间的出生时段 |
+| `POST /api/chart-import-check` | 外部命盘逐项核对并找出对方所用规则 |
 | `POST /api/palace` | 特定紫微宫位详情 |
 | `POST /api/lunar-to-gregorian` | 农历年/月/日及闰月标识反查公历 |
 | `POST /api/birth-window` | 对出生时间前后误差区间采样，列出观测到的不同命盘 |
@@ -321,7 +326,7 @@ curl -s http://127.0.0.1:8000/api/combined \
 
 ## ChatGPT / Claude / Codex 与 Skills
 
-- MCP 服务器 **31 个 Tools、17 个 Markdown Resources、15 个 Prompts**，位于 `app/mcp.py`；**18 个 Agent Skills** 在 `skills/`。
+- MCP 服务器 **32 个 Tools、17 个 Markdown Resources、15 个 Prompts**，位于 `app/mcp.py`；**18 个 Agent Skills** 在 `skills/`。
 - `python -m app.stdio` 可作为 Claude Desktop / Codex 的 MCP 子进程。
 - 公网宿主需要**公网 HTTPS URL + 合适鉴权方式 + 用户自行授权连接**。此工程还没有公共服务地址或安装到 ChatGPT / Claude 账户。
 - MCP 支持新版 **`2026-07-28` 无握手元数据机制**和旧版 `2025-03-26`、`2025-06-18`、`2025-11-25` 握手机制（stdio / 无状态 HTTP JSON）。新版校验请求元数据中的版本和 `clientCapabilities` 对象、`MCP-Protocol-Version`、`Mcp-Method` 和必要的 `Mcp-Name` 头；列表与规则读取回复带缓存提示；支持外部 OAuth JWT 资源服务器（需提供商与 HTTPS），不提供内建授权码登录服务、主动 SSE 订阅或需要多轮模型交互的扩展。

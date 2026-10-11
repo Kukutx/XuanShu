@@ -4,7 +4,7 @@ const $ = sel => document.querySelector(sel);
 const result = $('#result');
 const form = $('#birth-form');
 const tabs = [...document.querySelectorAll('.tab')];
-const commonTabs = new Set(['chat','today','date-scan','consult','bazi','qimen','ziwei','transform','dayun','calendar','pair','decision','report']);
+const commonTabs = new Set(['chat','today','date-scan','consult','bazi','qimen','ziwei','transform','dayun','calendar','pair','group','decision','report']);
 // Search alternative terminology without transmitting the user's query.
 const toolKeywords = {
   chat:'对话 聊天 ai chat 问答 记忆 人生事件 life path 回溯 多语言 english',
@@ -25,6 +25,7 @@ const toolKeywords = {
   decision:'方案 对比 权重 决策',
   calendar:'农历 日历 节气 日期',
   pair:'合盘 双人 伴侣 关系',
+  group:'多人 家人 家庭 团队 朋友 关系 三合 生肖 family team group',
   quality:'质量 核查 误差',
   reading:'传统 符号 分析',
   deep:'证据 来源 文献 规则',
@@ -961,6 +962,307 @@ function renderDecision() {
     `去掉「${x.omitted_criterion}」后首位：${x.leaders_without_it.join('、')}${x.leader_changed?' · 结果变化':' · 不变'}`));
   decisionResult.limitations.forEach(x=>note(result,x));
 }
+// Group relations: two to eight charts from the current form, local profiles and members added here.
+// Members added on this page live only in memory; nothing is stored.
+let groupResult = null, groupKey = null;
+let groupDraft = {useCurrent: true, currentLabel: '我', profiles: [], extras: [], filter: 'all', focus: null,
+  extra: {label: '', birth_datetime: '1990-01-01T12:00', timezone: 'Asia/Shanghai', hour_unknown: false}};
+const GROUP_LINKS = [['all', '全部'], ['combine', '天干五合'], ['六合', '六合'], ['六冲', '六冲'], ['六害', '六害'], ['相刑', '相刑'], ['同支', '同支']];
+const LINK_CLASS = {'六合': 'harmony', '六冲': 'clash', '六害': 'harm', '相刑': 'punish', '同支': 'same', combine: 'combine'};
+const BIRTH_KEYS = ['birth_datetime', 'timezone', 'gender', 'late_zi_day_rollover', 'leap_month_second_half_as_next', 'time_mode', 'longitude'];
+function birthOf(data) {
+  const birth = {};
+  BIRTH_KEYS.forEach(key => {if (data[key] !== undefined) birth[key] = data[key];});
+  return birth;
+}
+function groupMembers() {
+  const members = [], saved = loadProfiles();
+  if (groupDraft.useCurrent && currentInput) members.push({label: groupDraft.currentLabel.trim() || '我', birth: birthOf(currentInput), hour_unknown: currentHourUnknown});
+  groupDraft.profiles.forEach(id => {
+    const entry = saved.find(x => x.id === id);
+    if (entry) members.push({label: entry.label.trim().slice(0, 50) || '档案', birth: birthOf(entry.data), hour_unknown: entry.hour_unknown === true});
+  });
+  groupDraft.extras.forEach(x => members.push({label: x.label, birth: {birth_datetime: x.birth_datetime, timezone: x.timezone}, hour_unknown: x.hour_unknown}));
+  // Labels must be distinct; a repeated one gets a number.
+  const seen = new Map();
+  members.forEach(m => {
+    const n = (seen.get(m.label) || 0) + 1; seen.set(m.label, n);
+    if (n > 1) m.label = m.label.slice(0, 46) + ' (' + n + ')';
+  });
+  return members;
+}
+function pairOf(g, i, j) {return g.pairs.find(p => (p.a === i && p.b === j) || (p.a === j && p.b === i));}
+function pairHas(p, type) {
+  if (type === 'all') return p.branch_links.length > 0 || !!p.day_stems.combination;
+  if (type === 'combine') return !!p.day_stems.combination;
+  return p.label_counts[type] > 0;
+}
+function pairCount(p, type) {
+  if (type === 'all') return p.branch_links.length + (p.day_stems.combination ? 1 : 0);
+  if (type === 'combine') return p.day_stems.combination ? 1 : 0;
+  return p.label_counts[type];
+}
+function renderGroup() {
+  title(result, '多人关系', '家人、团队或朋友的四柱并排 · 只标传统标签，不打分');
+  append(result, 'p', 'info-inline', '从当前命盘、本机档案和在这里临时添加的成员中选 2 到 8 人。临时成员只留在本页，刷新后消失；服务器不保存。');
+  const picker = append(result, 'div', 'group-picker');
+  const current = append(picker, 'div', 'group-option');
+  const currentBox = append(append(current, 'label', 'check-line'), 'input'); currentBox.type = 'checkbox'; currentBox.id = 'group-current';
+  currentBox.checked = groupDraft.useCurrent && !!currentInput; currentBox.disabled = !currentInput;
+  currentBox.parentNode.append(currentInput ? '当前命盘' : '当前命盘（先生成命盘）');
+  const currentLabel = append(current, 'input', 'group-label user-text'); currentLabel.id = 'group-current-label'; currentLabel.hidden = !currentInput;
+  currentLabel.maxLength = 50; currentLabel.value = groupDraft.currentLabel; currentLabel.setAttribute('aria-label', '当前命盘的称呼');
+  currentBox.addEventListener('change', () => {groupDraft.useCurrent = currentBox.checked; render();});
+  currentLabel.addEventListener('input', () => {groupDraft.currentLabel = currentLabel.value;});
+  const saved = loadProfiles();
+  groupDraft.profiles = groupDraft.profiles.filter(id => saved.some(x => x.id === id));
+  if (saved.length) {
+    append(picker, 'h4', 'subheading', '本机档案');
+    const list = append(picker, 'div', 'group-profiles');
+    saved.forEach(entry => {
+      const row = append(list, 'label', 'check-line group-profile');
+      const box = append(row, 'input'); box.type = 'checkbox'; box.value = entry.id; box.id = 'group-profile-' + entry.id;
+      box.checked = groupDraft.profiles.includes(entry.id);
+      append(row, 'span', 'user-text', entry.label);
+      append(row, 'small', 'muted', String(entry.data.birth_datetime || '').replace('T', ' '));
+      box.addEventListener('change', () => {
+        groupDraft.profiles = box.checked ? [...groupDraft.profiles, entry.id] : groupDraft.profiles.filter(id => id !== entry.id);
+        render();
+      });
+    });
+  } else {
+    append(picker, 'p', 'field-help', '还没有本机档案。在出生资料下方保存档案后，可以在这里勾选。');
+  }
+  append(picker, 'h4', 'subheading', '临时添加');
+  groupDraft.extras.forEach((x, index) => {
+    const row = append(picker, 'div', 'group-extra');
+    append(row, 'span', 'user-text', x.label);
+    append(row, 'small', 'muted', x.birth_datetime.replace('T', ' ') + ' · ' + x.timezone);
+    if (x.hour_unknown) append(row, 'small', 'muted', '时辰不详');
+    const remove = append(row, 'button', 'tiny-button', '移除'); remove.type = 'button';
+    remove.addEventListener('click', () => {groupDraft.extras.splice(index, 1); render();});
+  });
+  const add = append(picker, 'div', 'inline-control group-add');
+  const draft = groupDraft.extra;
+  const nameInput = createInput('称呼', 'text', draft.label, add); nameInput.id = 'group-extra-label'; nameInput.maxLength = 50;
+  nameInput.className = 'user-text'; nameInput.placeholder = '例如：妈妈';
+  const when = createInput('公历出生日期与时间', 'datetime-local', draft.birth_datetime, add);
+  when.id = 'group-extra-datetime'; when.min = '1901-01-01T00:00'; when.max = '2099-12-31T23:59';
+  const zoneLabel = append(add, 'label', null, '时区');
+  const zone = append(zoneLabel, 'select'); zone.id = 'group-extra-timezone';
+  [...$('#timezone').options].forEach(opt => {const option = append(zone, 'option', null, opt.textContent); option.value = opt.value;});
+  zone.value = draft.timezone;
+  const unknownRow = append(add, 'label', 'check-line');
+  const unknown = append(unknownRow, 'input'); unknown.type = 'checkbox'; unknown.id = 'group-extra-unknown'; unknown.checked = draft.hour_unknown;
+  unknownRow.append('不知道出生时辰');
+  const addButton = append(add, 'button', 'tiny-button', '添加成员'); addButton.type = 'button'; addButton.id = 'group-extra-add';
+  const addError = append(picker, 'p', 'inline-msg');
+  nameInput.addEventListener('input', () => {draft.label = nameInput.value;});
+  when.addEventListener('input', () => {draft.birth_datetime = when.value;});
+  zone.addEventListener('change', () => {draft.timezone = zone.value;});
+  unknown.addEventListener('change', () => {draft.hour_unknown = unknown.checked;});
+  addButton.addEventListener('click', () => {
+    const label = nameInput.value.trim();
+    if (!label) {addError.textContent = '先填写称呼'; return;}
+    if (!when.value) {addError.textContent = '请填写出生时间'; return;}
+    if (groupMembers().length >= 8) {addError.textContent = '最多 8 人'; return;}
+    groupDraft.extras.push({label, birth_datetime: when.value, timezone: zone.value, hour_unknown: unknown.checked});
+    groupDraft.extra = {...draft, label: ''};
+    render();
+  });
+  const members = groupMembers();
+  const runRow = append(result, 'div', 'inline-control group-run');
+  const count = append(runRow, 'span', 'group-count');
+  texts(count, '已选 ', members.length + ' / 8', ' 人');
+  const run = append(runRow, 'button', null, '对照关系'); run.type = 'button'; run.id = 'group-run';
+  run.disabled = members.length < 2 || members.length > 8;
+  const error = append(result, 'p', 'inline-msg');
+  if (members.length > 8) error.textContent = '最多 8 人，请取消一些勾选';
+  run.addEventListener('click', async () => {
+    run.disabled = true; error.textContent = '';
+    try {
+      groupResult = await postJSON('/api/group-relations', {members});
+      groupKey = JSON.stringify(members); groupDraft.focus = null;
+      render();
+    } catch (err) {error.textContent = '对照失败：' + err.message; run.disabled = false;}
+  });
+  if (!groupResult) return;
+  if (groupKey !== JSON.stringify(members)) append(result, 'p', 'feature-note', '成员已改变，下面仍是上一次的结果；点「对照关系」更新。');
+  renderGroupResult(groupResult);
+}
+function renderGroupResult(g) {
+  const cards = append(result, 'div', 'group-members');
+  g.members.forEach((m, i) => {
+    const card = append(cards, 'article', 'group-member');
+    if (groupDraft.focus === i) card.classList.add('is-focus');
+    const head = append(card, 'div', 'group-member-head');
+    append(head, 'span', 'group-dot bg-' + ELEMENT_CLASS[m.day_master_element]);
+    append(head, 'strong', 'user-text', m.label);
+    const sub = append(card, 'small', 'muted');
+    texts(sub, ANIMAL_YEARS[BRANCH_ORDER.indexOf(m.pillars.year[1])], ' · ', '日主', ' ' + m.day_master + m.day_master_element);
+    const pillars = append(card, 'div', 'group-pillars');
+    ['year', 'month', 'day', 'hour'].forEach(key => {
+      const cell = append(pillars, 'span', 'group-pillar');
+      append(cell, 'small', null, nameMap[key]);
+      const text = m.pillars[key];
+      if (text) {append(cell, 'b', stemClass(text[0]), text[0]); append(cell, 'b', branchClass(text[1]), text[1]);}
+      else append(cell, 'b', 'muted', '?');
+    });
+  });
+
+  append(result, 'h4', 'subheading', '关系图');
+  const filters = append(result, 'div', 'group-filters');
+  filters.setAttribute('role', 'group'); filters.setAttribute('aria-label', '按标签筛选关系线');
+  GROUP_LINKS.forEach(([key, label], k) => {
+    const chip = append(filters, 'button', 'filter-chip' + (key === 'all' ? '' : ' link-' + LINK_CLASS[key]), label);
+    chip.type = 'button'; chip.dataset.filter = key; chip.id = 'group-filter-' + k; chip.setAttribute('aria-pressed', String(groupDraft.filter === key));
+    chip.addEventListener('click', () => {groupDraft.filter = key; render();});
+  });
+  groupGraph(result, g);
+  append(result, 'p', 'field-help', '线上的数字是该标签（或全部标签）的条数；点成员只看与他相关的线，点线打开这一对的明细。');
+
+  append(result, 'h4', 'subheading', '日干十神（行看列）');
+  const wrap = append(result, 'div', 'table-wrap');
+  const table = append(wrap, 'table', 'data-table group-matrix'); table.id = 'group-matrix';
+  const hr = append(append(table, 'thead'), 'tr');
+  append(hr, 'th', null, '从此人看 → 对方');
+  g.members.forEach(m => append(hr, 'th', 'user-text', m.label));
+  const body = append(table, 'tbody');
+  g.members.forEach((m, i) => {
+    const tr = append(body, 'tr');
+    if (groupDraft.focus === i) tr.classList.add('is-focus');
+    append(tr, 'th', 'user-text', m.label);
+    g.members.forEach((_, j) => {
+      const td = append(tr, 'td');
+      if (i === j) {append(td, 'span', 'muted', '—'); return;}
+      const p = pairOf(g, i, j);
+      append(td, 'span', null, p.a === i ? p.day_stems.a_sees_b : p.day_stems.b_sees_a);
+      if (p.day_stems.combination) append(td, 'small', 'relation-chip rel-harmony', p.day_stems.combination);
+    });
+  });
+
+  append(result, 'h4', 'subheading', '两两明细');
+  const list = append(result, 'div', 'group-pairs');
+  g.pairs.forEach(p => {
+    const item = append(list, 'details', 'group-pair'); item.id = `group-pair-${p.a}-${p.b}`;
+    const summary = append(item, 'summary');
+    append(summary, 'strong', 'user-text', p.a_label);
+    summary.append(' ↔ ');
+    append(summary, 'strong', 'user-text', p.b_label);
+    const tags = append(summary, 'span', 'group-tags');
+    if (p.day_stems.combination) append(tags, 'span', 'relation-chip link-combine', p.day_stems.combination);
+    Object.entries(p.label_counts).forEach(([type, n]) => {
+      if (n) texts(append(tags, 'span', 'relation-chip link-' + LINK_CLASS[type]), type, ' ', String(n));
+    });
+    if (!p.branch_links.length && !p.day_stems.combination) append(tags, 'span', 'muted', '无标记');
+    const facts = append(item, 'div', 'meta-tags');
+    const stems = append(facts, 'span');
+    append(stems, 'span', 'user-text', p.a_label); stems.append(' → ');
+    append(stems, 'span', 'user-text', p.b_label); texts(stems, '：', p.day_stems.a_sees_b);
+    const back = append(facts, 'span');
+    append(back, 'span', 'user-text', p.b_label); back.append(' → ');
+    append(back, 'span', 'user-text', p.a_label); texts(back, '：', p.day_stems.b_sees_a);
+    const zodiac = append(facts, 'span');
+    texts(zodiac, '生肖', ' ' + p.zodiac.a + ' / ' + p.zodiac.b);
+    p.zodiac.labels.forEach(x => zodiac.append(' · ', x));
+    if (p.branch_links.length) {
+      const t = append(append(item, 'div', 'table-wrap'), 'table', 'data-table');
+      const h = append(append(t, 'thead'), 'tr');
+      append(h, 'th', 'user-text', p.a_label); append(h, 'th', null, '地支');
+      append(h, 'th', 'user-text', p.b_label); append(h, 'th', null, '地支'); append(h, 'th', null, '标签');
+      const tb = append(t, 'tbody');
+      p.branch_links.forEach(link => {
+        const tr = append(tb, 'tr');
+        append(tr, 'td', null, link.a_label); append(append(tr, 'td'), 'b', branchClass(link.a_branch), link.a_branch);
+        append(tr, 'td', null, link.b_label); append(append(tr, 'td'), 'b', branchClass(link.b_branch), link.b_branch);
+        const tags = append(tr, 'td');
+        link.labels.forEach(x => append(tags, 'span', 'relation-chip link-' + LINK_CLASS[x], x));
+      });
+    }
+  });
+
+  append(result, 'h4', 'subheading', '三合');
+  if (!g.triads.length) append(result, 'p', 'field-help', '没有成员的年支或日支凑齐申子辰、亥卯未、寅午戌、巳酉丑。');
+  g.triads.forEach(x => {
+    const row = append(result, 'div', 'feature-note group-triad');
+    texts(row, x.pillar_label, '：', x.triad, ' · ', x.element, ' · ');
+    x.members.forEach((m, k) => {
+      if (k) row.append('、');
+      append(row, 'span', 'user-text', m.label);
+      row.append('（' + m.branch + '）');
+    });
+  });
+
+  append(result, 'h4', 'subheading', '五行分布');
+  const totals = g.element_overview.surface_totals, max = Math.max(1, ...Object.values(totals));
+  const grid = append(result, 'div', 'group-elements');
+  PHASES.split('').forEach(element => {
+    const row = append(grid, 'div', 'group-element');
+    append(row, 'b', elementClass(element), element);
+    const bar = append(row, 'span', 'group-bar');
+    const fill = append(bar, 'span', 'bg-' + ELEMENT_CLASS[element]); fill.style.width = (totals[element] / max * 100) + '%';
+    append(row, 'span', 'group-total', String(totals[element]));
+    const who = append(row, 'span', 'group-who');
+    const masters = g.element_overview.day_masters[element];
+    if (!masters.length) append(who, 'span', 'muted', '—');
+    masters.forEach((label, k) => {if (k) who.append('、'); append(who, 'span', 'user-text', label);});
+  });
+  append(result, 'p', 'field-help', '条形是全体成员四柱天干地支的表面五行合计（不含藏干）；右侧是日主属该五行的成员。');
+  g.notes.forEach(x => note(result, x));
+}
+function groupGraph(parent, g) {
+  const n = g.members.length, size = 360, c = size / 2, radius = n === 2 ? 110 : 128;
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${size} ${size}`); svg.setAttribute('class', 'group-graph'); svg.id = 'group-graph';
+  svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', '成员关系图');
+  const at = i => {
+    const angle = -Math.PI / 2 + 2 * Math.PI * i / n + (n === 2 ? Math.PI / 2 : 0);
+    return [c + radius * Math.cos(angle), c + radius * Math.sin(angle)];
+  };
+  const make = (tag, attrs, parentNode = svg) => {
+    const node = document.createElementNS(SVG_NS, tag);
+    Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, v));
+    parentNode.append(node);
+    return node;
+  };
+  const filter = groupDraft.filter, focus = groupDraft.focus;
+  g.pairs.forEach(p => {
+    const [x1, y1] = at(p.a), [x2, y2] = at(p.b);
+    const has = pairHas(p, filter), touches = focus === null || p.a === focus || p.b === focus;
+    const types = Object.keys(LINK_CLASS).filter(type => type === 'combine' ? !!p.day_stems.combination : p.label_counts[type] > 0);
+    const edge = make('g', {class: 'group-edge' + (has && touches ? '' : ' is-dim') + types.map(type => ' link-' + LINK_CLASS[type]).join('')});
+    edge.dataset.pair = p.a + '-' + p.b;
+    make('line', {x1, y1, x2, y2, class: 'edge-line' + (filter !== 'all' ? ' link-' + LINK_CLASS[filter] : ''), 'stroke-width': has ? 1.5 + Math.min(pairCount(p, filter), 6) * 0.5 : 1}, edge);
+    make('line', {x1, y1, x2, y2, class: 'edge-hit'}, edge);
+    const count = pairCount(p, filter);
+    if (has) {
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      make('circle', {cx: mx, cy: my, r: 9, class: 'edge-badge'}, edge);
+      const label = make('text', {x: mx, y: my + 4, 'text-anchor': 'middle', class: 'edge-count'}, edge);
+      label.textContent = String(count);
+    }
+    const tip = make('title', {}, edge);
+    tip.textContent = p.a_label + ' ↔ ' + p.b_label;
+    edge.addEventListener('click', () => {
+      const item = document.getElementById(`group-pair-${p.a}-${p.b}`);
+      if (item) {item.open = true; item.scrollIntoView({block: 'center', behavior: 'smooth'});}
+    });
+  });
+  g.members.forEach((m, i) => {
+    const [x, y] = at(i);
+    const node = make('g', {id: 'group-node-' + i, class: 'group-node' + (focus === i ? ' is-focus' : ''), tabindex: 0, role: 'button',
+      'aria-pressed': String(focus === i), 'aria-label': m.label});
+    make('circle', {cx: x, cy: y, r: 27, class: 'node-disc node-' + ELEMENT_CLASS[m.day_master_element]}, node);
+    const stem = make('text', {x, y: y + 6, 'text-anchor': 'middle', class: 'node-stem'}, node);
+    stem.textContent = m.day_master;
+    const name = make('text', {x, y: y + (y > c ? 46 : -36), 'text-anchor': 'middle', class: 'node-name user-text'}, node);
+    name.textContent = m.label.length > 6 ? m.label.slice(0, 6) + '…' : m.label;
+    const toggle = () => {groupDraft.focus = groupDraft.focus === i ? null : i; render();};
+    node.addEventListener('click', toggle);
+    node.addEventListener('keydown', event => {if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); toggle();}});
+  });
+  append(parent, 'div', 'group-graph-wrap').append(svg);
+}
 // Reverse lookup: four pillars -> every matching birth interval in 1901–2099.
 const JIAZI = Array.from({length: 60}, (_, i) => STEM_ORDER[i % 10] + BRANCH_ORDER[i % 12]);
 let pillarDraft = null, pillarResult = null;
@@ -982,21 +1284,57 @@ function ensureToday(then) {
   const body = todayRequest(), key = JSON.stringify(body);
   if (todayKey === key || todayPending) return;
   todayPending = true;
-  // The natal comparison is optional (a chart born after this moment is rejected), and an unrecognised
-  // device zone falls back to China time: either way the plain card still shows.
-  const tries = [body];
-  if (body.birth) {const {birth, ...plain} = body; tries.push(plain);}
-  if (body.timezone !== 'Asia/Shanghai') tries.push(...tries.map(data => ({...data, timezone: 'Asia/Shanghai'})));
-  (async () => {
-    let last = null;
-    for (const data of tries) {
-      try {return {data, result: await postJSON('/api/daily-almanac', data)};} catch (err) {last = err;}
-    }
-    throw last;
-  })()
-    .then(({data, result}) => {todayData = result; todayError = ''; todayBirthSkipped = !!body.birth && !data.birth;})
+  fetchAlmanac(body, true)
+    .then(({result, birthSkipped}) => {todayData = result; todayError = ''; todayBirthSkipped = birthSkipped;})
     .catch(err => {todayData = null; todayError = err.message;})
     .finally(() => {todayPending = false; todayKey = key; renderTodayChip(); if (then) then();});
+}
+// The natal comparison is optional (a chart born after the moment is rejected), and an unrecognised
+// device zone may fall back to China time: either way the plain card still shows.
+async function fetchAlmanac(body, zoneFallback) {
+  const tries = [body];
+  if (body.birth) {const {birth, ...plain} = body; tries.push(plain);}
+  if (zoneFallback && body.timezone !== 'Asia/Shanghai') tries.push(...tries.map(data => ({...data, timezone: 'Asia/Shanghai'})));
+  let last = null;
+  for (const data of tries) {
+    try {return {result: await postJSON('/api/daily-almanac', data), birthSkipped: !!body.birth && !data.birth};}
+    catch (err) {last = err;}
+  }
+  throw last;
+}
+// Another date and time picked on the card. It reuses the zone the live card already resolved, so a time
+// that does not exist there (a skipped daylight-saving hour) is reported rather than moved to China time.
+let todayPick = null, pickData = null, pickKey = null, pickPending = false, pickError = '', pickBirthSkipped = false;
+function pickRequest() {
+  const body = {moment: todayPick.date + 'T' + todayPick.time, timezone: todayData ? todayData.timezone : deviceZone()};
+  if (current && currentInput) body.birth = currentInput;
+  return body;
+}
+function shiftDate(day, days) {
+  const [y, m, d] = day.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+function todayPicker(parent) {
+  const bar = append(parent, 'div', 'inline-control today-picker');
+  const date = createInput('日期', 'date', todayPick ? todayPick.date : localToday(), bar);
+  date.id = 'today-date'; date.min = '1901-01-01'; date.max = '2099-12-31';
+  const time = createInput('时间', 'time', todayPick ? todayPick.time : localMoment().slice(11, 16), bar);
+  time.id = 'today-time';
+  const pick = (day, clock) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day < '1901-01-01' || day > '2099-12-31' || !clock) return;
+    todayPick = {date: day, time: clock}; render();
+  };
+  const nav = append(bar, 'div', 'today-nav');
+  [['today-prev', '前一天', -1], ['today-next', '后一天', 1]].forEach(([id, label, days]) => {
+    const button = append(nav, 'button', 'tiny-button', label); button.type = 'button'; button.id = id;
+    button.addEventListener('click', () => pick(shiftDate(date.value || localToday(), days), time.value || '12:00'));
+  });
+  if (todayPick) {
+    const now = append(nav, 'button', 'tiny-button', '回到此刻'); now.type = 'button'; now.id = 'today-now';
+    now.addEventListener('click', () => {todayPick = null; render();});
+  }
+  date.addEventListener('change', () => pick(date.value, time.value || '12:00'));
+  time.addEventListener('change', () => pick(date.value || localToday(), time.value));
 }
 // A page left open keeps the card current: refetch once the device clock reaches a new hour (the hour
 // pillar and, at midnight, the date change) and whenever the page becomes visible again.
@@ -1035,13 +1373,33 @@ const ANIMAL_YEARS = ['鼠年', '牛年', '虎年', '兔年', '龙年', '蛇年'
 // Numbers sit in their own text node so the units around them translate as whole entries.
 function texts(parent, ...parts) {parts.forEach(part => parent.append(String(part))); return parent;}
 function renderToday() {
-  title(result, '今日历法', '本机时间 · 历法事实 · 不打吉凶分');
-  if (todayKey !== JSON.stringify(todayRequest())) {
-    ensureToday(() => {if (active === 'today') render();});
-    if (!todayData) {append(result, 'p', 'field-help', '正在计算今天的四柱、节气和月相…'); return;}
+  title(result, '今日历法', todayPick ? '所选时刻 · 历法事实 · 不打吉凶分' : '本机时间 · 历法事实 · 不打吉凶分');
+  todayPicker(result);
+  let t, skipped;
+  if (todayPick) {
+    const body = pickRequest(), key = JSON.stringify(body);
+    if (pickKey !== key) {
+      if (!pickPending) {
+        pickPending = true;
+        fetchAlmanac(body, false)
+          .then(({result: data, birthSkipped}) => {pickData = data; pickError = ''; pickBirthSkipped = birthSkipped;})
+          .catch(err => {pickData = null; pickError = err.message;})
+          .finally(() => {pickPending = false; pickKey = key; if (active === 'today') render();});
+      }
+      append(result, 'p', 'field-help', '正在计算所选时刻的四柱、节气和月相…');
+      return;
+    }
+    if (!pickData) {append(result, 'p', 'inline-msg', '所选时刻算不出来：' + pickError); return;}
+    t = pickData; skipped = pickBirthSkipped;
+  } else {
+    if (todayKey !== JSON.stringify(todayRequest())) {
+      ensureToday(() => {if (active === 'today') render();});
+      if (!todayData) {append(result, 'p', 'field-help', '正在计算今天的四柱、节气和月相…'); return;}
+    }
+    if (!todayData) {append(result, 'p', 'inline-msg', '今日历法暂时算不出来：' + todayError); return;}
+    t = todayData; skipped = todayBirthSkipped;
   }
-  if (!todayData) {append(result, 'p', 'inline-msg', '今日历法暂时算不出来：' + todayError); return;}
-  const t = todayData;
+  const day = todayPick ? '当天' : '今天';
   const hero = append(result, 'section', 'today-hero');
   const date = append(hero, 'div', 'today-date');
   texts(append(date, 'small'), t.date.replace(/-/g, '/'), ' · ', WEEKDAY_NAMES['一二三四五六日'.indexOf(t.weekday)]);
@@ -1075,17 +1433,17 @@ function renderToday() {
   const next = append(term, 'div', 'today-term-next');
   append(next, 'strong', null, t.solar_term.next.name);
   const until = append(next, 'small');
-  if (t.solar_term.next.days_until) texts(until, String(t.solar_term.next.days_until), ' 天后'); else texts(until, '今天');
+  if (t.solar_term.next.days_until) texts(until, String(t.solar_term.next.days_until), ' 天后'); else texts(until, day);
   texts(until, ' · ', '交节', ' ' + clockOf(t.solar_term.next.start));
 
   const facts = append(result, 'div', 'meta-tags today-facts');
   texts(append(facts, 'span'), '建除值日', ' ' + t.day_officer.officer);
-  if (t.day_officer.jie_boundary_on_date) append(facts, 'span', null, '今天交节，节令前后值日不同');
+  if (t.day_officer.jie_boundary_on_date) append(facts, 'span', null, todayPick ? '当天交节，节令前后值日不同' : '今天交节，节令前后值日不同');
   texts(append(facts, 'span'), '农历本月', ' ' + t.lunar.month_days, ' 天');
   append(facts, 'span', null, t.timezone);
 
   append(result, 'h4', 'subheading', '与我的命盘');
-  if (!t.personal && todayBirthSkipped) {
+  if (!t.personal && skipped) {
     append(result, 'p', 'field-help', '当前命盘的出生时间晚于此刻，不列个人对照。');
   } else if (!t.personal) {
     const empty = append(result, 'div', 'today-empty');
@@ -1102,7 +1460,7 @@ function renderToday() {
     const wrap = append(result, 'div', 'table-wrap');
     const table = append(wrap, 'table', 'data-table today-table');
     const head = append(append(table, 'thead'), 'tr');
-    ['', '今日', '天干十神', '地支与本命'].forEach(text => append(head, 'th', null, text));
+    ['', todayPick ? '当日' : '今日', '天干十神', '地支与本命'].forEach(text => append(head, 'th', null, text));
     const body = append(table, 'tbody');
     me.today_against_natal.forEach(row => {
       const tr = append(body, 'tr');
@@ -1708,7 +2066,7 @@ function renderIntegration() {
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
-  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
+  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, group_relations: groupResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
 }
 function renderConsultation() {
   title(result, '问题驱动咨询工作流', '真实执行工具 · 保留证据来源 · 不在服务器保存对话');
@@ -1855,6 +2213,7 @@ function renderView() {
   if (active === 'timeline') return renderTimeline();
   if (active === 'decision') return renderDecision();
   if (active === 'pair') return renderPair();
+  if (active === 'group') return renderGroup();
   if (active === 'integration') return renderIntegration();
   if (active === 'time') return renderTimeAudit();
   if (active === 'annual') return renderAnnual();
