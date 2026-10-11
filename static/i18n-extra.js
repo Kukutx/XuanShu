@@ -4722,6 +4722,14 @@ const UI_EXTRA = {
 "Hour unknown",
 "時辰不明"
 ],
+"时辰不详且出生当天交节（或按 23:00 换日）的成员，当天之内会变的年柱、月柱或日柱也不参与比较。": [
+"For members whose birth hour is unknown and whose birth date has a jie boundary (or a 23:00 day change), the year, month or day pillar that changes within that day is left out too.",
+"出生時刻が不明で、出生日に節入り（または 23:00 の日替わり）があるメンバーは、その日のうちに変わる年柱・月柱・日柱も比較しません。"
+],
+"时辰不详且当天交节或换日：带 ? 的柱不参与比较": [
+"Birth hour unknown on a jie or day-change date: pillars marked ? are left out",
+"出生時刻不明で当日に節入りか日替わりあり：? の柱は比較しません"
+],
 "时辰不详：哪些部分不受时辰影响": [
 "Hour unknown: what the hour does not change",
 "時辰不明：時辰に左右されない部分"
@@ -5810,6 +5818,10 @@ const UI_EXTRA = {
 "Zodiac",
 "干支の動物"
 ],
+"生肖不定": [
+"Zodiac uncertain",
+"干支の動物は未確定"
+],
 "生门": [
 "Life Door (Sheng)",
 "生門"
@@ -6053,6 +6065,10 @@ const UI_EXTRA = {
 "立秋": [
 "Start of Autumn (Liqiu)",
 "立秋"
+],
+"第二个人（或多人）的出生资料只有在用户勾选「已获对方同意」后才能使用；未勾选时 pair_comparison、ziwei_pair_overlay、group_relations 和带 partner 的 consultation_execute 会被拒绝，请提示用户先勾选。": [
+"Another person's (or several people's) birth data may be used only after the user ticks “consent obtained”; until then pair_comparison, ziwei_pair_overlay, group_relations and consultation_execute with a partner are refused, so ask the user to tick it first.",
+"第二の人物（または複数人）の出生情報は、ユーザーが「相手の同意を得た」にチェックした後でのみ使えます。未チェックの間は pair_comparison・ziwei_pair_overlay・group_relations と partner 付きの consultation_execute は拒否されるので、先にチェックするよう案内してください。"
 ],
 "第二人时间（当地）": [
 "Second person's time (local)",
@@ -6705,6 +6721,10 @@ const UI_EXTRA = {
 "请输入具体问题": [
 "Please enter a specific question",
 "具体的な質問を入力してください"
+],
+"请选 2 到 8 人": [
+"Choose 2 to 8 people",
+"2〜8 人を選んでください"
 ],
 "请选择有效日期": [
 "Please select a valid date",

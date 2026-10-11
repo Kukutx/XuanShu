@@ -983,11 +983,12 @@ function groupMembers() {
     if (entry) members.push({label: entry.label.trim().slice(0, 50) || '档案', birth: birthOf(entry.data), hour_unknown: entry.hour_unknown === true});
   });
   groupDraft.extras.forEach(x => members.push({label: x.label, birth: {birth_datetime: x.birth_datetime, timezone: x.timezone}, hour_unknown: x.hour_unknown}));
-  // Labels must be distinct; a repeated one gets a number.
-  const seen = new Map();
+  // Labels must be distinct: a repeated one gets the first number that no other final label uses.
+  const used = new Set();
   members.forEach(m => {
-    const n = (seen.get(m.label) || 0) + 1; seen.set(m.label, n);
-    if (n > 1) m.label = m.label.slice(0, 46) + ' (' + n + ')';
+    let label = m.label;
+    for (let n = 2; used.has(label); n++) {const suffix = ' (' + n + ')'; label = m.label.slice(0, 50 - suffix.length) + suffix;}
+    used.add(label); m.label = label;
   });
   return members;
 }
@@ -998,7 +999,8 @@ function pairHas(p, type) {
   return p.label_counts[type] > 0;
 }
 function pairCount(p, type) {
-  if (type === 'all') return p.branch_links.length + (p.day_stems.combination ? 1 : 0);
+  // Every label counts: one branch link can carry two (寅/巳 is both 六害 and 相刑).
+  if (type === 'all') return Object.values(p.label_counts).reduce((a, b) => a + b, 0) + (p.day_stems.combination ? 1 : 0);
   if (type === 'combine') return p.day_stems.combination ? 1 : 0;
   return p.label_counts[type];
 }
@@ -1079,10 +1081,13 @@ function renderGroup() {
   const error = append(result, 'p', 'inline-msg');
   if (members.length > 8) error.textContent = '最多 8 人，请取消一些勾选';
   run.addEventListener('click', async () => {
+    // Read the selection again: a label typed since the last render is not in `members` yet.
+    const chosen = groupMembers();
+    if (chosen.length < 2 || chosen.length > 8) {error.textContent = '请选 2 到 8 人'; return;}
     run.disabled = true; error.textContent = '';
     try {
-      groupResult = await postJSON('/api/group-relations', {members});
-      groupKey = JSON.stringify(members); groupDraft.focus = null;
+      groupResult = await postJSON('/api/group-relations', {members: chosen});
+      groupKey = JSON.stringify(chosen); groupDraft.focus = null;
       render();
     } catch (err) {error.textContent = '对照失败：' + err.message; run.disabled = false;}
   });
@@ -1096,10 +1101,11 @@ function renderGroupResult(g) {
     const card = append(cards, 'article', 'group-member');
     if (groupDraft.focus === i) card.classList.add('is-focus');
     const head = append(card, 'div', 'group-member-head');
-    append(head, 'span', 'group-dot bg-' + ELEMENT_CLASS[m.day_master_element]);
+    append(head, 'span', 'group-dot ' + (m.day_master ? 'bg-' + ELEMENT_CLASS[m.day_master_element] : 'dot-unknown'));
     append(head, 'strong', 'user-text', m.label);
     const sub = append(card, 'small', 'muted');
-    texts(sub, ANIMAL_YEARS[BRANCH_ORDER.indexOf(m.pillars.year[1])], ' · ', '日主', ' ' + m.day_master + m.day_master_element);
+    texts(sub, m.pillars.year ? ANIMAL_YEARS[BRANCH_ORDER.indexOf(m.pillars.year[1])] : '生肖不定', ' · ', '日主', ' ' + (m.day_master ? m.day_master + m.day_master_element : '?'));
+    if (m.uncertain_pillars.length) append(card, 'small', 'group-uncertain', '时辰不详且当天交节或换日：带 ? 的柱不参与比较');
     const pillars = append(card, 'div', 'group-pillars');
     ['year', 'month', 'day', 'hour'].forEach(key => {
       const cell = append(pillars, 'span', 'group-pillar');
@@ -1136,7 +1142,7 @@ function renderGroupResult(g) {
       const td = append(tr, 'td');
       if (i === j) {append(td, 'span', 'muted', '—'); return;}
       const p = pairOf(g, i, j);
-      append(td, 'span', null, p.a === i ? p.day_stems.a_sees_b : p.day_stems.b_sees_a);
+      append(td, 'span', p.day_stems.a_sees_b ? null : 'muted', (p.a === i ? p.day_stems.a_sees_b : p.day_stems.b_sees_a) || '?');
       if (p.day_stems.combination) append(td, 'small', 'relation-chip rel-harmony', p.day_stems.combination);
     });
   });
@@ -1158,12 +1164,12 @@ function renderGroupResult(g) {
     const facts = append(item, 'div', 'meta-tags');
     const stems = append(facts, 'span');
     append(stems, 'span', 'user-text', p.a_label); stems.append(' → ');
-    append(stems, 'span', 'user-text', p.b_label); texts(stems, '：', p.day_stems.a_sees_b);
+    append(stems, 'span', 'user-text', p.b_label); texts(stems, '：', p.day_stems.a_sees_b || '?');
     const back = append(facts, 'span');
     append(back, 'span', 'user-text', p.b_label); back.append(' → ');
-    append(back, 'span', 'user-text', p.a_label); texts(back, '：', p.day_stems.b_sees_a);
+    append(back, 'span', 'user-text', p.a_label); texts(back, '：', p.day_stems.b_sees_a || '?');
     const zodiac = append(facts, 'span');
-    texts(zodiac, '生肖', ' ' + p.zodiac.a + ' / ' + p.zodiac.b);
+    texts(zodiac, '生肖', ' ' + (p.zodiac.a || '?') + ' / ' + (p.zodiac.b || '?'));
     p.zodiac.labels.forEach(x => zodiac.append(' · ', x));
     if (p.branch_links.length) {
       const t = append(append(item, 'div', 'table-wrap'), 'table', 'data-table');
@@ -1252,9 +1258,9 @@ function groupGraph(parent, g) {
     const [x, y] = at(i);
     const node = make('g', {id: 'group-node-' + i, class: 'group-node' + (focus === i ? ' is-focus' : ''), tabindex: 0, role: 'button',
       'aria-pressed': String(focus === i), 'aria-label': m.label});
-    make('circle', {cx: x, cy: y, r: 27, class: 'node-disc node-' + ELEMENT_CLASS[m.day_master_element]}, node);
+    make('circle', {cx: x, cy: y, r: 27, class: 'node-disc ' + (m.day_master ? 'node-' + ELEMENT_CLASS[m.day_master_element] : 'node-unknown')}, node);
     const stem = make('text', {x, y: y + 6, 'text-anchor': 'middle', class: 'node-stem'}, node);
-    stem.textContent = m.day_master;
+    stem.textContent = m.day_master || '?';
     const name = make('text', {x, y: y + (y > c ? 46 : -36), 'text-anchor': 'middle', class: 'node-name user-text'}, node);
     name.textContent = m.label.length > 6 ? m.label.slice(0, 6) + '…' : m.label;
     const toggle = () => {groupDraft.focus = groupDraft.focus === i ? null : i; render();};

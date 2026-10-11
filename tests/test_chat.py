@@ -85,6 +85,12 @@ def test_partner_tools_need_the_users_consent_tick():
     allowed = run_chat(ChatRequest(messages=message, partner_authorized=True), config=CONFIG,
                        loop=scripted_loop([('pair_comparison', pair)]))
     assert allowed['trace'][0]['ok']
+    group = {'members': [{'label': 'A', 'birth': BIRTH}, {'label': 'B', 'birth': pair['person_b']}]}
+    denied = run_chat(ChatRequest(messages=message), config=CONFIG, loop=scripted_loop([('group_relations', group)]))
+    assert not denied['trace'][0]['ok'] and '已获对方同意' in denied['trace'][0]['error']
+    allowed = run_chat(ChatRequest(messages=message, partner_authorized=True), config=CONFIG,
+                       loop=scripted_loop([('group_relations', group)]))
+    assert allowed['trace'][0]['ok']
 
 
 def test_malformed_openai_arguments_are_traced(monkeypatch):

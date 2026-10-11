@@ -52,6 +52,26 @@ def test_unknown_hour_is_left_out_of_every_comparison():
     assert sum(out['members'][2]['surface_five_elements'].values()) == 6
 
 
+def test_unknown_hour_on_a_boundary_day_leaves_the_changing_pillars_out():
+    # 2026 立春 falls at 04:02 China time on 2026-02-04: with the hour unknown, the year and month are unknown.
+    lichun = member('立春', '2026-02-04T12:00', hour_unknown=True)
+    late = {'label': '晚子', 'birth': {'birth_datetime': '1996-08-08T12:00', 'timezone': 'Asia/Shanghai',
+                                     'late_zi_day_rollover': True}, 'hour_unknown': True}
+    out = group_relations(GroupRequest(members=[lichun, FAMILY[0], late]))
+    first, _, third = out['members']
+    assert first['pillars'] == {'year': None, 'month': None, 'day': '己酉', 'hour': None}
+    assert first['uncertain_pillars'] == ['year', 'month'] and first['zodiac'] is None and first['day_master'] == '己'
+    # With the 23:00 day change the last hour belongs to the next day, so the day pillar (and day master) is unknown.
+    assert third['uncertain_pillars'] == ['day'] and third['day_master'] is None and third['pillars']['year'] == '丙子'
+    pairs = {(p['a_label'], p['b_label']): p for p in out['pairs']}
+    assert pairs[('立春', '我')]['zodiac']['labels'] == [] and pairs[('立春', '我')]['day_stems']['a_sees_b'] == '正财'
+    assert pairs[('我', '晚子')]['day_stems'] == {'a_sees_b': None, 'b_sees_a': None, 'combination': None}
+    assert all(link['a_pillar'] not in ('year', 'month', 'hour') for link in pairs[('立春', '我')]['branch_links'])
+    assert sum(first['surface_five_elements'].values()) == 2 and any('交节' in n for n in out['notes'])
+    ordinary = group_relations(GroupRequest(members=FAMILY))
+    assert all(m['uncertain_pillars'] == [] for m in ordinary['members'])
+
+
 def test_three_harmony_needs_different_members_covering_all_three_branches():
     trio = [member('申', '1992-06-06T09:00'), member('子', '1996-08-08T12:00'), member('辰', '2000-08-16T04:00')]
     out = group_relations(GroupRequest(members=trio))

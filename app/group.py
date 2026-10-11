@@ -64,23 +64,47 @@ def _labels(left: str, right: str) -> list[str]:
     return found
 
 
+def _at(birth: BirthInput, day: str, times: tuple[str, ...]) -> dict:
+    """Chart at the first of ``times`` on ``day`` that exists in the zone (a daylight-saving jump can skip one)."""
+    for clock in times:
+        try:
+            return calculate_bazi(birth.model_copy(update={'birth_datetime': f'{day}T{clock}'}))
+        except ValueError:
+            continue
+    raise ValueError(f'no valid local time found on {day}')
+
+
 def _member(m: GroupMember) -> dict:
     chart = calculate_bazi(m.birth)
     pillars = {key: chart['pillars'][key]['text'] for key, _ in PILLARS}
+    uncertain = []
     if m.hour_unknown:
         pillars['hour'] = None
+        # Any time of the day is possible: a jie boundary (or a 23:00 day change) inside the day makes the
+        # year, month or day pillar differ between its first and last minute, so that pillar is unknown too.
+        day = chart['birth_datetime'][:10]
+        ends = (_at(m.birth, day, ('00:00', '00:30', '01:00', '02:00')), _at(m.birth, day, ('23:59', '23:30', '23:00', '22:00')))
+        for key in ('year', 'month', 'day'):
+            if any(end['pillars'][key]['text'] != pillars[key] for end in ends):
+                pillars[key] = None
+                uncertain.append(key)
     return {
         'label': m.label,
         'birth_datetime': chart['birth_datetime'],
         'timezone': m.birth.timezone,
         'hour_unknown': m.hour_unknown,
+        'uncertain_pillars': uncertain,
         'pillars': pillars,
-        'day_master': chart['day_master'],
-        'day_master_element': chart['day_master_element'],
-        'zodiac': ANIMALS[BRANCHES.index(pillars['year'][1])],
-        # Stems and branches without hidden stems; the hour pillar is left out when unknown.
+        'day_master': chart['day_master'] if pillars['day'] else None,
+        'day_master_element': chart['day_master_element'] if pillars['day'] else None,
+        'zodiac': ANIMALS[BRANCHES.index(pillars['year'][1])] if pillars['year'] else None,
+        # Stems and branches without hidden stems; unknown pillars are left out.
         'surface_five_elements': _surface(pillars),
     }
+
+
+def _branch_labels(a: str | None, b: str | None) -> list[str]:
+    return _labels(a[1], b[1]) if a and b else []
 
 
 def _surface(pillars: dict) -> dict[str, int]:
@@ -93,7 +117,12 @@ def _surface(pillars: dict) -> dict[str, int]:
 
 
 def _pair(i: int, j: int, a: dict, b: dict) -> dict:
-    sa, sb = STEMS.index(a['day_master']), STEMS.index(b['day_master'])
+    if a['day_master'] and b['day_master']:
+        sa, sb = STEMS.index(a['day_master']), STEMS.index(b['day_master'])
+        stems = {'a_sees_b': _ten_god(sa, sb), 'b_sees_a': _ten_god(sb, sa),
+                 'combination': STEM_COMBINATIONS.get(frozenset((a['day_master'], b['day_master'])))}
+    else:
+        stems = {'a_sees_b': None, 'b_sees_a': None, 'combination': None}
     links = []
     for ka, la in PILLARS:
         for kb, lb in PILLARS:
@@ -107,12 +136,9 @@ def _pair(i: int, j: int, a: dict, b: dict) -> dict:
     counts = {name: sum(name in link['labels'] for link in links) for name in LINK_TYPES}
     return {
         'a': i, 'b': j, 'a_label': a['label'], 'b_label': b['label'],
-        'day_stems': {
-            'a_sees_b': _ten_god(sa, sb), 'b_sees_a': _ten_god(sb, sa),
-            'combination': STEM_COMBINATIONS.get(frozenset((a['day_master'], b['day_master']))),
-        },
-        'zodiac': {'a': a['zodiac'], 'b': b['zodiac'], 'labels': _labels(a['pillars']['year'][1], b['pillars']['year'][1])},
-        'day_branches': _labels(a['pillars']['day'][1], b['pillars']['day'][1]),
+        'day_stems': stems,
+        'zodiac': {'a': a['zodiac'], 'b': b['zodiac'], 'labels': _branch_labels(a['pillars']['year'], b['pillars']['year'])},
+        'day_branches': _branch_labels(a['pillars']['day'], b['pillars']['day']),
         'branch_links': links,
         'label_counts': counts,
     }
@@ -123,7 +149,7 @@ def _triads(members: list[dict]) -> list[dict]:
     for key, label in (('year', '年支（生肖）'), ('day', '日支')):
         for branches, element in BRANCH_TRIADS:
             holders = [{'label': m['label'], 'branch': m['pillars'][key][1]}
-                       for m in members if m['pillars'][key][1] in branches]
+                       for m in members if m['pillars'][key] and m['pillars'][key][1] in branches]
             if {h['branch'] for h in holders} == set(branches):
                 found.append({'pillar': key, 'pillar_label': label, 'triad': branches,
                               'element': element, 'members': holders})
@@ -142,6 +168,8 @@ def group_relations(req: GroupRequest) -> dict:
     ]
     if any(m['hour_unknown'] for m in members):
         notes.append('出生时辰不详的成员不参与时柱的比较。')
+    if any(m['uncertain_pillars'] for m in members):
+        notes.append('时辰不详且出生当天交节（或按 23:00 换日）的成员，当天之内会变的年柱、月柱或日柱也不参与比较。')
     return {
         'system': 'group-relations',
         'members': members,
