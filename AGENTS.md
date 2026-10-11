@@ -28,6 +28,7 @@ This repository is an independently implemented Chinese calendar/cultural chart 
 - `app/consultation.py`: deterministic six-scenario question-first executable orchestration. Not an autonomous LLM; no server persistence; partner records require explicit authorization.
 - `app/oauth_resource.py`: JWT resource server backed by an external OAuth issuer, not an OAuth authorization server.
 - `app/date_selection.py`: date-range candidate scan for 择日择时 (officer / jie-day / natal-clash filters, optional hour-Qimen); lists chronologically, never ranks luck.
+- `app/chat_verify.py`: chat answer confidence: deterministic chart stability under the stated birth-time uncertainty, and the separate verifier model call (forced tool, sees only question, answer and raw tool results).
 - `app/ziwei_pair.py`: two-person Zi Wei overlay on the shared branch grid (palace comparison, Ming/Shen landings, birth-year transformations into the other chart); no compatibility score.
 - `app/life_path.py`: user-reported life events beside 大运, solar year pillar, lunar-year four transformations and natal branch relations; co-occurrence only.
 - `static/cities.js`: offline birthplace presets (IANA zone + city-centre coordinates).

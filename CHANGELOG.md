@@ -1,5 +1,6 @@
 # 更新记录 · v.0.1.0（未发布）
 
+- 2026-10-11 天府功能对齐第三批（仍为 v.0.1.0）：AI 对话回答附带置信度（`app/chat_verify.py`）。排盘置信度按出生时间误差重算四柱与命身宫；独立核验 Agent 另行调用模型，逐条标注回答中的计算陈述是否有工具依据。请求新增 `verify` 与 `profile.birth_time_uncertainty_minutes`，响应新增 `verification`、`chart_confidence`。
 - 2026-10-11 天府功能对齐第二批（仍为 v.0.1.0）：新增双人紫微宫位叠盘（`app/ziwei_pair.py`、`POST /api/ziwei-pair`、MCP `ziwei_pair_overlay`，工具增至 28 个），「双人对照」页同时显示八字与紫微对照；新增界面语言切换（简体、繁體、English、日本語），繁體由 OpenCC 数据生成的字词表转换并保留术数术语。
 - 2026-10-10 天府功能对齐（仍为 v.0.1.0）：新增 `docs/research/TIANFU_PARITY.md` 逐项对照天府 Agent 公开功能。新增可选 AI 对话（`app/chat.py`、`POST /api/chat`、工作台「AI 对话」）：Claude 官方 SDK 或 OpenAI 兼容接口驱动现有确定性工具，展示每步工具调用；浏览器端档案记忆、人生事件、可选对话保存与 Markdown 导出；四种回答语言。服务器不保存对话。新增择日择时区间扫描（`date_candidate_scan`）与人生事件回溯（`life_path_review`），MCP 工具增至 27 个；内置 65 个城市的时区与经纬度；新增 Web App Manifest 支持添加到主屏幕。
 

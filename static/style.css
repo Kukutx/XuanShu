@@ -105,3 +105,4 @@
 .chat-panel .profile-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .chat-panel .profile-actions button{width:auto;flex:0 0 auto;min-height:38px;padding:0 16px}
 .ui-lang{display:flex;align-items:center;gap:6px}.ui-lang select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:12px}@media(max-width:510px){.ui-lang span{display:none}}
+.chat-confidence{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}.conf-tag{font-size:11px;border:1px solid var(--border);border-radius:3px;padding:2px 7px}.conf-high{color:var(--green);border-color:rgba(145,188,166,.4)}.conf-medium{color:var(--gold2);border-color:rgba(198,160,108,.4)}.conf-low{color:var(--red);border-color:rgba(220,120,110,.5)}.chat-verify-failed{display:block;color:var(--muted);margin-top:6px}
