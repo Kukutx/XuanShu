@@ -345,6 +345,9 @@ def main() -> None:
             page.locator('#ui-language').select_option('en')
             grid = page.locator('#ziwei-pair-grid').inner_text()
             assert 'Life Palace' in grid and '命宫' not in grid, grid[:300]
+            # Branch names and pillar values stay as characters; profile labels the user typed are never rewritten.
+            assert '\n子\t' in '\n' + grid or grid.splitlines()[1].startswith('子'), grid[:300]
+            assert page.locator('#profiles option').first.inner_text() == '既有档案'
             page.screenshot(path=str(screenshot_dir / '30-results-english.png'), full_page=True)
             page.locator('#ui-language').select_option('ja')
             grid = page.locator('#ziwei-pair-grid').inner_text()

@@ -498,10 +498,6 @@ const UI_EXTRA = {
 "1 to 31 days · computed in China Standard Time",
 "1〜31日 · 中国標準時で計算"
 ],
-"丁": [
-"Ding",
-"丁"
-],
 "七杀": [
 "Qi Sha",
 "七殺"
@@ -598,17 +594,9 @@ const UI_EXTRA = {
 "Shown separately from natal Four Transformations · star position overlay only",
 "本命四化とは別表示 · 星曜位置の重ね合わせのみ"
 ],
-"丑": [
-"Chou",
-"丑"
-],
 "专业引擎暂不可用：": [
 "Professional engine temporarily unavailable: ",
 "専門エンジンは現在利用不可："
-],
-"丙": [
-"Bing",
-"丙"
 ],
 "东": [
 "East",
@@ -690,6 +678,10 @@ const UI_EXTRA = {
 "China",
 "中国"
 ],
+"中宫": [
+"Center Palace",
+"中宮"
+],
 "中宫寄宫": [
 "Center palace lodging",
 "中宮寄宮"
@@ -726,10 +718,6 @@ const UI_EXTRA = {
 "Urumqi",
 "ウルムチ"
 ],
-"乙": [
-"Yi",
-"乙"
-],
 "九地": [
 "Nine Earth (Jiu Di)",
 "九地"
@@ -757,6 +745,10 @@ const UI_EXTRA = {
 "乾": [
 "Qian",
 "乾"
+],
+"乾宫": [
+"Qian Palace",
+"乾宮"
 ],
 "事业": [
 "career",
@@ -805,10 +797,6 @@ const UI_EXTRA = {
 "交节": [
 "Term transition",
 "節入り"
-],
-"亥": [
-"Hai",
-"亥"
 ],
 "亲密关系及伴侣互动": [
 "Intimate relationships and partner interactions",
@@ -1093,6 +1081,10 @@ const UI_EXTRA = {
 "兑": [
 "Dui",
 "兌"
+],
+"兑宫": [
+"Dui Palace",
+"兌宮"
 ],
 "全书系十干四化、宫干飞化": [
 "Quanshu-lineage ten-stem Four Transformations, palace-stem flying transformations",
@@ -1578,10 +1570,6 @@ const UI_EXTRA = {
 "promotion",
 "昇進"
 ],
-"午": [
-"Wu",
-"午"
-],
 "华盖": [
 "Hua Gai",
 "華蓋"
@@ -1609,10 +1597,6 @@ const UI_EXTRA = {
 "博士": [
 "Bo Shi",
 "博士"
-],
-"卯": [
-"Mao",
-"卯"
 ],
 "危": [
 "Wei (Danger)",
@@ -2022,9 +2006,17 @@ const UI_EXTRA = {
 "Kan",
 "坎"
 ],
+"坎宫": [
+"Kan Palace",
+"坎宮"
+],
 "坤": [
 "Kun",
 "坤"
+],
+"坤宫": [
+"Kun Palace",
+"坤宮"
 ],
 "城头土": [
 "City Wall Earth",
@@ -2049,10 +2041,6 @@ const UI_EXTRA = {
 "壁上土": [
 "Wall Earth",
 "壁上土"
-],
-"壬": [
-"Ren",
-"壬"
 ],
 "处暑": [
 "End of Heat (Chushu)",
@@ -2402,10 +2390,6 @@ const UI_EXTRA = {
 "love and marriage",
 "恋愛・結婚"
 ],
-"子": [
-"Zi",
-"子"
-],
 "子丑寅卯辰巳午未申酉戌亥": [
 "Zi Chou Yin Mao Chen Si Wu Wei Shen You Xu Hai",
 "子丑寅卯辰巳午未申酉戌亥"
@@ -2477,10 +2461,6 @@ const UI_EXTRA = {
 "宫干飞化：": [
 "Palace-stem flying transformations: ",
 "宮干飛化："
-],
-"寅": [
-"Yin",
-"寅"
 ],
 "寒露": [
 "Cold Dew (Hanlu)",
@@ -2650,10 +2630,6 @@ const UI_EXTRA = {
 "Ju Men",
 "巨門"
 ],
-"己": [
-"Ji",
-"己"
-],
 "已从本机浏览器删除所选档案及其对话、记忆和人生事件。": [
 "The selected profile and its chats, memory and life events were deleted from this browser.",
 "選択したプロフィールとその対話・記憶・人生の出来事をこのブラウザから削除しました。"
@@ -2714,10 +2690,6 @@ const UI_EXTRA = {
 "Result returned",
 "結果を返しました"
 ],
-"巳": [
-"Si",
-"巳"
-],
 "巴黎": [
 "Paris",
 "パリ"
@@ -2725,6 +2697,10 @@ const UI_EXTRA = {
 "巽": [
 "Xun",
 "巽"
+],
+"巽宫": [
+"Xun Palace",
+"巽宮"
 ],
 "帝旺": [
 "Emperor Prosperous (Di Wang)",
@@ -2821,10 +2797,6 @@ const UI_EXTRA = {
 "广州": [
 "Guangzhou",
 "広州"
-],
-"庚": [
-"Geng",
-"庚"
 ],
 "廉贞": [
 "Lian Zhen",
@@ -2954,17 +2926,9 @@ const UI_EXTRA = {
 "Relationships",
 "恋愛"
 ],
-"戊": [
-"Wu",
-"戊"
-],
 "戊己庚辛壬癸丁丙乙": [
 "Wu Ji Geng Xin Ren Gui Ding Bing Yi",
 "戊己庚辛壬癸丁丙乙"
-],
-"戌": [
-"Xu",
-"戌"
 ],
 "成": [
 "Cheng (Success)",
@@ -3626,10 +3590,6 @@ const UI_EXTRA = {
 "Wood Fire Earth Metal Water",
 "木火土金水"
 ],
-"未": [
-"Wei",
-"未"
-],
 "未加权藏干五行：": [
 "Unweighted hidden-stem five elements: ",
 "重み付けなしの蔵干五行："
@@ -4270,17 +4230,9 @@ const UI_EXTRA = {
 "Provided by the user and not independently verified by this tool; must not be treated as a fate-reading inference or as a fact confirmed by a third party.",
 "利用者が提供したもので、本ツールによる独立した検証は行っていません。命理による推論や第三者が確認した事実として扱ってはいけません。"
 ],
-"甲": [
-"Jia",
-"甲"
-],
 "甲乙丙丁戊己庚辛壬癸": [
 "Jia Yi Bing Ding Wu Ji Geng Xin Ren Gui",
 "甲乙丙丁戊己庚辛壬癸"
-],
-"申": [
-"Shen",
-"申"
 ],
 "男": [
 "Male",
@@ -4297,10 +4249,6 @@ const UI_EXTRA = {
 "病符": [
 "Bing Fu",
 "病符"
-],
-"癸": [
-"Gui",
-"癸"
 ],
 "白虎": [
 "Bai Hu (White Tiger)",
@@ -4397,6 +4345,10 @@ const UI_EXTRA = {
 "离": [
 "Li",
 "離"
+],
+"离宫": [
+"Li Palace",
+"離宮"
 ],
 "秋分": [
 "Autumn Equinox (Qiufen)",
@@ -4641,6 +4593,10 @@ const UI_EXTRA = {
 "艮": [
 "Gen",
 "艮"
+],
+"艮宫": [
+"Gen Palace",
+"艮宮"
 ],
 "节令 / 时辰 / 公历日界 / 远期历法不确定性": [
 "Solar term / double hour / Gregorian day boundary / long-range calendar uncertainty",
@@ -5102,14 +5058,6 @@ const UI_EXTRA = {
 "Auxiliary stars: ",
 "輔星："
 ],
-"辛": [
-"Xin",
-"辛"
-],
-"辰": [
-"Chen",
-"辰"
-],
 "边界仅覆盖当前八字及部分紫微实现的日、时辰、十二节令、时区转变；不保证覆盖未实现的流派或星曜规则。": [
 "Boundaries cover only the day, double-hour, twelve sectional solar terms, and time zone transitions in the current BaZi and partial Zi Wei implementations; coverage of unimplemented schools or star rules is not guaranteed.",
 "境界は現在の八字および一部の紫微実装における日、時辰、十二節、タイムゾーンの切り替わりのみを対象とします。未実装の流派や星の規則の網羅は保証しません。"
@@ -5250,10 +5198,6 @@ const UI_EXTRA = {
 "Partial chart: currently includes ",
 "部分的な盤：現在含むもの "
 ],
-"酉": [
-"You",
-"酉"
-],
 "采样失败：": [
 "Sampling failed: ",
 "サンプリング失敗："
@@ -5389,6 +5333,10 @@ const UI_EXTRA = {
 "震": [
 "Zhen",
 "震"
+],
+"震宫": [
+"Zhen Palace",
+"震宮"
 ],
 "霜降": [
 "Frost's Descent (Shuangjiang)",

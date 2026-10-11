@@ -19,12 +19,17 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'scripts/i18n_extra.json'
 OUT = ROOT / 'static/i18n-extra.js'
 CJK = re.compile('[㐀-鿿]')
+# Heavenly stems and earthly branches stay as characters in every language: concrete pillar
+# values (庚辰) are shown stem and branch separately, and romanization would merge 戊/午 into "Wu".
+KEEP_AS_CHARACTERS = frozenset('甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥')
 UI_ROW = re.compile(r"\['((?:[^'\\]|\\.)*)', '")
 
 
 def load() -> dict[str, list[str]]:
     data = json.loads(DATA.read_text(encoding='utf-8'))
     for key, value in data.items():
+        if key in KEEP_AS_CHARACTERS:
+            raise SystemExit(f'{key!r} stays as a character; remove it from {DATA.name}')
         if not CJK.search(key) or not (isinstance(value, list) and len(value) == 2 and all(isinstance(v, str) and v.strip() for v in value)):
             raise SystemExit(f'bad entry: {key!r}')
     return data
@@ -37,8 +42,7 @@ def source_strings() -> set[str]:
         if path.name in ('i18n.js', 'i18n-extra.js', 'zh-tw-map.js'):
             continue
         text = path.read_text(encoding='utf-8')
-        quotes = [r"'((?:[^'\\\n]|\\.)*)'"] + ([r'"((?:[^"\\\n]|\\.)*)"'] if path.suffix == '.py' else [])
-        for pattern in quotes:
+        for pattern in (r"'((?:[^'\\\n]|\\.)*)'", r'"((?:[^"\\\n]|\\.)*)"'):
             for m in re.finditer(pattern, text):
                 value = m.group(1)
                 if CJK.search(value) and '{' not in value and '\\' not in value:
@@ -75,7 +79,8 @@ def ui_text_keys() -> set[str]:
 
 def missing() -> list[str]:
     known = set(load()) | ui_text_keys()
-    return sorted(s for s in source_strings() if s not in known and s.strip() not in known)
+    return sorted(s for s in source_strings()
+                  if s not in known and s.strip() not in known and s.strip() not in KEEP_AS_CHARACTERS)
 
 
 def render(data: dict[str, list[str]]) -> str:
