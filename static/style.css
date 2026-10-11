@@ -580,6 +580,20 @@ a{color:inherit;text-decoration:none}
 .group-bar>span{display:block;height:100%;border-radius:4px}
 .group-total{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;text-align:right}
 .group-who{font-size:13px}
+.today-ics{color:var(--gold2);text-decoration:underline;text-underline-offset:3px}
+/* Rule sensitivity matrix */
+.rule-summary{display:grid;grid-template-columns:minmax(150px,auto) 1fr 1fr;gap:10px;margin:4px 0 12px}
+.rule-card{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel2);padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.rule-card small{font-size:12px;color:var(--muted)}
+.rule-big{font-size:28px;line-height:1.1;color:var(--gold2);font-variant-numeric:tabular-nums}
+.rule-chips{display:flex;flex-wrap:wrap;gap:2px}
+.rule-matrix th,.rule-matrix td{white-space:nowrap;vertical-align:middle}
+.rule-matrix tbody th,.rule-matrix thead th:first-child{position:sticky;left:0;z-index:1;background:var(--panel);white-space:normal;min-width:150px;max-width:210px;box-shadow:1px 0 0 var(--border)}
+.rule-matrix tr.is-baseline th{background:linear-gradient(var(--accent-soft),var(--accent-soft)),var(--panel)}
+.rule-matrix tr.is-baseline th,.rule-matrix tr.is-baseline td{background:var(--accent-soft);font-weight:600}
+.rule-matrix tr.is-same th{color:var(--muted);font-weight:400}
+.rule-matrix td.cell-diff{color:var(--red);background:color-mix(in srgb,var(--red) 10%,transparent);font-weight:600}
+.rule-time{font-variant-numeric:tabular-nums;color:var(--muted)}
 
 /* Theme toggle icon drawn in CSS so it never depends on a font having the glyph. */
 .theme-icon{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor;flex:0 0 auto}
@@ -642,6 +656,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .group-who{grid-column:2 / -1}
   .group-tags{margin-left:0}
   .group-members{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rule-summary{grid-template-columns:1fr}
   .workspace-top{padding:16px}
   .tool-finder{padding:10px 16px;gap:8px}
   .tool-finder label,.tool-keyboard-hint{display:none}

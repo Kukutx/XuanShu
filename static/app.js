@@ -4,7 +4,7 @@ const $ = sel => document.querySelector(sel);
 const result = $('#result');
 const form = $('#birth-form');
 const tabs = [...document.querySelectorAll('.tab')];
-const commonTabs = new Set(['chat','today','date-scan','consult','bazi','qimen','ziwei','transform','dayun','calendar','pair','group','decision','report']);
+const commonTabs = new Set(['chat','today','date-scan','consult','bazi','qimen','ziwei','transform','dayun','calendar','pair','group','decision','rule-matrix','report']);
 // Search alternative terminology without transmitting the user's query.
 const toolKeywords = {
   chat:'对话 聊天 ai chat 问答 记忆 人生事件 life path 回溯 多语言 english',
@@ -27,6 +27,7 @@ const toolKeywords = {
   pair:'合盘 双人 伴侣 关系',
   group:'多人 家人 家庭 团队 朋友 关系 三合 生肖 family team group',
   quality:'质量 核查 误差',
+  'rule-matrix':'规则 流派 差异 换日 子时 闰月 太阳时 夏令时 对照 敏感 rules school',
   reading:'传统 符号 分析',
   deep:'证据 来源 文献 规则',
   report:'报告 综述 markdown',
@@ -713,6 +714,19 @@ function createInput(labelText, type, value, parent) {
   control.type = type; control.value = value;
   return control;
 }
+// Solar terms (and, if asked, the four principal moon phases) for one year as an ICS file. The fetch carries
+// the optional API token, so the file is saved through a blob rather than a plain link.
+const icsHref = (year, moon) => '/api/solar-terms/' + year + '.ics' + (moon ? '?moon=true' : '');
+async function downloadIcs(year, moon, message) {
+  const token = $('#api_token').value;
+  try {
+    const reply = await fetch(icsHref(year, moon), {headers: token ? {'Authorization': 'Bearer ' + token} : {}});
+    if (!reply.ok) throw new Error('HTTP ' + reply.status);
+    const url = URL.createObjectURL(await reply.blob());
+    const link = elt('a'); link.href = url; link.download = (moon ? 'solar-terms-moon-' : 'solar-terms-') + year + '.ics';
+    document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (e) {message.textContent = '下载失败：' + e.message;}
+}
 function renderCalendar() {
   title(result, '农历 · 干支日历', '一至三十一日 · 以中国标准时间计算');
   const row = append(result, 'div', 'inline-control');
@@ -724,19 +738,13 @@ function renderCalendar() {
   count.value = String(calendarDraft.days);
   const run = append(row, 'button', null, '查询日历'); run.type = 'button'; run.id = 'calendar-run';
   const ics = append(row, 'a', 'tiny-button', '全年节气 ICS 日历下载');
-  ics.href = '/api/solar-terms/' + calendarDraft.start_date.slice(0,4) + '.ics';
-  start.addEventListener('change', () => {if (start.value) ics.href='/api/solar-terms/'+start.value.slice(0,4)+'.ics';});
-  ics.addEventListener('click', async event => {
-    event.preventDefault();
-    const token = $('#api_token').value;
-    try {
-      const reply = await fetch(ics.href, {headers:token ? {'Authorization':'Bearer '+token} : {}});
-      if (!reply.ok) throw new Error('HTTP ' + reply.status);
-      const url=URL.createObjectURL(await reply.blob());
-      const link=elt('a');link.href=url;link.download='solar-terms-'+(start.value || calendarDraft.start_date).slice(0,4)+'.ics';
-      document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
-    }catch(e){message.textContent='下载失败：'+e.message;}
-  });
+  const moonIcs = append(row, 'a', 'tiny-button', '节气与月相 ICS'); moonIcs.id = 'calendar-moon-ics';
+  const year = () => (start.value || calendarDraft.start_date).slice(0, 4);
+  const setLinks = () => {ics.href = icsHref(year(), false); moonIcs.href = icsHref(year(), true);};
+  setLinks();
+  start.addEventListener('change', () => {if (start.value) setLinks();});
+  ics.addEventListener('click', event => {event.preventDefault(); downloadIcs(year(), false, message);});
+  moonIcs.addEventListener('click', event => {event.preventDefault(); downloadIcs(year(), true, message);});
   const message = append(result, 'p', 'inline-msg');
   run.addEventListener('click', async () => {
     if (!start.value) {message.textContent = '请选择有效日期'; return;}
@@ -961,6 +969,71 @@ function renderDecision() {
   decisionResult.leave_one_out_sensitivity.forEach(x=>append(result,'div','feature-note',
     `去掉「${x.omitted_criterion}」后首位：${x.leaders_without_it.join('、')}${x.leader_changed?' · 结果变化':' · 不变'}`));
   decisionResult.limitations.forEach(x=>note(result,x));
+}
+// Rule sensitivity matrix: the current chart recomputed under each common rule choice, cell by cell.
+let ruleMatrixResult = null, ruleMatrixKey = null, ruleMatrixError = '', ruleMatrixOnlyDiff = false;
+function renderRuleMatrix() {
+  title(result, '规则差异对照', '同一份出生资料换用各家常见规则重排 · 看哪些字段会变');
+  const request = {birth: currentInput, hour_unknown: currentHourUnknown};
+  const key = JSON.stringify(request);
+  if (ruleMatrixKey !== key) {
+    ruleMatrixKey = key; ruleMatrixResult = null; ruleMatrixError = '';
+    postJSON('/api/rule-matrix', request)
+      .then(data => {if (ruleMatrixKey === key) ruleMatrixResult = data;})
+      .catch(err => {if (ruleMatrixKey === key) ruleMatrixError = err.message;})
+      .finally(() => {if (active === 'rule-matrix') render();});
+  }
+  if (ruleMatrixError) {append(result, 'p', 'inline-msg', '对照失败：' + ruleMatrixError); return;}
+  if (!ruleMatrixResult) {append(result, 'p', 'field-help', '正在按各种规则重新排盘…'); return;}
+  const m = ruleMatrixResult, s = m.summary;
+  const cards = append(result, 'div', 'rule-summary');
+  const same = append(cards, 'div', 'rule-card');
+  texts(append(same, 'strong', 'rule-big'), String(s.identical_variants), ' / ', String(s.variants));
+  append(same, 'small', null, '种不同规则下结果与当前完全相同');
+  const stable = append(cards, 'div', 'rule-card');
+  append(stable, 'small', null, '不受规则影响');
+  const stableChips = append(stable, 'div', 'rule-chips');
+  if (!s.stable_fields.length) append(stableChips, 'span', 'muted', '—');
+  s.stable_fields.forEach(name => append(stableChips, 'span', 'relation-chip rel-harmony', name));
+  const moving = append(cards, 'div', 'rule-card');
+  append(moving, 'small', null, '会随规则变化');
+  const movingChips = append(moving, 'div', 'rule-chips');
+  if (!s.sensitive_fields.length) append(movingChips, 'span', 'muted', '—');
+  s.sensitive_fields.forEach(f => {
+    const chip = texts(append(movingChips, 'span', 'relation-chip rel-clash'), f.label, ' ', String(f.changed_by.length));
+    chip.title = f.changed_by.join('\n');
+  });
+  m.hints.forEach(text => append(result, 'div', 'feature-note', text));
+  const controls = append(result, 'div', 'inline-control');
+  const toggle = append(controls, 'label', 'check-line');
+  const only = append(toggle, 'input'); only.type = 'checkbox'; only.id = 'rule-only-diff'; only.checked = ruleMatrixOnlyDiff;
+  toggle.append('只看结果不同的方案');
+  only.addEventListener('change', () => {ruleMatrixOnlyDiff = only.checked; render();});
+  const wrap = append(result, 'div', 'table-wrap');
+  const table = append(wrap, 'table', 'data-table rule-matrix'); table.id = 'rule-matrix';
+  const head = append(append(table, 'thead'), 'tr');
+  append(head, 'th', null, '规则方案'); append(head, 'th', null, '换算后时间');
+  m.fields.forEach(f => append(head, 'th', null, f.label));
+  append(head, 'th', null, '');
+  const body = append(table, 'tbody');
+  m.rows.forEach((row, i) => {
+    if (ruleMatrixOnlyDiff && !row.is_baseline && !row.differs.length) return;
+    const tr = append(body, 'tr', row.is_baseline ? 'is-baseline' : (row.differs.length ? 'has-diff' : 'is-same'));
+    append(tr, 'th', null, row.label);
+    append(tr, 'td', 'rule-time', row.effective_reading.replace('T', ' '));
+    m.fields.forEach(f => {
+      const changed = row.differs.includes(f.key);
+      if (row.is_baseline || changed) append(tr, 'td', changed ? 'cell-diff' : null, row.values[f.key]);
+      else append(append(tr, 'td'), 'span', 'muted', '＝');
+    });
+    const action = append(tr, 'td');
+    if (!row.is_baseline && row.differs.length) {
+      const apply = append(action, 'button', 'tiny-button', '套用'); apply.type = 'button'; apply.id = 'rule-apply-' + i;
+      apply.addEventListener('click', () => {setInput(row.settings); form.requestSubmit(); setFeedback('已套用：' + row.label);});
+    }
+  });
+  append(result, 'p', 'field-help', '“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。');
+  m.notes.forEach(text => note(result, text));
 }
 // Group relations: two to eight charts from the current form, local profiles and members added here.
 // Members added on this page live only in memory; nothing is stored.
@@ -1447,6 +1520,10 @@ function renderToday() {
   if (t.day_officer.jie_boundary_on_date) append(facts, 'span', null, todayPick ? '当天交节，节令前后值日不同' : '今天交节，节令前后值日不同');
   texts(append(facts, 'span'), '农历本月', ' ' + t.lunar.month_days, ' 天');
   append(facts, 'span', null, t.timezone);
+  const year = t.date.slice(0, 4);
+  const ics = append(facts, 'a', 'today-ics', '下载本年节气与月相日历（ICS）'); ics.href = icsHref(year, true); ics.id = 'today-ics';
+  const icsMessage = append(result, 'p', 'inline-msg');
+  ics.addEventListener('click', event => {event.preventDefault(); downloadIcs(year, true, icsMessage);});
 
   append(result, 'h4', 'subheading', '与我的命盘');
   if (!t.personal && skipped) {
@@ -2072,7 +2149,7 @@ function renderIntegration() {
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
-  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, group_relations: groupResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
+  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, group_relations: groupResult, rule_matrix: ruleMatrixResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
 }
 function renderConsultation() {
   title(result, '问题驱动咨询工作流', '真实执行工具 · 保留证据来源 · 不在服务器保存对话');
@@ -2238,6 +2315,7 @@ function renderView() {
     go.addEventListener('click', () => form.requestSubmit());
     return;
   }
+  if (active === 'rule-matrix') return renderRuleMatrix();
   if (currentHourUnknown && (active === 'bazi' || active === 'ziwei')) renderHourUnknown(result);
   if (active === 'bazi') renderBazi(current.bazi);
   else if (active === 'ziwei') renderZiwei(current.ziwei);
