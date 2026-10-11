@@ -61,6 +61,8 @@ CASES = OrderedDict([
     ('bazi_dayun', ('/api/dayun', {'birth': BIRTH, 'periods': 3})),
     ('birth_boundary_map', ('/api/birth-boundaries', {'birth': BIRTH, 'uncertainty_minutes': 3})),
     ('palace_detail', ('/api/palace', {'birth': BIRTH, 'palace': '命宫'})),
+    ('pillars_to_dates', ('/api/pillars-to-dates', {'year': '庚辰', 'month': '甲申', 'day': '丙午', 'hour': '庚寅'})),
+    ('chart_import_check', ('/api/chart-import-check', {'birth': BIRTH, 'text': '庚辰 甲申 丙午 庚寅\n命宫在午 木三局'})),
 ])
 
 VERSION = '2026-07-28'

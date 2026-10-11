@@ -214,6 +214,7 @@ a{color:inherit;text-decoration:none}
 #result .inline-control input[type=number]{min-width:150px;max-width:200px}
 #result .check-line input[type=checkbox]{width:16px;height:16px;min-width:0;min-height:0;margin:0;padding:0;accent-color:var(--gold)}
 .check-line{display:inline-flex;align-items:center;gap:6px}
+.inline-control>label.check-line{flex-direction:row;align-items:center;min-height:38px;font-size:13px;color:var(--text2)}
 .consult-shortcuts{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:8px 0 16px}
 .consult-shortcuts .small-text{font-size:12px;color:var(--muted);width:100%}
 .consult-shortcuts button{white-space:normal;text-align:left}
@@ -446,6 +447,35 @@ a{color:inherit;text-decoration:none}
 .inline-msg.progress{color:var(--muted)}
 .inline-msg.ok{color:var(--green)}
 .empty-state .tiny-button{margin-top:14px}
+
+/* 大运 / 流年 strip */
+.luck{margin-top:22px}
+.luck-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity}
+.luck-cell{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--border-strong);border-radius:8px;background:var(--panel2);color:var(--text);padding:8px 6px}
+.luck-cell:hover{border-color:var(--gold)}
+.luck-cell:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.luck-cell small{font-size:11px;color:var(--muted);line-height:1.3;text-align:center;overflow-wrap:anywhere}
+.luck-decade{min-width:82px;max-width:118px;flex:0 0 auto;scroll-snap-align:start}
+.luck-decade.active{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);background:linear-gradient(180deg,var(--accent-soft),transparent),var(--panel2)}
+.luck-cell.now{position:relative}
+.luck-cell.now::after{content:'';position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.luck-char{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:24px;line-height:1.1;font-weight:500}
+.luck-cell .luck-god{color:var(--gold2)}
+.luck-caption{font-size:12px;color:var(--text2);margin:10px 0 6px}
+.luck-years{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
+.luck-pair{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:19px;line-height:1.2}
+.luck-year.now{border-color:var(--gold)}
+
+/* 四柱反查 and 导入核对 */
+.pillar-pickers select{min-width:84px;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:15px}
+.import-text{width:100%;min-height:150px;background:var(--panel2);color:var(--text);border:1px solid var(--border-strong);border-radius:6px;padding:10px 12px;line-height:1.6;resize:vertical}
+.import-verdict{border:1px solid var(--border-strong);border-radius:var(--radius);padding:12px 14px;margin:6px 0 14px;font-size:13px}
+.import-verdict.ok{border-color:var(--green);color:var(--text)}
+.import-variant{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px}
+.import-table tr.mismatch td{background:var(--warn-soft)}
+.import-result.same{color:var(--green);white-space:nowrap}
+.import-result.diff{color:var(--warn);white-space:nowrap;font-weight:600}
+.plain-list{margin:6px 0 12px 18px;font-size:13px;line-height:1.7;color:var(--text2)}
 
 .hour-unknown-line{margin:8px 0 2px;font-size:13px;color:var(--text2)}
 .lunar-leap{display:flex;align-items:flex-end;padding-bottom:10px}

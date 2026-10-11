@@ -1,4 +1,8 @@
 {
+ " 23:00 换日（早晚子时）": [
+  " Day changes at 23:00 (early/late Zi hour)",
+  " 23:00 に日替わり（早子・晩子）"
+ ],
  " SDK：运行 pip install 'xuanshu[": [
   " SDK: run pip install 'xuanshu[",
   " SDK：pip install 'xuanshu["
@@ -75,6 +79,10 @@
   " visible",
   " 個"
  ],
+ " 个时段": [
+  " intervals",
+  " 区間"
+ ],
  " 个边界、": [
   " boundaries, ",
   " 個の境界、"
@@ -135,6 +143,10 @@
   " min; check the 23:00/00:00 day-change convention and the birth time.",
   " 分。23:00/00:00 の日替わり流派と出生時刻を確認してください。"
  ],
+ " 大运 · ": [
+  " decade period · ",
+  " 大運 · "
+ ],
  " 天": [
   " days",
   " 日"
@@ -147,6 +159,14 @@
   " characters, exceeding the limit; all small fields and limitations are kept, and long lists keep only their beginning. Narrow the query and try again.",
   " 文字で上限を超えています。小さなフィールドと limitations はすべて保持し、長いリストは先頭部分のみ残しました。範囲を絞って再試行できます。"
  ],
+ " 小时": [
+  " hours",
+  " 時間"
+ ],
+ " 小时：对方的节气时刻、时区或夏令时处理可能不同。": [
+  " hours from it: the other program may use a different solar-term instant, timezone or daylight-saving handling.",
+  " 時間：相手の節気時刻、タイムゾーン、夏時間の扱いが異なる可能性があります。"
+ ],
  " 年": [
   " years",
   " 年"
@@ -154,6 +174,10 @@
  " 年我的事业选择可从哪些传统结构和现实约束分析？": [
   ": which traditional structures and real-world constraints can I use to analyze my career choices that year?",
   " 年の私のキャリア選択は、どの伝統的構造と現実的制約から分析できますか？"
+ ],
+ " 年流年层": [
+  " annual layer",
+  " 年の流年層"
  ],
  " 张盘；达到上限时停止扫描并标记 truncated，不输出缺盘的候选日。": [
   " charts; scanning stops at the limit and is marked truncated, and candidate days with missing charts are not output.",
@@ -242,6 +266,14 @@
  " 项": [
   " items",
   " 項目"
+ ],
+ " 项一致，": [
+  " fields match, ",
+  " 項目が一致、"
+ ],
+ " 项不同": [
+  " differ",
+  " 項目が不一致"
  ],
  " 项已知边界提示。": [
   " known boundary notes.",
@@ -347,6 +379,10 @@
   "- Agreement caused by the same inputs and the same calendar dependency does not count as external independent verification.",
   "- 同じ入力・同じ暦法依存による一致は、外部の独立検証とはみなされません。"
  ],
+ "00:00 换日": [
+  "Day changes at 00:00",
+  "00:00 に日替わり"
+ ],
  "14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派与流曜": [
   "14 main stars + 44 selected auxiliary/minor stars (26 newly added); not all schools or annual stars",
   "14主星＋選定した補助星・雑曜44個（うち新規26個）。全流派・流曜ではない"
@@ -354,6 +390,10 @@
  "23:00 换日": [
   "Day changes at 23:00",
   "23:00 日替わり"
+ ],
+ "23:00 换日（早晚子时）": [
+  "Day changes at 23:00 (early/late Zi hour)",
+  "23:00 に日替わり（早子・晩子）"
  ],
  "23点换日": [
   "Day changes at 23:00",
@@ -531,6 +571,14 @@
   "← Swipe sideways to see all twelve palaces →",
   "← 左右にスワイプして十二宮すべてを表示 →"
  ],
+ "✓ 一致": [
+  "✓ Match",
+  "✓ 一致"
+ ],
+ "✗ 不同": [
+  "✗ Differs",
+  "✗ 不一致"
+ ],
  "　天干 ": [
   "　Heavenly stem ",
   "　天干 "
@@ -566,6 +614,10 @@
  "一至三十一日 · 以中国标准时间计算": [
   "1 to 31 days · computed in China Standard Time",
   "1〜31日 · 中国標準時で計算"
+ ],
+ "一致 ": [
+  "Match ",
+  "一致 "
  ],
  "七月": [
   "Month 7",
@@ -671,6 +723,10 @@
   "Unchanged",
   "変化なし"
  ],
+ "不同 ": [
+  "Differ ",
+  "不一致 "
+ ],
  "不同流派和节令日界可能产生合法差异；请逐字段核对。": [
   "Different schools and solar-term day boundaries may produce legitimate differences; check field by field.",
   "流派や節令の日界の違いにより正当な差異が生じることがあります。項目ごとに照合してください。"
@@ -706,6 +762,10 @@
  "不附带出生信息": [
   "Birth details not included",
   "出生情報を含めない"
+ ],
+ "不限": [
+  "Any",
+  "指定なし"
  ],
  "与本命四化分开显示 · 仅为星曜位置叠加": [
   "Shown separately from natal Four Transformations · star position overlay only",
@@ -826,6 +886,10 @@
  "为什么不同": [
   "Why they differ",
   "違いの理由"
+ ],
+ "主星": [
+  "major stars",
+  "主星"
  ],
  "主星：": [
   "Main stars: ",
@@ -955,9 +1019,17 @@
   "Delivery speed",
   "提供スピード"
  ],
+ "交友": [
+  "Friends",
+  "交友"
+ ],
  "交节": [
   "Term transition",
   "節入り"
+ ],
+ "交节只有约 ": [
+  "is only about ",
+  "の節入りまで約 "
  ],
  "亥时 21–23": [
   "Hai hour 21–23",
@@ -1034,6 +1106,10 @@
  "今年的流年四化落在哪些宫？": [
   "Which palaces do this year's four transformations fall in?",
   "今年の流年四化はどの宮に入りますか？"
+ ],
+ "仍不一致": [
+  "Still differing",
+  "なお不一致"
  ],
  "代表本地时刻": [
   "Representative local time",
@@ -1274,6 +1350,10 @@
  "先确认出生时区及出生地经度，再调用 time_basis_audit 比较三种时制的有效时间与四柱/命宫差异。": [
   "First confirm the birth time zone and birthplace longitude, then call time_basis_audit to compare the effective time and Four Pillars/Life Palace differences across the three time bases.",
   "まず出生時のタイムゾーンと出生地の経度を確認し、time_basis_audit を呼び出して三種の時制の有効時刻と四柱・命宮の差異を比較してください。"
+ ],
+ "先粘贴命盘文字。": [
+  "Paste the chart text first.",
+  "先に命盤のテキストを貼り付けてください。"
  ],
  "先让使用者定义方案、核验过的评价维度、权重和0至5评分，再调用 decision_matrix。解释评分主观性与剔除单一指标敏感性，不引用出生数据来决定现实结果。": [
   "First have the user define the options, verified evaluation criteria, weights and 0-5 scores, then call decision_matrix. Explain the subjectivity of the scores and the leave-one-criterion-out sensitivity, and do not use birth data to determine real-world outcomes.",
@@ -1527,6 +1607,10 @@
   "Interests, rest and spiritual experience",
   "趣味、休息と精神的な体験"
  ],
+ "其他流派（例如以春节换年、23:00 换日）会得到不同的区间，可切换换日规则或时制重新反查。": [
+  "Other schools (for example changing the year at Chinese New Year, or the day at 23:00) give different intervals; switch the day-boundary rule or time basis and search again.",
+  "他の流派（春節で年替わり、23:00 で日替わりなど）では区間が変わります。日替わり規則や時制を切り替えて再検索できます。"
+ ],
  "养": [
   "Yang (Nurturing)",
   "養"
@@ -1651,6 +1735,18 @@
   "Birth parameters: not provided",
   "出生パラメータ：未提供"
  ],
+ "出生在 23:00 之后：各家对子时是否换日（早晚子时）规则不同。": [
+  "Born after 23:00: programs differ on whether the Zi hour starts a new day (early/late Zi hour).",
+  "23:00 以降の出生：子の刻で日を替えるか（早子・晩子）は流派で異なります。"
+ ],
+ "出生在农历闰月：闰月前后半月归属哪个月，各家规则不同。": [
+  "Born in a leap lunar month: programs differ on which month each half of a leap month belongs to.",
+  "旧暦の閏月生まれ：閏月の前半・後半をどの月に数えるかは流派で異なります。"
+ ],
+ "出生在立春与春节之间：玄枢八字以立春换年，对方可能以春节（正月初一）换年。": [
+  "Born between Lichun and Chinese New Year: XuanShu BaZi changes the year at Lichun; the other program may change it at Chinese New Year (first day of the first lunar month).",
+  "立春と春節の間の出生：玄枢の八字は立春で年が替わりますが、相手は春節（正月初一）で替えている可能性があります。"
+ ],
  "出生地按选定 IANA 时区解释时刻；农历月相按现代中国 UTC+8 天文日定义，排盘取出生地有效公历日。跨时区日界可能产生流派差异。": [
   "The moment is interpreted in the selected IANA time zone of the birthplace; lunar month phases follow the modern Chinese UTC+8 astronomical day definition, and the chart uses the effective Gregorian date at the birthplace. Day boundaries across time zones may produce school differences.",
   "時刻は出生地の選択した IANA タイムゾーンで解釈します。旧暦の月相は現代中国の UTC+8 天文日の定義に従い、排盤には出生地の有効な西暦日を用います。タイムゾーンをまたぐ日界により流派間の差異が生じることがあります。"
@@ -1679,9 +1775,17 @@
   "Birth-time model boundary map",
   "出生時刻のモデル境界マップ"
  ],
+ "出生时刻离": [
+  "The birth time",
+  "出生時刻から"
+ ],
  "出生时刻距最近月令节气不超过 ": [
   "Birth moment is within ",
   "出生時刻は最寄りの月令節気から "
+ ],
+ "出生时当地实行夏令时：有的软件会先扣除夏令时再排盘。": [
+  "Daylight saving time was in force at the birth: some programs remove it before casting the chart.",
+  "出生時に現地は夏時間でした：夏時間を差し引いてから命盤を出すソフトもあります。"
  ],
  "出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。": [
   "Birth hour unknown: 12:00 is only a placeholder, so a Qimen chart cast from it means nothing.",
@@ -1947,6 +2051,10 @@
   "Twelve Jie terms",
   "十二節令"
  ],
+ "十二节令（交节时刻起算）": [
+  "Twelve jie (from the exact jie instant)",
+  "十二節令（節入り時刻から）"
+ ],
  "十五": [
   "Day 15",
   "15日"
@@ -1974,6 +2082,10 @@
  "十月": [
   "Month 10",
   "十月"
+ ],
+ "十神按日主看天干。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。": [
+  "Ten gods are read from the stem against the day master. Decade start years come from the three-days-per-year rule and are approximate; annual pillars change at Lichun. Click a year to open the same year layer on the Zi Wei chart.",
+  "十神は日主から見た天干です。交運年は三日一歳の換算による概算で、流年は立春で替わります。流年をクリックすると紫微盤で同じ年の流年層を開きます。"
  ],
  "升职": [
   "promotion",
@@ -2075,6 +2187,14 @@
   "Two-person Zi Wei palace overlay",
   "二人の紫微宮位の重ね合わせ"
  ],
+ "反查": [
+  "Search",
+  "逆引き"
+ ],
+ "反查失败：": [
+  "Search failed: ",
+  "逆引き失敗："
+ ],
  "发展方向": [
   "Direction of development",
   "発展の方向"
@@ -2119,6 +2239,10 @@
   "Only fields actually provided are checked; per-palace fields not provided are not counted as consistent.",
   "実際に提供された項目のみを照合します。提供されていない宮ごとの項目は一致として数えません。"
  ],
+ "只核对识别到的字段；没识别到的字段不代表一致。": [
+  "Only recognized fields are checked; a field that was not recognized is not thereby confirmed.",
+  "認識できた項目だけを照合します。認識されなかった項目が一致しているとは限りません。"
+ ],
  "只比较用户提供的字段，不把缺失字段计入通过": [
   "Compares only user-provided fields; missing fields do not count as passing",
   "ユーザー提供のフィールドのみ比較し、欠落フィールドは合格に数えない"
@@ -2126,6 +2250,10 @@
  "只知道农历生日": [
   "I only know the lunar birthday",
   "旧暦の誕生日しか分からない"
+ ],
+ "只给出符合四柱的时间，不据此判断吉凶或推断人物身份。": [
+  "Lists only times that produce the pillars; it judges no fortune and identifies no person.",
+  "四柱に合う時間を示すだけで、吉凶の判断や人物の特定はしません。"
  ],
  "只计算传统干支和名义起运年龄，公历时间为均值年近似，绝非对人生事件的预测。": [
   "Computes only traditional stem-branch pillars and the nominal luck-start age; Gregorian times are mean-year approximations and are in no way predictions of life events.",
@@ -2142,6 +2270,10 @@
  "可核验观察": [
   "Verifiable observations",
   "検証可能な観察"
+ ],
+ "可能的原因": [
+  "Possible causes",
+  "考えられる原因"
  ],
  "可见干支本气数量：": [
   "Count of visible stems and branch main qi:",
@@ -2315,6 +2447,10 @@
   "Life Palace in",
   "命宮は"
  ],
+ "命宫地支": [
+  "Life palace branch",
+  "命宮の地支"
+ ],
  "命理缺乏可靠的科学验证，不应作为人生、医疗或财务决策依据。": [
   "Fate calculation lacks reliable scientific validation and should not be used as a basis for life, medical or financial decisions.",
   "命理には信頼できる科学的検証がなく、人生・医療・財務の意思決定の根拠にすべきではありません。"
@@ -2383,6 +2519,10 @@
   "The Four Transformations are traditional markers on stars, not additional stars; palace-stem flying transformations only list the palaces holding the transformed stars, and full flying-star interpretation is not yet implemented.",
   "四化は星曜の伝統的な標識であり、新たな星曜ではありません。宮干飛化は四化星の所在宮を列挙するのみで、完全な飛星の判断法はまだ実装していません。"
  ],
+ "四化表因流派而异（例如庚、壬年的化科化忌），玄枢使用《紫微斗数全书》表。": [
+  "Four-transformation tables differ between schools (for example Hua Ke and Hua Ji for Geng and Ren years); XuanShu uses the table of the Zi Wei Dou Shu Quan Shu.",
+  "四化表は流派で異なります（庚・壬年の化科・化忌など）。玄枢は『紫微斗数全書』の表を使います。"
+ ],
  "四化表采用": [
   "The Four Transformations table uses ",
   "四化表は "
@@ -2411,9 +2551,21 @@
   "Four Pillars and hidden stems statistics",
   "四柱と蔵干の統計"
  ],
+ "四柱反查出生时间": [
+  "Find birth times from four pillars",
+  "四柱から出生時刻を逆引き"
+ ],
+ "四柱反查完成：": [
+  "Pillar search done: ",
+  "四柱逆引き完了："
+ ],
  "四柱（年/月/日/时）": [
   "Four Pillars (year/month/day/hour)",
   "四柱（年/月/日/時）"
+ ],
+ "四柱：「年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅」或连续的「庚辰 甲申 丙午 庚寅」": [
+  "Pillars: \"年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅\", or simply \"庚辰 甲申 丙午 庚寅\" in a row",
+  "四柱：「年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅」または続けて「庚辰 甲申 丙午 庚寅」"
  ],
  "回答完成": [
   "Answer complete",
@@ -2438,6 +2590,14 @@
  "在传统命盘中通常关联什么话题？": [
   " — what topics is this usually associated with in a traditional chart?",
   "は伝統的な命盤で通常どんな話題と関連しますか？"
+ ],
+ "在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。": [
+  "Choose a gender in the birth details to set the decade direction from the year stem and gender.",
+  "出生情報で性別を選ぶと、年干の陰陽と性別から大運の順逆を決めます。"
+ ],
+ "在紫微盘打开 ": [
+  "Open on the Zi Wei chart: ",
+  "紫微盤で開く："
  ],
  "地劫": [
   "Di Jie",
@@ -2515,6 +2675,10 @@
   "Weighted comparison and sensitivity audit based on user scores",
   "ユーザー評点に基づく加重比較と感度監査"
  ],
+ "填入当前命盘的四柱": [
+  "Use the current chart's pillars",
+  "現在の命盤の四柱を入れる"
+ ],
  "填写出生地经度后，计算钟表时间、地方平太阳时、真太阳时的四柱与命身宫差异。": [
   "After entering the birthplace longitude, computes the differences in Four Pillars and Life/Body Palaces between clock time, local mean solar time and true solar time.",
   "出生地の経度を入力すると、時計時刻・地方平均太陽時・真太陽時による四柱と命宮・身宮の差異を計算します。"
@@ -2583,6 +2747,10 @@
   "Summer Solstice (Xiazhi)",
   "夏至"
  ],
+ "外部命盘导入核对": [
+  "Check a chart from other software",
+  "外部命盤のインポート照合"
+ ],
  "多个候选时刻：每行一个 ISO 本地时间（最多5个）": [
   "Multiple candidate times: one ISO local time per line (max 5)",
   "複数の候補時刻：1行に1つの ISO ローカル時刻（最大5件）"
@@ -2635,6 +2803,10 @@
   "Luck Pillar (decade)",
   "大運"
  ],
+ "大运与流年": [
+  "Decade and annual pillars",
+  "大運と流年"
+ ],
  "大运区间是名义起运年龄的公历近似投影，交运日前后的事件归属可能有误差。": [
   "Luck Pillar intervals are approximate Gregorian projections of the nominal starting age; attribution of events around the transition date may be inaccurate.",
   "大運の区間は名目上の起運年齢を西暦に近似投影したもので、交運日前後の出来事の帰属には誤差が生じることがあります。"
@@ -2654,6 +2826,10 @@
  "大运是传统十年干支标签，本工具不据此预测真实事件、吉凶、健康、财运或关系。": [
   "Luck Pillars are traditional ten-year stem-branch labels; this tool does not use them to predict real events, auspiciousness, health, finances or relationships.",
   "大運は伝統的な十年の干支ラベルであり、本ツールはこれに基づいて現実の出来事、吉凶、健康、財運、関係を予測しません。"
+ ],
+ "大运暂时排不出来，可以在「大运干支」里单独计算。": [
+  "The decade periods could not be calculated here; try the Decade Pillars tool.",
+  "大運を計算できませんでした。「大運干支」で個別に計算できます。"
  ],
  "大阪": [
   "Osaka",
@@ -2899,6 +3075,10 @@
   "Zou Shu",
   "奏書"
  ],
+ "套用到出生资料": [
+  "Apply to birth details",
+  "出生情報に適用"
+ ],
  "奥克兰": [
   "Auckland",
   "オークランド"
@@ -2906,6 +3086,10 @@
  "女": [
   "Female",
   "女"
+ ],
+ "奴仆": [
+  "Servants",
+  "奴僕"
  ],
  "如何启用（给服务器管理员）": [
   "How to enable it (for the server admin)",
@@ -2991,6 +3175,10 @@
   "Palace ",
   "宮 "
  ],
+ "宫位主星：每行一个宫名，后接该宫主星，例如「夫妻宫：天机 太阴」；空宫写「空宫」": [
+  "Palace stars: one palace name per line followed by its major stars, e.g. \"夫妻宫：天机 太阴\"; write \"空宫\" for an empty palace",
+  "宮の主星：1 行に宮名 1 つと主星。例「夫妻宫：天机 太阴」。空宮は「空宫」"
+ ],
  "宫位关系与查询接口参考，不是个体事件推断": [
   "Reference for palace relationships and query interfaces; not inference about individual events",
   "宮の関係と照会インターフェースの参考であり、個人の出来事の推論ではありません"
@@ -3011,6 +3199,14 @@
   "Palace-stem flying transformations: ",
   "宮干飛化："
  ],
+ "宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛": [
+  "宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛",
+  "宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛"
+ ],
+ "宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛": [
+  "宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛",
+  "宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛"
+ ],
  "寅时 03–05": [
   "Yin hour 03–05",
   "寅の刻 03–05"
@@ -3030,6 +3226,14 @@
  "对应规则：": [
   "Corresponding rules:",
   "対応する規則："
+ ],
+ "对方可能按平太阳时或真太阳时排盘。": [
+  "The other program may use mean or apparent solar time.",
+  "相手は平均太陽時か真太陽時で命盤を出している可能性があります。"
+ ],
+ "对方可能按真太阳时排盘：在出生资料里填写经度后可以一起比较。": [
+  "The other program may use true solar time: enter a longitude in the birth details to compare that too.",
+  "相手は真太陽時を使っている可能性があります。出生情報に経度を入れると併せて比較できます。"
  ],
  "对方盘未安此星": [
   "This star is not placed in the other chart",
@@ -3231,6 +3435,10 @@
   "Copied; remember to replace with your actual project path",
   "コピーしました。実際のプロジェクトパスへの置き換えを忘れずに"
  ],
+ "已套用：": [
+  "Applied: ",
+  "適用しました："
+ ],
  "已实现辅/杂曜：": [
   "Implemented auxiliary/minor stars: ",
   "実装済みの輔星・雑曜："
@@ -3262,6 +3470,10 @@
  "已计算双方结构对照；无婚恋适配分数或关系成功率。": [
   "Computed a structural comparison of both parties; no marriage/romance compatibility score or relationship success rate.",
   "双方の構造比較を計算しました。恋愛・結婚の相性スコアや関係の成功率はありません。"
+ ],
+ "已识别字段 ": [
+  "Recognized fields ",
+  "認識した項目 "
  ],
  "已载入档案，正在计算。": [
   "Profile loaded; calculating.",
@@ -3390,6 +3602,10 @@
  "年界按立春、月界按节令，日界和太阳时按输入选项；不是现实性格推断。": [
   "Year boundary at Start of Spring (Lichun), month boundary at the sectional solar terms, day boundary and solar time per the input options; not an inference of real-world personality.",
   "年境界は立春、月境界は節気、日境界と太陽時は入力オプションに従います。現実の性格推定ではありません。"
+ ],
+ "年的": [
+  " year: the ",
+  "年の"
  ],
  "广州": [
   "Guangzhou",
@@ -3643,6 +3859,10 @@
   "Open reference ↗",
   "参考出典を開く ↗"
  ],
+ "扣除夏令时（按标准时）": [
+  "Daylight saving removed (standard time)",
+  "夏時間を除く（標準時）"
+ ],
  "执": [
   "Zhi (Initiate)",
   "執"
@@ -3759,6 +3979,10 @@
   "By effective Gregorian date at birthplace ",
   "出生地の有効な西暦日 "
  ],
+ "按出生资料里的信息排出玄枢的盘再比较。粘贴的内容只用于本次核对，服务器不保存。": [
+  "XuanShu casts its own chart from the birth details and compares. The pasted text is used only for this check; the server keeps nothing.",
+  "出生情報から玄枢の命盤を出して比較します。貼り付けた内容はこの照合にだけ使い、サーバーには保存しません。"
+ ],
  "按日期排列": [
   "Sorted by date",
   "日付順"
@@ -3782,6 +4006,10 @@
  "换一个时间再排一盘对比一下": [
   "Cast another chart at a different time to compare",
   "別の時刻でもう一度盤を作って比べる"
+ ],
+ "换成其他规则后仍不一致的项目": [
+  "Fields that still differ under other rules",
+  "他の規則でもなお一致しない項目"
  ],
  "换日 ": [
   "Day change ",
@@ -3859,6 +4087,10 @@
   "Pan An",
   "攀鞍"
  ],
+ "支持简体或繁体的命盘文字；没识别到的部分会略过。": [
+  "Chart text in simplified or traditional Chinese is accepted; anything not recognized is skipped.",
+  "簡体字・繁体字の命盤テキストに対応。認識できない部分は読み飛ばします。"
+ ],
  "收": [
   "Shou (Receive)",
   "収"
@@ -3866,6 +4098,10 @@
  "收起": [
   "Collapse",
   "折りたたむ"
+ ],
+ "改用下面的规则后，粘贴的命盘与玄枢完全一致：": [
+  "With the rules below, the pasted chart matches XuanShu exactly:",
+  "次の規則に変えると、貼り付けた命盤は玄枢と完全に一致します："
  ],
  "放在源码 skills/ 目录": [
   "Located in the source skills/ directory",
@@ -4039,6 +4275,10 @@
   "Day boundary",
   "日境界"
  ],
+ "日的": [
+  " day: the ",
+  "日の"
+ ],
  "日）。这不自动改变原命盘。": [
   " day). This does not automatically change the original chart.",
   "日）。元の命盤は自動では変更されません。"
@@ -4103,6 +4343,10 @@
   "Time-error sampling",
   "時刻誤差のサンプリング"
  ],
+ "时区、时制和经度沿用出生资料；边界用和排盘相同的计算逐秒校准。": [
+  "Timezone, time basis and longitude come from the birth details; edges are found to the second with the same calculation as the chart.",
+  "タイムゾーン・時制・経度は出生情報を使い、境界は命盤と同じ計算で秒単位に求めます。"
+ ],
  "时区夏令时/历史UTC偏移界": [
   "Time zone DST / historical UTC offset boundary",
   "タイムゾーンの夏時間・歴史的UTCオフセット境界"
@@ -4159,6 +4403,10 @@
   "Hour branch",
   "時支"
  ],
+ "时是": [
+  " hour is ",
+  "時は"
+ ],
  "时柱": [
   "Hour pillar",
   "時柱"
@@ -4167,9 +4415,21 @@
   "Hour pillar, Zi Wei Life palace · change with the hour",
   "時柱・紫微命宮 · 時辰で変化"
  ],
+ "时柱天干与日干不合五鼠遁：": [
+  "The hour stem does not follow the day stem (Five Rats rule): for a ",
+  "時柱の天干が日干の五鼠遁に合いません："
+ ],
+ "时柱（可不选）": [
+  "Hour pillar (optional)",
+  "時柱（任意）"
+ ],
  "时辰": [
   "Double hour",
   "時辰"
+ ],
+ "时辰不同会连带改变命宫、身宫和星曜位置，先核对出生时间。": [
+  "A different hour also moves the Life and Body palaces and the stars; check the birth time first.",
+  "時辰が違うと命宮・身宮・星の位置も変わります。まず出生時刻を確認してください。"
  ],
  "时辰不详": [
   "Hour unknown",
@@ -4190,6 +4450,10 @@
  "时辰界": [
   "Double-hour boundary",
   "時辰境界"
+ ],
+ "时长": [
+  "Length",
+  "長さ"
  ],
  "时间已按 12:00 占位。时柱和紫微宫位会随时辰变化，命盘页会列出十二个时辰的对照，并标出不受时辰影响的部分。": [
   "The time is set to 12:00 as a placeholder. The hour pillar and Zi Wei palaces change with the hour; the chart page lists all twelve double hours and marks what stays the same.",
@@ -4295,9 +4559,17 @@
   "Month branch",
   "月支"
  ],
+ "月是": [
+  " month is ",
+  "月は"
+ ],
  "月柱": [
   "Month pillar",
   "月柱"
+ ],
+ "月柱天干与年干不合五虎遁：": [
+  "The month stem does not follow the year stem (Five Tigers rule): for a ",
+  "月柱の天干が年干の五虎遁に合いません："
  ],
  "月煞": [
   "Yue Sha",
@@ -4571,9 +4843,21 @@
   "Sample count",
   "サンプル数"
  ],
+ "核对": [
+  "Check",
+  "照合"
+ ],
  "核对临界时刻和历法/时区歧义": [
   "Check boundary instants and calendar/time zone ambiguities",
   "境界時刻と暦法・タイムゾーンの曖昧さを確認"
+ ],
+ "核对失败：": [
+  "Check failed: ",
+  "照合失敗："
+ ],
+ "核对完成：": [
+  "Check done: ",
+  "照合完了："
  ],
  "核验": [
   "Verification",
@@ -4675,6 +4959,10 @@
   "Europe",
   "ヨーロッパ"
  ],
+ "止（不含）": [
+  "To (exclusive)",
+  "終（含まない）"
+ ],
  "正午月建": [
   "Noon month branch",
   "正午の月建"
@@ -4695,6 +4983,14 @@
   "Converting…",
   "換算中…"
  ],
+ "正在排大运…": [
+  "Calculating decade periods…",
+  "大運を計算中…"
+ ],
+ "正在比对…": [
+  "Comparing…",
+  "比較中…"
+ ],
  "正在独立核验回答…": [
   "Independently verifying the answer…",
   "回答を独立検証中…"
@@ -4710,6 +5006,10 @@
  "正在逐个时辰排盘…": [
   "Casting each double hour…",
   "時辰ごとに盤を作成中…"
+ ],
+ "正在逐年反查…": [
+  "Searching year by year…",
+  "年ごとに逆引き中…"
  ],
  "正官": [
   "Direct Officer (Zheng Guan)",
@@ -4830,6 +5130,10 @@
  "没有触发本工具已知边界标记；不代表专业命盘获得认证。": [
   "No known boundary flags from this tool were triggered; this does not mean a professional chart has been certified.",
   "本ツールの既知の境界フラグは発生しませんでした。専門的な命盤が認証されたことを意味しません。"
+ ],
+ "没有识别到可以比对的字段。支持的写法：": [
+  "No comparable fields were recognized. Accepted formats:",
+  "照合できる項目を認識できませんでした。対応する書き方："
  ],
  "没有质量提示并不代表源数据准确或经过专业流派认证。": [
   "The absence of quality warnings does not mean the source data is accurate or certified by a professional school.",
@@ -5079,6 +5383,10 @@
   "Birth-year Four Transformations: ",
   "生年四化："
  ],
+ "生年四化：「廉贞化禄」「破军化权」等": [
+  "Birth-year transformations: \"廉贞化禄\", \"破军化权\" and so on",
+  "生年四化：「廉贞化禄」「破军化权」など"
+ ],
  "生年：": [
   "Birth year: ",
   "生年："
@@ -5126,6 +5434,10 @@
  "用户研究问题：": [
   "User research question: ",
   "ユーザーの調査質問："
+ ],
+ "用这个时间排盘": [
+  "Cast a chart for this time",
+  "この時間で命盤を出す"
  ],
  "田宅": [
   "Property",
@@ -5343,6 +5655,18 @@
   "Milan",
   "ミラノ"
  ],
+ "粘贴其他软件排出的命盘，逐项比对，并找出对方用的规则": [
+  "Paste a chart from other software, compare it field by field, and find the rules it used",
+  "他のソフトの命盤を貼り付けて項目ごとに照合し、使われた規則を探します"
+ ],
+ "粘贴的内容只用于本次比对，服务器不保存。": [
+  "The pasted text is used only for this comparison; the server keeps nothing.",
+  "貼り付けた内容はこの比較にだけ使い、サーバーには保存しません。"
+ ],
+ "粘贴的命盘": [
+  "Pasted chart",
+  "貼り付けた命盤"
+ ],
  "紫 微 斗 数": [
   "Zi Wei Dou Shu",
   "紫 微 斗 数"
@@ -5415,9 +5739,17 @@
   "Zi Wei stars and Four Transformations follow selected public school rules and are only partially implemented; different schools may disagree.",
   "紫微の星と四化は選定した公開流派の規則に従い、一部のみ実装されています。流派によって一致しない場合があります。"
  ],
+ "紫微盘已切到 ": [
+  "Zi Wei chart switched to ",
+  "紫微盤を切り替えました："
+ ],
  "紫微重点宫位说明": [
   "Notes on key Zi Wei palaces",
   "紫微の重点宮の説明"
+ ],
+ "紫微：「命宫在寅」「身宫：夫妻」「水二局」「命主：破军」「身主：天相」": [
+  "Zi Wei: \"命宫在寅\", \"身宫：夫妻\", \"水二局\", \"命主：破军\", \"身主：天相\"",
+  "紫微：「命宫在寅」「身宫：夫妻」「水二局」「命主：破军」「身主：天相」"
  ],
  "繁體中文": [
   "繁體中文",
@@ -5443,9 +5775,17 @@
   "Longitude and time-system check",
   "経度と時刻制度の確認"
  ],
+ "结束年": [
+  "End year",
+  "終了年"
+ ],
  "结构化 JSON · 可供 MCP / REST 读取": [
   "Structured JSON · readable via MCP / REST",
   "構造化 JSON · MCP / REST で読み取り可能"
+ ],
+ "结果": [
+  "Result",
+  "結果"
  ],
  "结果 SHA-256 ": [
   "Result SHA-256 ",
@@ -5462,6 +5802,14 @@
  "结果已达上限": [
   "Result limit reached",
   "結果が上限に達しました"
+ ],
+ "结果较多，只列出前 40 个时段。": [
+  "Many results: only the first 40 intervals are listed.",
+  "結果が多いため、最初の 40 区間だけを表示します。"
+ ],
+ "给出四柱，列出 1901–2099 年间所有对得上的出生时段": [
+  "Give four pillars to list every matching birth interval in 1901–2099",
+  "四柱から 1901–2099 年の該当する出生時間帯をすべて列挙"
  ],
  "绝": [
   "Extinction (Jue)",
@@ -5651,6 +5999,10 @@
   "Dashed: trine of the selected palace; solid: opposite palace",
   "破線：選択した宮の三方、実線：対宮"
  ],
+ "虚龄": [
+  "age",
+  "数え"
+ ],
  "蜚廉": [
   "Fei Lian",
   "蜚廉"
@@ -5691,6 +6043,10 @@
   "Observed sample range",
   "観測サンプル範囲"
  ],
+ "规则": [
+  "Rules",
+  "規則"
+ ],
  "规则 ID：": [
   "Rule ID: ",
   "ルール ID："
@@ -5702,6 +6058,10 @@
  "规则对照": [
   "Rule comparison",
   "規則の比較"
+ ],
+ "规则对照只覆盖常见差异（换日、闰月、时制、夏令时），不能证明对方使用的就是这套规则。": [
+  "Rule variants cover only common differences (day boundary, leap month, time basis, daylight saving); a match does not prove the other program uses those rules.",
+  "規則の比較はよくある違い（日替わり、閏月、時制、夏時間）だけで、相手が実際にその規則を使っている証明にはなりません。"
  ],
  "规则差异": [
   "Rule differences",
@@ -5782,6 +6142,10 @@
  "评分": [
   "Score",
   "評価"
+ ],
+ "识别到的字段全部一致。": [
+  "Every recognized field matches.",
+  "認識した項目はすべて一致しました。"
  ],
  "识别时辰、日界、节令和时区变更。仅保证当前已实现规则的数值分段，不保证所有流派的专业命盘。": [
   "Detects changes of double hour, day boundary, solar term and time zone. Only the numerical segmentation of currently implemented rules is guaranteed, not professional charts of every school.",
@@ -5967,9 +6331,21 @@
   "Starting lunar year",
   "開始旧暦年"
  ],
+ "起始年": [
+  "Start year",
+  "開始年"
+ ],
  "起局时刻": [
   "Casting moment",
   "局を立てる時刻"
+ ],
+ "起止时刻是这套规则下的计算边界，精确到秒只代表算法数值，不代表出生时刻能这样确定。": [
+  "Start and end are calculated boundaries under these rules; one-second precision is numerical, not a claim that a birth time can be known that precisely.",
+  "開始・終了はこの規則での計算上の境界です。秒単位の精度は数値上のもので、出生時刻をそこまで確定できるという意味ではありません。"
+ ],
+ "起运": [
+  "from age",
+  "起運"
  ],
  "起运前": [
   "Before Luck Pillars begin",
@@ -5982,6 +6358,10 @@
  "起运约 ": [
   "Luck Pillars start at about ",
   "起運 約 "
+ ],
+ "起（含）": [
+  "From (inclusive)",
+  "始（含む）"
  ],
  "超出核验输入上限": [
   "Exceeds the verification input limit",
@@ -6066,6 +6446,14 @@
  "身宫 ": [
   "Body Palace ",
   "身宮 "
+ ],
+ "身宫地支": [
+  "Body palace branch",
+  "身宮の地支"
+ ],
+ "身宫所在宫": [
+  "Body palace position",
+  "身宮のある宮"
  ],
  "转职": [
   "Career switch",
@@ -6158,6 +6546,10 @@
  "这是问题驱动的执行流程。优先调用 consultation_execute 来执行真实的 Clarify/Compute/Verify 工作流（不要仅凭提示编造工具调用）；工具会返回 intent/status/missing_inputs/tool_trace/observations/continuation 与限制。若 status=needs_input 或 partial，先请用户确认所需输入；可用 continuation 跨次承接主题，但出生参数仍须重新提供。需要 LLM 表达时只据返回的证据分析，不得冒充执行器调用了语言模型。此前的指引仍适用：先明确用户实际问题、时间范围及必要出生输入，再判断是本命、年度职业、关系合盘、多候选择时、方案比较还是流派争议。先检查需要的出生数据质量；按需求选择 bazi_chart、ziwei_chart、deep_evidence_review、pair_comparison、annual_transformations、qimen_hour_chart、decision_matrix 等真实工具，不要每次全部调用。需要报告时调用 structured_report(include_deep_evidence=true)，有经度才启用 include_time_audit，完整保留 tool_trace、provenance、limitations。将计算事实、传统解释、用户提供的现实事实和推测分层陈述；检查流派差异与不完整紫微运限，不输出科学预测、无来源现实信息或虚构成功率。当前没有服务器长期记忆、真人账户及在线自主 Agent，不得假装已保存人生事件或完成真实联网核验。": [
   "This is a question-driven execution workflow. Prefer calling consultation_execute to run the real Clarify/Compute/Verify workflow (do not fabricate tool calls from the prompt alone); the tool returns intent/status/missing_inputs/tool_trace/observations/continuation and limitations. If status=needs_input or partial, first ask the user to confirm the required inputs; continuation can carry a topic across turns, but birth parameters must still be provided again. When LLM wording is needed, analyze only on the basis of the returned evidence, and do not pretend that the executor called a language model. The earlier guidance still applies: first clarify the user's actual question, time range, and necessary birth inputs, then decide whether it is natal, annual career, relationship synastry, multi-candidate time selection, option comparison, or a school dispute. First check the quality of the required birth data; choose real tools as needed such as bazi_chart, ziwei_chart, deep_evidence_review, pair_comparison, annual_transformations, qimen_hour_chart, and decision_matrix, rather than calling all of them every time. When a report is needed, call structured_report(include_deep_evidence=true), enable include_time_audit only when longitude is available, and keep tool_trace, provenance, and limitations in full. Present computed facts, traditional interpretations, user-provided real-world facts, and speculation in separate layers; check for school differences and the incomplete Zi Wei luck periods, and do not output scientific predictions, unsourced real-world information, or fabricated success rates. There is currently no long-term server memory, real user account, or online autonomous Agent; do not pretend to have saved life events or completed real online verification.",
   "これは質問主導の実行フローです。実際の Clarify/Compute/Verify ワークフローを実行するため、consultation_execute の呼び出しを優先してください（プロンプトだけでツール呼び出しを捏造しないでください）。ツールは intent/status/missing_inputs/tool_trace/observations/continuation と制限事項を返します。status=needs_input または partial の場合は、まずユーザーに必要な入力を確認してください。continuation により話題を次回へ引き継げますが、出生パラメータは改めて提供する必要があります。LLM による表現が必要な場合は、返された根拠のみに基づいて分析し、実行器が言語モデルを呼び出したかのように装ってはいけません。これまでの指示も引き続き適用されます。まずユーザーの実際の質問、期間、必要な出生入力を明確にし、本命、年度の職業、関係の合盤、複数候補の択時、案の比較、流派の争点のいずれかを判断してください。まず必要な出生データの品質を確認し、必要に応じて bazi_chart、ziwei_chart、deep_evidence_review、pair_comparison、annual_transformations、qimen_hour_chart、decision_matrix などの実際のツールを選び、毎回すべてを呼び出さないでください。レポートが必要な場合は structured_report(include_deep_evidence=true) を呼び出し、経度がある場合にのみ include_time_audit を有効にし、tool_trace、provenance、limitations を完全に保持してください。計算上の事実、伝統的解釈、ユーザー提供の現実の事実、推測を層に分けて述べ、流派の違いや不完全な紫微の運限を確認し、科学的予測、出典のない現実情報、捏造した成功率を出力してはいけません。現在、サーバーの長期記憶、実在のユーザーアカウント、オンラインの自律 Agent はありません。人生の出来事を保存したり、実際のオンライン検証を完了したりしたかのように装ってはいけません。"
+ ],
+ "这段年份里没有对得上的时间。可以放宽年份，或切换换日规则再试。": [
+  "No matching time in these years. Widen the years or switch the day-boundary rule and try again.",
+  "この期間に該当する時間はありません。年の範囲を広げるか、日替わり規則を切り替えて再試行してください。"
  ],
  "这里仅列宫位拓扑关系，不把星曜词汇直接推断为人生结果。": [
   "Only palace topology relationships are listed here; star terms are not directly inferred as life outcomes.",
@@ -6371,6 +6763,14 @@
   "Leap month not carried over",
   "閏月を繰り延べない"
  ],
+ "闰月后半月按下月": [
+  "Second half of a leap month as the next month",
+  "閏月の後半を翌月とする"
+ ],
+ "闰月整月按本月": [
+  "Whole leap month as the same month",
+  "閏月全体を同じ月とする"
+ ],
  "闰月顺延": [
   "Leap month carries over",
   "閏月繰り延べ"
@@ -6446,6 +6846,10 @@
  "青龙": [
   "Qing Long (Azure Dragon)",
   "青龍"
+ ],
+ "项目": [
+  "Field",
+  "項目"
  ],
  "顺排": [
   "Forward",
@@ -6566,6 +6970,10 @@
  "），请检查服务地址或代理配置": [
   "); please check the service URL or proxy configuration",
   "）。サービスのアドレスまたはプロキシ設定を確認してください"
+ ],
+ "，不会是": [
+  ", never ",
+  "。次にはなりません："
  ],
  "，但两者使用共同出生输入与历法依赖，不能算独立复验。": [
   ", but both use the same birth input and calendar dependencies, so this does not count as independent re-verification.",

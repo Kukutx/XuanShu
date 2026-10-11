@@ -264,5 +264,5 @@ def test_advanced_openapi_endpoint_and_counts():
     schema=CLIENT.get('/openapi.json').json()
     assert '/api/dayun' in schema['paths'] and '/api/birth-boundaries' in schema['paths']
     counts=CLIENT.get('/api/capabilities').json()['counts']
-    assert counts=={'mcp_tools':28,'mcp_resources':17,'mcp_prompts':15,'agent_skills':18}
+    assert counts=={'mcp_tools':30,'mcp_resources':17,'mcp_prompts':15,'agent_skills':18}
     assert {'bazi_dayun','birth_boundary_map'}<=set(x['name'] for x in TOOL_DEFS)
