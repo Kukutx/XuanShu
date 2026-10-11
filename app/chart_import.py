@@ -29,7 +29,7 @@ PALACE_ALIASES = {
     '田宅': '田宅宫', '福德': '福德宫', '父母': '父母宫',
 }
 # Traditional characters that appear in chart terms, so charts from Taiwan and Hong Kong parse too.
-TRADITIONAL = str.maketrans('宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛', '宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛')
+TRADITIONAL = str.maketrans('宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於', '宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于')
 STEM_CLASS, BRANCH_CLASS = '[' + ''.join(STEMS) + ']', '[' + ''.join(BRANCHES) + ']'
 PALACE_PATTERN = re.compile('(' + '|'.join(sorted(PALACE_ALIASES, key=len, reverse=True)) + r')\s*宫?')
 PILLAR_NAMES = {'year': '年柱', 'month': '月柱', 'day': '日柱', 'hour': '时柱'}

@@ -2,14 +2,14 @@
 from __future__ import annotations
 
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app.chart_import import ChartImportRequest, chart_import_check, parse_chart_text
-from app.engines import BirthInput, calculate_bazi, calculate_ziwei
+from app.engines import BirthInput, calculate_bazi, calculate_ziwei, pillar_indices
 from app.main import app
 from app.pillar_search import PillarSearchRequest, pillars_to_dates
 
@@ -60,6 +60,28 @@ def test_impossible_stems_are_explained_and_bad_pairs_rejected():
     assert CLIENT.post('/api/pillars-to-dates', json={'year': '庚丑', 'month': '甲申', 'day': '壬午'}).status_code == 422
 
 
+def test_jie_edges_round_to_the_correct_side_of_the_instant():
+    # 寒露 2026 falls at 14:29:18.24 Beijing time, inside the 未 hour.
+    p = pillars_of({'birth_datetime': '2026-10-08T14:45', 'timezone': 'Asia/Shanghai'})
+    (m,) = pillars_to_dates(PillarSearchRequest(**p, start_year=2026, end_year=2026))['matches']
+    start, end = datetime.fromisoformat(m['start']), datetime.fromisoformat(m['end_exclusive'])
+    assert m['start'] == '2026-10-08T14:29:19+08:00'
+    got = lambda t: pillar_indices(t)[0]
+    assert got(start) == got(end - timedelta(seconds=1)) != got(start - timedelta(seconds=1))
+    assert got(end) != got(start)
+
+
+def test_suggested_reading_avoids_repeated_and_skipped_clock_times():
+    zone = 'America/New_York'
+    fall = pillars_of({'birth_datetime': '2021-11-07T02:30', 'timezone': zone})
+    (m,) = pillars_to_dates(PillarSearchRequest(**fall, timezone=zone, start_year=2021, end_year=2021))['matches']
+    assert m['duration_minutes'] == 180 and m['suggested_local'] == '2021-11-07T02:15'  # 01:00–02:00 happens twice
+    assert pillars_of({'birth_datetime': m['suggested_local'], 'timezone': zone}) == fall
+    spring = pillars_of({'birth_datetime': '2021-03-14T01:30', 'timezone': zone})
+    (m,) = pillars_to_dates(PillarSearchRequest(**spring, timezone=zone, start_year=2021, end_year=2021))['matches']
+    assert m['duration_minutes'] == 60 and m['suggested_local'] == '2021-03-14T01:30'  # 02:00–03:00 never happens
+
+
 def test_the_year_range_limits_results():
     p = pillars_of(BIRTH)
     out = pillars_to_dates(PillarSearchRequest(**p, start_year=1990, end_year=2010))
@@ -88,6 +110,7 @@ def test_traditional_text_and_labelled_pillars_parse():
     assert parsed['ming_branch'] == '午' and parsed['palace_major_stars'] == {'命宫': ['紫微'], '官禄宫': ['廉贞', '天府']}
     assert parse_chart_text('子女宫：太阳 天梁\n身宫在子女')['shen_palace'] == '子女宫'
     assert 'ming_branch' not in parse_chart_text('命宫 子女宫 天机')
+    assert parse_chart_text('夫妻宮：無主星\n命宮位於午')['palace_major_stars'] == {'夫妻宫': []}
 
 
 def test_long_padding_neither_changes_the_parse_nor_slows_it():

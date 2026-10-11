@@ -371,7 +371,8 @@ function renderLuckStrip(parent, b) {
   if (currentInput.gender === 'unspecified') {append(box, 'p', 'field-help', '在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。'); return;}
   if (luckKey !== JSON.stringify(currentInput)) {ensureLuck(); append(box, 'p', 'field-help', '正在排大运…'); return;}
   if (!luckData) {append(box, 'p', 'inline-msg', '大运暂时排不出来，可以在「大运干支」里单独计算。'); return;}
-  const birthYear = Number(currentInput.birth_datetime.slice(0, 4)), thisYear = new Date().getFullYear();
+  // 虚龄 counts from the lunar birth year, which is the previous civil year for births before the new year.
+  const birthYear = b.lunar_date.year, thisYear = new Date().getFullYear();
   const decades = luckData.periods.map(d => ({...d, from: Number(d.approx_start_local.slice(0, 4)), to: Number(d.approx_end_local_exclusive.slice(0, 4))}));
   const now = decades.findIndex(d => thisYear >= d.from && thisYear < d.to);
   if (luckDecade === null) luckDecade = Math.max(now, 0);
@@ -392,12 +393,15 @@ function renderLuckStrip(parent, b) {
   for (let y = d.from; y < d.to; y++) {
     const pillar = yearPillarOf(y);
     const btn = append(years, 'button', 'luck-cell luck-year' + (y === thisYear ? ' now' : ''));
-    btn.type = 'button'; btn.id = 'luck-year-' + y; btn.title = '在紫微盘打开 ' + y + ' 年流年层';
+    btn.type = 'button'; btn.id = 'luck-year-' + y;
+    const supported = y >= 1901 && y <= 2099;
+    btn.title = supported ? '在紫微盘打开 ' + y + ' 年流年层' : '超出 1901–2099 的计算范围';
     append(btn, 'small', null, String(y));
     const chars = append(btn, 'span', 'luck-pair');
     append(chars, 'b', stemClass(pillar[0]), pillar[0]); append(chars, 'b', branchClass(pillar[1]), pillar[1]);
     append(btn, 'small', 'luck-god', tenGodOf(b.day_master, pillar[0]));
     const age = append(btn, 'small', 'luck-age'); age.append('虚龄'); age.append(' ' + (y - birthYear + 1));
+    if (!supported) {btn.disabled = true; continue;}
     btn.addEventListener('click', () => {
       ziweiLayer = {mode: 'year', decade: null, year: y};
       activateTab(tabs.find(t => t.dataset.tab === 'ziwei'));
@@ -1020,6 +1024,7 @@ function renderPillarSearch() {
       append(tr, 'td', null, m.duration_minutes >= 120 ? (m.duration_minutes / 60).toFixed(1) + ' 小时' : m.duration_minutes + ' 分钟');
       append(tr, 'td', null, `${m.lunar_date.year}年${m.lunar_date.is_leap_month ? '闰' : ''}${m.lunar_date.month}月${m.lunar_date.day}日`);
       const cell = append(tr, 'td');
+      if (!m.suggested_local) {append(cell, 'small', 'field-help', '整段落在夏令时重复或跳过的钟点，请手动填写'); return;}
       const use = append(cell, 'button', 'tiny-button', '用这个时间排盘'); use.type = 'button'; use.id = 'pillar-use-' + i;
       use.addEventListener('click', () => {
         $('#birth_datetime').value = m.suggested_local; $('#late_zi_day_rollover').checked = r.rules.day_boundary === '23:00';

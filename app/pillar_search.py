@@ -100,6 +100,24 @@ def _month_window(solar_year: int, offset: int) -> tuple[datetime, datetime]:
     return jie(offset), jie(offset + 1)
 
 
+def _ceil_second(instant: datetime) -> datetime:
+    return instant if not instant.microsecond else instant.replace(microsecond=0) + timedelta(seconds=1)
+
+
+def _form_reading(start: datetime, end: datetime, zone: ZoneInfo) -> str | None:
+    """A minute-resolution clock reading inside [start, end) that names exactly one instant.
+
+    Readings repeated by a daylight-saving fall-back, or skipped by a spring-forward, are refused by the
+    chart engines, so the midpoint is tried first and other points of the interval after it."""
+    for fraction in (0.5, 0.25, 0.75, 0.1, 0.9, 0.02, 0.98):
+        reading = (start + (end - start) * fraction).astimezone(zone).replace(second=0, microsecond=0, tzinfo=None, fold=0)
+        first, second = reading.replace(tzinfo=zone), reading.replace(tzinfo=zone, fold=1)
+        exists = first.astimezone(UTC).astimezone(zone).replace(tzinfo=None) == reading
+        if exists and first.utcoffset() == second.utcoffset() and start <= first < end:
+            return reading.isoformat(timespec='minutes')
+    return None
+
+
 def pillars_to_dates(req: PillarSearchRequest) -> dict:
     zone = ZoneInfo(req.timezone)
     year, month, day = (sexagenary_index(x) for x in (req.year, req.month, req.day))
@@ -118,14 +136,17 @@ def pillars_to_dates(req: PillarSearchRequest) -> dict:
         return got[:3] == target[:3] and (hour is None or got[3] == hour)
 
     def edge(inside: datetime, outside: datetime) -> datetime:
-        """First matching instant (or first non-matching one) to the second, by bisection."""
-        while abs((outside - inside).total_seconds()) > 1:
+        """Whole second where a run starts (first matching) or ends (first non-matching), by bisection.
+
+        Bisecting to a millisecond and then rounding up keeps both readings on the correct side of a jie
+        instant that falls between two whole seconds."""
+        while abs((outside - inside).total_seconds()) > 0.001:
             middle = inside + (outside - inside) / 2
             if matches(middle):
                 inside = middle
             else:
                 outside = middle
-        return outside if outside > inside else inside
+        return _ceil_second(outside if outside > inside else inside)
 
     runs: list[tuple[datetime, datetime]] = []
     if not problems:
@@ -167,8 +188,8 @@ def pillars_to_dates(req: PillarSearchRequest) -> dict:
             'start': local_start.isoformat(timespec='seconds'),
             'end_exclusive': local_end.isoformat(timespec='seconds'),
             'duration_minutes': round((end - start).total_seconds() / 60, 1),
-            # A clock reading safely inside the interval, ready for the birth form.
-            'suggested_local': (start + (end - start) / 2).astimezone(zone).replace(tzinfo=None).isoformat(timespec='minutes'),
+            # A clock reading safely inside the interval, ready for the birth form; None if no reading is unambiguous.
+            'suggested_local': _form_reading(start, end, zone),
             'lunar_date': chinese_lunar_date(effective.date()),
         }
         if req.time_mode != 'clock':
