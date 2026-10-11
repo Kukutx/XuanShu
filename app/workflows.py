@@ -54,14 +54,19 @@ def _solar_month_branch(day: date, hour: int) -> int:
     return (2 + month_offset) % 12
 
 
+def _jie_boundary_on(day: date) -> bool:
+    """True when a jie instant falls anywhere in [00:00, 24:00) China time."""
+    start = datetime.combine(day, time(), tzinfo=CHINA)
+    end = start + timedelta(days=1) - timedelta(microseconds=1)
+    return solar_month_offset(start) != solar_month_offset(end)
+
+
 def day_officer_calendar(request: DayOfficerRequest) -> dict:
     """Label dates by 建除十二值日 without claiming luck or offering 宜忌."""
     days = []
     for i in range(request.days):
         current = request.start_date + timedelta(days=i)
         noon_month = _solar_month_branch(current, 12)
-        midnight_month = _solar_month_branch(current, 0)
-        late_month = _solar_month_branch(current, 23)
         day_pillar = _day_pillar(current)
         day_branch = day_pillar[-1]
         officer = DAY_OFFICERS[(BRANCHES.index(day_branch) - noon_month) % 12]
@@ -73,7 +78,7 @@ def day_officer_calendar(request: DayOfficerRequest) -> dict:
             'month_branch_at_noon': BRANCHES[noon_month],
             'day_branch': day_branch,
             'officer': officer,
-            'jie_boundary_on_date': len({midnight_month, noon_month, late_month}) > 1,
+            'jie_boundary_on_date': _jie_boundary_on(current),
         })
     return {
         'system': 'jianchu-twelve-day-officers',

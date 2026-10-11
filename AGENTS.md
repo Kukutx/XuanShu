@@ -27,10 +27,14 @@ This repository is an independently implemented Chinese calendar/cultural chart 
 - `app/qimen.py`: explicitly school-scoped Qimen rotating hour chart; not externally certified.
 - `app/consultation.py`: deterministic six-scenario question-first executable orchestration. Not an autonomous LLM; no server persistence; partner records require explicit authorization.
 - `app/oauth_resource.py`: JWT resource server backed by an external OAuth issuer, not an OAuth authorization server.
+- `app/date_selection.py`: date-range candidate scan for 择日择时 (officer / jie-day / natal-clash filters, optional hour-Qimen); lists chronologically, never ranks luck.
+- `app/life_path.py`: user-reported life events beside 大运, solar year pillar, lunar-year four transformations and natal branch relations; co-occurrence only.
+- `static/cities.js`: offline birthplace presets (IANA zone + city-centre coordinates).
+- `app/chat.py`: optional LLM conversation (Anthropic SDK or OpenAI-compatible) over `mcp.call_tool`. The model must never compute charts itself; every call is traced. REST-only by design (MCP clients are already models). No server persistence; memory and life events come from the browser per request.
 - `app/mcp.py`: shared MCP tool, resource and prompt transport logic.
 - `app/main.py`: FastAPI REST + Streamable HTTP MCP.
 - `app/stdio.py`: Claude/Codex stdio MCP.
-- `static/`: self-contained browser console.
+- `static/`: self-contained browser console (`chat.js` is the AI conversation view and loads before `app.js`).
 - `skills/`: portable Agent Skills instructions.
 - `tests/`: regression suite; `scripts/build_release.py`: deterministic ZIP and SHA-256 manifest validation.
 

@@ -81,3 +81,26 @@
 .tab:focus-visible{outline:2px solid var(--gold2);outline-offset:3px;border-radius:3px}
 #consult-copy-markdown{margin-right:8px}
 @media(max-width:640px){.stale-birth-warning{margin:9px 17px 0}.tool-keyboard-hint{width:100%;font-size:10px}}
+
+/* AI conversation view */
+.chat-log{display:flex;flex-direction:column;gap:12px;max-height:62vh;overflow-y:auto;margin:16px 0;padding:4px 2px}
+.chat-msg{border:1px solid var(--border);border-radius:10px;padding:11px 14px;background:rgba(255,255,255,.02);max-width:92%}
+.chat-msg.user{align-self:flex-end;background:rgba(198,160,108,.09);border-color:rgba(213,187,127,.35)}
+.chat-msg.assistant{align-self:flex-start}
+.chat-msg.error{border-color:rgba(225,120,90,.55)}
+.chat-msg>small{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.chat-text{white-space:pre-wrap;line-height:1.75;overflow-wrap:anywhere}
+.chat-trace{margin-top:10px;font-size:12px}
+.chat-trace summary{cursor:pointer;color:var(--gold2)}
+.chat-trace-step{display:flex;flex-direction:column;gap:3px;padding:7px 0;border-top:1px dashed var(--border)}
+.chat-trace-step.failed strong{color:#f1b38a}
+.chat-trace-step code{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.chat-memory-suggest{margin-top:10px;padding:8px 10px;border-left:3px solid var(--gold);background:rgba(198,160,108,.06)}
+.chat-memory-row{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:5px 0;font-size:13px}
+.chat-memory-row span{overflow-wrap:anywhere}
+.chat-panel textarea{width:100%}
+.check-line{display:inline-flex;align-items:center;gap:6px}
+@media(max-width:640px){.chat-msg{max-width:100%}.chat-log{max-height:none}}
+#result .check-line input[type=checkbox]{width:16px;height:16px;min-width:0;margin:0;padding:0}
+.chat-panel .profile-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chat-panel .profile-actions button{width:auto;flex:0 0 auto;min-height:38px;padding:0 16px}

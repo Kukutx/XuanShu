@@ -4,9 +4,10 @@ const $ = sel => document.querySelector(sel);
 const result = $('#result');
 const form = $('#birth-form');
 const tabs = [...document.querySelectorAll('.tab')];
-const commonTabs = new Set(['consult','bazi','qimen','ziwei','professional','calendar','pair','decision','report']);
+const commonTabs = new Set(['chat','date-scan','consult','bazi','qimen','ziwei','professional','calendar','pair','decision','report']);
 // Search alternative terminology without transmitting the user's query.
 const toolKeywords = {
+  chat:'对话 聊天 ai chat 问答 记忆 人生事件 life path 回溯 多语言 english',
   consult:'咨询 agent 事业 工作 感情 婚姻 关系 问答 career advice',
   bazi:'八字 四柱 生辰 干支 命盘',
   qimen:'奇门 遁甲 九宫 择时 事件',
@@ -19,6 +20,7 @@ const toolKeywords = {
   dayun:'八字 大运 起运',
   boundaries:'出生时间 时辰 边界',
   officers:'择日 建除 十二值日',
+  'date-scan':'择日 择时 吉日 候选 搬家 开业 奇门 建除',
   timeline:'年份 运势 轨迹',
   decision:'方案 对比 权重 决策',
   calendar:'农历 日历 节气 日期',
@@ -69,7 +71,7 @@ try {
     }
   }
 } catch (_) { /* Storage may be unavailable; leave previous data untouched. */ }
-let active = 'consult';
+let active = 'chat';
 let current = null;
 let consultResult = null;
 let consultCursor = null;
@@ -471,6 +473,67 @@ function renderDayOfficers() {
   });
   if(!officerResult.days.length)append(result,'p','feature-note','查询范围内未找到所筛选的标签。');
   officerResult.limitations.forEach(x=>note(result,x));
+}
+let dateScanResult = null;
+let dateScanFingerprint = null;
+// The scan depends on the birth fields (natal filter) and the zone (hour charts).
+function dateScanStamp(natal, hours) {
+  return JSON.stringify({birth: natal ? readInput() : null, timezone: hours ? $('#timezone').value : null});
+}
+function dateScanStale() {
+  return !!dateScanResult && dateScanFingerprint !== dateScanStamp(dateScanResult.criteria.exclude_natal_clash, dateScanResult.criteria.hours.length > 0);
+}
+// No criteria are preselected: every exclusion is the user's own choice.
+let dateScanDraft = {start_date: localToday(), days: 30, include:[], exclude:[], skipJie:false, natal:false, hours:''};
+function renderDateScan() {
+  title(result,'择日择时','按你选的传统条件筛选候选日，可附加每个候选日指定时刻的时家奇门盘 · 按日期排列，不打吉凶分');
+  const row=append(result,'div','inline-control');
+  const start=createInput('起始日','date',dateScanDraft.start_date,row);start.id='scan-date';start.min='1901-01-01';start.max='2099-12-31';
+  const count=append(append(row,'label',null,'扫描天数'),'select');count.id='scan-days';
+  [7,14,30,60,93].forEach(x=>{const op=append(count,'option',null,`${x} 天`);op.value=String(x);});count.value=String(dateScanDraft.days);
+  const hours=createInput('候选时刻（选填，逗号分隔，如 09:00,15:00）','text',dateScanDraft.hours,row);hours.id='scan-hours';hours.maxLength=40;
+  const officers=['建','除','满','平','定','执','破','危','成','收','开','闭'];
+  const pick=(label,key,id)=>{
+    const box=append(result,'div','consult-shortcuts');box.id=id;append(box,'small','small-text',label);
+    officers.forEach(o=>{const l=append(box,'label','check-line');const c=append(l,'input');c.type='checkbox';c.value=o;c.checked=dateScanDraft[key].includes(o);l.append(' '+o);});
+    return box;
+  };
+  const inc=pick('只保留这些值日（不选=不限）','include','scan-include');
+  const exc=pick('排除这些值日','exclude','scan-exclude');
+  const opts=append(result,'div','consult-shortcuts');
+  const jl=append(opts,'label','check-line');const jie=append(jl,'input');jie.type='checkbox';jie.id='scan-skip-jie';jie.checked=dateScanDraft.skipJie;jl.append(' 排除交节当天');
+  const nl=append(opts,'label','check-line');const natal=append(nl,'input');natal.type='checkbox';natal.id='scan-natal';natal.checked=dateScanDraft.natal;nl.append(' 排除与左侧本命年支、日支相冲的日子');
+  const run=append(opts,'button',null,'扫描候选日');run.id='scan-run';run.type='button';
+  const msg=append(result,'p','inline-msg');
+  run.addEventListener('click',async()=>{
+    const checked=box=>[...box.querySelectorAll('input:checked')].map(x=>x.value);
+    dateScanDraft={start_date:start.value,days:Number(count.value),include:checked(inc),exclude:checked(exc),skipJie:jie.checked,natal:natal.checked,hours:hours.value};
+    const payload={start_date:dateScanDraft.start_date,days:dateScanDraft.days,include_officers:dateScanDraft.include,exclude_officers:dateScanDraft.exclude,
+      exclude_jie_boundary_days:dateScanDraft.skipJie,hours:dateScanDraft.hours.split(/[,，\s]+/).filter(Boolean),timezone:$('#timezone').value};
+    if(dateScanDraft.natal){payload.birth=readInput();if(payload.birth.longitude===null)delete payload.birth.longitude;payload.exclude_natal_clash=true;}
+    run.disabled=true;msg.textContent='';
+    const stamp=dateScanStamp(dateScanDraft.natal,payload.hours.length>0);
+    try{dateScanResult=await postJSON('/api/date-scan',payload);dateScanFingerprint=stamp;render();}
+    catch(e){msg.textContent='扫描失败：'+e.message;}
+    finally{run.disabled=false;}
+  });
+  if(dateScanStale()){dateScanResult=null;dateScanFingerprint=null;append(result,'p','info-inline','出生参数或时区已更改，旧的扫描结果已清除，请重新扫描。');return;}
+  if(!dateScanResult){append(result,'p','info-inline','先选条件再扫描。结果只是传统标签筛选，最终取舍以现实安排为准。');return;}
+  const ex=dateScanResult.excluded_counts;
+  meta(result,[`候选 ${dateScanResult.candidates.length} 日`,`排除：值日 ${ex.officer_not_included+ex.officer_excluded} · 交节 ${ex.jie_boundary} · 相冲 ${ex.natal_clash}`,dateScanResult.truncated?'结果已达上限':'按日期排列']);
+  const table=append(append(result,'div','table-wrap'),'table','data-table');
+  const hr=append(append(table,'thead'),'tr');
+  ['公历日','农历','日干支','值日','本命相冲','时家奇门'].forEach(x=>append(hr,'th',null,x));
+  const body=append(table,'tbody');
+  dateScanResult.candidates.forEach(c=>{
+    const tr=append(body,'tr');
+    const lunar=c.lunar_date.year+'年'+(c.lunar_date.is_leap_month?'闰':'')+c.lunar_date.month+'月'+c.lunar_date.day+'日';
+    const clash=c.natal_clashes.map(x=>x.day_branch+'冲'+x.natal_branch).join('、')||'—';
+    const qimen=c.hour_charts.map(h=>`${h.local_time} ${h.dun}${h.bureau}局 值符${h.zhi_fu_star} 值使${h.zhi_shi_door}`).join('；')||'—';
+    [c.date,lunar,c.day_pillar,c.officer,clash,qimen].forEach(x=>append(tr,'td',null,x));
+  });
+  if(!dateScanResult.candidates.length)append(result,'p','feature-note','没有满足全部条件的日子，可以放宽条件或延长扫描天数。');
+  dateScanResult.limitations.forEach(x=>note(result,x));
 }
 function renderTimeline() {
   title(result,'连续农历年四化对照','本命盘固定，叠加多个命名农历年的天干四化标签');
@@ -982,7 +1045,7 @@ function renderIntegration() {
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
-  return {consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
+  return {date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
 }
 function renderConsultation() {
   title(result, '问题驱动咨询工作流', '真实执行工具 · 保留证据来源 · 不在服务器保存对话');
@@ -1098,6 +1161,7 @@ function renderJson() {
 }
 function render() {
   clear();
+  if (active === 'chat') return renderChat();
   if (active === 'consult') return renderConsultation();
   if (active === 'qimen') return renderQimen();
   if (active === 'professional') return renderProfessionalZiwei();
@@ -1106,6 +1170,7 @@ function render() {
   if (active === 'boundaries') return renderBirthBoundaries();
   if (active === 'calendar') return renderCalendar();
   if (active === 'officers') return renderDayOfficers();
+  if (active === 'date-scan') return renderDateScan();
   if (active === 'timeline') return renderTimeline();
   if (active === 'decision') return renderDecision();
   if (active === 'pair') return renderPair();
@@ -1177,7 +1242,7 @@ function updateStaleBirthNotice() {
   const fingerprint=JSON.stringify(readInput());
   const outdatedChart=!!currentInput && fingerprint !== JSON.stringify(currentInput);
   const outdatedQimen=!!qimenResult && !!qimenFingerprint && fingerprint !== qimenFingerprint;
-  const outdated=outdatedChart || outdatedQimen;
+  const outdated=outdatedChart || outdatedQimen || dateScanStale();
   $('#stale-birth-warning').hidden = !outdated;
   if (outdated) {
     $('#result-subtitle').textContent = '出生资料已更改：旧命盘需要重新生成';
@@ -1254,7 +1319,7 @@ $('#load-profile').addEventListener('click', () => {
 $('#remove-profile').addEventListener('click', () => {
   const chosen = $('#profiles').value;
   if (!chosen) {setFeedback('请选择要删除的档案'); return;}
-  try {localStorage.setItem(profileKey, JSON.stringify(loadProfiles().filter(x => x.id !== chosen))); showProfiles(); setFeedback('已从本机浏览器删除所选档案。');}
+  try {localStorage.setItem(profileKey, JSON.stringify(loadProfiles().filter(x => x.id !== chosen))); showProfiles(); purgeChatStores(); setFeedback('已从本机浏览器删除所选档案及其对话、记忆和人生事件。'); if (active === 'chat') render();}
   catch (_) {setFeedback('删除失败：浏览器存储不可用');}
 });
 showProfiles();

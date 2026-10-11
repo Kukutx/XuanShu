@@ -137,7 +137,7 @@ def main():
             'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {'_meta': META}},
             {'MCP-Protocol-Version': VERSION, 'Mcp-Method': 'tools/list',
              'Accept': 'application/json, text/event-stream'})
-        assert status == 200 and len(tools['result']['tools']) == 25, tools
+        assert status == 200 and len(tools['result']['tools']) == 27, tools
         status, rpc_choice = request(base, '/mcp', {
             'jsonrpc':'2.0','id':4,'method':'tools/call',
             'params':{'name':'decision_matrix','arguments':matrix,'_meta':META}},

@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_function_discovery_does_not_remove_legacy_tools():
     html=(ROOT/'static/index.html').read_text(encoding='utf-8')
     js=(ROOT/'static/app.js').read_text(encoding='utf-8')
-    assert html.count('data-tab=') == 22
+    assert html.count('data-tab=') == 24
     assert 'id="tool-search"' in html
     assert 'id="tool-toggle-all"' in html
     assert 'id="tool-visible-count"' in html
