@@ -4,7 +4,7 @@ const $ = sel => document.querySelector(sel);
 const result = $('#result');
 const form = $('#birth-form');
 const tabs = [...document.querySelectorAll('.tab')];
-const commonTabs = new Set(['chat','date-scan','consult','bazi','qimen','ziwei','professional','calendar','pair','decision','report']);
+const commonTabs = new Set(['chat','date-scan','consult','bazi','qimen','ziwei','transform','dayun','calendar','pair','decision','report']);
 // Search alternative terminology without transmitting the user's query.
 const toolKeywords = {
   chat:'对话 聊天 ai chat 问答 记忆 人生事件 life path 回溯 多语言 english',
@@ -46,6 +46,12 @@ function updateToolNavigation() {
     tab.hidden = !(tab.dataset.tab === active || (allowed && matches));
     if (!tab.hidden) visible++;
   });
+  // A group heading is shown only while at least one of its tools is.
+  document.querySelectorAll('.tab-group').forEach(label => {
+    let node = label.nextElementSibling, shown = false;
+    while (node && !node.classList.contains('tab-group')) {if (node.classList.contains('tab') && !node.hidden) shown = true; node = node.nextElementSibling;}
+    label.hidden = !shown;
+  });
   $('#tool-visible-count').textContent = term
     ? (matched ? ('找到 ' + matched + ' 项（当前页面保留）') : '没有匹配项，请尝试八字、择时、MCP 等关键词')
     : ('当前 ' + visible + '/' + tabs.length + ' 项');
@@ -79,6 +85,10 @@ let consultAdvancedOpen = false;
 let consultDraft = {question:'',intent:'auto', useBirth:false, usePartner:false, partnerDate:'', lunarYear:'', candidateDates:'', facts:'', includeReport:false};
 let qimenResult = null;
 let qimenFingerprint = null;
+let currentHourUnknown = false;  // the chart was generated with "不知道出生时辰" ticked
+let hourCandidates = null;       // {key, rows}: the same birth day cast at each of the twelve double hours
+// Qimen is cast for the moment of a question or event, which is usually now, not the birth time.
+let qimenMoment = {mode: 'now', custom: ''};
 let professionalResult = null;
 let referenceAuditResult = null;
 const localToday = () => {
@@ -88,6 +98,8 @@ const localToday = () => {
 let professionalTargetDraft = localToday();
 let currentInput = null;
 let selectedPalace = '命宫';
+// Time layer drawn on the Zi Wei board: natal only, one ten-year major limit, or one lunar year.
+let ziweiLayer = {mode: 'natal', decade: null, year: null};
 let calendarResult = null;
 let pairResult = null;
 let pairZiweiResult = null;
@@ -175,12 +187,12 @@ function setInput(data) {
   updateDemoBirthWarning();
   updateStaleBirthNotice();
 }
-async function postJSON(path, body) {
+async function postJSON(path, body, signal) {
   const token = $('#api_token').value;
   const response = await fetch(path, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', ...(token ? {'Authorization': 'Bearer ' + token} : {})},
-    body: JSON.stringify(body),
+    body: JSON.stringify(body), signal,
   });
   let data;
   try {data=await response.json();}
@@ -194,24 +206,48 @@ async function postJSON(path, body) {
   }
   return data;
 }
+const browserZone = () => {try {return Intl.DateTimeFormat().resolvedOptions().timeZone || '';} catch (_) {return '';}};
+function localMinute(date = new Date()) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+// "Now" and a chosen time use this device's clock and time zone; "birth" reuses every birth-panel rule.
+function qimenMomentInput() {
+  const base = readInput();
+  if (qimenMoment.mode === 'birth') return base;
+  const when = qimenMoment.mode === 'custom' && qimenMoment.custom ? qimenMoment.custom : localMinute();
+  return {...base, birth_datetime: when, timezone: browserZone() || base.timezone, time_mode: 'clock', longitude: null};
+}
 function renderQimen() {
-  if (qimenResult && qimenFingerprint !== JSON.stringify(readInput())) qimenResult = null;
+  if (qimenResult && qimenFingerprint && qimenFingerprint !== JSON.stringify(readInput())) qimenResult = null;
   title(result, '奇门遁甲 · 时家拆补转盘', '九宫 · 三元局数 · 地盘 / 天盘 / 暗干 / 门 / 星 / 神');
-  append(result, 'p', 'info-inline', '使用左侧指定日期与时间作为排盘瞬间。不是出生预测；本模块仅实现一套明确的时家拆补转盘配置。');
+  append(result, 'p', 'info-inline', '奇门按事情发生或提问的时刻起局，默认取此刻。不是出生预测；本模块仅实现一套明确的时家拆补转盘配置。');
   const row = append(result, 'div', 'inline-control');
+  const modeLabel = append(row, 'label', null, '起局时刻');
+  const mode = append(modeLabel, 'select'); mode.id = 'qimen-moment';
+  [['now', '此刻'], ['custom', '指定时间'], ['birth', '出生时间']].forEach(([value, text]) => {const op = append(mode, 'option', null, text); op.value = value;});
+  mode.value = qimenMoment.mode;
+  mode.addEventListener('change', () => {qimenMoment.mode = mode.value; render();});
+  if (qimenMoment.mode === 'custom') {
+    const whenLabel = append(row, 'label', null, '日期与时间');
+    const when = append(whenLabel, 'input'); when.type = 'datetime-local'; when.id = 'qimen-when';
+    when.value = qimenMoment.custom || localMinute();
+    when.addEventListener('change', () => {qimenMoment.custom = when.value;});
+  }
   const run = append(row, 'button', null, '排布九宫'); run.id='qimen-run'; run.type='button';
+  append(result, 'small', 'field-help', qimenMoment.mode === 'birth' ? '沿用出生资料里的时区、真太阳时和换日规则。' : '按本机时区 ' + (browserZone() || readInput().timezone) + ' 的钟表时间起局。');
   const message = append(result, 'p', 'inline-msg');
   run.addEventListener('click', async () => {
-    run.disabled=true; message.textContent='';
-    try { const input = readInput(); const stamp = JSON.stringify(input);
+    run.disabled=true; message.className = 'inline-msg progress'; message.textContent='正在起局…';
+    try { const input = qimenMomentInput();
       const chart = await postJSON('/api/qimen', {moment:input});
-      qimenResult=chart; qimenFingerprint=stamp; render(); }
-    catch(e) { message.textContent='奇门排盘失败：'+e.message; }
+      qimenResult=chart; qimenFingerprint = qimenMoment.mode === 'birth' ? JSON.stringify(input) : null; render(); }
+    catch(e) { message.className = 'inline-msg'; message.textContent='奇门排盘失败：'+e.message; }
     finally { run.disabled=false; }
   });
   if (!qimenResult) return;
   const q=qimenResult;
-  meta(result,[q.solar_term, q.dun + q.bureau + '局', q.yuan, '日 ' + q.day_pillar, '时 ' + q.hour_pillar]);
+  meta(result,[(q.instant || '').replace('T', ' ').slice(0, 16), q.solar_term, q.dun + q.bureau + '局', q.yuan, '日 ' + q.day_pillar, '时 ' + q.hour_pillar].filter(Boolean));
   rules(result,[
     {label:'旬首 / 六仪', value:q.xun_head + ' · ' + q.xun_instrument},
     {label:'值符星及宫位', value:q.zhi_fu_star, detail:'宫 ' + q.zhi_fu_palace},
@@ -222,15 +258,23 @@ function renderQimen() {
   const order=[4,9,2,3,5,7,8,1,6];
   order.forEach(n=>{
     const p=q.palaces.find(x=>x.number===n);
-    const cell=append(board,'div','qimen-cell' + (n===5?' center':'') + (p.void?' empty':'') );
+    const zhifu=p.number===q.zhi_fu_palace, zhishi=p.number===q.zhi_shi_palace;
+    const cell=append(board,'div','qimen-cell' + (n===5?' center':'') + (p.void?' empty':'') + (zhifu?' zhifu':'') + (zhishi?' zhishi':''));
     append(cell,'strong',null,`${n} · ${p.trigram}宫 · ${p.direction}`);
-    append(cell,'div',null,`地干 ${p.earth_stem}　天干 ${p.heaven_stem}`);
-    append(cell,'div',null,`暗干 ${p.dark_stem}`);
-    append(cell,'div',null,`九星 ${p.star}`);
-    append(cell,'div',null,`八门 ${p.door || '—'}`);
-    append(cell,'div',null,`八神 ${p.deity || '—'}`);
-    if(p.void) append(cell,'small',null,'旬空');
-    if(p.center_lodged_here) append(cell,'small',null,'中宫寄宫');
+    // Traditional reading order: deity over star over door, heaven stem over earth stem.
+    const grid=append(cell,'div','qimen-grid');
+    const pair=(label,name,stemLabel,stem)=>{
+      const left=append(grid,'div','q-name'); append(left,'span','q-label',label); left.append(name || '—');
+      const right=append(grid,'div','q-stem'); if(stemLabel){append(right,'span','q-label',stemLabel); right.append(stem);}
+    };
+    pair('八神',p.deity,'天干',p.heaven_stem);
+    pair('九星',p.star,'暗干',p.dark_stem);
+    pair('八门',p.door,'地干',p.earth_stem);
+    const tags=append(cell,'div','qimen-tags');
+    if(zhifu) append(tags,'span','qimen-tag','值符');
+    if(zhishi) append(tags,'span','qimen-tag','值使');
+    if(p.void) append(tags,'small','qimen-tag void','旬空');
+    if(p.center_lodged_here) append(tags,'small','qimen-tag','中宫寄宫');
   });
   q.limitations.forEach(x=>note(result,x));
 }
@@ -278,25 +322,56 @@ function renderQimenAudit() {
   if(a.mismatches.length)append(result,'pre','json-code',JSON.stringify(a.mismatches,null,2));
   a.notes.forEach(x=>note(result,x));
 }
+// Five phases → CSS class; the colours live in style.css for both themes.
+const ELEMENT_CLASS = {'木':'wood','火':'fire','土':'earth','金':'metal','水':'water'};
+const elementClass = name => ELEMENT_CLASS[name] ? 'el-' + ELEMENT_CLASS[name] : '';
+function elementBars(parent, primary, secondary) {
+  const total = Object.values(primary).reduce((a, b) => a + b, 0) || 1;
+  const totalSecondary = secondary ? (Object.values(secondary).reduce((a, b) => a + b, 0) || 1) : 1;
+  const bars = append(parent, 'div', 'element-bars');
+  ['木','火','土','金','水'].forEach(name => {
+    const row = append(bars, 'div', 'element-bar');
+    append(row, 'b', elementClass(name), name);
+    const track = append(row, 'div', 'element-track');
+    track.setAttribute('role', 'img');
+    track.setAttribute('aria-label', name + ' ' + (primary[name] || 0) + (secondary ? '；藏干 ' + (secondary[name] || 0) : ''));
+    if (secondary) append(track, 'span', 'element-fill secondary bg-' + ELEMENT_CLASS[name]).style.width = Math.round((secondary[name] || 0) / totalSecondary * 100) + '%';
+    append(track, 'span', 'element-fill bg-' + ELEMENT_CLASS[name]).style.width = Math.round((primary[name] || 0) / total * 100) + '%';
+    append(row, 'small', null, (primary[name] || 0) + ' 个' + (secondary ? ' · 藏 ' + (secondary[name] || 0) : ''));
+  });
+  if (secondary) {
+    const legend = append(parent, 'div', 'element-legend');
+    const a = append(legend, 'span'); append(a, 'i'); a.append('明干 + 地支本气');
+    const b2 = append(legend, 'span'); append(b2, 'i', 'secondary'); b2.append('藏干（不加权）');
+  }
+}
 function renderBazi(b) {
   title(result, '四柱命式', '太阳节令 · 藏干十神 · 纳音');
   const grid = append(result, 'div', 'pillar-grid');
   for (const [key, p] of Object.entries(b.pillars)) {
-    const box = append(grid, 'div', 'pillar');
+    const box = append(grid, 'div', 'pillar' + (key === 'day' ? ' day-master' : ''));
+    if (key === 'day') append(box, 'span', 'pillar-badge', '日主');
     append(box, 'div', 'pillar-head', nameMap[key]);
-    append(box, 'div', 'pillar-stem', p.stem);
-    append(box, 'div', 'pillar-branch', p.branch);
-    append(box, 'div', 'pillar-sub', p.stem_element + ' / ' + p.branch_element);
     append(box, 'div', 'pillar-god', p.ten_god_of_stem);
-    append(box, 'div', 'pillar-hidden', '藏干：' + p.hidden_stems.map(h => h.stem + '·' + h.ten_god).join(' '));
+    append(box, 'div', 'pillar-stem ' + elementClass(p.stem_element), p.stem);
+    append(box, 'div', 'pillar-branch ' + elementClass(p.branch_element), p.branch);
+    append(box, 'div', 'pillar-sub', p.stem_element + ' / ' + p.branch_element);
+    const hidden = append(box, 'div', 'pillar-hidden');
+    hidden.setAttribute('aria-label', '藏干');
+    p.hidden_stems.forEach(h => {
+      const row = append(hidden, 'span', 'hidden-stem');
+      append(row, 'b', elementClass(h.element), h.stem); row.append(h.ten_god);
+    });
     append(box, 'div', 'pillar-nayin', '纳音：' + p.na_yin);
   }
   append(result, 'h4', 'subheading', '明干 + 地支本气 · 五行数量');
   const five = append(result, 'div', 'five-row');
   Object.entries(b.surface_five_elements).forEach(([name, value]) => {
     const item = append(five, 'div', 'five-box');
-    append(item, 'strong', null, String(value)); append(item, 'span', null, name);
+    append(item, 'strong', elementClass(name), String(value)); append(item, 'span', null, name);
   });
+  append(result, 'h4', 'subheading', '五行分布');
+  elementBars(result, b.surface_five_elements, b.hidden_stem_elements_unweighted);
   append(result, 'h4', 'subheading', '地支关系标签与藏干统计');
   const relationBox = append(result, 'div', 'relationship-grid');
   b.branch_relations.filter(x => x.labels.length).forEach(x => append(relationBox, 'div', 'symbol-tag', `${nameMap[x.a]}·${nameMap[x.b]} ${x.branches} ${x.labels.join(' / ')}`));
@@ -313,12 +388,16 @@ function renderBazi(b) {
     {label: '上一节令', value: b.jie_boundaries.previous.name, detail: b.jie_boundaries.previous.instant.replace('T', ' ')},
     {label: '下一节令', value: b.jie_boundaries.next.name, detail: b.jie_boundaries.next.instant.replace('T', ' ')},
   ]);
-  note(result, '藏干顺序为传统本气、中气、余气；计数仅统计明干和地支本气，不判断喜忌、旺衰与命运。');
+  note(result, '藏干顺序为传统本气、中气、余气；计数仅统计明干和地支本气，不判断喜忌、旺衰与命运。颜色只标示五行归属。');
 }
 function findPalace(z, name) {return z.palaces.find(item => item.name === name) || z.palaces.find(item => item.is_ming);}
-function renderPalacePanel(parent, palace) {
+function renderPalacePanel(parent, palace, layer) {
   const block = append(parent, 'div', 'palace-panel');
   append(block, 'h4', null, `${palace.name} · ${palace.stem}${palace.branch}`);
+  if (layer) {
+    append(block, 'p', 'layer-line', `${layer.label}：本宫为${LAYER_NAMES[layer.mode]}${layer.layerName(currentPalaceIndex(palace))}`);
+    append(block, 'p', 'layer-line', `${LAYER_NAMES[layer.mode]}四化（${layer.stem}干）：` + layer.hua.map(t => `${t.star}${t.type}→${t.target_palace}`).join('；'));
+  }
   append(block, 'p', null, '主星：' + (palace.main_stars.join('、') || '空宫（未安十四主星）'));
   append(block, 'p', null, '辅星：' + (palace.auxiliary_stars.join('、') || '—'));
   append(block, 'p', null, '生年四化：' + (palace.birth_year_transformations.map(t => `${t.star}${t.type}`).join('、') || '此宫无生年四化标记'));
@@ -328,40 +407,206 @@ function renderPalacePanel(parent, palace) {
     append(block, 'p', null, '三方四正：' + link.trine.map(x => `${x.palace}·${x.branch}`).join('、') + '；对宫 ' + link.opposite.palace + '·' + link.opposite.branch);
   }
 }
+// Birth-year transformation → badge class (禄 / 权 / 科 / 忌).
+const HUA_CLASS = {'化禄':'lu','化权':'quan','化科':'ke','化忌':'ji'};
+const LAYER_NAMES = {decade: '大限', year: '流年'};
+// Layer transformations get an outlined badge with a 限 / 年 prefix, so they are
+// told apart from birth-year ones by shape and text, not by colour alone.
+function currentPalaceIndex(palace) {return current && current.ziwei ? current.ziwei.palaces.indexOf(palace) : -1;}
+function huaBadge(parent, type, layer) {
+  const prefix = layer ? LAYER_NAMES[layer].slice(-1) : '';
+  const badge = append(parent, 'span', 'hua hua-' + (HUA_CLASS[type] || 'lu') + (layer ? ' layer' : ''), prefix + type.replace('化', ''));
+  badge.title = (layer ? LAYER_NAMES[layer] : '生年') + type;
+  return badge;
+}
+// Grid cell (row, column) of each palace index on the traditional 4×4 board.
+const ZIWEI_CELLS = {5:[1,1], 6:[1,2], 7:[1,3], 8:[1,4], 4:[2,1], 9:[2,4], 3:[3,1], 10:[3,4], 2:[4,1], 1:[4,2], 0:[4,3], 11:[4,4]};
+function ziweiLines(board, z, selected) {
+  const link = selected && selected.three_harmonies_and_opposite;
+  if (!link) return;
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('class', 'ziwei-lines'); svg.setAttribute('viewBox', '0 0 400 400');
+  svg.setAttribute('preserveAspectRatio', 'none'); svg.setAttribute('aria-hidden', 'true');
+  const centre = name => {
+    const index = z.palaces.findIndex(p => p.name === name);
+    const cell = ZIWEI_CELLS[index];
+    return cell ? [(cell[1] - .5) * 100, (cell[0] - .5) * 100] : null;
+  };
+  const from = centre(selected.name);
+  const targets = [...link.trine.map(x => [x.palace, 'trine']), [link.opposite.palace, 'opposite']];
+  const points = [from, ...link.trine.map(x => centre(x.palace))];
+  const line = (a, b, cls) => {
+    if (!a || !b) return;
+    const el = document.createElementNS(svgNS, 'line');
+    el.setAttribute('x1', a[0]); el.setAttribute('y1', a[1]); el.setAttribute('x2', b[0]); el.setAttribute('y2', b[1]);
+    if (cls) el.setAttribute('class', cls);
+    svg.append(el);
+  };
+  // The three harmonies form a triangle; the opposite palace gets its own line.
+  line(points[0], points[1]); line(points[1], points[2]); line(points[2], points[0]);
+  targets.filter(x => x[1] === 'opposite').forEach(x => line(from, centre(x[0]), 'opposite'));
+  board.prepend(svg);
+}
+const STEM_ORDER = '甲乙丙丁戊己庚辛壬癸', BRANCH_ORDER = '子丑寅卯辰巳午未申酉戌亥';
+function defaultLunarYear() {
+  const today = new Date();  // Chinese New Year falls between 21 January and 20 February.
+  return today.getFullYear() - (today.getMonth() === 0 || (today.getMonth() === 1 && today.getDate() < 20) ? 1 : 0);
+}
+// Everything a layer needs comes from the natal chart itself: palace i sits on
+// branch i, every heavenly stem owns at least one palace (五虎遁), and that
+// palace's flying transformations are the stem's 四化 with their positions.
+function ziweiLayerInfo(z) {
+  const mode = ziweiLayer.mode;
+  if (mode === 'natal') return null;
+  const mingIndex = z.palaces.findIndex(p => p.is_ming);
+  const names = Array.from({length: 12}, (_, k) => z.palaces[(mingIndex - k + 12) % 12].name);
+  const birthYear = z.lunar_date && z.lunar_date.year;
+  const year = Math.min(2099, Math.max(1901, ziweiLayer.year || defaultLunarYear()));
+  const age = birthYear ? year - birthYear + 1 : null;
+  const decades = z.palaces.filter(p => p.decade).sort((a, b) => a.decade.start_age - b.decade.start_age);
+  const currentDecade = age ? decades.find(p => age >= p.decade.start_age && age <= p.decade.end_age) || null : null;
+  const smallLimit = age ? z.palaces.find(p => (p.small_limit_nominal_ages || []).includes(age)) || null : null;
+  let anchor, stem, label;
+  if (mode === 'decade') {
+    if (!decades.length) return {mode, unavailable: '大限需要性别来定顺行或逆行，请在出生资料里选择性别后重新生成命盘。'};
+    const start = ziweiLayer.decade !== null ? ziweiLayer.decade : (currentDecade || decades[0]).decade.start_age;
+    const palace = decades.find(p => p.decade.start_age === start) || decades[0];
+    anchor = z.palaces.indexOf(palace); stem = palace.stem;
+    label = `大限 ${palace.decade.start_age}–${palace.decade.end_age} 岁 · ${palace.stem}${palace.branch}`;
+  } else {
+    stem = STEM_ORDER[((year - 4) % 10 + 10) % 10];
+    const branch = BRANCH_ORDER[((year - 4) % 12 + 12) % 12];
+    anchor = BRANCH_ORDER.indexOf(branch);
+    label = `${year} ${stem}${branch}年` + (age && age > 0 ? ` · 虚岁 ${age}` : '');
+  }
+  const stemPalace = z.palaces.find(p => p.stem === stem);
+  return {mode, anchor, stem, label, year, age, decades, currentDecade, smallLimit,
+    hua: stemPalace ? stemPalace.palace_flying_transformations : [],
+    layerName: index => names[(anchor - index + 12) % 12]};
+}
+function setZiweiLayer(z, change) {
+  Object.assign(ziweiLayer, change);
+  const info = ziweiLayerInfo(z);
+  // The highlighted palace follows the layer's own 命宫, so the 三方四正 lines move with it.
+  const anchor = info && !info.unavailable ? z.palaces[info.anchor] : z.palaces.find(p => p.is_ming);
+  if (anchor) selectedPalace = anchor.name;
+  render();
+}
+function renderZiweiLayerBar(z, layer) {
+  const bar = append(result, 'div', 'layer-bar');
+  const modes = append(bar, 'div', 'layer-modes');
+  modes.setAttribute('role', 'group'); modes.setAttribute('aria-label', '运限层');
+  [['natal', '本命'], ['decade', '大限'], ['year', '流年']].forEach(([mode, text]) => {
+    const button = append(modes, 'button', 'layer-btn' + (ziweiLayer.mode === mode ? ' active' : ''), text);
+    button.type = 'button'; button.id = 'ziwei-layer-' + mode;
+    button.setAttribute('aria-pressed', String(ziweiLayer.mode === mode));
+    button.addEventListener('click', () => setZiweiLayer(z, {mode}));
+  });
+  if (!layer) {append(bar, 'small', 'layer-hint', '切到大限或流年，宫名、四化和三方四正会按那一层重新标注。'); return;}
+  if (layer.unavailable) {append(bar, 'small', 'layer-hint', layer.unavailable); return;}
+  const step = append(bar, 'div', 'layer-step');
+  const move = delta => {
+    if (layer.mode === 'decade') {
+      const list = layer.decades;
+      const index = list.indexOf(z.palaces[layer.anchor]);
+      const next = list[Math.min(list.length - 1, Math.max(0, index + delta))];
+      setZiweiLayer(z, {decade: next.decade.start_age});
+    } else setZiweiLayer(z, {year: Math.min(2099, Math.max(1901, layer.year + delta))});
+  };
+  const prev = append(step, 'button', 'tiny-button', '‹'); prev.type = 'button'; prev.id = 'ziwei-layer-prev';
+  prev.setAttribute('aria-label', layer.mode === 'decade' ? '上一个大限' : '上一年');
+  prev.disabled = layer.mode === 'decade' ? layer.decades.indexOf(z.palaces[layer.anchor]) <= 0 : layer.year <= 1901;
+  prev.addEventListener('click', () => move(-1));
+  append(step, 'b', 'layer-label', layer.label);
+  const next = append(step, 'button', 'tiny-button', '›'); next.type = 'button'; next.id = 'ziwei-layer-next';
+  next.setAttribute('aria-label', layer.mode === 'decade' ? '下一个大限' : '下一年');
+  next.disabled = layer.mode === 'decade' ? layer.decades.indexOf(z.palaces[layer.anchor]) >= layer.decades.length - 1 : layer.year >= 2099;
+  next.addEventListener('click', () => move(1));
+  const now = append(step, 'button', 'tiny-button', layer.mode === 'decade' ? '当前大限' : '今年'); now.type = 'button'; now.id = 'ziwei-layer-now';
+  now.addEventListener('click', () => setZiweiLayer(z, layer.mode === 'decade' ? {decade: null, year: null} : {year: null}));
+}
 function renderZiwei(z) {
-  title(result, '紫微十二宫', '点击任意宫位查看宫干飞化');
-  meta(result, [`命宫 ${z.ming_palace}`, `身宫 ${z.shen_palace}`, z.five_elements_bureau, z.transformation_school]);
-  const board = append(result, 'div', 'ziwei-board');
-  const cells = {5:[1,1], 6:[1,2], 7:[1,3], 8:[1,4], 4:[2,1], 9:[2,4], 3:[3,1], 10:[3,4], 2:[4,1], 1:[4,2], 0:[4,3], 11:[4,4]};
+  title(result, '紫微十二宫', '点击宫位：高亮三方四正并查看宫干飞化；上方切换本命、大限、流年');
+  meta(result, [`命宫 ${z.ming_palace}`, `身宫 ${z.shen_palace}`, z.five_elements_bureau, `命主 ${z.ming_master}`, `身主 ${z.shen_master}`, z.transformation_school]);
+  const layer = ziweiLayerInfo(z);
+  renderZiweiLayerBar(z, layer);
+  const live = layer && !layer.unavailable ? layer : null;
+  const selected = findPalace(z, selectedPalace);
+  const related = new Set();
+  if (selected.three_harmonies_and_opposite) {
+    selected.three_harmonies_and_opposite.trine.forEach(x => related.add(x.palace));
+    related.add(selected.three_harmonies_and_opposite.opposite.palace);
+  }
+  const wrap = append(result, 'div', 'ziwei-wrap');
+  append(wrap, 'p', 'ziwei-scroll-hint', '← 左右滑动查看完整十二宫 →');
+  const board = append(wrap, 'div', 'ziwei-board' + (live ? ' layered' : ''));
+  board.id = 'ziwei-board';
   z.palaces.forEach((p, index) => {
-    const node = append(board, 'button', 'palace palace-btn' + (p.is_ming ? ' ming' : '') + (p.is_shen ? ' shen' : '') + (selectedPalace === p.name ? ' selected' : ''));
-    node.type = 'button';
-    node.style.gridRow = String(cells[index][0]);
-    node.style.gridColumn = String(cells[index][1]);
+    const node = append(board, 'button', 'palace palace-btn' + (p.is_ming ? ' ming' : '') + (p.is_shen ? ' shen' : '')
+      + (selected.name === p.name ? ' selected' : '') + (related.has(p.name) ? ' sanfang' : '') + (live && index === live.anchor ? ' layer-anchor' : ''));
+    node.type = 'button'; node.id = 'palace-' + index;
+    node.style.gridRow = String(ZIWEI_CELLS[index][0]);
+    node.style.gridColumn = String(ZIWEI_CELLS[index][1]);
     node.setAttribute('aria-label', `查看${p.name}飞化`);
+    node.setAttribute('aria-pressed', String(selected.name === p.name));
     const head = append(node, 'div', 'palace-head');
-    append(head, 'b', null, p.name.replace('宫', '')); append(head, 'span', null, p.stem + p.branch);
-    append(node, 'div', 'star-primary', p.main_stars.join(' · ') || '—');
-    append(node, 'div', 'star-secondary', p.auxiliary_stars.join(' · '));
-    const tag = p.birth_year_transformations.map(t => t.star + t.type).join(' · ');
-    if (tag) append(node, 'div', 'star-label', tag);
-    append(node, 'div', 'palace-foot', (p.is_ming ? '命 ' : '') + (p.is_shen ? '身 ' : '') + (p.decade ? `${p.decade.start_age}–${p.decade.end_age}岁` : ''));
+    append(head, 'b', null, p.name.replace('宫', '')); append(head, 'span', 'palace-ganzhi', p.stem + p.branch);
+    if (live) {
+      const tag = append(node, 'div', 'palace-layer');
+      append(tag, 'span', null, LAYER_NAMES[live.mode]); tag.append('·'); append(tag, 'span', null, live.layerName(index).replace('宫', ''));
+    }
+    const holders = {};
+    const layerHua = star => {if (live) live.hua.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type, live.mode));};
+    const stars = append(node, 'div', 'star-primary');
+    if (!p.main_stars.length) append(stars, 'span', 'star', '—');
+    p.main_stars.forEach(star => {
+      holders[star] = append(stars, 'span', 'star', star);
+      p.birth_year_transformations.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type));
+      layerHua(star);
+    });
+    const aux = append(node, 'div', 'star-secondary');
+    p.auxiliary_stars.forEach((star, i) => {
+      if (i) aux.append(' · ');
+      holders[star] = append(aux, 'span', 'star', star);
+      p.birth_year_transformations.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type));
+      layerHua(star);
+    });
+    const cycles = p.natal_cycles || {};
+    if (cycles.changsheng || cycles.boshi) append(node, 'div', 'palace-cycles', [cycles.changsheng, cycles.boshi, cycles.natal_suiqian].filter(Boolean).join(' · '));
+    const foot = append(node, 'div', 'palace-foot');
+    const marks = append(foot, 'span');
+    if (p.is_ming) append(marks, 'span', 'palace-mark', '命');
+    if (p.is_shen) append(marks, 'span', 'palace-mark shen-mark', '身');
+    if (live && live.mode === 'year' && live.currentDecade === p) append(marks, 'span', 'palace-mark layer-mark', '大限');
+    if (live && live.mode === 'year' && live.smallLimit === p) append(marks, 'span', 'palace-mark layer-mark', '小限');
+    if (p.decade) append(foot, 'span', 'decade', `${p.decade.start_age}–${p.decade.end_age}岁`);
+    if (p.small_limit_nominal_ages) node.title = '小限虚岁：' + p.small_limit_nominal_ages.slice(0, 6).join('、') + '…';
     node.addEventListener('click', () => {selectedPalace = p.name; render();});
   });
-  const center = append(board, 'div', 'board-center');
+  ziweiLines(board, z, selected);
+  const center = append(board, 'div', 'board-center see-through');
   append(center, 'div', 'center-symbol', '☯');
   append(center, 'div', 'center-title', '紫 微 斗 数');
   append(center, 'div', 'center-sub', z.year_pillar + ' · ' + z.five_elements_bureau);
+  append(center, 'div', 'center-sub', `命主 ${z.ming_master} · 身主 ${z.shen_master}`);
   append(center, 'div', 'center-sub', `${z.star_counts.main} 主星 · ${z.star_counts.auxiliary} 辅星 · 生年四化`);
-  renderPalacePanel(result, findPalace(z, selectedPalace));
+  if (live) append(center, 'div', 'center-layer', live.label + ' · ' + live.stem + '干四化');
+  const legend = append(result, 'div', 'hua-legend');
+  ['化禄', '化权', '化科', '化忌'].forEach(type => {const s = append(legend, 'span'); huaBadge(s, type); s.append(' ' + type);});
+  if (live) {const s = append(legend, 'span'); huaBadge(s, '化禄', live.mode); s.append(' 描边：' + LAYER_NAMES[live.mode] + '四化');}
+  const tri = append(legend, 'span', 'legend-lines', '虚线：所选宫位的三方；实线：对宫');
+  tri.style.marginLeft = 'auto';
+  renderPalacePanel(result, selected, live);
+  if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁。不含流曜与流月流日，也不预测具体事件。');
   note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）及经度时制选择；不含全流派与完整流年。所有展示均不等于命运预测。`);
 }
 function renderTransform(z) {
   title(result, '生年四化 / 宫干飞化', '《全书》系公开十干四化表 · 流派差异需核对');
   const cards = append(result, 'div', 'transform-grid');
   z.birth_year_transformations.forEach(item => {
-    const box = append(cards, 'div', 'transform-card');
-    append(box, 'div', 'transform-type', item.type);
+    const box = append(cards, 'div', 'transform-card hua-card-' + (HUA_CLASS[item.type] || 'lu'));
+    const type = append(box, 'div', 'transform-type'); huaBadge(type, item.type); type.append(' ' + item.type);
     append(box, 'div', 'transform-star', item.star);
     append(box, 'div', 'transform-palace', item.palace_name + ' · ' + item.palace);
   });
@@ -437,7 +682,7 @@ function renderCalendar() {
     append(tr, 'td', null, d.date);
     append(tr, 'td', null, '星期' + d.weekday);
     append(tr, 'td', null, `${d.lunar.year}年${d.lunar.is_leap_month ? '闰' : ''}${d.lunar.month}月${d.lunar.day}日`);
-    append(tr, 'td', null, d.day_pillar).style.color = '#e3c392';
+    append(tr, 'td', 'pillar-cell', d.day_pillar);
     append(tr, 'td', null, d.solar_terms.map(t => t.name + ' ' + t.time_china.substring(11,16)).join(' · ') || '—');
   });
   note(result, calendarResult.notes.join(' '));
@@ -503,7 +748,7 @@ function renderDateScan() {
   const exc=pick('排除这些值日','exclude','scan-exclude');
   const opts=append(result,'div','consult-shortcuts');
   const jl=append(opts,'label','check-line');const jie=append(jl,'input');jie.type='checkbox';jie.id='scan-skip-jie';jie.checked=dateScanDraft.skipJie;jl.append(' 排除交节当天');
-  const nl=append(opts,'label','check-line');const natal=append(nl,'input');natal.type='checkbox';natal.id='scan-natal';natal.checked=dateScanDraft.natal;nl.append(' 排除与左侧本命年支、日支相冲的日子');
+  const nl=append(opts,'label','check-line');const natal=append(nl,'input');natal.type='checkbox';natal.id='scan-natal';natal.checked=dateScanDraft.natal;nl.append(' 排除与本命年支、日支相冲的日子');
   const run=append(opts,'button',null,'扫描候选日');run.id='scan-run';run.type='button';
   const msg=append(result,'p','inline-msg');
   run.addEventListener('click',async()=>{
@@ -538,7 +783,7 @@ function renderDateScan() {
 }
 function renderTimeline() {
   title(result,'连续农历年四化对照','本命盘固定，叠加多个命名农历年的天干四化标签');
-  if(!current){append(result,'p','info-inline','请先在左侧生成命盘。');return;}
+  if(!current){append(result,'p','info-inline','请先生成命盘。');return;}
   const row=append(result,'div','inline-control');
   const start=createInput('起始农历年','number',String(timelineDraft.start_lunar_year),row);start.id='timeline-start';start.min='1901';start.max='2099';
   const years=append(append(row,'label',null,'对照年数'),'select');years.id='timeline-years';
@@ -658,7 +903,7 @@ function renderLunarInverseSection(){
 }
 function renderPair() {
   title(result, '双人合盘对照', '八字四柱对照 + 紫微宫位叠盘 · 只做结构对照，不评分关系好坏');
-  append(result, 'p', 'info-inline', 'A 使用左侧出生信息；B 在下方单独填写。对照数据不会自动保存。');
+  append(result, 'p', 'info-inline', 'A 使用出生资料里的信息；B 在下方单独填写。对照数据不会自动保存。');
   const row = append(result, 'div', 'inline-control');
   const date = createInput('B · 公历出生日期与时间', 'datetime-local', pairDraft.birth_datetime, row);
   date.id = 'pair_datetime'; date.min = '1901-01-01T00:00'; date.max = '2099-12-31T23:59';
@@ -748,7 +993,7 @@ function renderAnnual() {
 }
 function renderBirthWindowSection(){
   append(result,'h4','subheading','出生时间误差采样 · 不确定时刻对照');
-  append(result,'p','info-inline','以左侧时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。');
+  append(result,'p','info-inline','以出生资料里的时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。');
   const row=append(result,'div','inline-control');
   const radius=createInput('前后误差（分钟）','number',String(windowDraft.radius),row);radius.min='5';radius.max='120';
   const spacing=createInput('采样间隔（分钟）','number',String(windowDraft.spacing),row);spacing.min='5';spacing.max='60';
@@ -784,7 +1029,7 @@ function renderTimeAudit() {
   const run=append(row,'button',null,'计算时制对照');run.id='time-run';run.type='button';
   const error=append(result,'p','inline-msg');
   run.addEventListener('click',async()=>{
-    if(readInput().longitude===null){error.textContent='请先在左侧填写出生地经度。';return;}
+    if(readInput().longitude===null){error.textContent='请先在出生资料里填写出生地经度。';return;}
     run.disabled=true;
     try{timeResult=await postJSON('/api/time-audit',{birth:readInput()});render();}
     catch(e){error.textContent='计算失败：'+e.message;}
@@ -1108,7 +1353,7 @@ function renderConsultation() {
   [['auto','自动识别'],['natal','本命分析'],['career','事业/年度'],['relationship','双人关系'],['timing','多时刻查询'],['decision','方案比较'],['rules','规则分歧']].forEach(([value,text])=>{const opt=append(intent,'option',null,text);opt.value=value;});
   intent.value=consultDraft.intent;
   const year=createInput('农历年（选填）','number',consultDraft.lunarYear,controls);year.id='consult-year';year.min='1901';year.max='2099';
-  const bl=append(controls,'label',null,'本次允许使用左侧出生资料');
+  const bl=append(controls,'label',null,'本次允许使用出生资料');
   const birthCheck=append(bl,'input');birthCheck.type='checkbox';birthCheck.id='consult-use-birth';birthCheck.checked=consultDraft.useBirth;
   const advanced=append(area,'details','consult-advanced');advanced.id='consult-advanced';advanced.open=consultAdvancedOpen;
   append(advanced,'summary',null,'更多咨询选项：合盘、候选日期、现实条件和完整报告');
@@ -1143,7 +1388,7 @@ function renderConsultation() {
     if(!question.value.trim()){feedback.textContent='请输入具体问题';return;}
     const payload={question:question.value,intent:intent.value};
     if(birthCheck.checked)payload.birth=readInput();
-    if(partnerCheck.checked){if(!birthCheck.checked||!partnerDate.value){feedback.textContent='合盘需要勾选左侧出生资料，并填写第二人的当地出生时间';return;}
+    if(partnerCheck.checked){if(!birthCheck.checked||!partnerDate.value){feedback.textContent='合盘需要勾选使用出生资料，并填写第二人的当地出生时间';return;}
       payload.partner={birth_datetime:partnerDate.value,timezone:$('#timezone').value,gender:'unspecified'};payload.partner_authorized=true;
     }
     if(year.value.trim())payload.lunar_year=Number(year.value);
@@ -1188,7 +1433,25 @@ function renderJson() {
     .then(() => {btn.textContent = '已复制';}).catch(() => {btn.textContent = '复制失败';}));
   append(result, 'pre', 'json-code', JSON.stringify(jsonData(), null, 2));
 }
+// Rebuilding the result area must not lose the user's place: keyboard focus,
+// caret position and which collapsible sections were open survive a re-render.
 function render() {
+  const focused = result.contains(document.activeElement) ? document.activeElement : null;
+  const focusId = focused && focused.id;
+  const caret = focusId && typeof focused.selectionStart === 'number' ? [focused.selectionStart, focused.selectionEnd] : null;
+  const detailKey = d => d.id || (d.querySelector('summary') || {}).textContent || '';
+  const openState = new Map([...result.querySelectorAll('details')].map(d => [detailKey(d), d.open]));
+  renderView();
+  result.querySelectorAll('details').forEach(d => {const key = detailKey(d); if (openState.has(key)) d.open = openState.get(key);});
+  if (focusId && !result.contains(document.activeElement)) {
+    const again = document.getElementById(focusId);
+    if (again && !again.disabled) {
+      again.focus({preventScroll: true});
+      if (caret && again.setSelectionRange) try {again.setSelectionRange(caret[0], caret[1]);} catch (_) { /* not a text field */ }
+    }
+  }
+}
+function renderView() {
   clear();
   if (active === 'chat') return renderChat();
   if (active === 'consult') return renderConsultation();
@@ -1213,9 +1476,12 @@ function render() {
     const empty = append(result, 'div', 'empty-state');
     append(empty, 'div', 'empty-orbit', '☯');
     append(empty, 'h3', null, '历法可核验，规则可追溯');
-    append(empty, 'p', null, '点击左侧「生成命盘」开始计算');
+    append(empty, 'p', null, '确认出生资料后生成命盘，八字、紫微和四化会一起算好。');
+    const go = append(empty, 'button', 'tiny-button', '用当前出生资料生成命盘'); go.type = 'button'; go.id = 'empty-generate';
+    go.addEventListener('click', () => form.requestSubmit());
     return;
   }
+  if (currentHourUnknown && (active === 'bazi' || active === 'ziwei')) renderHourUnknown(result);
   if (active === 'bazi') renderBazi(current.bazi);
   else if (active === 'ziwei') renderZiwei(current.ziwei);
   else if (active === 'transform') renderTransform(current.ziwei);
@@ -1227,9 +1493,11 @@ function tabFromHash() {
   const match = /^#tool=([a-z-]+)$/.exec(location.hash);
   return match ? tabs.find(tab => tab.dataset.tab === match[1]) : null;
 }
+tabs.forEach(tab => {tab.id = 'tab-' + tab.dataset.tab; tab.setAttribute('aria-controls', 'result');});
 function activateTab(tab, updateUrl = true) {
   if (!tab) return;
   active = tab.dataset.tab;
+  result.setAttribute('aria-labelledby', tab.id);
   tabs.forEach(other => {
     const selected = other === tab;
     other.classList.toggle('active', selected);
@@ -1255,7 +1523,7 @@ $('#workspace-tabs').addEventListener('keydown', event => {
   available[next].focus();
 });
 document.addEventListener('keydown', event => {
-  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k') {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k' && event.target.tagName !== 'TEXTAREA') {
     event.preventDefault();
     $('#tool-search').focus();
     $('#tool-search').select();
@@ -1299,11 +1567,14 @@ form.addEventListener('submit', async event => {
     consultResult=null;consultCursor=null;
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
     dayunResult=null;boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
-    selectedPalace = '命宫';
+    selectedPalace = '命宫'; ziweiLayer.decade = null; currentHourUnknown = $('#hour_unknown').checked;
     $('#result-subtitle').textContent = data.birth_datetime.replace('T',' ') + ' · ' + data.timezone;
     $('#download-json').disabled = false;
     updateStaleBirthNotice();
-    render();
+    if (active === 'chat' && event.submitter && event.submitter.id === 'run-btn') activateTab(tabs.find(t => t.dataset.tab === 'bazi'));
+    else render();
+    announce('命盘已生成：' + data.birth_datetime.replace('T', ' '));
+    if (compactScreen && compactScreen.matches) {setBirthPanelCollapsed(true); $('#workspace').scrollIntoView({block: 'start'});}
   } catch (err) {error.textContent = '计算失败：' + err.message; error.hidden = false;}
   finally {run.disabled = false; run.querySelector('span').textContent = '生成命盘';}
 });
@@ -1348,13 +1619,250 @@ $('#load-profile').addEventListener('click', () => {
 $('#remove-profile').addEventListener('click', () => {
   const chosen = $('#profiles').value;
   if (!chosen) {setFeedback('请选择要删除的档案'); return;}
+  if (!confirm('删除所选档案？它在本机保存的对话、记忆和人生事件也会一起删除。')) return;
   try {localStorage.setItem(profileKey, JSON.stringify(loadProfiles().filter(x => x.id !== chosen))); showProfiles(); purgeChatStores(); setFeedback('已从本机浏览器删除所选档案及其对话、记忆和人生事件。'); if (active === 'chat') render();}
   catch (_) {setFeedback('删除失败：浏览器存储不可用');}
 });
 showProfiles();
 
-function updateGeoControls(){const mode=$('#time_mode').value;$('#longitude').required=mode!=='clock';$('#longitude').closest('.location-panel').classList.toggle('solar-active',mode!=='clock');}
-$('#time_mode').addEventListener('change',updateGeoControls);updateGeoControls();
+// Unknown birth hour: cast the same day once per double hour and show what changes.
+const HOUR_SAMPLES = [['早子', '00:30'], ['丑', '02:00'], ['寅', '04:00'], ['卯', '06:00'], ['辰', '08:00'], ['巳', '10:00'],
+  ['午', '12:00'], ['未', '14:00'], ['申', '16:00'], ['酉', '18:00'], ['戌', '20:00'], ['亥', '22:00'], ['晚子', '23:30']];
+async function loadHourCandidates(key) {
+  const base = currentInput;
+  const day = base.birth_datetime.slice(0, 10);
+  const rows = await Promise.all(HOUR_SAMPLES.map(async ([label, time]) => {
+    const chart = await postJSON('/api/combined', {...base, birth_datetime: day + 'T' + time});
+    const z = chart.ziwei, b = chart.bazi;
+    const ming = z.palaces.find(p => p.is_ming);
+    return {label, time, pillars: b.pillars, ming: z.ming_palace, shen: z.shen_palace, bureau: z.five_elements_bureau,
+      ming_stars: ming ? ming.main_stars : []};
+  }));
+  hourCandidates = {key, rows};
+}
+function renderHourUnknown(parent) {
+  const box = append(parent, 'section', 'hour-unknown');
+  append(box, 'h4', null, '时辰不详：哪些部分不受时辰影响');
+  const key = JSON.stringify(currentInput);
+  if (!hourCandidates || hourCandidates.key !== key) {
+    append(box, 'p', 'field-help', '下面的命盘按 12:00 占位。比较十二个时辰，可以看出哪些柱位和宫位在整天里都不变，哪些需要先确定时辰。');
+    const run = append(box, 'button', 'tiny-button', '比较十二个时辰'); run.type = 'button'; run.id = 'hour-compare';
+    const message = append(box, 'p', 'inline-msg');
+    run.addEventListener('click', async () => {
+      run.disabled = true; message.className = 'inline-msg progress'; message.textContent = '正在逐个时辰排盘…';
+      try {await loadHourCandidates(key); render(); announce('十二时辰对照已生成');}
+      catch (e) {message.className = 'inline-msg'; message.textContent = '比较失败：' + e.message; run.disabled = false;}
+    });
+    return;
+  }
+  const rows = hourCandidates.rows;
+  const stable = append(box, 'div', 'stable-list');
+  [['year', '年柱'], ['month', '月柱'], ['day', '日柱']].forEach(([key, name]) => {
+    const values = [...new Set(rows.map(r => r.pillars[key].stem + r.pillars[key].branch))];
+    append(stable, 'span', 'stable-tag ' + (values.length === 1 ? 'stable' : 'changing'),
+      name + ' ' + values.join(' / ') + (values.length === 1 ? ' · 全天不变' : ' · 随时辰变化'));
+  });
+  const bureaus = [...new Set(rows.map(r => r.bureau))];
+  append(stable, 'span', 'stable-tag changing', '时柱、紫微命宫 · 随时辰变化');
+  append(stable, 'span', 'stable-tag ' + (bureaus.length === 1 ? 'stable' : 'changing'), '五行局 ' + bureaus.join(' / ') + (bureaus.length === 1 ? ' · 全天不变' : ' · 随时辰变化'));
+  const table = append(append(box, 'div', 'table-wrap'), 'table', 'data-table');
+  const head = append(append(table, 'thead'), 'tr');
+  ['时辰', '钟表时间', '时柱', '日柱', '紫微命宫', '命宫主星', '身宫', '五行局'].forEach(x => append(head, 'th', null, x));
+  const body = append(table, 'tbody');
+  rows.forEach(r => {
+    const tr = append(body, 'tr');
+    [r.label, r.time, r.pillars.hour.stem + r.pillars.hour.branch, r.pillars.day.stem + r.pillars.day.branch, r.ming,
+      r.ming_stars.join('、') || '空宫', r.shen, r.bureau].forEach((x, i) => append(tr, 'td', i === 2 ? 'pillar-cell' : null, x));
+  });
+  append(box, 'p', 'field-help', '想缩小范围，可以在「AI 对话」里讲几件确定发生过的大事，或用「生时边界地图」查看精确的切换时刻。');
+}
+const LUNAR_MONTHS = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
+const LUNAR_DAYS = ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五',
+  '十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+const LUNAR_HOURS = [['', '时辰不详'], ['00:30', '早子时 00–01'], ['02:00', '丑时 01–03'], ['04:00', '寅时 03–05'], ['06:00', '卯时 05–07'],
+  ['08:00', '辰时 07–09'], ['10:00', '巳时 09–11'], ['12:00', '午时 11–13'], ['14:00', '未时 13–15'], ['16:00', '申时 15–17'],
+  ['18:00', '酉时 17–19'], ['20:00', '戌时 19–21'], ['22:00', '亥时 21–23'], ['23:30', '晚子时 23–24']];
+function fillSelect(select, items) {
+  items.forEach(([value, text]) => {const op = append(select, 'option', null, text); op.value = value;});
+}
+fillSelect($('#lunar_month'), LUNAR_MONTHS.map((name, i) => [String(i + 1), name]));
+fillSelect($('#lunar_day'), LUNAR_DAYS.map((name, i) => [String(i + 1), name]));
+fillSelect($('#lunar_hour'), LUNAR_HOURS);
+$('#lunar_hour').value = '12:00';
+$('#lunar-fill').addEventListener('click', async () => {
+  const message = $('#lunar-msg'); const button = $('#lunar-fill');
+  const request = {lunar_year: Number($('#lunar_year').value), lunar_month: Number($('#lunar_month').value),
+    lunar_day: Number($('#lunar_day').value), is_leap_month: $('#lunar_leap').checked};
+  button.disabled = true; message.className = 'inline-msg progress'; message.textContent = '正在换算…';
+  try {
+    const data = await postJSON('/api/lunar-to-gregorian', request);
+    const hour = $('#lunar_hour').value;
+    $('#birth_datetime').value = data.gregorian_date + 'T' + (hour || '12:00');
+    $('#hour_unknown').checked = !hour;
+    updateHourUnknown(); updateDemoBirthWarning(); updateBirthSummary(); updateStaleBirthNotice();
+    message.className = 'inline-msg ok';
+    message.textContent = '已填入公历 ' + data.gregorian_date + (hour ? ' ' + hour : '（时辰不详，按 12:00 占位）') + '，点「生成命盘」计算。';
+  } catch (e) {message.className = 'inline-msg'; message.textContent = '换算失败：' + e.message;}
+  finally {button.disabled = false;}
+});
+function updateHourUnknown() {$('#hour-unknown-help').hidden = !$('#hour_unknown').checked;}
+$('#hour_unknown').addEventListener('change', () => {
+  const box = $('#birth_datetime');
+  if ($('#hour_unknown').checked && box.value) box.value = box.value.slice(0, 10) + 'T12:00';
+  updateHourUnknown(); updateBirthSummary(); updateStaleBirthNotice();
+});
+
+// Solar-time modes need a longitude; keep the rules panel open and summarised so
+// a non-default rule is never hidden from view.
+function updateGeoControls(){
+  const mode=$('#time_mode').value;
+  $('#longitude').required=mode!=='clock';
+  const panel=$('#advanced-rules');
+  panel.classList.toggle('solar-active',mode!=='clock');
+  if(mode!=='clock')panel.open=true;
+  const parts=[$('#time_mode').selectedOptions[0].textContent.replace(/（.*$/,'')];
+  if($('#late_zi_day_rollover').checked)parts.push('23:00 换日');
+  parts.push($('#leap_month_second_half_as_next').checked?'闰月顺延':'闰月不顺延');
+  $('#advanced-rules-summary').textContent=parts.join(' · ');
+  updateBirthSummary();
+}
+for(const id of ['#time_mode','#late_zi_day_rollover','#leap_month_second_half_as_next'])$(id).addEventListener('change',updateGeoControls);
+// Small screens: the form folds into a one-line summary so the workspace is reachable.
+const genderLabels={male:'男',female:'女',unspecified:'不指定顺逆'};
+function updateBirthSummary(){
+  const input=readInput();
+  const city=$('#birth_city').value ? $('#birth_city').selectedOptions[0].textContent+' · ' : '';
+  const when=$('#hour_unknown').checked?input.birth_datetime.slice(0,10)+' · 时辰不详':input.birth_datetime.replace('T',' ');
+  $('#birth-summary-text').textContent=when+' · '+city+input.timezone+' · '+(genderLabels[input.gender]||input.gender);
+}
+function setBirthPanelCollapsed(collapsed){
+  $('#input-panel').classList.toggle('collapsed',collapsed);
+  const toggle=$('#birth-summary-toggle');
+  toggle.textContent=collapsed?'修改出生信息':'收起';
+  toggle.setAttribute('aria-expanded',String(!collapsed));
+}
+$('#birth-summary-toggle').addEventListener('click',()=>{
+  const collapsed=!$('#input-panel').classList.contains('collapsed');
+  setBirthPanelCollapsed(collapsed);
+  if(!collapsed)$('#birth_datetime').focus();
+});
+for(const type of ['input','change'])form.addEventListener(type,updateBirthSummary);
+const compactScreen=window.matchMedia?window.matchMedia('(max-width: 860px)'):null;
+setBirthPanelCollapsed(!!(compactScreen&&compactScreen.matches));
+updateGeoControls();
+$('#print-view').addEventListener('click',()=>window.print());
+
+// Share card: a PNG drawn on a local canvas. Nothing is uploaded; birth date,
+// time and gender stay off the card unless the user ticks them.
+const shareOptions = {date: false, time: false, bazi: true, ziwei: true};
+function drawShareCard(canvas) {
+  const T = text => typeof translateText === 'function' ? translateText(text) : text;
+  const css = getComputedStyle(document.documentElement);
+  const token = name => css.getPropertyValue(name).trim();
+  const W = 1080, PAD = 72;
+  const b = current.bazi, z = current.ziwei;
+  const H = 400 + (shareOptions.bazi ? 420 : 0) + (shareOptions.ziwei ? 480 : 0);
+  canvas.width = W; canvas.height = H;
+  const g = canvas.getContext('2d');
+  const sans = "'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", serif = "'Noto Serif SC','Songti SC','STSong',serif";
+  g.fillStyle = token('--panel'); g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W * .85, 0, 0, W * .85, 0, W * .9);
+  glow.addColorStop(0, token('--accent-soft')); glow.addColorStop(1, 'transparent');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  g.strokeStyle = token('--accent-line'); g.lineWidth = 2; g.strokeRect(24, 24, W - 48, H - 48);
+  const text = (value, x, y, size, color, font = sans, align = 'left', weight = '400', maxWidth = W - PAD - x) => {
+    g.font = `${weight} ${size}px ${font}`;
+    while (size > 12 && g.measureText(value).width > maxWidth) {size -= 1; g.font = `${weight} ${size}px ${font}`;}
+    g.fillStyle = color; g.textAlign = align; g.fillText(value, x, y);
+  };
+  text('玄枢', PAD, 132, 56, token('--gold'), serif, 'left', '600');
+  text('XUANSHU', PAD + 128, 128, 22, token('--gold'), sans, 'left', '600');
+  text(T('命盘卡片 · 本地确定性计算'), W - PAD, 128, 24, token('--muted'), sans, 'right', '400', W - PAD * 2 - 330);
+  const facts = [];
+  if (shareOptions.date) facts.push(currentInput.birth_datetime.slice(0, 10));
+  if (shareOptions.time) facts.push(currentInput.birth_datetime.slice(11, 16) + ' ' + currentInput.timezone);
+  facts.push(T(z.five_elements_bureau), T('命主') + ' ' + T(z.ming_master), T('身主') + ' ' + T(z.shen_master));
+  text(facts.join('  ·  '), PAD, 196, 26, token('--text2'));
+  let y = 250;
+  const color = element => token('--' + (ELEMENT_CLASS[element] || 'gold'));
+  if (shareOptions.bazi) {
+    text(T('四柱八字'), PAD, y + 34, 28, token('--gold2'), sans, 'left', '600');
+    const colW = (W - PAD * 2) / 4;
+    [['year', '年柱'], ['month', '月柱'], ['day', '日柱'], ['hour', '时柱']].forEach(([key, label], i) => {
+      const p = b.pillars[key], cx = PAD + colW * i + colW / 2;
+      g.fillStyle = token('--panel2'); g.strokeStyle = key === 'day' ? token('--gold') : token('--border');
+      g.lineWidth = key === 'day' ? 3 : 1.5;
+      g.beginPath(); (g.roundRect ? g.roundRect.bind(g) : g.rect.bind(g))(PAD + colW * i + 8, y + 60, colW - 16, 300, 14); g.fill(); g.stroke();
+      text(T(label), cx, y + 100, 22, token('--muted'), sans, 'center', '400', colW - 28);
+      text(T(p.ten_god_of_stem), cx, y + 136, 22, token('--gold'), sans, 'center', '400', colW - 28);
+      text(p.stem, cx, y + 224, 82, color(p.stem_element), serif, 'center', '600');
+      text(p.branch, cx, y + 318, 82, color(p.branch_element), serif, 'center', '600');
+    });
+    y += 420;
+  }
+  if (shareOptions.ziwei) {
+    text(T('紫微斗数'), PAD, y + 34, 28, token('--gold2'), sans, 'left', '600');
+    const ming = z.palaces.find(p => p.is_ming), shen = z.palaces.find(p => p.is_shen);
+    const stars = list => list.map(T).join(' ') || T('空宫');
+    const rows = [
+      [T('命宫'), ming.stem + ming.branch + '  ' + stars(ming.main_stars)],
+      [T('身宫'), shen.stem + shen.branch + '  ' + T(shen.name) + '  ' + stars(shen.main_stars)],
+      [T('生年四化'), z.birth_year_transformations.map(t => T(t.star) + ' ' + T(t.type))],
+      [T('五行局'), T(z.five_elements_bureau) + '  ·  ' + b.day_master + ' ' + T('日主')],
+    ];
+    let ry = y + 92;
+    rows.forEach(([label, value]) => {
+      text(label, PAD, ry, 20, token('--muted'));
+      // A list that would not fit on one line at a readable size continues on a second line.
+      let lines = Array.isArray(value) ? [value.join('  ·  ')] : [value];
+      g.font = `600 26px ${serif}`;
+      if (Array.isArray(value) && g.measureText(lines[0]).width > W - PAD * 2) {
+        const half = Math.ceil(value.length / 2);
+        lines = [value.slice(0, half).join('  ·  '), value.slice(half).join('  ·  ')];
+      }
+      lines.forEach((line, n) => text(line, PAD, ry + 38 + n * 40, 32, token('--text'), serif, 'left', '600'));
+      ry += 84 + (lines.length - 1) * 40;
+    });
+    y += 480;
+  }
+  g.strokeStyle = token('--border'); g.lineWidth = 1; g.beginPath(); g.moveTo(PAD, H - 140); g.lineTo(W - PAD, H - 140); g.stroke();
+  text(T('传统文化符号，未经科学预测效力验证，不作医疗、投资、法律等决策依据。'), PAD, H - 96, 22, token('--muted'));
+  text('XuanShu · open source · deterministic, reproducible', PAD, H - 58, 22, token('--gold'));
+}
+function openShareCard() {
+  if (!current) {form.requestSubmit(); return;}
+  let dialog = $('#share-dialog');
+  if (!dialog) {
+    dialog = elt('dialog', 'share-dialog'); dialog.id = 'share-dialog';
+    dialog.setAttribute('aria-labelledby', 'share-title');
+    document.body.append(dialog);
+  }
+  dialog.replaceChildren();
+  const head = append(dialog, 'div', 'share-head');
+  append(head, 'h3', null, '分享卡片').id = 'share-title';
+  const close = append(head, 'button', 'tiny-button', '关闭'); close.type = 'button'; close.id = 'share-close';
+  close.addEventListener('click', () => dialog.close());
+  const options = append(dialog, 'div', 'share-options');
+  const canvas = append(dialog, 'canvas', 'share-canvas'); canvas.id = 'share-canvas';
+  canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', '命盘卡片预览');
+  [['date', '显示出生日期'], ['time', '显示出生时间与时区'], ['bazi', '四柱八字'], ['ziwei', '紫微命宫']].forEach(([key, label]) => {
+    const line = append(options, 'label', 'check-line');
+    const box = append(line, 'input'); box.type = 'checkbox'; box.id = 'share-' + key; box.checked = shareOptions[key];
+    line.append(' ' + label);
+    box.addEventListener('change', () => {shareOptions[key] = box.checked; drawShareCard(canvas);});
+  });
+  append(dialog, 'p', 'field-help', '卡片只在这台设备上生成，不上传。注意：四柱本身大致能反推出生日期与时辰（约 60 年一轮），介意的话只保留紫微部分。');
+  const actions = append(dialog, 'div', 'profile-actions');
+  const save = append(actions, 'button', 'primary-btn', '下载 PNG'); save.type = 'button'; save.id = 'share-download';
+  save.addEventListener('click', () => canvas.toBlob(blob => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob); const a = elt('a'); a.href = url; a.download = 'xuanshu-card.png';
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }, 'image/png'));
+  drawShareCard(canvas);
+  if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
+}
+$('#share-card').addEventListener('click', openShareCard);
 
 // The demonstration date must remain explicitly identified until changed.
 function updateDemoBirthWarning() {
@@ -1364,5 +1872,4 @@ $('#birth_datetime').addEventListener('input',updateDemoBirthWarning);
 updateDemoBirthWarning();
 // Restore a tool-only URL without exposing sensitive input in the address bar.
 const initialTab=tabFromHash();
-if (initialTab) activateTab(initialTab, false);
-else {updateToolNavigation(); render();}
+activateTab(initialTab || tabs.find(t => t.dataset.tab === active), false);

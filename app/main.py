@@ -1,8 +1,12 @@
 """Local web console, REST API and stateless MCP Streamable HTTP transport."""
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
 import os
 import base64
+import threading
 import binascii
 import re
 from .json_safety import strict_json_loads
@@ -13,7 +17,7 @@ from .asset_paths import resource_root
 from datetime import date
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import __version__
@@ -38,7 +42,7 @@ from .oauth_resource import config as oauth_config, is_authorized, challenge as 
 from .qimen import QimenRequest, qimen_chart
 from .date_selection import DateScanRequest, date_candidate_scan
 from .life_path import LifePathRequest, life_path_review
-from .chat import ChatRequest, ChatUnavailable, chat_status, run_chat
+from .chat import ChatCancelled, ChatRequest, ChatUnavailable, chat_status, run_chat
 
 ROOT = resource_root()
 app = FastAPI(title='XuanShu API', version=__version__, description='Deterministic cultural calendar/chart calculations and MCP tools. Non-predictive.')
@@ -199,6 +203,47 @@ def chat(request: ChatRequest):
         raise HTTPException(503, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(422, detail=str(exc)) from exc
+
+
+@app.post('/api/chat/stream')
+async def chat_stream(request: ChatRequest):
+    """The same answer as /api/chat, streamed as newline-delimited JSON events:
+    tool calls as they finish, answer text as it is written, then ``done`` with the
+    full result (or ``error``). Closing the connection stops the run between steps."""
+    loop = asyncio.get_running_loop()
+    queue: asyncio.Queue = asyncio.Queue()
+    stop = threading.Event()
+
+    def emit(event: dict | None) -> None:
+        loop.call_soon_threadsafe(queue.put_nowait, event)
+
+    def work() -> None:
+        try:
+            emit({'type': 'done', 'result': run_chat(request, emit=emit, cancelled=stop.is_set)})
+        except ChatCancelled:
+            emit({'type': 'error', 'status': 499, 'detail': '已停止生成'})
+        except ChatUnavailable as exc:
+            emit({'type': 'error', 'status': 503, 'detail': str(exc)})
+        except ValueError as exc:
+            emit({'type': 'error', 'status': 422, 'detail': str(exc)})
+        except Exception as exc:  # provider or network failure; the browser shows a short reason
+            logging.getLogger(__name__).exception('chat stream failed')
+            emit({'type': 'error', 'status': 502, 'detail': f'{type(exc).__name__}: {str(exc)[:300]}'})
+        finally:
+            emit(None)
+
+    async def events():
+        loop.run_in_executor(None, work)
+        try:
+            while True:
+                event = await queue.get()
+                if event is None:
+                    break
+                yield json.dumps(event, ensure_ascii=False, default=str) + '\n'
+        finally:
+            stop.set()  # the worker checks this between model rounds and stream events
+
+    return StreamingResponse(events(), media_type='application/x-ndjson', headers={'X-Accel-Buffering': 'no'})
 
 
 @app.post('/api/date-scan')

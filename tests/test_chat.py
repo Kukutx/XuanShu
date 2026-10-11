@@ -289,3 +289,67 @@ def test_panel_agents_can_be_narrowed_and_must_be_unique():
     single = run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False), config=CONFIG,
                       loop=scripted_loop([]))
     assert single['mode'] == 'single' and single['panel'] is None
+
+
+def streaming_loop(calls, text='流式回答'):
+    def loop(config, system, history, tools, execute, emit=None, cancelled=None):
+        loop.cancelled = cancelled
+        for name, args in calls:
+            execute(name, args)
+        if emit:
+            emit({'type': 'text', 'text': text})
+        return text, 'end_turn'
+    return loop
+
+
+def stream_events(response):
+    return [json.loads(line) for line in response.text.splitlines() if line.strip()]
+
+
+def test_stream_endpoint_reports_tools_charts_text_then_the_full_result(monkeypatch):
+    monkeypatch.setattr(chat_module, 'chat_status', lambda: {'enabled': True})
+    monkeypatch.setattr(chat_module, 'chat_config', lambda: CONFIG)
+    monkeypatch.setitem(chat_module.LOOPS, 'anthropic', streaming_loop([('bazi_chart', BIRTH), ('solar_terms', {'year': 2026})]))
+    response = CLIENT.post('/api/chat/stream', json={'messages': [{'role': 'user', 'content': '八字'}], 'verify': False})
+    assert response.status_code == 200 and response.headers['content-type'].startswith('application/x-ndjson')
+    events = stream_events(response)
+    kinds = [e['type'] for e in events]
+    assert kinds == ['tool_start', 'tool', 'tool_start', 'tool', 'text', 'done']
+    bazi = events[1]
+    assert bazi['tool'] == 'bazi_chart' and bazi['ok'] and 'arguments' not in bazi
+    assert bazi['chart']['pillars']['day']['text']
+    assert 'chart' not in events[3]  # only chart tools carry a chart card
+    result = events[-1]['result']
+    assert result['reply'] == '流式回答' and [c['tool'] for c in result['charts']] == ['bazi_chart']
+    assert [t['tool'] for t in result['trace']] == ['bazi_chart', 'solar_terms']
+
+
+def test_stream_endpoint_reports_errors_as_events(monkeypatch):
+    monkeypatch.setattr(chat_module, 'chat_status', lambda: {'enabled': False, 'reason': '未配置'})
+    events = stream_events(CLIENT.post('/api/chat/stream', json={'messages': [{'role': 'user', 'content': 'x'}]}))
+    assert events == [{'type': 'error', 'status': 503, 'detail': '未配置'}]
+    assert CLIENT.post('/api/chat/stream', json={'messages': []}).status_code == 422
+
+
+def test_cancelled_run_stops_before_verification():
+    loop = streaming_loop([])
+    req = ChatRequest(messages=[{'role': 'user', 'content': 'x'}])
+    with pytest.raises(chat_module.ChatCancelled):
+        run_chat(req, config=CONFIG, loop=loop, cancelled=lambda: True)
+    assert loop.cancelled() is True
+
+
+def test_only_the_latest_chart_of_each_kind_is_kept():
+    other = dict(BIRTH, birth_datetime='1990-05-17T08:30')
+    out = run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False), config=CONFIG,
+                   loop=scripted_loop([('bazi_chart', BIRTH), ('bazi_chart', other), ('ziwei_chart', BIRTH)]))
+    assert [c['tool'] for c in out['charts']] == ['bazi_chart', 'ziwei_chart']
+    assert out['charts'][0]['result']['birth_datetime'].startswith('1990-05-17')
+
+
+def test_echo_after_fallback_keeps_only_text_written_before_the_marker():
+    class Block:
+        def __init__(self, kind): self.type = kind
+    text, thinking, fallback, tool = Block('text'), Block('thinking'), Block('fallback'), Block('tool_use')
+    assert chat_module._echo_content([text, tool]) == [text, tool]
+    assert chat_module._echo_content([thinking, text, fallback, tool]) == [text, tool]

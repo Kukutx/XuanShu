@@ -32,6 +32,9 @@ DEFAULT_ANTHROPIC_MODEL = 'claude-opus-5-5'
 MAX_ROUNDS = 8
 MAX_TOOL_RESULT_CHARS = 20000
 MEMORY_TOOL = 'propose_memory'
+# Chart tools whose results the browser draws as inline cards in the conversation.
+CHART_TOOLS = ('bazi_chart', 'ziwei_chart', 'qimen_hour_chart', 'combined_chart')
+MAX_CHARTS = 4
 # Tools that take a second person's birth data; they run only with explicit user consent.
 PARTNER_TOOLS = {'pair_comparison': 'person_b', 'ziwei_pair_overlay': 'person_b', 'consultation_execute': 'partner'}
 
@@ -93,6 +96,15 @@ class ChatRequest(BaseModel):
 
 class ChatUnavailable(RuntimeError):
     """Raised when no language model is configured or its SDK is missing."""
+
+
+class ChatCancelled(RuntimeError):
+    """Raised when the browser stopped a streamed answer."""
+
+
+# A progress callback for streamed answers: receives small JSON-safe event dicts.
+Emit = Callable[[dict], None]
+Cancelled = Callable[[], bool]
 
 
 @dataclass
@@ -257,6 +269,22 @@ class ChatRun:
     evidence: list[dict] = field(default_factory=list)
     agent: str | None = None  # specialist key in panel mode; labels trace and evidence
     allowed: frozenset[str] | None = None  # panel mode: the only tools this specialist may run
+    emit: Emit | None = None  # streamed answers: tool progress goes to the browser as it happens
+    charts: list[dict] = field(default_factory=list)
+
+    def _record(self, entry: dict, result: Any = None) -> None:
+        self.trace.append(entry)
+        chart = bool(entry.get('ok')) and entry['tool'] in CHART_TOOLS and isinstance(result, dict)
+        if chart:
+            # Keep the latest chart of each kind, at most MAX_CHARTS of them.
+            self.charts = [c for c in self.charts if c['tool'] != entry['tool']][-(MAX_CHARTS - 1):]
+            self.charts.append({'step': entry['step'], 'tool': entry['tool'], 'result': result,
+                                **({'agent': self.agent} if self.agent else {})})
+        if self.emit:
+            event = {'type': 'tool', **{k: v for k, v in entry.items() if k != 'arguments'}}
+            if chart:
+                event['chart'] = result
+            self.emit(event)
 
     def execute(self, name: str, args: Any) -> tuple[str, bool]:
         """Run one tool call; return (content for the model, is_error)."""
@@ -264,45 +292,47 @@ class ChatRun:
         entry: dict[str, Any] = {'step': step, 'tool': name, 'arguments': args[:2000] if isinstance(args, str) else args}
         if self.agent:
             entry['agent'] = self.agent
+        if self.emit:
+            self.emit({'type': 'tool_start', 'step': step, 'tool': name, **({'agent': self.agent} if self.agent else {})})
         if not isinstance(args, dict):
             entry.update(ok=False, error='arguments must be a valid JSON object')
-            self.trace.append(entry)
+            self._record(entry)
             return entry['error'], True
         if self.allowed is not None and name not in self.allowed:
             entry.update(ok=False, error=f'{name} 不在本流派专家可用的工具范围内')
-            self.trace.append(entry)
+            self._record(entry)
             return entry['error'], True
         if name in PARTNER_TOOLS and args.get(PARTNER_TOOLS[name]) is not None and not self.partner_authorized:
             entry.update(ok=False, error='第二人的出生资料需要用户在对话界面勾选「已获对方同意」后才能使用')
-            self.trace.append(entry)
+            self._record(entry)
             return entry['error'], True
         if name == MEMORY_TOOL:
             items = args.get('items')
             if not isinstance(items, list) or not 1 <= len(items) <= 5 or not all(isinstance(x, str) and 1 <= len(_clean(x)) <= 300 for x in items):
                 entry.update(ok=False, error='items must be 1-5 strings of 1-300 characters')
-                self.trace.append(entry)
+                self._record(entry)
                 return entry['error'], True
             for item in map(_clean, items):
                 if item not in self.memory_suggestions and len(self.memory_suggestions) < 10:
                     self.memory_suggestions.append(item)
             entry.update(ok=True, summary='已提议保存到档案记忆，等待用户确认')
-            self.trace.append(entry)
+            self._record(entry)
             return '已向用户展示，等待用户确认后才会保存。', False
         try:
             result = call_tool(name, args)
         except ValidationError as exc:
             message = '参数校验失败：' + '; '.join(f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in exc.errors()[:8])
             entry.update(ok=False, error=message)
-            self.trace.append(entry)
+            self._record(entry)
             return message, True
         except (ValueError, TypeError, RuntimeError) as exc:
             entry.update(ok=False, error=str(exc)[:2000])
-            self.trace.append(entry)
+            self._record(entry)
             return entry['error'], True
         text = json.dumps(result, ensure_ascii=False, default=str, sort_keys=True)
         entry.update(ok=True, result_sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(),
                      summary=('返回字段：' + '、'.join(list(result)[:12])) if isinstance(result, dict) else '已返回结果')
-        self.trace.append(entry)
+        self._record(entry, result)
         self.evidence.append({'step': step, 'tool': name, 'arguments': args, 'result': result,
                               **({'agent': self.agent} if self.agent else {})})
         if len(text) > MAX_TOOL_RESULT_CHARS:
@@ -347,37 +377,65 @@ def _compact(result: Any, total: int) -> str:
 
 
 # A loop function runs the provider conversation to completion.
-# (config, system blocks, history, tool specs, execute) -> (reply text, stop reason)
-LoopFn = Callable[[ChatConfig, list[str], list[dict], list[dict], Callable[[str, Any], tuple[str, bool]]], tuple[str, str]]
+# (config, system blocks, history, tool specs, execute[, emit, cancelled]) -> (reply text, stop reason)
+# ``emit`` and ``cancelled`` are passed only for streamed answers.
+LoopFn = Callable[..., tuple[str, str]]
+
+
+def _echo_content(content: list[Any]) -> list[Any]:
+    """Blocks to send back after a turn. After a mid-output fallback only the text
+    written before the last ``fallback`` marker is kept; everything after it echoes normally."""
+    kinds = [getattr(b, 'type', None) for b in content]
+    if 'fallback' not in kinds:
+        return content
+    cut = len(kinds) - 1 - kinds[::-1].index('fallback')
+    return [b for i, b in enumerate(content) if i > cut or kinds[i] == 'text']
 
 
 def anthropic_loop(config: ChatConfig, system: list[str], history: list[dict], tools: list[dict],
-                   execute: Callable[[str, Any], tuple[str, bool]]) -> tuple[str, str]:
+                   execute: Callable[[str, Any], tuple[str, bool]], emit: Emit | None = None,
+                   cancelled: Cancelled | None = None) -> tuple[str, str]:
     import anthropic
 
     client = anthropic.Anthropic(api_key=config.api_key) if config.api_key else anthropic.Anthropic()
     system_blocks = [{'type': 'text', 'text': system[0], 'cache_control': {'type': 'ephemeral'}},
                      {'type': 'text', 'text': system[1]}]
     tool_defs = [{'name': t['name'], 'description': t['description'], 'input_schema': t['schema']} for t in tools]
+    params: dict[str, Any] = {
+        'model': config.model, 'max_tokens': 16000, 'system': system_blocks,
+        **({'tools': tool_defs} if tool_defs else {}),
+        'output_config': {'effort': config.effort},
+        # Re-run a safety-classifier decline on Anthropic's recommended fallback model.
+        'betas': ['server-side-fallback-2026-07-01'], 'fallbacks': 'default',
+    }
     messages: list[Any] = [dict(m) for m in history]
     for _ in range(MAX_ROUNDS):
-        response = client.beta.messages.create(
-            model=config.model, max_tokens=16000, system=system_blocks, messages=messages,
-            **({'tools': tool_defs} if tool_defs else {}),
-            output_config={'effort': config.effort},
-            # Re-run a safety-classifier decline on Anthropic's recommended fallback model.
-            betas=['server-side-fallback-2026-07-01'], fallbacks='default',
-        )
+        if cancelled and cancelled():
+            raise ChatCancelled()
+        streamed = False
+        if emit is None:
+            response = client.beta.messages.create(messages=messages, **params)
+        else:
+            with client.beta.messages.stream(messages=messages, **params) as stream:
+                for event in stream:
+                    if cancelled and cancelled():
+                        raise ChatCancelled()
+                    if event.type == 'text' and event.text:
+                        streamed = True
+                        emit({'type': 'text', 'text': event.text})
+                response = stream.get_final_message()
         if response.stop_reason == 'refusal':
             return '这个请求被模型拒绝回答。请换一种问法，或只询问传统文化层面的结构说明。', 'refusal'
         tool_uses = [b for b in response.content if b.type == 'tool_use']
         if response.stop_reason == 'pause_turn':
-            messages.append({'role': 'assistant', 'content': response.content})
+            messages.append({'role': 'assistant', 'content': _echo_content(response.content)})
             continue
         if not tool_uses:
             text = '\n'.join(b.text for b in response.content if b.type == 'text').strip()
             return text, response.stop_reason or 'end_turn'
-        messages.append({'role': 'assistant', 'content': response.content})
+        if streamed and emit is not None:
+            emit({'type': 'reset'})  # words written before a tool call are not part of the answer
+        messages.append({'role': 'assistant', 'content': _echo_content(response.content)})
         results = []
         for block in tool_uses:
             content, is_error = execute(block.name, block.input)
@@ -387,7 +445,8 @@ def anthropic_loop(config: ChatConfig, system: list[str], history: list[dict], t
 
 
 def openai_loop(config: ChatConfig, system: list[str], history: list[dict], tools: list[dict],
-                execute: Callable[[str, Any], tuple[str, bool]]) -> tuple[str, str]:
+                execute: Callable[[str, Any], tuple[str, bool]], emit: Emit | None = None,
+                cancelled: Cancelled | None = None) -> tuple[str, str]:
     import openai
 
     kwargs = {k: v for k, v in (('api_key', config.api_key), ('base_url', config.base_url)) if v}
@@ -396,6 +455,8 @@ def openai_loop(config: ChatConfig, system: list[str], history: list[dict], tool
                  for t in tools]
     messages: list[dict] = [{'role': 'system', 'content': '\n\n'.join(system)}, *[dict(m) for m in history]]
     for _ in range(MAX_ROUNDS):
+        if cancelled and cancelled():
+            raise ChatCancelled()
         response = client.chat.completions.create(model=config.model, messages=messages,
                                                   **({'tools': tool_defs} if tool_defs else {}))
         choice = response.choices[0]
@@ -419,17 +480,30 @@ def openai_loop(config: ChatConfig, system: list[str], history: list[dict], tool
 LOOPS: dict[str, LoopFn] = {'anthropic': anthropic_loop, 'openai': openai_loop}
 
 
+def _call_loop(loop: LoopFn, config: ChatConfig, system: list[str], history: list[dict], tools: list[dict],
+               execute: Callable[[str, Any], tuple[str, bool]], emit: Emit | None, cancelled: Cancelled | None) -> tuple[str, str]:
+    # Streaming arguments are passed only when used, so simple loops keep the five-argument form.
+    if emit is None and cancelled is None:
+        return loop(config, system, history, tools, execute)
+    return loop(config, system, history, tools, execute, emit=emit, cancelled=cancelled)
+
+
 def _run_panel(req: ChatRequest, config: ChatConfig, loop: LoopFn, history: list[dict], context: str,
-               run: ChatRun) -> tuple[str, str, list[dict]]:
+               run: ChatRun, emit: Emit | None = None, cancelled: Cancelled | None = None) -> tuple[str, str, list[dict]]:
     def consult(agent: str) -> tuple[ChatRun, str, str]:
         tools = specialist_tools(agent)
         sub = ChatRun(partner_authorized=req.partner_authorized, agent=agent,
-                      allowed=frozenset(t['name'] for t in tools))
+                      allowed=frozenset(t['name'] for t in tools), emit=emit)
         spec = SPECIALISTS[agent]
         system = [SPECIALIST_PROMPT.format(label=spec['label'], school=spec['school']), context]
-        reply, stop = loop(config, system, history, tools, sub.execute)
+        # Specialist reports are read by the synthesizer, so only their tool progress is streamed.
+        reply, stop = _call_loop(loop, config, system, history, tools, sub.execute, None, cancelled)
+        if emit:
+            emit({'type': 'specialist', 'agent': agent, 'label': spec['label'], 'tool_calls': len(sub.trace)})
         return sub, reply, stop
 
+    if emit:
+        emit({'type': 'status', 'stage': 'specialists', 'agents': list(req.panel_agents)})
     # Specialists are independent, so they run side by side.
     with ThreadPoolExecutor(max_workers=len(req.panel_agents)) as pool:
         outcomes = list(pool.map(consult, req.panel_agents))
@@ -439,34 +513,45 @@ def _run_panel(req: ChatRequest, config: ChatConfig, loop: LoopFn, history: list
         for entry in sub.trace:
             run.trace.append({**entry, 'step': entry['step'] + offset})
         run.evidence.extend({**item, 'step': item['step'] + offset} for item in sub.evidence)
+        run.charts.extend({**item, 'step': item['step'] + offset} for item in sub.charts)
         reports.append({'agent': agent, 'label': SPECIALISTS[agent]['label'], 'reply': reply,
                         'stop_reason': stop, 'tool_calls': len(sub.trace)})
+    run.charts = run.charts[-MAX_CHARTS:]
     def no_tools(name: str, args: Any) -> tuple[str, bool]:
         return '综合者不能调用工具，只能依据专家报告作答。', True
 
-    reply, stop = loop(config, [SYNTH_PROMPT, context], _panel_question(history, reports), [], no_tools)
+    if emit:
+        emit({'type': 'status', 'stage': 'synthesis'})
+    reply, stop = _call_loop(loop, config, [SYNTH_PROMPT, context], _panel_question(history, reports), [], no_tools,
+                             emit, cancelled)
     return reply, stop, reports
 
 
 def run_chat(req: ChatRequest, config: ChatConfig | None = None, loop: LoopFn | None = None,
-             verify: VerifyFn | None = None) -> dict:
+             verify: VerifyFn | None = None, emit: Emit | None = None, cancelled: Cancelled | None = None) -> dict:
+    """Answer one turn. With ``emit``, progress (tool calls, answer text) is reported
+    as it happens; ``cancelled`` lets the caller stop between steps."""
     if config is None:
         status = chat_status()
         if not status['enabled']:
             raise ChatUnavailable(status['reason'])
         config = chat_config()
     assert config is not None
-    run = ChatRun(partner_authorized=req.partner_authorized)
+    run = ChatRun(partner_authorized=req.partner_authorized, emit=emit)
     history = [m.model_dump() for m in req.messages]
     loop = loop or LOOPS[config.provider]
     system = build_system(req)
     panel = None
     if req.mode == 'panel':
-        reply, stop, panel = _run_panel(req, config, loop, history, system[1], run)
+        reply, stop, panel = _run_panel(req, config, loop, history, system[1], run, emit, cancelled)
     else:
-        reply, stop = loop(config, system, history, tool_specs(), run.execute)
+        reply, stop = _call_loop(loop, config, system, history, tool_specs(), run.execute, emit, cancelled)
     verification = None
     if req.verify and reply and stop not in ('refusal', 'max_rounds'):
+        if cancelled and cancelled():
+            raise ChatCancelled()
+        if emit:
+            emit({'type': 'status', 'stage': 'verifying'})
         verification = run_verifier(verify or VERIFIERS[config.provider], config, req.messages[-1].content, reply, run.evidence)
     confidence = None
     if req.profile is not None and req.profile.birth is not None:
@@ -483,6 +568,7 @@ def run_chat(req: ChatRequest, config: ChatConfig | None = None, loop: LoopFn | 
         'mode': req.mode,
         'panel': panel,
         'trace': run.trace,
+        'charts': run.charts,
         'memory_suggestions': run.memory_suggestions,
         'verification': verification,
         'chart_confidence': confidence,
