@@ -84,11 +84,20 @@ function loadChatHistory(id) {
   const list = chatStore(chatHistoryKey)[id];
   return Array.isArray(list) ? list.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').slice(-60) : [];
 }
+// A failed or stopped answer and the question that led to it are left out together.
+function completeExchanges(messages) {
+  const kept = [];
+  messages.forEach(m => {
+    if (m.error) {if (kept.length && kept[kept.length - 1].role === 'user') kept.pop(); return;}
+    kept.push(m);
+  });
+  return kept;
+}
 // Saved conversations keep the text, trace and labels but not the chart data, which can be recomputed.
 function persistChatHistory() {
   if (!chatOwner || chatOwner !== $('#profiles').value || !profileMemory(chatOwner).keep_history) return;
   const all = chatStore(chatHistoryKey);
-  all[chatOwner] = chatMessages.filter(m => !m.error).slice(-60).map(m => {const copy = {...m}; delete copy.charts; return copy;});
+  all[chatOwner] = completeExchanges(chatMessages).slice(-60).map(m => {const copy = {...m}; delete copy.charts; return copy;});
   chatSave(chatHistoryKey, all);
 }
 // A conversation belongs to one profile: switching profiles starts a fresh one
@@ -126,12 +135,7 @@ async function fetchChatStatus() {
 // The turns sent to the model: failed exchanges are left out, so the model never
 // reads the interface's own error text as if it had written it.
 function chatTurns(messages) {
-  const turns = [];
-  messages.forEach(m => {
-    if (m.error) {if (turns.length && turns[turns.length - 1].role === 'user') turns.pop(); return;}
-    turns.push({role: m.role, content: m.content.slice(0, 4000)});
-  });
-  return turns;
+  return completeExchanges(messages).map(m => ({role: m.role, content: m.content.slice(0, 4000)}));
 }
 // Send the most recent turns that fit under the server body limit.
 function chatPayload(messages = chatMessages) {
@@ -148,6 +152,8 @@ function chatPayload(messages = chatMessages) {
       const birth = readInput();
       Object.keys(birth).forEach(k => {if (birth[k] === null) delete birth[k];});
       payload.profile.birth = birth;
+      // Unknown hour: the noon placeholder is flagged, and the confidence labels cover the whole day.
+      if ($('#hour_unknown').checked) {payload.profile.birth_hour_unknown = true; payload.profile.birth_time_uncertainty_minutes = 690;}
     }
   }
   let turns = chatTurns(messages).slice(-24);

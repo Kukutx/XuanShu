@@ -353,3 +353,70 @@ def test_echo_after_fallback_keeps_only_text_written_before_the_marker():
     text, thinking, fallback, tool = Block('text'), Block('thinking'), Block('fallback'), Block('tool_use')
     assert chat_module._echo_content([text, tool]) == [text, tool]
     assert chat_module._echo_content([thinking, text, fallback, tool]) == [text, tool]
+
+
+def openai_stream_client(rounds, log):
+    """Fake OpenAI client: each create(stream=True) returns the next list of chunks."""
+    import types
+
+    def chunk(content=None, calls=None, finish=None):
+        delta = types.SimpleNamespace(content=content, tool_calls=calls)
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(delta=delta, finish_reason=finish)])
+
+    def part(index, id=None, name=None, arguments=None):
+        return types.SimpleNamespace(index=index, id=id, function=types.SimpleNamespace(name=name, arguments=arguments))
+
+    class Stream:
+        def __init__(self, chunks): self.chunks = chunks
+        def __iter__(self): return iter(self.chunks)
+        def close(self): log.append('closed')
+
+    built = iter([[chunk(*c) for c in r] for r in rounds(chunk, part)])
+
+    def create(**kw):
+        log.append(('stream' if kw.get('stream') else 'plain', len(kw['messages'])))
+        return Stream(next(built))
+    return types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=create)))
+
+
+def test_openai_replies_stream_text_and_assemble_tool_calls_from_pieces(monkeypatch):
+    import sys
+    import types
+    log, events = [], []
+    args = json.dumps(BIRTH)
+    rounds = lambda chunk, part: [
+        [(None, [part(0, 'c1', 'bazi_chart', args[:10])]), (None, [part(0, None, None, args[10:])], 'tool_calls')],
+        [('先看', None), ('日柱。', None, 'stop')],
+    ]
+    client = openai_stream_client(rounds, log)
+    monkeypatch.setitem(sys.modules, 'openai', types.SimpleNamespace(OpenAI=lambda **kw: client))
+    out = run_chat(ChatRequest(messages=[{'role': 'user', 'content': '八字'}], verify=False),
+                   config=ChatConfig('openai', 'm'), emit=events.append)
+    assert out['reply'] == '先看日柱。'
+    assert [t['tool'] for t in out['trace']] == ['bazi_chart'] and out['trace'][0]['ok']
+    assert [e['text'] for e in events if e['type'] == 'text'] == ['先看', '日柱。']
+    assert log == [('stream', 2), 'closed', ('stream', 4), 'closed']  # system + user, then + assistant call + tool result
+
+
+def test_openai_stream_is_closed_when_the_user_stops(monkeypatch):
+    import sys
+    import types
+    log, stop = [], []
+    rounds = lambda chunk, part: [[('一', None), ('二', None), ('三', None, 'stop')]]
+    client = openai_stream_client(rounds, log)
+    monkeypatch.setitem(sys.modules, 'openai', types.SimpleNamespace(OpenAI=lambda **kw: client))
+
+    def emit(event):
+        if event['type'] == 'text':
+            stop.append(event['text'])
+    with pytest.raises(chat_module.ChatCancelled):
+        run_chat(ChatRequest(messages=[{'role': 'user', 'content': 'x'}], verify=False),
+                 config=ChatConfig('openai', 'm'), emit=emit, cancelled=lambda: bool(stop))
+    assert stop == ['一'] and log[-1] == 'closed'
+
+
+def test_unknown_birth_hour_is_flagged_to_the_model():
+    flagged = ChatRequest(messages=[{'role': 'user', 'content': 'x'}], profile={'birth': BIRTH, 'birth_hour_unknown': True})
+    assert '用户不知道出生时辰' in build_system(flagged)[1]
+    plain = ChatRequest(messages=[{'role': 'user', 'content': 'x'}], profile={'birth': BIRTH})
+    assert '用户不知道出生时辰' not in build_system(plain)[1]

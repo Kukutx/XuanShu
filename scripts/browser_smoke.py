@@ -169,6 +169,10 @@ def main() -> None:
             page.locator('#qimen-run').click()
             page.locator('.qimen-cell').first.wait_for(timeout=30000)
             assert '芒种' in page.locator('#result').inner_text()
+            # A chart cast for another moment is discarded when the moment changes.
+            page.locator('#qimen-moment').select_option('now')
+            assert page.locator('.qimen-cell').count() == 0, 'Qimen chart survived a change of moment'
+            page.locator('#qimen-moment').select_option('birth')
             page.locator('#birth_datetime').fill('2000-08-16T04:00')
 
             # Zi Wei time layers relabel the board; focus stays on the control that was used.

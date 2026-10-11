@@ -1686,6 +1686,10 @@ const UI_EXTRA = {
 "Birth moment is within ",
 "出生時刻は最寄りの月令節気から "
 ],
+"出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。": [
+"Birth hour unknown: 12:00 is only a placeholder, so a Qimen chart cast from it means nothing.",
+"出生時刻不明：12:00 は仮の値なので、これで立てた奇門盤には意味がありません。"
+],
 "出生时间": [
 "Birth time",
 "出生時刻"
@@ -1729,6 +1733,10 @@ const UI_EXTRA = {
 "出生资料不上传、不保存在服务器": [
 "Birth details are never uploaded or stored on the server",
 "出生情報はアップロードもサーバー保存もされません"
+],
+"出生资料只用于当次计算，服务器不保存": [
+"Birth details are used only for the current calculation; the server keeps nothing",
+"出生情報はその場の計算にだけ使い、サーバーには保存しません"
 ],
 "出生资料质量提示：": [
 "Birth data quality notes: ",
@@ -2089,6 +2097,10 @@ const UI_EXTRA = {
 "另有未补齐输入": [
 "Other inputs still missing",
 "他にも未入力の項目あり"
+],
+"只依据年柱、月柱、日柱等不随时辰变化的内容，需要时请用户补充时辰或几件确定发生过的大事。": [
+"rely only on what does not change with the hour, such as the year, month and day pillars, and when needed ask the user for the hour or a few events that certainly happened.",
+"年柱・月柱・日柱など時刻で変わらない内容だけに基づき、必要なら時刻か確実に起きた出来事をいくつか尋ねてください。"
 ],
 "只对照年干和本命宫位，不是完整流年盘或预测": [
 "Only compares the year stem and natal palaces; not a complete annual chart or prediction",
@@ -5101,6 +5113,10 @@ const UI_EXTRA = {
 "用当前出生资料生成命盘": [
 "Generate the chart from the current birth details",
 "現在の出生情報で命盤を作成"
+],
+"用户不知道出生时辰：出生参数里的钟点只是占位。时柱、紫微命宫、身宫与宫位排布都不能当作结论；": [
+"The user does not know the birth hour: the clock time in the birth parameters is only a placeholder. The hour pillar, the Zi Wei Life and Body palaces and the palace layout cannot be treated as conclusions;",
+"利用者は出生時刻を知りません。出生パラメータの時刻は仮の値です。時柱、紫微の命宮・身宮、宮の配置は結論として扱えません。"
 ],
 "用户已勾选：已获第二人同意。": [
 "User has checked: consent obtained from the second person.",

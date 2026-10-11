@@ -58,6 +58,8 @@ class ChatProfile(BaseModel):
     life_events: list[LifeEvent] = Field(default_factory=list, max_length=30)
     # How far off the recorded birth time may be; drives the chart confidence labels.
     birth_time_uncertainty_minutes: int = Field(default=15, ge=1, le=720)
+    # The user does not know the birth hour; the time in ``birth`` is only a placeholder.
+    birth_hour_unknown: bool = False
 
     @field_validator('memory')
     @classmethod
@@ -197,6 +199,9 @@ def build_system(req: ChatRequest) -> list[str]:
             lines.append('出生参数（调用工具时原样使用）：' + json.dumps(profile.birth.model_dump(exclude_none=True), ensure_ascii=False))
         else:
             lines.append('出生参数：未提供')
+        if profile.birth_hour_unknown:
+            lines.append('用户不知道出生时辰：出生参数里的钟点只是占位。时柱、紫微命宫、身宫与宫位排布都不能当作结论；'
+                         '只依据年柱、月柱、日柱等不随时辰变化的内容，需要时请用户补充时辰或几件确定发生过的大事。')
         if profile.memory:
             lines.append('档案记忆（用户提供，未核实）：')
             lines.extend(f'- {item}' for item in profile.memory)
@@ -444,6 +449,46 @@ def anthropic_loop(config: ChatConfig, system: list[str], history: list[dict], t
     return '工具调用轮次已达上限，请把问题拆小后再问。', 'max_rounds'
 
 
+def _openai_round(client: Any, config: ChatConfig, messages: list[dict], tool_defs: list[dict],
+                  emit: Emit | None, cancelled: Cancelled | None) -> tuple[str, list[dict], str]:
+    """One model turn: (text, tool calls, finish reason). With ``emit`` or ``cancelled``
+    the reply is streamed, text is reported as it arrives, and the stream is closed
+    as soon as the caller cancels, so the provider stops generating."""
+    params = {'model': config.model, 'messages': messages, **({'tools': tool_defs} if tool_defs else {})}
+    if emit is None and cancelled is None:
+        choice = client.chat.completions.create(**params).choices[0]
+        calls = [{'id': c.id, 'name': c.function.name, 'arguments': c.function.arguments or ''}
+                 for c in choice.message.tool_calls or []]
+        return choice.message.content or '', calls, choice.finish_reason or 'stop'
+    text: list[str] = []
+    calls: dict[int, dict] = {}
+    finish = 'stop'
+    stream = client.chat.completions.create(stream=True, **params)
+    try:
+        for chunk in stream:
+            if cancelled and cancelled():
+                raise ChatCancelled()
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            delta = choice.delta
+            if delta.content:
+                text.append(delta.content)
+                if emit:
+                    emit({'type': 'text', 'text': delta.content})
+            # Tool calls arrive in pieces keyed by index: the id and name first, then argument text.
+            for part in delta.tool_calls or []:
+                slot = calls.setdefault(part.index, {'id': '', 'name': '', 'arguments': ''})
+                slot['id'] = part.id or slot['id']
+                if part.function is not None:
+                    slot['name'] += part.function.name or ''
+                    slot['arguments'] += part.function.arguments or ''
+            finish = choice.finish_reason or finish
+    finally:
+        stream.close()
+    return ''.join(text), [calls[i] for i in sorted(calls)], finish
+
+
 def openai_loop(config: ChatConfig, system: list[str], history: list[dict], tools: list[dict],
                 execute: Callable[[str, Any], tuple[str, bool]], emit: Emit | None = None,
                 cancelled: Cancelled | None = None) -> tuple[str, str]:
@@ -457,23 +502,22 @@ def openai_loop(config: ChatConfig, system: list[str], history: list[dict], tool
     for _ in range(MAX_ROUNDS):
         if cancelled and cancelled():
             raise ChatCancelled()
-        response = client.chat.completions.create(model=config.model, messages=messages,
-                                                  **({'tools': tool_defs} if tool_defs else {}))
-        choice = response.choices[0]
-        calls = choice.message.tool_calls or []
+        content, calls, finish = _openai_round(client, config, messages, tool_defs, emit, cancelled)
         if not calls:
-            return (choice.message.content or '').strip(), choice.finish_reason or 'stop'
-        messages.append({'role': 'assistant', 'content': choice.message.content or '',
-                         'tool_calls': [{'id': c.id, 'type': 'function',
-                                         'function': {'name': c.function.name, 'arguments': c.function.arguments}} for c in calls]})
+            return content.strip(), finish
+        if emit and content:
+            emit({'type': 'reset'})  # text before a tool call was thinking aloud, not the answer
+        messages.append({'role': 'assistant', 'content': content,
+                         'tool_calls': [{'id': c['id'], 'type': 'function',
+                                         'function': {'name': c['name'], 'arguments': c['arguments']}} for c in calls]})
         for call in calls:
             try:
-                args = json.loads(call.function.arguments or '{}')
+                args = json.loads(call['arguments'] or '{}')
             except json.JSONDecodeError:
                 # Pass the raw text through so the failed attempt still appears in the trace.
-                args = call.function.arguments
-            content, _ = execute(call.function.name, args)
-            messages.append({'role': 'tool', 'tool_call_id': call.id, 'content': content})
+                args = call['arguments']
+            result, _ = execute(call['name'], args)
+            messages.append({'role': 'tool', 'tool_call_id': call['id'], 'content': result})
     return '工具调用轮次已达上限，请把问题拆小后再问。', 'max_rounds'
 
 

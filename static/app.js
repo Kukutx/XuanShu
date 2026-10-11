@@ -227,15 +227,16 @@ function renderQimen() {
   const mode = append(modeLabel, 'select'); mode.id = 'qimen-moment';
   [['now', '此刻'], ['custom', '指定时间'], ['birth', '出生时间']].forEach(([value, text]) => {const op = append(mode, 'option', null, text); op.value = value;});
   mode.value = qimenMoment.mode;
-  mode.addEventListener('change', () => {qimenMoment.mode = mode.value; render();});
+  mode.addEventListener('change', () => {qimenMoment.mode = mode.value; qimenResult = null; qimenFingerprint = null; render();});
   if (qimenMoment.mode === 'custom') {
     const whenLabel = append(row, 'label', null, '日期与时间');
     const when = append(whenLabel, 'input'); when.type = 'datetime-local'; when.id = 'qimen-when';
     when.value = qimenMoment.custom || localMinute();
-    when.addEventListener('change', () => {qimenMoment.custom = when.value;});
+    when.addEventListener('change', () => {qimenMoment.custom = when.value; if (qimenResult) {qimenResult = null; render();}});
   }
   const run = append(row, 'button', null, '排布九宫'); run.id='qimen-run'; run.type='button';
   append(result, 'small', 'field-help', qimenMoment.mode === 'birth' ? '沿用出生资料里的时区、真太阳时和换日规则。' : '按本机时区 ' + (browserZone() || readInput().timezone) + ' 的钟表时间起局。');
+  if (qimenMoment.mode === 'birth' && $('#hour_unknown').checked) append(result, 'p', 'inline-msg', '出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。');
   const message = append(result, 'p', 'inline-msg');
   run.addEventListener('click', async () => {
     run.disabled=true; message.className = 'inline-msg progress'; message.textContent='正在起局…';
@@ -449,8 +450,19 @@ function ziweiLines(board, z, selected) {
   board.prepend(svg);
 }
 const STEM_ORDER = '甲乙丙丁戊己庚辛壬癸', BRANCH_ORDER = '子丑寅卯辰巳午未申酉戌亥';
+// Today's lunar year comes from the calendar engine, so the default 流年 changes on the real Chinese New Year.
+let todayLunarYear = null, todayLunarPending = false;
+function ensureTodayLunarYear() {
+  if (todayLunarYear !== null || todayLunarPending) return;
+  todayLunarPending = true;
+  postJSON('/api/calendar', {start_date: localToday(), days: 1}).then(data => {
+    todayLunarYear = data.days[0].lunar.year;
+    if (active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) render();
+  }).catch(() => { /* keep the estimate below */ }).finally(() => {todayLunarPending = false;});
+}
 function defaultLunarYear() {
-  const today = new Date();  // Chinese New Year falls between 21 January and 20 February.
+  if (todayLunarYear !== null) return todayLunarYear;
+  const today = new Date();  // estimate until the engine answers: New Year falls between 21 January and 20 February
   return today.getFullYear() - (today.getMonth() === 0 || (today.getMonth() === 1 && today.getDate() < 20) ? 1 : 0);
 }
 // Everything a layer needs comes from the natal chart itself: palace i sits on
@@ -529,6 +541,7 @@ function renderZiweiLayerBar(z, layer) {
 function renderZiwei(z) {
   title(result, '紫微十二宫', '点击宫位：高亮三方四正并查看宫干飞化；上方切换本命、大限、流年');
   meta(result, [`命宫 ${z.ming_palace}`, `身宫 ${z.shen_palace}`, z.five_elements_bureau, `命主 ${z.ming_master}`, `身主 ${z.shen_master}`, z.transformation_school]);
+  ensureTodayLunarYear();
   const layer = ziweiLayerInfo(z);
   renderZiweiLayerBar(z, layer);
   const live = layer && !layer.unavailable ? layer : null;
@@ -1319,7 +1332,7 @@ function renderIntegration() {
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
-  return {date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
+  return {birth_hour_unknown:currentHourUnknown, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
 }
 function renderConsultation() {
   title(result, '问题驱动咨询工作流', '真实执行工具 · 保留证据来源 · 不在服务器保存对话');
@@ -1607,14 +1620,15 @@ $('#save-profile').addEventListener('click', () => {
   const profiles = loadProfiles();
   if (profiles.length >= 20) {setFeedback('最多保存 20 条，请先删除旧档案'); return;}
   const id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
-  profiles.push({id, label, data: readInput()});
+  profiles.push({id, label, data: readInput(), hour_unknown: $('#hour_unknown').checked});
   try {localStorage.setItem(profileKey, JSON.stringify(profiles)); showProfiles(); $('#profiles').value = id; setFeedback('仅保存在当前浏览器。');}
   catch (_) {setFeedback('保存失败：当前浏览器无法使用本地存储');}
 });
 $('#load-profile').addEventListener('click', () => {
   const entry = loadProfiles().find(x => x.id === $('#profiles').value);
   if (!entry) {setFeedback('请选择有效档案'); return;}
-  setInput(entry.data); setFeedback('已载入档案，正在计算。'); form.requestSubmit();
+  setInput(entry.data); $('#hour_unknown').checked = entry.hour_unknown === true; updateHourUnknown();
+  setFeedback('已载入档案，正在计算。'); form.requestSubmit();
 });
 $('#remove-profile').addEventListener('click', () => {
   const chosen = $('#profiles').value;
@@ -1628,15 +1642,27 @@ showProfiles();
 // Unknown birth hour: cast the same day once per double hour and show what changes.
 const HOUR_SAMPLES = [['早子', '00:30'], ['丑', '02:00'], ['寅', '04:00'], ['卯', '06:00'], ['辰', '08:00'], ['巳', '10:00'],
   ['午', '12:00'], ['未', '14:00'], ['申', '16:00'], ['酉', '18:00'], ['戌', '20:00'], ['亥', '22:00'], ['晚子', '23:30']];
+// Clock time whose effective (solar-time) reading is `time` on `day`; shift is effective minus clock, in minutes.
+function clockFor(day, time, shift) {
+  const [y, m, d] = day.split('-').map(Number), [hh, mm] = time.split(':').map(Number);
+  const at = new Date(Date.UTC(y, m - 1, d, hh, mm) - Math.round(shift) * 60000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${at.getUTCFullYear()}-${pad(at.getUTCMonth() + 1)}-${pad(at.getUTCDate())}T${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())}`;
+}
 async function loadHourCandidates(key) {
   const base = currentInput;
   const day = base.birth_datetime.slice(0, 10);
+  const shift = (current.bazi.time_basis && current.bazi.time_basis.effective_shift_minutes) || 0;
   const rows = await Promise.all(HOUR_SAMPLES.map(async ([label, time]) => {
-    const chart = await postJSON('/api/combined', {...base, birth_datetime: day + 'T' + time});
+    const when = clockFor(day, time, shift);
+    const chart = await postJSON('/api/combined', {...base, birth_datetime: when});
     const z = chart.ziwei, b = chart.bazi;
     const ming = z.palaces.find(p => p.is_ming);
-    return {label, time, pillars: b.pillars, ming: z.ming_palace, shen: z.shen_palace, bureau: z.five_elements_bureau,
-      ming_stars: ming ? ming.main_stars : []};
+    // Label each row from the hour the engine actually assigned, not from the sample.
+    const branch = b.pillars.hour.branch;
+    const name = branch === '子' ? (label === '晚子' ? '晚子' : '早子') : branch;
+    return {label: name, time: when.slice(0, 10) === day ? when.slice(11) : when.replace('T', ' '), pillars: b.pillars,
+      ming: z.ming_palace, shen: z.shen_palace, bureau: z.five_elements_bureau, ming_stars: ming ? ming.main_stars : []};
   }));
   hourCandidates = {key, rows};
 }
@@ -1761,7 +1787,8 @@ function drawShareCard(canvas) {
   const token = name => css.getPropertyValue(name).trim();
   const W = 1080, PAD = 72;
   const b = current.bazi, z = current.ziwei;
-  const H = 400 + (shareOptions.bazi ? 420 : 0) + (shareOptions.ziwei ? 480 : 0);
+  const ziwei = shareOptions.ziwei && !currentHourUnknown;  // palaces depend on the hour
+  const H = 400 + (shareOptions.bazi ? 420 : 0) + (ziwei ? 480 : 0);
   canvas.width = W; canvas.height = H;
   const g = canvas.getContext('2d');
   const sans = "'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", serif = "'Noto Serif SC','Songti SC','STSong',serif";
@@ -1781,7 +1808,8 @@ function drawShareCard(canvas) {
   const facts = [];
   if (shareOptions.date) facts.push(currentInput.birth_datetime.slice(0, 10));
   if (shareOptions.time) facts.push(currentInput.birth_datetime.slice(11, 16) + ' ' + currentInput.timezone);
-  facts.push(T(z.five_elements_bureau), T('命主') + ' ' + T(z.ming_master), T('身主') + ' ' + T(z.shen_master));
+  if (currentHourUnknown) facts.push(T('时辰不详'));
+  else facts.push(T(z.five_elements_bureau), T('命主') + ' ' + T(z.ming_master), T('身主') + ' ' + T(z.shen_master));
   text(facts.join('  ·  '), PAD, 196, 26, token('--text2'));
   let y = 250;
   const color = element => token('--' + (ELEMENT_CLASS[element] || 'gold'));
@@ -1790,17 +1818,18 @@ function drawShareCard(canvas) {
     const colW = (W - PAD * 2) / 4;
     [['year', '年柱'], ['month', '月柱'], ['day', '日柱'], ['hour', '时柱']].forEach(([key, label], i) => {
       const p = b.pillars[key], cx = PAD + colW * i + colW / 2;
+      const hidden = key === 'hour' && currentHourUnknown;  // a noon placeholder is not a real hour pillar
       g.fillStyle = token('--panel2'); g.strokeStyle = key === 'day' ? token('--gold') : token('--border');
       g.lineWidth = key === 'day' ? 3 : 1.5;
       g.beginPath(); (g.roundRect ? g.roundRect.bind(g) : g.rect.bind(g))(PAD + colW * i + 8, y + 60, colW - 16, 300, 14); g.fill(); g.stroke();
       text(T(label), cx, y + 100, 22, token('--muted'), sans, 'center', '400', colW - 28);
-      text(T(p.ten_god_of_stem), cx, y + 136, 22, token('--gold'), sans, 'center', '400', colW - 28);
-      text(p.stem, cx, y + 224, 82, color(p.stem_element), serif, 'center', '600');
-      text(p.branch, cx, y + 318, 82, color(p.branch_element), serif, 'center', '600');
+      text(hidden ? T('时辰不详') : T(p.ten_god_of_stem), cx, y + 136, 22, token('--gold'), sans, 'center', '400', colW - 28);
+      text(hidden ? '?' : p.stem, cx, y + 224, 82, hidden ? token('--faint') : color(p.stem_element), serif, 'center', '600');
+      text(hidden ? '?' : p.branch, cx, y + 318, 82, hidden ? token('--faint') : color(p.branch_element), serif, 'center', '600');
     });
     y += 420;
   }
-  if (shareOptions.ziwei) {
+  if (ziwei) {
     text(T('紫微斗数'), PAD, y + 34, 28, token('--gold2'), sans, 'left', '600');
     const ming = z.palaces.find(p => p.is_ming), shen = z.palaces.find(p => p.is_shen);
     const stars = list => list.map(T).join(' ') || T('空宫');
@@ -1848,6 +1877,7 @@ function openShareCard() {
   [['date', '显示出生日期'], ['time', '显示出生时间与时区'], ['bazi', '四柱八字'], ['ziwei', '紫微命宫']].forEach(([key, label]) => {
     const line = append(options, 'label', 'check-line');
     const box = append(line, 'input'); box.type = 'checkbox'; box.id = 'share-' + key; box.checked = shareOptions[key];
+    if (currentHourUnknown && (key === 'ziwei' || key === 'time')) {box.checked = false; box.disabled = true;}
     line.append(' ' + label);
     box.addEventListener('change', () => {shareOptions[key] = box.checked; drawShareCard(canvas);});
   });
