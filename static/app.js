@@ -966,11 +966,13 @@ const JIAZI = Array.from({length: 60}, (_, i) => STEM_ORDER[i % 10] + BRANCH_ORD
 let pillarDraft = null, pillarResult = null;
 // Today card: calendar facts for this moment on the device clock; with a chart, the traditional labels against it.
 const deviceZone = () => {try {return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai';} catch (_) {return 'Asia/Shanghai';}};
+// The device reading with its UTC offset, so a repeated daylight-saving hour still names one instant.
 function localMoment() {
-  const n = new Date();
-  return localToday() + 'T' + String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+  const n = new Date(), pad = x => String(x).padStart(2, '0'), off = -n.getTimezoneOffset();
+  const zone = (off < 0 ? '-' : '+') + pad(Math.floor(Math.abs(off) / 60)) + ':' + pad(Math.abs(off) % 60);
+  return localToday() + 'T' + pad(n.getHours()) + ':' + pad(n.getMinutes()) + zone;
 }
-let todayData = null, todayKey = null, todayPending = false, todayError = '';
+let todayData = null, todayKey = null, todayPending = false, todayError = '', todayBirthSkipped = false;
 function todayRequest() {
   const body = {moment: localMoment(), timezone: deviceZone()};
   if (current && currentInput) body.birth = currentInput;
@@ -980,13 +982,31 @@ function ensureToday(then) {
   const body = todayRequest(), key = JSON.stringify(body);
   if (todayKey === key || todayPending) return;
   todayPending = true;
-  const attempt = data => postJSON('/api/daily-almanac', data);
-  // An unrecognised device zone falls back to China time rather than leaving the card empty.
-  attempt(body).catch(err => body.timezone === 'Asia/Shanghai' ? Promise.reject(err) : attempt({...body, timezone: 'Asia/Shanghai'}))
-    .then(data => {todayData = data; todayError = '';})
+  // The natal comparison is optional (a chart born after this moment is rejected), and an unrecognised
+  // device zone falls back to China time: either way the plain card still shows.
+  const tries = [body];
+  if (body.birth) {const {birth, ...plain} = body; tries.push(plain);}
+  if (body.timezone !== 'Asia/Shanghai') tries.push(...tries.map(data => ({...data, timezone: 'Asia/Shanghai'})));
+  (async () => {
+    let last = null;
+    for (const data of tries) {
+      try {return {data, result: await postJSON('/api/daily-almanac', data)};} catch (err) {last = err;}
+    }
+    throw last;
+  })()
+    .then(({data, result}) => {todayData = result; todayError = ''; todayBirthSkipped = !!body.birth && !data.birth;})
     .catch(err => {todayData = null; todayError = err.message;})
     .finally(() => {todayPending = false; todayKey = key; renderTodayChip(); if (then) then();});
 }
+// A page left open keeps the card current: refetch once the device clock reaches a new hour (the hour
+// pillar and, at midnight, the date change) and whenever the page becomes visible again.
+function refreshTodayIfStale() {
+  if (document.hidden || todayPending || !todayKey) return;
+  if (JSON.parse(todayKey).moment.slice(0, 13) === localMoment().slice(0, 13)) return;
+  ensureToday(() => {if (active === 'today') render();});
+}
+setInterval(refreshTodayIfStale, 60000);
+document.addEventListener('visibilitychange', refreshTodayIfStale);
 const SVG_NS = 'http://www.w3.org/2000/svg';
 function moonIcon(parent, moon, size = 56) {
   const svg = document.createElementNS(SVG_NS, 'svg');
@@ -1065,7 +1085,9 @@ function renderToday() {
   append(facts, 'span', null, t.timezone);
 
   append(result, 'h4', 'subheading', '与我的命盘');
-  if (!t.personal) {
+  if (!t.personal && todayBirthSkipped) {
+    append(result, 'p', 'field-help', '当前命盘的出生时间晚于此刻，不列个人对照。');
+  } else if (!t.personal) {
     const empty = append(result, 'div', 'today-empty');
     append(empty, 'p', 'field-help', '生成命盘后，这里会列出今天四柱对日主的十神，以及与本命四支的六冲、六合、同支。');
     const go = append(empty, 'button', 'tiny-button', '用当前出生资料生成命盘'); go.type = 'button'; go.id = 'today-generate';

@@ -43,6 +43,21 @@ def test_full_moon_term_day_and_another_zone():
     assert rome['solar_term']['current']['start'] == '2026-10-08T08:29+02:00'
 
 
+def test_offsets_pick_one_reading_and_jie_days_follow_the_card_zone():
+    # A repeated autumn hour needs its offset; both readings are accepted and give different instants.
+    first = daily_almanac(DailyAlmanacRequest(moment='2026-10-25T02:30+02:00', timezone='Europe/Rome'))
+    second = daily_almanac(DailyAlmanacRequest(moment='2026-10-25T02:30+01:00', timezone='Europe/Rome'))
+    assert first['moment'] == '2026-10-25T02:30+02:00' and second['moment'] == '2026-10-25T02:30+01:00'
+    converted = daily_almanac(DailyAlmanacRequest(moment='2026-10-11T09:30+08:00', timezone='Europe/Rome'))
+    assert converted['moment'] == '2026-10-11T03:30+02:00'
+    # 2026 寒露 is 2026-10-07 23:29 in Los Angeles but 2026-10-08 in China: the flag follows the local date.
+    eve = daily_almanac(DailyAlmanacRequest(moment='2026-10-07T20:00', timezone='America/Los_Angeles'))
+    after = daily_almanac(DailyAlmanacRequest(moment='2026-10-08T09:00', timezone='America/Los_Angeles'))
+    assert eve['day_officer']['jie_boundary_on_date'] is True and eve['solar_term']['next']['name'] == '寒露'
+    assert after['day_officer']['jie_boundary_on_date'] is False and after['solar_term']['current']['day_number'] == 2
+    assert eve['day_officer']['officer'] == after['day_officer']['officer']  # the officer repeats across a jie day
+
+
 def test_personal_labels_against_the_natal_chart():
     out = daily_almanac(DailyAlmanacRequest(moment='2026-10-11T09:30', birth=BIRTH))
     me = out['personal']
@@ -61,7 +76,8 @@ def test_personal_labels_against_the_natal_chart():
 
 
 def test_bad_requests_are_rejected():
-    for bad in ({'moment': '2026-10-11T09:30+08:00'}, {'moment': '2100-01-01T00:00'}, {'moment': 'today'},
+    for bad in ({'moment': '2026-03-29T02:30', 'timezone': 'Europe/Rome'}, {'moment': '2026-10-25T02:30', 'timezone': 'Europe/Rome'},
+                {'moment': '2100-01-01T00:00'}, {'moment': '2099-12-31T23:30-12:00'}, {'moment': 'today'},
                 {'timezone': 'Mars/Olympus'}, {'moment': '2026-10-11T09:30', 'birth': dict(BIRTH, birth_datetime='2027-01-01T00:00')},
                 {'moment': '2026-10-11T09:30', 'extra': 1}):
         with pytest.raises(ValidationError):

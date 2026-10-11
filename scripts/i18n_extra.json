@@ -3707,9 +3707,9 @@
   "Day officers are assigned using noon Beijing time; on a solar-term change day the officer may differ before and after the change.",
   "十二直は北京時間の正午で分類します。節入り当日は前後で十二直が異なる場合があります。"
  ],
- "建除值日按北京时间正午归类；交节当天节令前后可能不同。": [
-  "Day officers are assigned at Beijing noon; on a term day the officer can differ before and after the term begins.",
-  "十二直は北京時間の正午で分類します。節入りの日は節入りの前後で異なる場合があります。"
+ "建除值日按所在时区当天正午的节令月归类；交节当天节令前后可能不同。": [
+  "The day officer uses the jie month at local noon in the card's timezone; on a jie day it differs before and after the term begins.",
+  "建除の値日は、その時間帯の当日正午の節月で分類します。交節の日は節入りの前後で異なることがあります。"
  ],
  "建除十二值日": [
   "Twelve Day Officers (Jian Chu)",
@@ -3794,6 +3794,10 @@
  "当前参数": [
   "Current parameters",
   "現在のパラメータ"
+ ],
+ "当前命盘的出生时间晚于此刻，不列个人对照。": [
+  "The current chart's birth time is later than this moment, so no personal comparison is shown.",
+  "現在の命盤の出生時刻はこの時点より後のため、個人対照は表示しません。"
  ],
  "当前四柱无所列特定关系标签": [
   "The current Four Pillars have none of the listed relationship labels",
