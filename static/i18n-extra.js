@@ -442,6 +442,14 @@ const UI_EXTRA = {
 "Day changes at 00:00",
 "00:00 に日替わり"
 ],
+"1 天": [
+"1 day",
+"1 日"
+],
+"1 小时": [
+"1 hour",
+"1 時間"
+],
 "14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派与流曜": [
 "14 main stars + 44 selected auxiliary/minor stars (26 newly added); not all schools or annual stars",
 "14主星＋選定した補助星・雑曜44個（うち新規26個）。全流派・流曜ではない"
@@ -1069,6 +1077,10 @@ const UI_EXTRA = {
 "不限": [
 "Any",
 "指定なし"
+],
+"与出生所在区间不同": [
+"differs from the birth segment",
+"出生時刻の区間と異なる"
 ],
 "与原局地支无冲合": [
 "No clash or combination with the natal branches",

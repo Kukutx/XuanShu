@@ -157,7 +157,11 @@ def _find_first_changed_second(start: datetime, end: datetime, state, reference:
             lo = mid
         else:
             hi = mid
-    candidate = _instant_ceil_second(hi)
+    # The change lies in (lo, hi] with hi - lo under a second: the first changed whole second is floor(hi) when the
+    # change falls at or before it, else the second after.
+    candidate = hi.replace(microsecond=0)
+    if candidate <= lo or state(candidate) == reference:
+        candidate += timedelta(seconds=1)
     # Floating point edge rounding can land before exact transition.
     for _ in range(3):
         if state(candidate) != reference:

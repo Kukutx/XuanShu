@@ -3125,15 +3125,18 @@ const ANIMAL_YEARS = ['鼠年', '牛年', '虎年', '兔年', '龙年', '蛇年'
 function texts(parent, ...parts) {parts.forEach(part => parent.append(String(part))); return parent;}
 // A span of minutes as days, hours and minutes (minutes and seconds under an hour), numbers apart from their units.
 function durationText(parent, minutes) {
-  const total = Math.round(Math.abs(minutes) * 60), days = Math.floor(total / 86400), hours = Math.floor(total % 86400 / 3600);
+  const seconds = Math.round(Math.abs(minutes) * 60), total = seconds >= 3600 ? Math.round(seconds / 60) * 60 : seconds;
+  const days = Math.floor(total / 86400), hours = Math.floor(total % 86400 / 3600);
   const mins = Math.floor(total % 3600 / 60), secs = total % 60, parts = [];
   if (days) parts.push([days, ' 天']);
   if (hours) parts.push([hours, ' 小时']);
   if (mins || (!days && !hours && !secs)) parts.push([mins, ' 分']);
   if (secs && !days && !hours) parts.push([secs, ' 秒']);
-  parts.forEach(([n, unit], i) => texts(parent, (i ? ' ' : '') + n, unit));
+  parts.forEach(([n, unit], i) => {if (i) parent.append(' '); countText(parent, n, unit);});
   return parent;
 }
+// A count and its unit. One day and one hour are a single text, so English reads "1 day", not "1 days".
+function countText(parent, n, unit) {return n === 1 && (unit === ' 天' || unit === ' 小时') ? texts(parent, '1' + unit) : texts(parent, n, unit);}
 function renderToday() {
   title(result, '今日历法', todayPick ? '所选时刻 · 历法事实 · 不打吉凶分' : '本机时间 · 历法事实 · 不打吉凶分');
   todayPicker(result);
@@ -3800,10 +3803,10 @@ function renderQualityAudit() {
   gap('quality-hour', '距时辰交界', snap.minutes_to_nearest_hour_boundary, '有效时刻', ' ' + reading.slice(11, 16), ' · ', '最近的交界', ' ' + String(nearest / 60 % 24).padStart(2, '0') + ':00');
   gap('quality-day', '距换日交界', snap.minutes_to_day_boundary, used.input.late_zi_day_rollover ? '按 23:00 换日' : '按 00:00 换日');
   texts(append(result, 'p', 'field-help qa-window'), '敏感窗口', ' ±' + near, ' 分钟');
-  if(snap.china_reference_lunar_date && snap.china_reference_gregorian_date !== snap.local_effective_gregorian_date){
+  if(snap.china_reference_lunar_date && snap.china_reference_gregorian_date !== snap.lunar_lookup_gregorian_date){
     const chinese=snap.china_reference_lunar_date;
     append(result,'div','feature-note',
-      '时区日界对照：出生地有效日期 '+snap.local_effective_gregorian_date+
+      '时区日界对照：出生地有效日期 '+snap.lunar_lookup_gregorian_date+
       '；同一瞬间北京日期 '+snap.china_reference_gregorian_date+
       '（农历 '+chinese.year+'年'+chinese.month+'月'+chinese.day+'日）。这不自动改变原命盘。');
   }
@@ -4008,10 +4011,20 @@ function renderBirthBoundaries(){
   const d=boundaryResult;
   meta(result,[`检测区间 ±${d.uncertainty_minutes}分钟`,`${d.boundaries.length}个边界`,`${d.segments.length}个区间`]);
   // The interval as a line: a band per segment, a numbered tick per switch and a pin at the recorded birth time.
-  const t0 = Date.parse(d.start_utc), span = Date.parse(d.end_utc) - t0, birthAt = Date.parse(d.original_birth_local);
+  // The window is symmetric around the birth instant. (Old zone offsets such as +01:19:32 do not parse in JS, so the
+  // local birth string is not read as a time.)
+  const t0 = Date.parse(d.start_utc), span = Date.parse(d.end_utc) - t0, birthAt = t0 + span / 2;
   const at = iso => (typeof iso === 'number' ? iso - t0 : Date.parse(iso) - t0) / span * 100;
   const birthDay = d.original_birth_local.slice(0, 10);
-  const clock = iso => {const t = iso.slice(11, 19); return (iso.slice(0, 10) !== birthDay ? iso.slice(5, 10).replace('-', '/') + ' ' : '') + (t.endsWith(':00') ? t.slice(0, 5) : t);};
+  // When the zone's offset changes inside the window (daylight saving), local times carry their offset.
+  const offsets = new Set(d.segments.flatMap(s => [s.start_local_inclusive.slice(19), s.end_local_exclusive.slice(19)]));
+  const clock = iso => {
+    const t = iso.slice(11, 19);
+    return (iso.slice(0, 10) !== birthDay ? iso.slice(5, 10).replace('-', '/') + ' ' : '') + (t.endsWith(':00') ? t.slice(0, 5) : t) + (offsets.size > 1 ? ' (' + iso.slice(19) + ')' : '');
+  };
+  const offsetMinutes = o => {const m = /^([+-])(\d\d):(\d\d)(?::(\d\d))?$/.exec(o); return m ? (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +m[3] + +(m[4] || 0) / 60) : 0;};
+  // The same instant on the clock before an offset change, e.g. 03:00 (+02:00) when the clock goes back to 02:00 (+01:00).
+  const clockIn = (utc, offset) => clock(new Date(Date.parse(utc) + offsetMinutes(offset) * 60000).toISOString().slice(0, 19) + offset);
   const birthSegment = d.segments.find(s => Date.parse(s.start_utc_inclusive) <= birthAt && birthAt < Date.parse(s.end_utc_exclusive));
   const line = append(result, 'div', 'bt-line'); line.id = 'boundary-timeline';
   const track = append(line, 'div', 'bt-track'); track.setAttribute('aria-hidden', 'true');
@@ -4022,11 +4035,18 @@ function renderBirthBoundaries(){
     band.style.left = left + '%'; band.style.width = width + '%';
     append(band, 'span', 'bt-seg-num', String(s.index));
   });
-  d.boundaries.forEach((b, i) => {const tick = append(track, 'span', 'bt-tick'); tick.style.left = at(b.utc) + '%'; append(tick, 'span', 'bt-tick-num', String(i + 1));});
+  // A badge that would overlap the one before it (an 18px badge on the track's width) moves up a row.
+  const badgeGap = 2000 / Math.max(track.getBoundingClientRect().width, 200), rows = [];
+  d.boundaries.forEach((b, i) => {
+    const left = at(b.utc), tick = append(track, 'span', 'bt-tick'); tick.style.left = left + '%';
+    let row = rows.findIndex(last => left - last >= badgeGap); if (row < 0) row = rows.length; rows[row] = left;
+    append(tick, 'span', 'bt-tick-num' + (row ? ' is-up' + Math.min(row, 2) : ''), String(i + 1));
+    if (row) line.classList.add('has-up' + Math.min(row, 2));
+  });
   const pin = append(track, 'span', 'bt-pin'); pin.style.left = at(birthAt) + '%';
   const axis = append(line, 'div', 'bt-axis');
   append(axis, 'span', null, clock(d.segments[0].start_local_inclusive));
-  texts(append(axis, 'span', 'bt-axis-birth'), '出生时间', ' ' + d.original_birth_local.slice(11, 16));
+  texts(append(axis, 'span', 'bt-axis-birth'), '出生时间', ' ' + d.original_birth_local.slice(11, 16)).style.left = at(birthAt) + '%';
   append(axis, 'span', null, clock(d.segments[d.segments.length - 1].end_local_exclusive));
   // What changes at each switch, read from the segments on either side of it.
   const changes = (a, b) => {
@@ -4044,12 +4064,13 @@ function renderBirthBoundaries(){
     append(item, 'span', 'bt-tick-num', String(i + 1));
     const body = append(item, 'div');
     const head = append(body, 'p', 'bt-switch-head');
-    append(head, 'b', null, clock(b.local));
+    const after = d.segments.findIndex(s => s.start_utc_inclusive === b.utc);
+    const before = after > 0 ? d.segments[after - 1].start_local_inclusive.slice(19) : '';
+    append(head, 'b', null, (before && before !== b.local.slice(19) ? clockIn(b.utc, before) + ' → ' : '') + clock(b.local));
     b.types.forEach(type => {
       const chip = append(head, 'span', 'bt-type');
       if (type.startsWith('节令界:')) texts(chip, '节令界', ' · ', type.slice(4)); else chip.textContent = type;
     });
-    const after = d.segments.findIndex(s => s.start_utc_inclusive === b.utc);
     const diff = after > 0 ? changes(d.segments[after - 1], d.segments[after]) : [];
     const list = append(body, 'p', 'bt-changes');
     if (!diff.length) append(list, 'span', 'muted', '四柱与紫微字段不变');
@@ -4072,15 +4093,18 @@ function renderBirthBoundaries(){
     const pillars = append(card, 'div', 'bt-pillars');
     PILLAR_KEYS.forEach(k => {
       const gz = s.bazi_pillars[k];
-      const cell = append(pillars, 'span', 'bt-pillar' + (birthSegment && s !== birthSegment && gz !== birthSegment.bazi_pillars[k] ? ' is-changed' : ''));
+      const moved = birthSegment && s !== birthSegment && gz !== birthSegment.bazi_pillars[k];
+      const cell = append(pillars, 'span', 'bt-pillar' + (moved ? ' is-changed' : ''));
       append(cell, 'small', null, nameMap[k]);
       const text = append(cell, 'b', 'bt-gz'); text.dataset.noI18n = '';
       append(text, 'span', stemClass(gz[0]), gz[0]); append(text, 'span', branchClass(gz[1]), gz[1]);
+      if (moved) append(cell, 'span', 'visually-hidden', '与出生所在区间不同');
     });
     const ziwei = append(card, 'p', 'bt-ziwei');
-    texts(append(ziwei, 'span', 'bt-field' + changed('ziwei_ming_palace')), '命宫', ' ', s.ziwei_ming_palace);
-    texts(append(ziwei, 'span', 'bt-field' + changed('ziwei_shen_palace')), '身宫', ' ', s.ziwei_shen_palace);
-    append(ziwei, 'span', 'bt-field' + changed('ziwei_bureau'), s.ziwei_bureau);
+    const field = (key, ...parts) => {const span = texts(append(ziwei, 'span', 'bt-field' + changed(key)), ...parts); if (changed(key)) append(span, 'span', 'visually-hidden', '与出生所在区间不同');};
+    field('ziwei_ming_palace', '命宫', ' ', s.ziwei_ming_palace);
+    field('ziwei_shen_palace', '身宫', ' ', s.ziwei_shen_palace);
+    field('ziwei_bureau', s.ziwei_bureau);
     const lunar = append(card, 'p', 'bt-lunar');
     texts(lunar, '农历', ' '); append(lunar, 'span', null, lunarDateText(s.ziwei_lunar_date)).dataset.noI18n = '';
     texts(append(card, 'small', 'bt-utc'), 'UTC 区间起点', ' ' + s.start_utc_inclusive.slice(0, 19).replace('T', ' '));

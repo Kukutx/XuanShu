@@ -158,6 +158,16 @@ def test_boundary_map_finds_apparent_solar_hour_transition():
     assert any('时辰界' in b['types'] for b in out['boundaries'])
 
 
+@pytest.mark.parametrize('longitude,first',[(87.6,'21:09:36'),(87.61,'21:09:34')])
+def test_boundary_map_solar_hour_change_lands_on_first_changed_second(longitude,first):
+    # Mean solar time runs 2 h 9 m 36 s behind Beijing time at 87.6°E, so 戌 begins at 21:09:36 exactly; at 87.61°E it begins at
+    # 21:09:33.6, and the first whole second already in 戌 is 21:09:34. Both are hour changes, not unexplained rule changes.
+    out=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2000-02-04T22:30',time_mode='mean_solar',longitude=longitude),uncertainty_minutes=120))
+    hours=[b['local'][11:19] for b in out['boundaries'] if '时辰界' in b['types']]
+    assert hours[0]==first and len(hours)==2
+    assert all('时制规则界' not in b['types'] for b in out['boundaries'])
+
+
 @pytest.mark.parametrize('radius',[0,121,-5])
 def test_boundary_map_rejects_bad_radius(radius):
     with pytest.raises(ValidationError): BirthBoundaryRequest(birth=birth(),uncertainty_minutes=radius)
