@@ -38,6 +38,9 @@ SIGNALS = {
     'career': ('事业', '工作', '职业', '职场', '财运', '转职', '跳槽', '升职', '流年', '大运', '发展方向', '年度'),
     'natal': ('本命', '八字', '命宫', '紫微', '命盘', '四柱', '藏干', '星曜'),
 }
+INTENT_LABELS = {'natal': '本命分析', 'career': '事业/年度', 'relationship': '双人关系', 'timing': '多时刻查询',
+                 'decision': '方案比较', 'rules': '规则分歧'}
+STATUS_LABELS = {'completed': '已完成', 'partial': '部分完成，还缺输入', 'needs_input': '需要补充输入'}
 FOLLOWUP_CUES = ('那', '那么', '再看', '然后', '继续', '也', '呢', '刚才', '之前', '接着')
 YEAR_PATTERN = re.compile(r'(?<!\d)(19\d{2}|20\d{2})(?=年|\b)')
 
@@ -309,7 +312,7 @@ def execute_consultation(req: ConsultationRequest) -> dict:
                  ['可指定某项规则或宫位继续追问；续问时请重新发送需要的出生资料。'])
     lines = ['# XuanShu · 问题驱动的可核验咨询工作流', '',
              '问题：' + _safe_markdown(req.question),
-             '咨询场景：' + intent + '；状态：' + status, '', plain_summary, '',
+             f'咨询场景：{INTENT_LABELS[intent]}（{intent}）', f'状态：{STATUS_LABELS[status]}（{status}）', '', plain_summary, '',
              '## 实际执行步骤', '']
     lines.extend(f"- {x['step']}. `{x['tool']}`：{x['purpose']}" for x in trace)
     lines.extend(['', '## 可核对观察', ''])

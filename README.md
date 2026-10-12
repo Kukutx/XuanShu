@@ -128,7 +128,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\windows_acceptance.ps1
 xuanshu consult --input examples/consultation-demo.json
 ```
 
-REST：`POST /api/consultation`；MCP：`tools/call` 指定 `consultation_execute`；CLI：`xuanshu consult --input <file|->`；Web 工作台首个「AI 咨询工作流」页面可直接输入问题。机器生成的 `continuation` 只含意图、焦点宫、农历年与不超过 12 的轮次数；为了隐私，下轮**仍需重新提交出生资料**。`real_world_facts` 中用户自述只在本次执行中使用，标记为未经独立证实；他人资料的处理必须显式确认 `partner_authorized=true`。
+REST：`POST /api/consultation`；MCP：`tools/call` 指定 `consultation_execute`；CLI：`xuanshu consult --input <file|->`；Web 工作台首个「AI 咨询工作流」页面可直接输入问题；结果页先写状态、识别出的场景及依据（如「问题里提到「职业」」）、内部检查和是否需复核，再把执行轨迹画成编号步骤：每一步写工具中文名与工具名、目的、算出的要点（如「2027 农历年 丁未 · 太阴化禄……」）、读取的字段，以及由它得出的观察（类型、适用边界、来源字段、规则编号和方法出处）；缺少的输入是一张张卡片，各带一键补齐的按钮；页尾写明怎样续问会沿用本次场景，并可一键续问下一年或换个话题。机器生成的 `continuation` 只含意图、焦点宫、农历年与不超过 12 的轮次数；为了隐私，下轮**仍需重新提交出生资料**。`real_world_facts` 中用户自述只在本次执行中使用，标记为未经独立证实；他人资料的处理必须显式确认 `partner_authorized=true`。
 
 参考：[真实执行与六场景验收](docs/research/CONSULTATION_EXECUTION_ACCEPTANCE.md) · [咨询规则资源](docs/rules/consultation.md) · [可复现输入](examples/consultation-demo.json)。
 

@@ -20,6 +20,8 @@ from .features import AnnualRequest, annual_transformations
 from .quality import QualityAuditRequest, calculation_quality_audit
 from .reference import PALACE_TOPICS
 
+TIME_MODE_LABELS = {'clock': '钟表时间', 'mean_solar': '平太阳时', 'apparent_solar': '真太阳时'}
+
 # External links describe public conventions or developer interfaces, rather
 # than claiming an independent correctness certificate for this implementation.
 RULE_SOURCES = {
@@ -127,7 +129,7 @@ def deep_evidence_review(request: DeepReviewRequest) -> dict:
 
     four_pillars = ' / '.join(bazi['pillars'][k]['text'] for k in ('year','month','day','hour'))
     add('bazi.pillars', '八字', '四柱与时基',
-        f'{four_pillars}；计算时制：{bazi["time_basis"]["mode"]}。',
+        f'{four_pillars}；计算时制：{TIME_MODE_LABELS.get(bazi["time_basis"]["mode"], bazi["time_basis"]["mode"])}。',
         [{'path': 'bazi.pillars', 'value': {k:p['text'] for k,p in bazi['pillars'].items()}},
          {'path': 'bazi.time_basis', 'value': bazi['time_basis']['mode']}],
         '年界按立春、月界按节令，日界和太阳时按输入选项；不是现实性格推断。')

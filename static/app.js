@@ -84,6 +84,7 @@ let active = 'chat';
 let current = null;
 let consultResult = null;
 let consultCursor = null;
+let consultRunKey = null;  // the birth input the consultation shown ran on, to offer its pages only for the chart shown
 let consultAdvancedOpen = false;
 let consultDraft = {question:'',intent:'auto', useBirth:false, usePartner:false, partnerDate:'', lunarYear:'', candidateDates:'', facts:'', includeReport:false};
 let qimenResult = null;
@@ -6231,25 +6232,202 @@ function renderConsultation() {
     if(full.checked&&birthCheck.checked)payload.include_full_report=true;
     if(consultCursor)payload.continuation=consultCursor;
     launch.disabled=true; feedback.textContent='正在按问题调用计算工具…';
-    try{consultResult=await postJSON('/api/consultation',payload);consultCursor=consultResult.continuation;render();}
+    try{consultResult=await postJSON('/api/consultation',payload);consultCursor=consultResult.continuation;consultRunKey=payload.birth?JSON.stringify(payload.birth):null;render();}
     catch(e){feedback.textContent='执行失败：'+e.message;}
     finally{launch.disabled=false;}
   });
   if(!consultResult)return;
-  meta(result,['场景 '+consultResult.intent,'状态 '+consultResult.status,consultResult.tool_trace.length+' 步实算','服务器不保存本次资料']);
-  append(result,'h4','subheading','执行轨迹');
-  consultResult.tool_trace.forEach(x=>{const row=append(result,'p','feature-note');append(row,'strong',null,x.step+'. '+x.tool+'：');append(row,'span',null,x.purpose);});
-  if(consultResult.missing_inputs.length){append(result,'h4','subheading','需要补充');consultResult.missing_inputs.forEach(x=>append(result,'p','disclaimer',x.field+' · '+x.reason));}
-  append(result,'h4','subheading','可核验观察');
-  consultResult.observations.forEach(x=>{const row=append(result,'section','report-section');append(row,'p','feature-note',x.text);append(row,'p','small-text','来源：'+x.tool+' · '+x.path);if(x.limit)append(row,'p','disclaimer',x.limit);});
-  const copyBtn=append(result,'button','tiny-button','复制咨询报告 Markdown');copyBtn.type='button';copyBtn.id='consult-copy-markdown';
-  copyBtn.addEventListener('click',async()=>{
-    try {await navigator.clipboard.writeText(consultResult.markdown);copyBtn.textContent='已复制报告';}
-    catch (_) {copyBtn.textContent='复制失败，请使用旁边的下载功能';}
+  renderConsultationResult(consultResult);
+}
+// The consultation as it ran: what it was taken to be about and why, each tool it called with what came out and the
+// observations drawn from it, what is still missing with a way to supply it, and how a follow-up carries on.
+const CW_INTENTS = {natal: '本命分析', career: '事业/年度', relationship: '双人关系', timing: '多时刻查询', decision: '方案比较', rules: '规则分歧'};
+const CW_STATUS = {completed: ['已完成', 'is-done'], partial: ['部分完成，还缺输入', 'is-partial'], needs_input: ['需要补充输入', 'is-missing']};
+// The workbench page of each tool; a page is offered only for tools whose page shows the chart the consultation used.
+const CW_TOOLS = {chart_quality_audit: ['排盘质量审计', 'quality'], deep_evidence_review: ['深度证据', 'deep'],
+  annual_transformations: ['年干四化', 'annual'], bazi_dayun: ['大运干支', 'dayun'], birth_boundary_map: ['生时边界地图', 'boundaries'],
+  structured_report: ['综合报告', 'report'], rule_comparison: ['规则差异对照'], pair_comparison: ['双人对照'], decision_matrix: ['方案决策']};
+const CW_ROUTES = {'intent selected explicitly': '手动选择了场景', 'matrix supplied': '提供了方案评分', 'candidate_times supplied': '填写了候选时刻',
+  'no domain keywords; inherited client-provided topic cursor': '没有场景关键词，沿用上一问的场景',
+  'no domain keywords; default to natal structural review': '没有场景关键词，默认看本命结构'};
+const CW_TYPES = {'user-provided': '你提供的', calculated: '计算结果', 'traditional-rule': '传统规则', 'user-assumption': '你的评分'};
+const CW_FACTS = {constraint: '限制条件', goal: '目标', experience: '经历'};
+function cwToolName(tool) {
+  const m = /^qimen_hour_chart_(\d+)$/.exec(tool);
+  return m ? ['奇门遁甲', ' · ', '候选', ' ' + m[1]] : [(CW_TOOLS[tool] || [tool])[0]];
+}
+// A star and its transformation, each translated whole; English puts a space between them (太阴化禄 → Tai Yin Hua Lu).
+function cwPair(star, type) {const pair = elt('span', 'cw-pair'); append(pair, 'span', null, star); append(pair, 'span', null, type); return pair;}
+// One line of what each tool came back with, read from its own result.
+function cwToolFact(tool, r) {
+  if (!r) return null;
+  if (tool === 'chart_quality_audit') {
+    const n = r.flags.filter(f => f.severity === 'review').length;
+    return n ? [n, ' 项需核对'] : ['没有需要核对的边界', ' · ', r.flags.length, ' 项提示'];
+  }
+  if (tool === 'deep_evidence_review') {
+    const passed = r.checks.filter(c => c.passed).length;
+    return [r.findings.length, ' 条观察', ' · ', '内部检查', ' ' + passed + '/' + r.checks.length, ' ', '通过'];
+  }
+  if (tool === 'annual_transformations') return [r.lunar_year, ' 农历年', ' ' + r.year_pillar, ' · ', ...r.transformations.flatMap((t, i) => [i ? ' ' : '', cwPair(t.star, t.type)])];
+  if (tool === 'bazi_dayun') {
+    const p = r.start_age_traditional_parts;
+    return [r.direction === 'forward' ? '顺排' : '逆排', ' · ', '起运约', ' ', p.years, ' 岁', ' ', p.months, ' 个月', ' · ', r.periods.length, ' 步大运'];
+  }
+  if (tool === 'birth_boundary_map') return ['误差', ' ±' + r.uncertainty_minutes, ' 分钟', ' · ', r.boundaries.length, ' 个规则切换点'];
+  if (tool === 'structured_report') return [r.sections.length, ' 节'];
+  if (tool === 'decision_matrix' && r.ranked_options.length) return ['排在第一', ' ', r.ranked_options[0].name];
+  if (/^qimen_hour_chart_/.test(tool)) return [r.solar_term, ' · ', r.dun, ' ' + r.bureau, ' 局', ' · ', r.yuan, ' · ', '值符', ' ', r.zhi_fu_star, ' · ', '值使', ' ', r.zhi_shi_door];
+  return null;
+}
+function cwObservation(list, o) {
+  const item = append(list, 'li', 'cw-ob');
+  append(item, 'span', 'cw-type cw-type-' + o.type, CW_TYPES[o.type] || o.type);
+  append(item, 'p', 'cw-ob-text', o.text);
+  if (o.limit) texts(append(item, 'p', 'cw-ob-limit'), '适用边界：', o.limit);
+  const src = append(item, 'p', 'cw-ob-src');
+  append(src, 'span', null, '来源字段');
+  append(src, 'code', null, o.path);
+  (o.rule_ids || []).forEach(id => append(src, 'code', 'cw-rule', id));
+  if ((o.evidence_paths || []).length) {
+    const ev = append(src, 'span', 'cw-ev');
+    texts(ev, ' · ', '证据', ' ' + o.evidence_paths.length, ' 项');
+    ev.title = o.evidence_paths.map((path, i) => path + '  sha256 ' + ((o.evidence_hashes || [])[i] || '').slice(0, 16)).join('\n');
+  }
+  (o.method_references || []).forEach(href => {
+    const a = append(src, 'a', 'cw-ref', '方法出处 ↗'); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer';
   });
-  const exportBtn=append(result,'button','tiny-button','导出咨询报告 Markdown ↓');exportBtn.type='button';
-  exportBtn.addEventListener('click',()=>{const blob=new Blob([consultResult.markdown],{type:'text/markdown;charset=utf-8'});const url=URL.createObjectURL(blob);const a=elt('a');a.href=url;a.download='xuanshu-consultation.md';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);});
-  consultResult.limitations.forEach(x=>note(result,x));
+}
+function renderConsultationResult(c) {
+  const v = c.verification || {}, [statusText, statusClass] = CW_STATUS[c.status] || [c.status, ''];
+  const head = append(result, 'section', 'cw-head ' + statusClass); head.id = 'consult-head';
+  const line = append(head, 'div', 'cw-status');
+  append(line, 'b', 'cw-badge', statusText);
+  append(line, 'span', 'cw-intent', CW_INTENTS[c.intent] || c.intent);
+  if (c.continuation && c.continuation.turns > 1) texts(append(line, 'span', 'cw-turn'), '对话轮次', ' ' + c.continuation.turns);
+  append(head, 'p', 'cw-summary', c.summary);
+  const why = append(head, 'p', 'cw-route');
+  append(why, 'span', 'muted', '场景依据');
+  c.routing_evidence.forEach(text => {
+    const m = /^question mentions: (.+)$/.exec(text), part = append(why, 'span', 'cw-route-item');
+    if (m) {part.append('问题里提到'); const word = append(part, 'q', null, m[1]); word.dataset.noI18n = '';}
+    else part.textContent = CW_ROUTES[text] || text;
+  });
+  const badges = append(head, 'div', 'cw-badges');
+  const checks = v.internal_checks || [];
+  if (checks.length) {
+    const passed = checks.filter(x => x.passed).length;
+    const b = texts(append(badges, 'span', 'cw-chip' + (passed < checks.length ? ' is-warn' : '')), '内部检查', ' ' + passed + '/' + checks.length, ' ', '通过');
+    b.title = checks.map(x => (x.passed ? '✓ ' : '✗ ') + x.meaning).join('\n');
+  }
+  append(badges, 'span', 'cw-chip' + (v.needs_human_review ? ' is-warn' : ''), v.needs_human_review ? '需要人工复核' : '没有标记需复核');
+  append(badges, 'span', 'cw-chip', '未经独立认证');
+  append(badges, 'span', 'cw-chip', '服务器不保存本次资料');
+  const tools = append(head, 'div', 'cw-tools');
+  const copyBtn = append(tools, 'button', 'tiny-button', '复制咨询报告 Markdown'); copyBtn.type = 'button'; copyBtn.id = 'consult-copy-markdown';
+  copyBtn.addEventListener('click', async () => {
+    try {await navigator.clipboard.writeText(c.markdown); copyBtn.textContent = '已复制报告';}
+    catch (_) {copyBtn.textContent = '复制失败，请使用旁边的下载功能';}
+  });
+  const exportBtn = append(tools, 'button', 'tiny-button', '导出咨询报告 Markdown ↓'); exportBtn.type = 'button'; exportBtn.id = 'consult-export-markdown';
+  exportBtn.addEventListener('click', () => {const blob = new Blob([c.markdown], {type: 'text/markdown;charset=utf-8'}); const url = URL.createObjectURL(blob); const a = elt('a'); a.href = url; a.download = 'xuanshu-consultation.md'; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);});
+
+  if (c.missing_inputs.length) {
+    append(result, 'h4', 'subheading', '需要补充');
+    const missing = append(result, 'div', 'cw-missing'); missing.id = 'consult-missing';
+    const openAdvanced = () => {consultAdvancedOpen = true; const d = $('#consult-advanced'); if (d) d.open = true;};
+    const page = name => () => activateTab(tabs.find(t => t.dataset.tab === name));
+    const fixes = {
+      birth: ['勾选使用出生资料', () => {const box = $('#consult-use-birth'); box.checked = true; consultDraft.useBirth = true; box.focus();}],
+      lunar_year: ['填写农历年', () => $('#consult-year').focus()],
+      candidate_times: ['填写候选时刻', () => {openAdvanced(); $('#consult-candidates').focus();}],
+      partner: ['填写第二人出生时间', () => {openAdvanced(); const box = $('#consult-use-partner'); box.checked = true; consultDraft.usePartner = true; $('#consult-partner-date').focus();}],
+      dayun_direction_override: ['在出生资料里选性别', () => $('#gender').focus()],
+      matrix: ['去方案决策页填写', page('decision')],
+      alternative_birth: ['去规则差异对照页', page('rule-matrix')],
+    };
+    const FIELDS = {birth: '出生资料', partner: '第二人出生资料', lunar_year: '农历年', candidate_times: '候选时刻', matrix: '方案与评分', alternative_birth: '第二套出生时基', dayun_direction_override: '大运顺逆'};
+    c.missing_inputs.forEach(x => {
+      const card = append(missing, 'div', 'cw-need'); card.id = 'consult-need-' + x.field;
+      const top = append(card, 'div', 'cw-need-head');
+      append(top, 'b', null, FIELDS[x.field] || x.field);
+      append(top, 'code', null, x.field);
+      append(card, 'p', null, x.reason);
+      const fix = fixes[x.field];
+      if (fix) {const go = append(card, 'button', 'tiny-button', fix[0]); go.type = 'button'; go.addEventListener('click', fix[1]);}
+    });
+  }
+
+  const given = c.observations.filter(o => o.tool === 'user_input');
+  if (given.length) {
+    append(result, 'h4', 'subheading', '你提供的现实条件');
+    const box = append(result, 'section', 'cw-given'); box.id = 'consult-given';
+    const list = append(box, 'ul', 'cw-given-list');
+    given.forEach(o => {const li = append(list, 'li'); append(li, 'span', 'cw-type cw-type-user-provided', CW_FACTS[o.category] || o.category); append(li, 'span', null, o.text);});
+    append(box, 'p', 'field-help', given[0].limit);
+  }
+
+  if (c.tool_trace.length) {
+    append(result, 'h4', 'subheading', '执行轨迹与可核验观察');
+    const steps = append(result, 'ol', 'cw-steps'); steps.id = 'consult-steps';
+    const samePage = consultRunKey !== null && current && consultRunKey === JSON.stringify(currentInput);
+    c.tool_trace.forEach(step => {
+      const li = append(steps, 'li', 'cw-step'); li.id = 'consult-step-' + step.step;
+      append(li, 'span', 'cw-step-no', String(step.step));
+      const body = append(li, 'div', 'cw-step-body');
+      const top = append(body, 'div', 'cw-step-head');
+      texts(append(top, 'b'), ...cwToolName(step.tool));
+      append(top, 'code', null, step.tool);
+      const tab = (CW_TOOLS[step.tool] || [])[1];
+      if (tab && samePage) {
+        const open = append(top, 'button', 'tiny-button', '打开这一页'); open.type = 'button';
+        open.title = (CW_TOOLS[step.tool] || [])[0];
+        open.addEventListener('click', () => {
+          const year = c.tool_results.annual_transformations && c.tool_results.annual_transformations.lunar_year;
+          // The year page opens on the year the consultation read.
+          if (tab === 'annual' && year && (!annualResult || annualResult.lunar_year !== year)) {annualDraft = year; annualResult = null; autoOpened.delete('annual');}
+          activateTab(tabs.find(t => t.dataset.tab === tab));
+        });
+      }
+      append(body, 'p', 'cw-step-purpose', step.purpose);
+      const fact = cwToolFact(step.tool, c.tool_results[step.tool]);
+      if (fact) {const line = append(body, 'p', 'cw-step-fact'); fact.forEach(x => line.append(x instanceof Node ? x : String(x)));}
+      if ((step.field_paths || []).length) {
+        const fields = append(body, 'p', 'cw-fields');
+        append(fields, 'span', null, '读取字段');
+        step.field_paths.forEach(path => append(fields, 'code', null, path));
+      }
+      const obs = c.observations.filter(o => o.tool === step.tool);
+      if (obs.length) {const list = append(body, 'ul', 'cw-obs'); obs.forEach(o => cwObservation(list, o));}
+    });
+    const traced = new Set(c.tool_trace.map(x => x.tool));
+    const rest = c.observations.filter(o => o.tool !== 'user_input' && !traced.has(o.tool));
+    if (rest.length) {const list = append(result, 'ul', 'cw-obs'); rest.forEach(o => cwObservation(list, o));}
+  }
+
+  // A question opening with 那, 然后, 再看 and the like carries on with this topic; the birth input is sent again each time.
+  const cur = c.continuation;
+  if (cur) {
+    const next = append(result, 'section', 'cw-next'); next.id = 'consult-next';
+    append(next, 'h4', 'subheading', '继续追问');
+    const p = texts(append(next, 'p'), '以「那」「然后」「再看」等开头续问时，沿用本次的场景', '「', CW_INTENTS[cur.intent] || cur.intent, '」');
+    if (cur.lunar_year) texts(p, '和农历年', ' ' + cur.lunar_year);
+    p.append('。');
+    append(next, 'p', 'field-help', '出生资料每次都要重新勾选，服务器不保存；关键词明确时按新问题重新识别场景。');
+    const row = append(next, 'div', 'cw-next-row');
+    const ask = text => {const q = $('#consult-question'); q.value = text; consultDraft.question = text; q.focus();};
+    if (cur.intent === 'career' && cur.lunar_year && cur.lunar_year < 2099) {
+      // The question itself stays in Chinese: the follow-up cue 那 is what carries the topic on.
+      const text = `那${cur.lunar_year + 1}年呢？`;
+      const b = append(row, 'button', 'tiny-button', text); b.type = 'button'; b.id = 'consult-next-year'; b.dataset.noI18n = '';
+      b.title = '用同一场景续问下一年';
+      b.addEventListener('click', () => ask(text));
+    }
+    const fresh = append(row, 'button', 'tiny-button', '换个话题（不沿用本次场景）'); fresh.type = 'button'; fresh.id = 'consult-fresh';
+    fresh.disabled = !consultCursor;
+    fresh.addEventListener('click', () => {consultCursor = null; fresh.disabled = true; fresh.textContent = '下一问按新话题识别'; $('#consult-question').focus();});
+  }
+  c.limitations.forEach(x => note(result, x));
 }
 
 function renderJson() {
@@ -6447,7 +6625,7 @@ form.addEventListener('submit', async event => {
       postJSON('/api/combined', data), postJSON('/api/analyze', data),
     ]);
     current = {...chart, reading}; currentInput = data;
-    consultResult=null;consultCursor=null;
+    consultResult=null;consultCursor=null;consultRunKey=null;
     // A pasted-chart check belongs to the chart it ran on, unless this cast is the one its rule or hour asked for.
     if (!importRecheck) {importResult = null; importBirth = null; importHourPick = null; importFocusAfter = false;}
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; timeRun = null; timeLongitude = ''; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;

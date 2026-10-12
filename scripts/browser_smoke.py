@@ -210,17 +210,30 @@ def main() -> None:
             page.locator('#consult-question').fill('2027年职业选择')
             page.locator('#consult-run').click()
             page.get_by_text('需要补充', exact=False).first.wait_for(timeout=30000)
-            assert 'birth' in page.locator('#result').inner_text()
-            page.locator('#consult-use-birth').check()
+            # What is missing comes as a card with a way to supply it, and nothing ran.
+            assert page.locator('#consult-head .cw-badge').inner_text() == '需要补充输入' and page.locator('#consult-steps').count() == 0
+            assert 'birth' in page.locator('#consult-need-birth').inner_text()
+            page.locator('#consult-need-birth button').click()
+            assert page.locator('#consult-use-birth').is_checked()
             page.locator('#consult-real-world-facts').fill('需要稳定的收入和可控的工作时间')
             page.locator('#consult-run').click()
             page.get_by_text('annual_transformations', exact=False).first.wait_for(timeout=30000)
+            # The scenario and why, then each tool in order with what it came back with and the observations drawn from it.
+            assert page.locator('#consult-head .cw-badge').inner_text() == '已完成' and page.locator('#consult-head .cw-intent').inner_text() == '事业/年度'
+            assert '职业' in page.locator('#consult-head .cw-route').inner_text()
+            assert page.locator('#consult-steps > li').count() == 4 and page.locator('#consult-step-1 code').first.inner_text() == 'chart_quality_audit'
+            assert page.locator('#consult-step-3 .cw-step-fact').inner_text().startswith('2027 农历年')
+            assert page.locator('#consult-step-2 .cw-ob').count() >= 3 and page.locator('#consult-step-2 .cw-ref').count() >= 1
             assert '可核验观察' in page.locator('#result').inner_text()
-            assert '需要稳定的收入' in page.locator('#result').inner_text()
+            assert '需要稳定的收入' in page.locator('#consult-given').inner_text()
             page.screenshot(path=str(screenshot_dir / '26-consultation-desktop.png'), full_page=True)
-            page.locator('#consult-question').fill('那2028年呢？')
+            # The follow-up keeps the scenario: the next-year question goes into the box, still in Chinese.
+            assert page.locator('#consult-next-year').inner_text() == '那2028年呢？'
+            page.locator('#consult-next-year').click()
+            assert page.locator('#consult-question').input_value() == '那2028年呢？'
             page.locator('#consult-run').click()
             page.get_by_text('2028 农历年', exact=False).first.wait_for(timeout=30000)
+            assert page.locator('#consult-head .cw-turn').inner_text() == '对话轮次 3'  # the run that asked for the birth details counts too
             page.locator('[data-tab="bazi"]').click()
             page.locator('#run-btn').click()
             page.locator('.pillar-stem').first.wait_for(timeout=30000)

@@ -90,6 +90,10 @@ const UI_EXTRA = {
 " months",
 " か月"
 ],
+" 个规则切换点": [
+" rule switch points",
+" 個の規則切替点"
+],
 " 个边界、": [
 " boundaries, ",
 " 個の境界、"
@@ -258,6 +262,10 @@ const UI_EXTRA = {
 " profiles to replace the profiles in this browser. Are you sure?",
 " 件のプロフィールでこのブラウザのプロフィールを置き換えます。よろしいですか？"
 ],
+" 条观察": [
+" observations",
+" 件の観察"
+],
 " 查农历则为 ": [
 " when looked up in the lunar calendar, it is ",
 " 旧暦で調べると "
@@ -273,6 +281,10 @@ const UI_EXTRA = {
 " 步可复现计算，": [
 " reproducible calculation steps, ",
 " ステップの再現可能な計算、"
+],
+" 步大运": [
+" luck pillars",
+" 歩の大運"
 ],
 " 步实算": [
 " computed steps",
@@ -302,6 +314,10 @@ const UI_EXTRA = {
 " traceable observations",
 " 組の追跡可能な観察"
 ],
+" 节": [
+" sections",
+" 節"
+],
 " 超出十二个大限。": [
 " is beyond the twelve decade limits.",
 " は十二の大限を超えています。"
@@ -329,6 +345,10 @@ const UI_EXTRA = {
 " 项已知边界提示。": [
 " known boundary notes.",
 " 件の既知の境界に関する注意。"
+],
+" 项提示": [
+" notes",
+" 件の注記"
 ],
 " 项需核对": [
 " item(s) to review",
@@ -1041,6 +1061,10 @@ const UI_EXTRA = {
 "下一节令": [
 "Next solar term",
 "次の節令"
+],
+"下一问按新话题识别": [
+"The next question starts a new topic",
+"次の質問は新しい話題として判定します"
 ],
 "下个月": [
 "Next month",
@@ -1798,6 +1822,10 @@ const UI_EXTRA = {
 "Representative local time",
 "代表ローカル時刻"
 ],
+"以「那」「然后」「再看」等开头续问时，沿用本次的场景": [
+"A follow-up starting with 那, 然后 or 再看 keeps this scenario: ",
+"「那」「然后」「再看」などで始まる追加質問は、今回のシナリオを引き継ぎます："
+],
 "以下规则换算后无法排盘，未列出：": [
 "These rule choices could not be charted and are not listed: ",
 "次の規則は換算後に命盤を作れないため表示していません："
@@ -1902,6 +1930,10 @@ const UI_EXTRA = {
 "Traditional nominal age; counted as one year old in the birth year, not age in completed years",
 "伝統的な数え年。出生した年を1歳とし、満年齢ではありません"
 ],
+"传统规则": [
+"Traditional rule",
+"伝統規則"
+],
 "伤官": [
 "Hurting Officer (Shang Guan)",
 "傷官"
@@ -1934,9 +1966,21 @@ const UI_EXTRA = {
 "Time standard for comparison",
 "比較対象の時制"
 ],
+"你提供的": [
+"From you",
+"あなたの入力"
+],
+"你提供的现实条件": [
+"Real-world conditions you gave",
+"あなたが入力した現実の条件"
+],
 "你现在想研究什么问题？": [
 "What question do you want to explore?",
 "どんな問いを調べたいですか？"
+],
+"你的评分": [
+"Your ratings",
+"あなたの評価"
 ],
 "你要比较什么？": [
 "What do you want to compare?",
@@ -2478,6 +2522,10 @@ const UI_EXTRA = {
 "Internal consistency check (not external accuracy certification)",
 "内部整合性チェック（外部の精度認証ではない）"
 ],
+"内部检查": [
+"Internal checks",
+"内部チェック"
+],
 "再看": [
 "look again",
 "もう一度見る"
@@ -2766,6 +2814,10 @@ const UI_EXTRA = {
 "Birth records are not saved to the server; reports are generated on demand per request.",
 "出生記録はサーバーに保存されません。レポートはリクエストごとに即時生成されます。"
 ],
+"出生资料": [
+"Birth details",
+"出生情報"
+],
 "出生资料不上传、不保存在服务器": [
 "Birth details are never uploaded or stored on the server",
 "出生情報はアップロードもサーバー保存もされません"
@@ -2777,6 +2829,10 @@ const UI_EXTRA = {
 "出生资料在这次核对之后改过：下面的结果对应改动前的资料，请重新核对。": [
 "The birth details changed after this check: the results below belong to the old details. Run the check again.",
 "この照合の後に出生データが変更されました。以下の結果は変更前のデータのものです。もう一度照合してください。"
+],
+"出生资料每次都要重新勾选，服务器不保存；关键词明确时按新问题重新识别场景。": [
+"Tick the birth details again each time; the server keeps nothing. A question with clear keywords is classified afresh.",
+"出生情報は毎回チェックし直してください。サーバーは保存しません。キーワードが明確な質問は新たにシナリオを判定します。"
 ],
 "出生资料没有性别：自动方向排不出，请填性别或在这里选顺排、逆排。": [
 "The birth details have no gender, so the direction cannot be set automatically: add a gender, or pick forward or reverse here.",
@@ -2961,6 +3017,10 @@ const UI_EXTRA = {
 "劫财": [
 "Rob Wealth (Jie Cai)",
 "劫財"
+],
+"勾选使用出生资料": [
+"Allow the birth details",
+"出生情報の使用にチェック"
 ],
 "包含 reference_source、reference_school、root_fields 和 palaces，每个宫写 number=1…9 和要对照的字段；可选的 moment 会填入第 1 步的时刻。填入后可在上面的表单里检查。": [
 "Include reference_source, reference_school, root_fields and palaces, each palace with number=1…9 and the fields to compare; an optional moment fills the moment in step 1. After filling, check the values in the form above.",
@@ -3233,6 +3293,14 @@ const UI_EXTRA = {
 "去掉此项后首位": [
 "Leader without it",
 "外したときの首位"
+],
+"去方案决策页填写": [
+"Fill it in on the decision page",
+"方案決定ページで入力"
+],
+"去规则差异对照页": [
+"Open the rule comparison page",
+"規則差異比較ページを開く"
 ],
 "参与对照的字段不变": [
 "The compared fields are unchanged",
@@ -3762,6 +3830,10 @@ const UI_EXTRA = {
 "Life/Body Palace",
 "命宮・身宮"
 ],
+"和农历年": [
+" and lunar year",
+"と旧暦年"
+],
 "咨询 agent 事业 工作 感情 婚姻 关系 问答 career advice": [
 "consultation agent career work romance marriage relationship Q&A career advice",
 "相談 agent 事業 仕事 恋愛 結婚 関係 質疑応答 career advice"
@@ -3946,6 +4018,10 @@ const UI_EXTRA = {
 "Finds the moments within some minutes of the birth time where the pillars, the Life Palace and other fields change; leave empty to skip.",
 "出生時刻の前後数分の間で四柱や命宮などが切り替わる時点を探します。空欄なら含めません。"
 ],
+"在出生资料里选性别": [
+"Choose a gender in the birth details",
+"出生情報で性別を選ぶ"
+],
 "在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。": [
 "Choose a gender in the birth details to set the decade direction from the year stem and gender.",
 "出生情報で性別を選ぶと、年干の陰陽と性別から大運の順逆を決めます。"
@@ -4034,6 +4110,10 @@ const UI_EXTRA = {
 "Scenario ",
 "シナリオ "
 ],
+"场景依据": [
+"Why this scenario",
+"シナリオの根拠"
+],
 "均时差": [
 "Equation of time",
 "均時差"
@@ -4074,9 +4154,25 @@ const UI_EXTRA = {
 "Fill the form",
 "フォームに入力"
 ],
+"填写了候选时刻": [
+"Candidate times given",
+"候補時刻の入力あり"
+],
+"填写候选时刻": [
+"Enter candidate times",
+"候補時刻を入力"
+],
+"填写农历年": [
+"Enter a lunar year",
+"旧暦年を入力"
+],
 "填写出生地经度后，计算钟表时间、地方平太阳时、真太阳时的四柱与命身宫差异。": [
 "After entering the birthplace longitude, computes the differences in Four Pillars and Life/Body Palaces between clock time, local mean solar time and true solar time.",
 "出生地の経度を入力すると、時計時刻・地方平均太陽時・真太陽時による四柱と命宮・身宮の差異を計算します。"
+],
+"填写第二人出生时间": [
+"Enter the second person's birth time",
+"二人目の出生時刻を入力"
 ],
 "墓": [
 "Mu (Tomb)",
@@ -4333,6 +4429,10 @@ const UI_EXTRA = {
 "大运顺排还是逆排由性别决定，所以时间轴会透露每个人的性别；不勾选就不画。": [
 "Whether the luck periods run forward or backward depends on gender, so the timeline reveals each person's gender; it is drawn only when ticked.",
 "大運の順行・逆行は性別で決まるため、タイムラインから各人の性別が分かります。チェックしない限り描きません。"
+],
+"大运顺逆": [
+"Luck pillar direction",
+"大運の順逆"
 ],
 "大运：": [
 "Luck pillar: ",
@@ -4910,6 +5010,10 @@ const UI_EXTRA = {
 "Chat settings",
 "チャット設定"
 ],
+"对话轮次": [
+"Round",
+"対話の回数"
+],
 "对话输入": [
 "Chat input",
 "対話入力"
@@ -5158,6 +5262,10 @@ const UI_EXTRA = {
 "Applied: ",
 "適用しました："
 ],
+"已完成": [
+"Completed",
+"完了"
+],
 "已实现辅/杂曜：": [
 "Implemented auxiliary/minor stars: ",
 "実装済みの輔星・雑曜："
@@ -5329,6 +5437,10 @@ const UI_EXTRA = {
 "年份要在 1901 到 2099 之间": [
 "The year must be between 1901 and 2099",
 "年は 1901〜2099 の範囲で入力してください"
+],
+"年呢？": [
+"?",
+"年は？"
 ],
 "年干": [
 "Year stem",
@@ -5814,6 +5926,10 @@ const UI_EXTRA = {
 "Manual reverse",
 "手動で逆行"
 ],
+"手动选择了场景": [
+"Scenario chosen by hand",
+"手動でシナリオを選択"
+],
 "手动顺排": [
 "Manual forward",
 "手動で順行"
@@ -5837,6 +5953,10 @@ const UI_EXTRA = {
 "打开紫微斗数": [
 "Open Zi Wei",
 "紫微斗数を開く"
+],
+"打开这一页": [
+"Open this page",
+"このページを開く"
 ],
 "扣除夏令时（按标准时）": [
 "Daylight saving removed (standard time)",
@@ -5865,6 +5985,10 @@ const UI_EXTRA = {
 "执行轨迹": [
 "Execution trace",
 "実行トレース"
+],
+"执行轨迹与可核验观察": [
+"Steps run and verifiable observations",
+"実行ステップと検証可能な観察"
 ],
 "扫描失败：": [
 "Scan failed: ",
@@ -6050,6 +6174,10 @@ const UI_EXTRA = {
 "Try other hours",
 "時刻を変えて照合"
 ],
+"换个话题（不沿用本次场景）": [
+"New topic (do not carry this scenario on)",
+"話題を変える（今回のシナリオを引き継がない）"
+],
 "换年失败：": [
 "Could not change the year: ",
 "年の切り替えに失敗しました："
@@ -6081,6 +6209,10 @@ const UI_EXTRA = {
 "换算并填入公历": [
 "Convert and fill in",
 "換算して西暦を入力"
+],
+"排在第一": [
+"Ranked first",
+"1位"
 ],
 "排布九宫": [
 "Lay out Nine Palaces",
@@ -6133,6 +6265,10 @@ const UI_EXTRA = {
 "推理过程 · ": [
 "Reasoning · ",
 "推論過程 · "
+],
+"提供了方案评分": [
+"Option ratings given",
+"方案の評価あり"
 ],
 "提示模板": [
 "Prompt templates",
@@ -6282,6 +6418,10 @@ const UI_EXTRA = {
 "option comparison weight decision",
 "案 比較 重み 意思決定"
 ],
+"方案与评分": [
+"Options and ratings",
+"方案と評価"
+],
 "方案对照": [
 "Option comparison",
 "案の対照"
@@ -6301,6 +6441,10 @@ const UI_EXTRA = {
 "方法": [
 "Method",
 "方法"
+],
+"方法出处 ↗": [
+"Method source ↗",
+"方法の出典 ↗"
 ],
 "方法规则、隐私和限制说明": [
 "Methods, rules, privacy and limitations",
@@ -7278,6 +7422,10 @@ const UI_EXTRA = {
 "Pairs not drawn (see the text version): ",
 "描いていない組（テキスト版を参照）："
 ],
+"未经独立认证": [
+"Not independently certified",
+"独立した認証なし"
+],
 "未起运": [
 "Luck not started",
 "未起運"
@@ -7441,6 +7589,10 @@ const UI_EXTRA = {
 "来源": [
 "Source",
 "出典"
+],
+"来源字段": [
+"Source field",
+"出典フィールド"
 ],
 "来源：": [
 "Source: ",
@@ -7974,6 +8126,14 @@ const UI_EXTRA = {
 "No hour makes every recognized field match; the hours with the fewest differences are framed.",
 "認識した項目がすべて一致する時辰はありません。不一致が最も少ない時辰に枠を付けています。"
 ],
+"没有场景关键词，沿用上一问的场景": [
+"No scenario keywords; kept the previous question's scenario",
+"シナリオのキーワードがないため、前の質問のシナリオを引き継ぎ"
+],
+"没有场景关键词，默认看本命结构": [
+"No scenario keywords; natal structure by default",
+"シナリオのキーワードがないため、既定で本命の構造"
+],
 "没有填写出生地经度，表中不含平太阳时与真太阳时；在出生资料里填写经度后会一起比较。": [
 "No birthplace longitude, so mean and apparent solar time are not in the table; add a longitude in the birth details to compare them too.",
 "出生地の経度がないため、平均太陽時と真太陽時は表にありません。出生情報に経度を入力すると一緒に比較します。"
@@ -7985,6 +8145,10 @@ const UI_EXTRA = {
 "没有成员的年支或日支凑齐申子辰、亥卯未、寅午戌、巳酉丑。": [
 "No members' year or day branches complete Shen–Zi–Chen, Hai–Mao–Wei, Yin–Wu–Xu or Si–You–Chou.",
 "メンバーの年支・日支で申子辰・亥卯未・寅午戌・巳酉丑がそろう組はありません。"
+],
+"没有标记需复核": [
+"Not flagged for review",
+"要確認の指摘なし"
 ],
 "没有满足全部条件的日子，可以放宽条件或延长扫描天数。": [
 "No days meet all conditions; relax the conditions or extend the scan period.",
@@ -8005,6 +8169,10 @@ const UI_EXTRA = {
 "没有边界警告不等于通过外部权威历表或紫微各流派专业认证。": [
 "The absence of boundary warnings does not equal passing an external authoritative ephemeris or professional certification by the various Zi Wei schools.",
 "境界警告がないことは、外部の権威ある暦表や紫微各流派の専門的認証に合格したことと同じではありません。"
+],
+"没有需要核对的边界": [
+"No boundaries to review",
+"確認すべき境界なし"
 ],
 "没有需要补齐的必需输入": [
 "No required inputs need to be filled in",
@@ -8370,6 +8538,10 @@ const UI_EXTRA = {
 "Status ",
 "状態 "
 ],
+"状态：": [
+"Status: ",
+"状態："
+],
 "狗": [
 "Dog",
 "犬"
@@ -8578,6 +8750,10 @@ const UI_EXTRA = {
 "Fill in with JSON",
 "JSON で入力"
 ],
+"用同一场景续问下一年": [
+"Ask about the next year in the same scenario",
+"同じシナリオで翌年について質問"
+],
 "用当前出生资料生成命盘": [
 "Generate the chart from the current birth details",
 "現在の出生情報で命盤を作成"
@@ -8753,6 +8929,10 @@ const UI_EXTRA = {
 "目录": [
 "Contents",
 "目次"
+],
+"目标": [
+"Goal",
+"目標"
 ],
 "目标农历纪年（1901–2099）": [
 "Target lunar year (1901–2099)",
@@ -8990,6 +9170,10 @@ const UI_EXTRA = {
 "Another person's (or several people's) birth data may be used only after the user ticks “consent obtained”; until then pair_comparison, ziwei_pair_overlay, group_relations and consultation_execute with a partner are refused, so ask the user to tick it first.",
 "第二の人物（または複数人）の出生情報は、ユーザーが「相手の同意を得た」にチェックした後でのみ使えます。未チェックの間は pair_comparison・ziwei_pair_overlay・group_relations と partner 付きの consultation_execute は拒否されるので、先にチェックするよう案内してください。"
 ],
+"第二人出生资料": [
+"Second person's birth details",
+"二人目の出生情報"
+],
 "第二人时间（当地）": [
 "Second person's time (local)",
 "2人目の時刻（現地）"
@@ -8997,6 +9181,10 @@ const UI_EXTRA = {
 "第二人的出生资料需要用户在对话界面勾选「已获对方同意」后才能使用": [
 "The second person's birth data can be used only after the user checks \"Consent obtained from the other person\" in the chat interface",
 "2人目の出生データは、ユーザーが会話画面で「相手の同意を得ている」にチェックした後でなければ使用できません"
+],
+"第二套出生时基": [
+"A second time basis",
+"二つ目の時刻基準"
 ],
 "等待超时，已停止。": [
 "Timed out and stopped.",
@@ -9194,6 +9382,10 @@ const UI_EXTRA = {
 "The number on a line counts that label (or all labels). Click a member to show only their lines; click a line to open that pair's details.",
 "線上の数字はそのラベル（または全ラベル）の件数です。メンバーをクリックするとその人の線だけを表示し、線をクリックするとそのペアの明細を開きます。"
 ],
+"经历": [
+"Experience",
+"経験"
+],
 "经度": [
 "longitude",
 "経度"
@@ -9261,6 +9453,10 @@ const UI_EXTRA = {
 "继续": [
 "Continue",
 "続ける"
+],
+"继续追问": [
+"Follow-up questions",
+"追加で質問する"
 ],
 "维护成本": [
 "Maintenance cost",
@@ -9714,6 +9910,10 @@ const UI_EXTRA = {
 "Computed structure, traditional interpretation, and real-world facts must be kept separate; this executor did not call an LLM and will not automatically look up real-world events.",
 "計算構造、伝統的解釈、現実の事実は分けなければなりません。この実行器は LLM を呼び出しておらず、現実の出来事を自動で照会することもありません。"
 ],
+"计算结果": [
+"Calculated",
+"計算結果"
+],
 "记录已经发生的重要事件，AI 会把事件日期和大运、流年干支、年度四化并列对照。只陈述结构对应，不声称因果。": [
 "Record important events that have already happened; the AI lines up event dates against the Luck Pillars, annual stem-branches and annual Four Transformations. It states structural correspondences only and does not claim causation.",
 "すでに起きた重要な出来事を記録すると、AI が出来事の日付を大運・流年干支・年度四化と並べて対照します。構造上の対応を述べるのみで、因果関係は主張しません。"
@@ -9721,6 +9921,10 @@ const UI_EXTRA = {
 "访问被拒绝（403），请检查服务来源与权限：": [
 "Access denied (403); please check the service origin and permissions: ",
 "アクセス拒否（403）。サービスのオリジンと権限を確認してください："
+],
+"证据": [
+"Evidence",
+"証拠"
 ],
 "证据 来源 文献 规则": [
 "evidence source literature rule",
@@ -9805,6 +10009,10 @@ const UI_EXTRA = {
 "详细讲讲我的命宫和官禄宫": [
 "Tell me more about my Life and Career palaces",
 "命宮と官禄宮について詳しく教えてください"
+],
+"误差": [
+"Uncertainty",
+"誤差"
 ],
 "误差范围必须是1–120的整数": [
 "Error range must be an integer from 1–120",
@@ -9933,6 +10141,10 @@ const UI_EXTRA = {
 "请选择要删除的档案": [
 "Please select a profile to delete",
 "削除するプロフィールを選択してください"
+],
+"读取字段": [
+"Fields read",
+"読み取ったフィールド"
 ],
 "读取服务能力失败：": [
 "Could not read the server capabilities: ",
@@ -10526,6 +10738,10 @@ const UI_EXTRA = {
 "Partial basis",
 "一部根拠あり"
 ],
+"部分完成，还缺输入": [
+"Partly done, input missing",
+"一部完了、入力不足"
+],
 "部分排盘：现含 ": [
 "Partial chart: currently includes ",
 "部分的な盤：現在含むもの "
@@ -10638,6 +10854,10 @@ const UI_EXTRA = {
 "Question scenario",
 "質問のシナリオ"
 ],
+"问题里提到": [
+"The question mentions ",
+"質問に含まれる語："
+],
 "问题：": [
 "Question: ",
 "質問："
@@ -10702,6 +10922,10 @@ const UI_EXTRA = {
 "Include birth details",
 "出生情報を含める"
 ],
+"限制条件": [
+"Constraint",
+"制約条件"
+],
 "除": [
 "Chu (Remove)",
 "除"
@@ -10742,6 +10966,10 @@ const UI_EXTRA = {
 "A JSON object is needed",
 "JSON オブジェクトが必要です"
 ],
+"需要人工复核": [
+"Needs human review",
+"人による確認が必要"
+],
 "需要出生公历时间、出生地时区与所选排盘口径；不在后台猜测或恢复出生资料": [
 "Requires the Gregorian birth time, the birthplace time zone, and the selected charting convention; birth data is not guessed or recovered in the background",
 "西暦の出生時刻、出生地のタイムゾーン、選択した命盤の基準が必要です。出生データをバックグラウンドで推測・復元することはありません"
@@ -10753,6 +10981,10 @@ const UI_EXTRA = {
 "需要补充": [
 "Needs more information",
 "要補足"
+],
+"需要补充输入": [
+"Input needed",
+"入力が必要"
 ],
 "需要补齐输入后才能进行指定计算。": [
 "The specified calculation can be performed only after the missing inputs are provided.",
