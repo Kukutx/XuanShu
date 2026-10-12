@@ -122,6 +122,10 @@ const UI_EXTRA = {
 " Zhi Shi",
 " 値使"
 ],
+" 农历、日柱与节气（中国标准时间）": [
+" lunar dates, day pillars and solar terms (China Standard Time)",
+" 旧暦・日柱・節気（中国標準時）"
+],
 " 农历年干四化叠加": [
 " lunar-year-stem Four Transformations overlay",
 " 旧暦年干の四化を重ねる"
@@ -910,6 +914,10 @@ const UI_EXTRA = {
 "Previous solar term",
 "前の節令"
 ],
+"上个月": [
+"Previous month",
+"前の月"
+],
 "上元": [
 "Upper Yuan",
 "上元"
@@ -941,6 +949,10 @@ const UI_EXTRA = {
 "下一节令": [
 "Next solar term",
 "次の節令"
+],
+"下个月": [
+"Next month",
+"次の月"
 ],
 "下元": [
 "Lower Yuan",
@@ -2042,6 +2054,10 @@ const UI_EXTRA = {
 "Eight Doors ",
 "八門 "
 ],
+"公历": [
+"Gregorian",
+"西暦"
+],
 "公历 ": [
 "Gregorian ",
 "西暦 "
@@ -2054,6 +2070,10 @@ const UI_EXTRA = {
 "Year",
 "西暦年"
 ],
+"公历年份": [
+"Year",
+"年"
+],
 "公历日": [
 "Gregorian day",
 "西暦日"
@@ -2061,6 +2081,10 @@ const UI_EXTRA = {
 "公历日期": [
 "Gregorian date",
 "西暦日付"
+],
+"公历月份": [
+"Month",
+"月"
 ],
 "公开参考盘链接": [
 "Public reference chart link",
@@ -2898,6 +2922,10 @@ const UI_EXTRA = {
 "Calendar facts and traditional names only: no luck score, do-and-avoid list or forecast.",
 "暦の事実と伝統的な名称だけを示し、吉凶の点数・宜忌・予測は出しません。"
 ],
+"只列历法事实，不含宜忌或吉凶。": [
+"Calendar facts only: no do-and-avoid lists, nothing auspicious or inauspicious.",
+"暦の事実のみを示し、宜忌や吉凶は含みません。"
+],
 "只对照年干和本命宫位，不是完整流年盘或预测": [
 "Only compares the year stem and natal palaces; not a complete annual chart or prediction",
 "年干と本命宮のみを対照しており、完全な流年盤や予測ではありません"
@@ -3330,6 +3358,10 @@ const UI_EXTRA = {
 "Pillars: \"年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅\", or simply \"庚辰 甲申 丙午 庚寅\" in a row",
 "四柱：「年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅」または続けて「庚辰 甲申 丙午 庚寅」"
 ],
+"回到今天": [
+"Back to today",
+"今日に戻る"
+],
 "回到此刻": [
 "Back to now",
 "現在に戻る"
@@ -3365,6 +3397,10 @@ const UI_EXTRA = {
 "在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。": [
 "Choose a gender in the birth details to set the decade direction from the year stem and gender.",
 "出生情報で性別を選ぶと、年干の陰陽と性別から大運の順逆を決めます。"
+],
+"在月历中查看": [
+"Show in the month calendar",
+"月暦で見る"
 ],
 "在紫微盘打开 ": [
 "Open on the Zi Wei chart: ",
@@ -5346,6 +5382,10 @@ const UI_EXTRA = {
 "Overall self-concept and the traditional starting point of the chart",
 "全体的な自己概念と伝統的な命盤の起点"
 ],
+"整月的农历、日柱与节气，按中国标准时间": [
+"The whole month's lunar dates, day pillars and solar terms, in China Standard Time",
+"その月の旧暦・日柱・節気（中国標準時）"
+],
 "整段落在夏令时重复或跳过的钟点，请手动填写": [
 "Falls entirely in clock times repeated or skipped by daylight saving; enter it by hand",
 "夏時間で重複または欠落する時刻に全体が入るため、手入力してください"
@@ -6078,6 +6118,10 @@ const UI_EXTRA = {
 "Month",
 "月"
 ],
+"月历 · 以中国标准时间计算": [
+"Month view · computed in China Standard Time",
+"月表示 · 中国標準時で計算"
+],
 "月喜": [
 "Xi (month)",
 "月の喜"
@@ -6117,6 +6161,10 @@ const UI_EXTRA = {
 "月柱天干与年干不合五虎遁：": [
 "The month stem does not follow the year stem (Five Tigers rule): for a ",
 "月柱の天干が年干の五虎遁に合いません："
+],
+"月柱换为": [
+"month pillar becomes",
+"月柱が変わる："
 ],
 "月煞": [
 "Yue Sha",
@@ -6450,6 +6498,14 @@ const UI_EXTRA = {
 "View public method documentation",
 "公開手法ドキュメントを見る"
 ],
+"查看这天的四柱、月相和与命盘的关系": [
+"See this day's four pillars, moon phase and labels against the chart",
+"この日の四柱・月相と命盤との関係を見る"
+],
+"查看这天的四柱与月相": [
+"See this day's four pillars and moon phase",
+"この日の四柱と月相を見る"
+],
 "查询值日": [
 "Look up day officer",
 "値日を照会"
@@ -6653,6 +6709,10 @@ const UI_EXTRA = {
 "正在换算…": [
 "Converting…",
 "換算中…"
+],
+"正在排出这个月的农历、日柱和节气…": [
+"Working out this month's lunar dates, day pillars and solar terms…",
+"この月の旧暦・日柱・節気を計算しています…"
 ],
 "正在排大运…": [
 "Calculating decade periods…",
@@ -7265,6 +7325,10 @@ const UI_EXTRA = {
 "玄": [
 "Xuan",
 "玄"
+],
+"玄枢 · ": [
+"XuanShu · ",
+"玄枢 · "
 ],
 "玄枢 · XuanShu v.0.1.0": [
 "XuanShu v.0.1.0",
@@ -8126,6 +8190,10 @@ const UI_EXTRA = {
 "Astronomical definition of solar terms; BaZi day boundary/school follows this project's own rules",
 "節気の天文学的定義。八字の日境界・流派は本プロジェクトの規則に別途従います"
 ],
+"节气": [
+"Solar term",
+"節気"
+],
 "节气与月相 ICS": [
 "Solar terms + moon phases ICS",
 "節気と月相 ICS"
@@ -8918,6 +8986,10 @@ const UI_EXTRA = {
 "This year, no stem five combination or branch clash, harmony, punishment or harm links the members' luck pillars.",
 "この年はメンバーの大運どうしに天干五合も地支の冲・合・刑・害もありません。"
 ],
+"这个月暂时算不出来：": [
+"This month cannot be computed right now: ",
+"この月は現在計算できません："
+],
 "这个结论的依据是什么？": [
 "What is this conclusion based on?",
 "この結論の根拠は何ですか？"
@@ -9449,6 +9521,10 @@ const UI_EXTRA = {
 "（利）": [
 "(Fair)",
 "（利）"
+],
+"（北京时间）": [
+" (Beijing time)",
+"（北京時間）"
 ],
 "（四柱天干地支，不含藏干）": [
 "(stems and branches of the four pillars, hidden stems excluded)",

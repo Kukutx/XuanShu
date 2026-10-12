@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Smoke real browser-to-HTTP requests without a FastAPI in-process bridge."""
 import argparse
+import calendar
 import os
 from pathlib import Path
 import socket
@@ -114,9 +115,10 @@ def main():
                     "() => document.querySelector('#result')?.textContent.includes('iztro-py')",
                     timeout=30000)
                 desktop.locator('[data-tab="calendar"]').click()
-                desktop.locator('#calendar-run').click()
-                desktop.locator('#result tbody tr').first.wait_for()
-                assert desktop.locator('#result tbody tr').count() == 14
+                desktop.locator('#calendar-grid').wait_for(timeout=30000)
+                year = int(desktop.locator('#calendar-year').input_value())
+                month = int(desktop.locator('#calendar-month').input_value())
+                assert desktop.locator('#calendar-grid .cal-day').count() == calendar.monthrange(year, month)[1]
                 desktop.locator('[data-tab="integration"]').click()
                 assert desktop.locator('#integration-copy').is_visible()
                 assert any('mcpServers' in v for v in desktop.locator('#result pre').all_text_contents())

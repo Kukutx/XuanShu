@@ -130,9 +130,9 @@ let qualityMinutesDraft = 15;
 let reportDraft = {lunar_year: null, include_time_audit: false, include_deep_evidence:true,
   include_dayun:false, dayun_direction_override:'', birth_boundary_minutes:''};
 let windowDraft = {radius: 30, spacing: 10};
-let lunarInverseDraft = {lunar_year:2024,lunar_month:1,lunar_day:1,is_leap_month:false};
+let lunarInverseDraft = null;  // filled with this lunar year's first day when the calendar first shows it
+let lunarInverseError = '';
 let annualDraft = 2026;
-let calendarDraft = {start_date: localToday(), days: 14};
 let officerDraft = {start_date:localToday(),days:30,officer:''};
 let timelineDraft = {start_lunar_year:2024,years:10,focus_palace:''};
 let decisionDraft = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
@@ -1030,7 +1030,7 @@ function ensureTodayLunarYear() {
   todayLunarPending = true;
   postJSON('/api/calendar', {start_date: localToday(), days: 1}).then(data => {
     todayLunarYear = data.days[0].lunar.year;
-    if (active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) render();
+    if ((active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) || (active === 'calendar' && lunarInverseDraft && lunarInverseDraft.guessed)) render();
   }).catch(() => { /* keep the estimate below */ }).finally(() => {todayLunarPending = false;});
 }
 function defaultLunarYear() {
@@ -1462,53 +1462,253 @@ async function downloadIcs(year, moon, message) {
     document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
   } catch (e) {message.textContent = '下载失败：' + e.message;}
 }
+// Month calendar: one civil month at a time from /api/calendar (a month fits its 31-day range), kept per month so
+// going back and forth asks nothing twice. Every cell is a calendar fact: lunar date, day pillar and solar term.
+const calendarMonths = {}, calendarPending = new Set();
+let calendarMonth = null, calendarSelected = null, calendarFocus = false;
+const monthKey = (year, month) => year + '-' + String(month).padStart(2, '0');
+const monthLength = (year, month) => new Date(Date.UTC(year, month, 0)).getUTCDate();
+function ensureCalendarMonth(year, month) {
+  const key = monthKey(year, month);
+  if (calendarMonths[key] || calendarPending.has(key)) return;
+  calendarPending.add(key);
+  postJSON('/api/calendar', {start_date: key + '-01', days: monthLength(year, month)})
+    .then(data => {calendarMonths[key] = data;})
+    .catch(err => {calendarMonths[key] = {error: err.message};})
+    .finally(() => {
+      calendarPending.delete(key);
+      if (active !== 'calendar' || !calendarMonth || monthKey(calendarMonth.year, calendarMonth.month) !== key) return;
+      // The redraw empties the page first, so whether focus went elsewhere while the month loaded is decided here.
+      const focused = document.activeElement;
+      if (focused && focused !== document.body && focused.id !== 'calendar-loading') calendarFocus = false;
+      render();
+    });
+}
+// Shows a month with one day picked; focus follows the pick when it came from the keyboard.
+function showCalendarDay(day, focus = false) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day < '1901-01-01' || day > '2099-12-31') return;
+  calendarMonth = {year: Number(day.slice(0, 4)), month: Number(day.slice(5, 7))};
+  calendarSelected = day; calendarFocus = focus;
+  render();
+}
+// The twelve jie open the months of the BaZi calendar; the month stem follows the year stem (五虎遁), and 小寒 still
+// belongs to the solar year that began at the previous 立春.
+const JIE_BRANCH = {'立春': '寅', '惊蛰': '卯', '清明': '辰', '立夏': '巳', '芒种': '午', '小暑': '未',
+  '立秋': '申', '白露': '酉', '寒露': '戌', '立冬': '亥', '大雪': '子', '小寒': '丑'};
+function jieMonthPillar(term, day) {
+  const branch = JIE_BRANCH[term];
+  if (!branch) return null;
+  const solarYear = Number(day.slice(0, 4)) - (term === '小寒' ? 1 : 0);
+  const first = [2, 4, 6, 8, 0][((solarYear - 4) % 10 + 10) % 10 % 5];
+  const offset = (BRANCH_ORDER.indexOf(branch) - 2 + 12) % 12;
+  return STEM_ORDER[(first + offset) % 10] + branch;
+}
+const lunarMonthName = lunar => (lunar.is_leap_month ? '闰' : '') + LUNAR_MONTHS[lunar.month - 1];
+// Lunar dates and term names written in the interface language here (Day 3 / 3日 / 初三), since the pieces are
+// joined without the spaces English needs; the nodes holding them are left alone by the page translator.
+const calLang = () => typeof uiLang === 'string' ? uiLang : 'zh-CN';
+const calT = text => typeof translateText === 'function' ? translateText(text) : text;
+const lunarMonthText = lunar => (lunar.is_leap_month ? calT('闰') + (calLang() === 'en' ? ' ' : '') : '') + calT(LUNAR_MONTHS[lunar.month - 1]);
+const lunarDayText = lunar => calT(LUNAR_DAYS[lunar.day - 1]);
+const lunarDateText = lunar => lunarMonthText(lunar) + (calLang() === 'en' ? ', ' : '') + lunarDayText(lunar);
+// In a day cell English drops the pinyin after a term name: Frost's Descent rather than Frost's Descent (Shuangjiang).
+const termText = (name, short) => {const text = calT(name); return short ? text.replace(/\s*\([^)]*\)$/, '') : text;};
+const lunarYearPillar = year => STEM_ORDER[((year - 4) % 10 + 10) % 10] + BRANCH_ORDER[((year - 4) % 12 + 12) % 12];
+// The words in a day cell: the solar term of the day, else the month's name on its first day, else the lunar day.
+function calendarCellText(d) {
+  if (d.solar_terms.length) return {text: termText(d.solar_terms[0].name, true), kind: 'term'};
+  if (d.lunar.day === 1) return {text: lunarMonthText(d.lunar), kind: 'month'};
+  return {text: lunarDayText(d.lunar), kind: 'day'};
+}
+const CAL_WEEKDAYS = {'zh-CN': [...'一二三四五六日'], 'zh-TW': [...'一二三四五六日'], ja: ['月', '火', '水', '木', '金', '土', '日']};
+const CAL_WEEKDAYS_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+function calendarMonthTitle(year, month) {
+  if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
+  return year + '年' + month + '月';
+}
+document.addEventListener('xuanshu-language', () => {if (active === 'calendar') render();});
+function calendarText(year, month, data) {
+  const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
+  lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
+    lunarMonthName(d.lunar) + LUNAR_DAYS[d.lunar.day - 1], d.day_pillar,
+    d.solar_terms.map(t => t.name + ' ' + t.time_china.slice(11, 16)).join('、') || '—'])]));
+  lines.push('', '只列历法事实，不含宜忌或吉凶。');
+  return finishText(lines);
+}
 function renderCalendar() {
-  title(result, '农历 · 干支日历', '一至三十一日 · 以中国标准时间计算');
-  const row = append(result, 'div', 'inline-control');
-  const start = createInput('开始日期', 'date', calendarDraft.start_date, row);
-  start.min = '1901-01-01'; start.max = '2099-12-31'; start.id = 'calendar_start';
-  const dayLabel = append(row, 'label', null, '查询天数');
-  const count = append(dayLabel, 'select'); count.id = 'calendar_days';
-  [7, 14, 21, 31].forEach(value => {const opt = append(count, 'option', null, value + ' 天'); opt.value = String(value);});
-  count.value = String(calendarDraft.days);
-  const run = append(row, 'button', null, '查询日历'); run.type = 'button'; run.id = 'calendar-run';
-  const ics = append(row, 'a', 'tiny-button', '全年节气 ICS 日历下载');
-  const moonIcs = append(row, 'a', 'tiny-button', '节气与月相 ICS'); moonIcs.id = 'calendar-moon-ics';
-  const year = () => (start.value || calendarDraft.start_date).slice(0, 4);
-  const setLinks = () => {ics.href = icsHref(year(), false); moonIcs.href = icsHref(year(), true);};
-  setLinks();
-  start.addEventListener('change', () => {if (start.value) setLinks();});
-  ics.addEventListener('click', event => {event.preventDefault(); downloadIcs(year(), false, message);});
-  moonIcs.addEventListener('click', event => {event.preventDefault(); downloadIcs(year(), true, message);});
+  title(result, '农历 · 干支日历', '月历 · 以中国标准时间计算');
+  if (!calendarMonth) {const today = localToday(); calendarMonth = {year: Number(today.slice(0, 4)), month: Number(today.slice(5, 7))}; calendarSelected = today;}
+  const {year, month} = calendarMonth, key = monthKey(year, month), today = localToday();
+  const nav = append(result, 'div', 'inline-control cal-nav');
+  const step = by => {
+    const index = year * 12 + month - 1 + by, y = Math.floor(index / 12), m = index % 12 + 1;
+    const day = monthKey(y, m) === today.slice(0, 7) ? today : monthKey(y, m) + '-01';
+    calendarMonth = {year: y, month: m}; calendarSelected = day; render();
+  };
+  // On a phone the words beside the arrows and above the two selects are hidden, so the four fit on one line.
+  const arrow = (id, mark, words, before) => {
+    const button = append(nav, 'button', 'tiny-button cal-step'); button.type = 'button'; button.id = id;
+    button.setAttribute('aria-label', words); button.title = words;
+    if (before) append(button, 'span', 'cal-arrow', mark);
+    append(button, 'span', 'cal-step-words', words);
+    if (!before) append(button, 'span', 'cal-arrow', mark);
+    return button;
+  };
+  const prev = arrow('calendar-prev', '‹', '上个月', true);
+  prev.disabled = key <= '1901-01';
+  const field = (caption, id, from, to, value) => {
+    const label = append(nav, 'label', 'cal-field');
+    append(label, 'span', 'cal-caption', caption);
+    const box = append(label, 'select'); box.id = id;
+    for (let n = from; n <= to; n++) {const option = append(box, 'option', null, String(n)); option.value = String(n);}
+    box.value = String(value);
+    return box;
+  };
+  const yearBox = field('公历年份', 'calendar-year', 1901, 2099, year);
+  const monthBox = field('公历月份', 'calendar-month', 1, 12, month);
+  const next = arrow('calendar-next', '›', '下个月', false);
+  next.disabled = key >= '2099-12';
+  // A button pressed keeps its focus through the redraw; at either end of the range it passes to the year.
+  prev.dataset.focusFallback = next.dataset.focusFallback = 'calendar-year';
+  prev.addEventListener('click', () => step(-1));
+  next.addEventListener('click', () => step(1));
+  const pick = () => {
+    const y = Number(yearBox.value), m = Number(monthBox.value);
+    calendarMonth = {year: y, month: m}; calendarSelected = monthKey(y, m) === today.slice(0, 7) ? today : monthKey(y, m) + '-01';
+    setTimeout(render);  // not inside the change handler: the redraw would remove the select while it reports
+  };
+  yearBox.addEventListener('change', pick); monthBox.addEventListener('change', pick);
+  if (key !== today.slice(0, 7) || calendarSelected !== today) {
+    const back = append(nav, 'button', 'tiny-button', '回到今天'); back.type = 'button'; back.id = 'calendar-today';
+    back.addEventListener('click', () => showCalendarDay(today, true));
+  }
+  const links = append(result, 'div', 'cal-links');
+  const ics = append(links, 'a', 'tiny-button', '全年节气 ICS 日历下载');
+  const moonIcs = append(links, 'a', 'tiny-button', '节气与月相 ICS'); moonIcs.id = 'calendar-moon-ics';
+  ics.href = icsHref(year, false); moonIcs.href = icsHref(year, true);
   const message = append(result, 'p', 'inline-msg');
-  run.addEventListener('click', async () => {
-    if (!start.value) {message.textContent = '请选择有效日期'; return;}
-    calendarDraft = {start_date: start.value, days: Number(count.value)};
-    run.disabled = true; message.textContent = '';
-    try {calendarResult = await postJSON('/api/calendar', calendarDraft); render();}
-    catch (err) {message.textContent = '查询失败：' + err.message;}
-    finally {run.disabled = false;}
-  });
-  renderLunarInverseSection();
-  if (!calendarResult) {
-    append(result, 'p', 'info-inline', '点击「查询日历」查看农历、日柱与当日节气时间。此功能不提供吉凶宜忌。');
+  ics.addEventListener('click', event => {event.preventDefault(); downloadIcs(year, false, message);});
+  moonIcs.addEventListener('click', event => {event.preventDefault(); downloadIcs(year, true, message);});
+  const data = calendarMonths[key];
+  if (!data || data.error) {
+    if (!data) {
+      ensureCalendarMonth(year, month);
+      // While the month loads, keyboard focus waits here, so Page Up / Page Down keep paging instead of scrolling.
+      const wait = append(result, 'p', 'field-help', '正在排出这个月的农历、日柱和节气…'); wait.id = 'calendar-loading'; wait.tabIndex = -1;
+      wait.addEventListener('keydown', event => {
+        if (event.key !== 'PageUp' && event.key !== 'PageDown') return;
+        event.preventDefault();
+        const index = year * 12 + month - 1 + (event.key === 'PageUp' ? -1 : 1), y = Math.floor(index / 12), m = index % 12 + 1;
+        const day = Math.min(Number((calendarSelected || '').slice(8)) || 1, monthLength(y, m));
+        showCalendarDay(monthKey(y, m) + '-' + String(day).padStart(2, '0'), true);
+      });
+      if (calendarFocus) wait.focus();
+    }
+    else {
+      append(result, 'p', 'inline-msg', '这个月暂时算不出来：' + data.error);
+      const retry = append(result, 'button', 'tiny-button', '重试'); retry.type = 'button'; retry.id = 'calendar-retry';
+      retry.addEventListener('click', () => {delete calendarMonths[key]; render();});
+    }
+    renderLunarInverseSection();
     return;
   }
-  const wrap = append(result, 'div', 'table-wrap');
-  const table = append(wrap, 'table', 'data-table');
-  const head = append(table, 'thead');
-  const hr = append(head, 'tr');
-  ['公历日期', '星期', '农历', '日干支', '节气（北京时间）'].forEach(text => append(hr, 'th', null, text));
-  const body = append(table, 'tbody');
-  calendarResult.days.forEach(d => {
-    const tr = append(body, 'tr');
-    append(tr, 'td', null, d.date);
-    append(tr, 'td', null, '星期' + d.weekday);
-    append(tr, 'td', null, `${d.lunar.year}年${d.lunar.is_leap_month ? '闰' : ''}${d.lunar.month}月${d.lunar.day}日`);
-    append(tr, 'td', 'pillar-cell', d.day_pillar);
-    append(tr, 'td', null, d.solar_terms.map(t => t.name + ' ' + t.time_china.substring(11,16)).join(' · ') || '—');
+  calendarResult = data;
+  if (!calendarSelected || calendarSelected.slice(0, 7) !== key) calendarSelected = key + '-01';
+  // The month at a glance: the lunar months it spans and the solar terms in it, with the month pillar a jie opens.
+  const head = append(result, 'div', 'cal-head');
+  const name = append(head, 'h4', 'cal-title', calendarMonthTitle(year, month)); name.dataset.noI18n = ''; name.id = 'calendar-title';
+  const first = data.days[0].lunar, last = data.days[data.days.length - 1].lunar;
+  const span = append(head, 'p', 'cal-span');
+  texts(span, '农历', ' ');
+  append(span, 'span', null, lunarYearPillar(first.year) + (first.year !== last.year ? '–' + lunarYearPillar(last.year) : '') + ' · '
+    + lunarDateText(first) + ' – ' + lunarDateText(last)).dataset.noI18n = '';
+  const terms = append(head, 'div', 'cal-terms');
+  data.days.forEach(d => d.solar_terms.forEach(t => {
+    const chip = append(terms, 'button', 'cal-term-chip' + (JIE_BRANCH[t.name] ? ' is-jie' : '')); chip.type = 'button';
+    append(chip, 'b', null, t.name);
+    chip.append(' ' + t.time_china.slice(5, 10).replace('-', '/') + ' ' + t.time_china.slice(11, 16));
+    const pillar = jieMonthPillar(t.name, d.date);
+    if (pillar) {chip.append(' · '); texts(chip, '月柱', ' ', pillar);}
+    chip.addEventListener('click', () => showCalendarDay(d.date, true));
+  }));
+  // The grid: Monday first, a button per day; arrow keys move the pick a day or a week, Page Up / Page Down a month.
+  const table = append(result, 'table', 'cal-grid'); table.id = 'calendar-grid';
+  table.setAttribute('role', 'grid'); table.setAttribute('aria-labelledby', 'calendar-title');
+  const hr = append(append(table, 'thead'), 'tr');
+  const lang = calLang();
+  WEEKDAY_NAMES.forEach((full, i) => {
+    const th = append(hr, 'th', i > 4 ? 'is-weekend' : null); th.scope = 'col'; th.title = full;
+    const short = append(th, 'abbr', null, lang === 'en' ? CAL_WEEKDAYS_EN[i] : (CAL_WEEKDAYS[lang] || CAL_WEEKDAYS['zh-CN'])[i]);
+    short.dataset.noI18n = ''; short.title = calT(full);
   });
-  note(result, calendarResult.notes.join(' '));
+  const body = append(table, 'tbody');
+  const lead = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
+  let row = append(body, 'tr');
+  for (let i = 0; i < lead; i++) append(row, 'td', 'cal-blank');
+  const move = (day, by) => showCalendarDay(shiftDate(day, by), true);
+  data.days.forEach((d, i) => {
+    if ((lead + i) % 7 === 0 && i) row = append(body, 'tr');
+    const cell = append(row, 'td', 'cal-cell'); cell.setAttribute('role', 'gridcell');
+    const words = calendarCellText(d), weekend = (lead + i) % 7 > 4;
+    const button = append(cell, 'button', 'cal-day cal-' + words.kind + (weekend ? ' is-weekend' : '') + (d.date === today ? ' is-today' : '')
+      + (d.date === calendarSelected ? ' is-selected' : '')); button.type = 'button'; button.id = 'calendar-day-' + d.date;
+    button.tabIndex = d.date === calendarSelected ? 0 : -1; button.dataset.noI18n = '';
+    cell.setAttribute('aria-selected', String(d.date === calendarSelected));
+    if (d.date === today) button.setAttribute('aria-current', 'date');
+    button.setAttribute('aria-label', [d.date, calT('星期' + d.weekday), calT('农历') + ' ' + lunarDateText(d.lunar), calT('日柱') + ' ' + d.day_pillar,
+      ...d.solar_terms.map(t => termText(t.name) + ' ' + t.time_china.slice(11, 16))].join(' · '));
+    append(button, 'span', 'cal-num', String(Number(d.date.slice(8))));
+    append(button, 'span', 'cal-lunar', words.text).dataset.noI18n = '';
+    const gz = append(button, 'span', 'cal-gz'); gz.dataset.noI18n = '';
+    append(gz, 'span', stemClass(d.day_pillar[0]), d.day_pillar[0]); append(gz, 'span', branchClass(d.day_pillar[1]), d.day_pillar[1]);
+    button.addEventListener('click', () => showCalendarDay(d.date, document.activeElement === button));
+    button.addEventListener('keydown', event => {
+      const by = {ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7}[event.key];
+      if (by) {event.preventDefault(); move(d.date, by); return;}
+      if (event.key === 'Home' || event.key === 'End') {
+        event.preventDefault(); move(d.date, event.key === 'Home' ? -((lead + i) % 7) : 6 - (lead + i) % 7); return;
+      }
+      if (event.key === 'PageUp' || event.key === 'PageDown') {
+        event.preventDefault();
+        const index = year * 12 + month - 1 + (event.key === 'PageUp' ? -1 : 1), y = Math.floor(index / 12), m = index % 12 + 1;
+        showCalendarDay(monthKey(y, m) + '-' + String(Math.min(Number(d.date.slice(8)), monthLength(y, m))).padStart(2, '0'), true);
+      }
+    });
+  });
+  while (row.children.length < 7) append(row, 'td', 'cal-blank');
+  // Keyboard moves focus with the pick, also after a month that had to load first, unless focus went elsewhere.
+  const away = document.activeElement && document.activeElement !== document.body && !result.contains(document.activeElement);
+  if (calendarFocus && !away) {calendarFocus = false; const button = $('#calendar-day-' + calendarSelected); if (button) button.focus();}
+  calendarFocus = false;
+  // The picked day in words, with a way into 今日历法 for its pillars, moon and the labels against the chart.
+  const d = data.days.find(x => x.date === calendarSelected) || data.days[0];
+  const detail = append(result, 'div', 'cal-detail'); detail.id = 'calendar-detail'; detail.setAttribute('aria-live', 'polite');
+  const line = append(detail, 'p', 'cal-detail-date');
+  texts(line, d.date, ' · ', '星期' + d.weekday);
+  if (d.date === today) line.append(' · ', '今天');
+  const facts = append(detail, 'div', 'cal-detail-facts');
+  const lunar = append(facts, 'p');
+  texts(lunar, '农历', ' ');
+  append(lunar, 'span', null, lunarYearPillar(d.lunar.year) + ' · ' + lunarDateText(d.lunar)).dataset.noI18n = '';
+  const pillar = append(facts, 'p');
+  texts(pillar, '日柱', ' ');
+  const big = append(pillar, 'b', 'cal-detail-gz'); big.dataset.noI18n = '';
+  append(big, 'span', stemClass(d.day_pillar[0]), d.day_pillar[0]); append(big, 'span', branchClass(d.day_pillar[1]), d.day_pillar[1]);
+  d.solar_terms.forEach(t => {
+    const term = append(facts, 'p');
+    texts(term, '节气', ' ');
+    append(term, 'b', null, t.name);
+    term.append(' ' + t.time_china.slice(11, 16) + ' ');
+    texts(term, '（北京时间）');
+    const opens = jieMonthPillar(t.name, d.date);
+    if (opens) {term.append(' · '); texts(term, '月柱换为', ' ', opens);}
+  });
+  const open = append(detail, 'button', 'tiny-button', current ? '查看这天的四柱、月相和与命盘的关系' : '查看这天的四柱与月相');
+  open.type = 'button'; open.id = 'calendar-open-day';
+  open.addEventListener('click', () => {todayPick = {date: d.date, time: '12:00'}; activateTab(tabs.find(t => t.dataset.tab === 'today'));});
+  textExport(result, 'calendar-text', () => calendarText(year, month, data), 'xuanshu-calendar-' + key + '.txt', '整月的农历、日柱与节气，按中国标准时间');
+  renderLunarInverseSection();
+  note(result, data.notes.join(' '));
 }
 function renderDayOfficers() {
   title(result,'建除十二值日','节令月支 × 日支 · 仅传统标签，不给吉凶或宜忌结论');
@@ -1892,12 +2092,12 @@ async function copyPre(pre, button, done) {
 }
 // Copy and download buttons with a folded preview. The text is rebuilt on every click and when the
 // interface language changes, so it always matches what the page shows.
-function textExport(parent, id, makeText, fileName) {
+function textExport(parent, id, makeText, fileName, hint = '通行的中文命盘写法，不含出生日期、时间和备注') {
   const box = append(parent, 'div', 'text-export'); box.id = id;
   const actions = append(box, 'div', 'text-export-actions');
   const copy = append(actions, 'button', 'tiny-button', '复制成文字'); copy.type = 'button'; copy.id = id + '-copy';
   const save = append(actions, 'button', 'tiny-button', '下载 TXT'); save.type = 'button'; save.id = id + '-download';
-  append(actions, 'small', 'muted', '通行的中文命盘写法，不含出生日期、时间和备注');
+  append(actions, 'small', 'muted', hint);
   const fold = append(box, 'details', 'text-export-preview');
   append(fold, 'summary', null, '预览文字').id = id + '-summary';
   // Named by the (translated) summary: the translator leaves pre elements and their attributes alone.
@@ -2745,6 +2945,12 @@ function todayPicker(parent) {
     const now = append(nav, 'button', 'tiny-button', '回到此刻'); now.type = 'button'; now.id = 'today-now';
     now.addEventListener('click', () => {todayPick = null; render();});
   }
+  const month = append(nav, 'button', 'tiny-button', '在月历中查看'); month.type = 'button'; month.id = 'today-calendar';
+  month.addEventListener('click', () => {
+    const typed = date.value, day = /^\d{4}-\d{2}-\d{2}$/.test(typed) && typed >= '1901-01-01' && typed <= '2099-12-31' ? typed : localToday();
+    calendarMonth = {year: Number(day.slice(0, 4)), month: Number(day.slice(5, 7))}; calendarSelected = day; calendarFocus = true;
+    activateTab(tabs.find(t => t.dataset.tab === 'calendar'));
+  });
   date.addEventListener('change', () => pick(date.value, time.value || '12:00'));
   time.addEventListener('change', () => pick(date.value || localToday(), time.value));
 }
@@ -3051,24 +3257,47 @@ function renderImportCheck() {
   }
   r.limitations.forEach(x => note(result, x));
 }
-function renderLunarInverseSection(){
-  append(result,'h4','subheading','农历 → 公历反查（支持闰月）');
-  const row=append(result,'div','inline-control');
-  const y=createInput('农历年份','number',String(lunarInverseDraft.lunar_year),row);y.min='1901';y.max='2099';
-  const m=createInput('农历月份','number',String(lunarInverseDraft.lunar_month),row);m.min='1';m.max='12';
-  const d=createInput('农历日期','number',String(lunarInverseDraft.lunar_day),row);d.min='1';d.max='30';
-  const check=append(row,'label',null,'闰月');const leap=append(check,'input');leap.type='checkbox';leap.checked=lunarInverseDraft.is_leap_month;
-  const go=append(row,'button',null,'换算公历');go.type='button';go.id='lunar-inverse-run';
-  const error=append(result,'p','inline-msg');
-  go.addEventListener('click',async()=>{
-    lunarInverseDraft={lunar_year:Number(y.value),lunar_month:Number(m.value),lunar_day:Number(d.value),is_leap_month:leap.checked};
-    go.disabled=true;error.textContent='';
-    try {lunarInverseResult=await postJSON('/api/lunar-to-gregorian',lunarInverseDraft);render();}
-    catch(e) {lunarInverseResult=null;error.textContent='换算失败：'+e.message;}
-    finally {go.disabled=false;}
+// Lunar to Gregorian: the date found is picked on the month calendar above.
+function renderLunarInverseSection() {
+  append(result, 'h4', 'subheading', '农历 → 公历反查（支持闰月）');
+  // Until the person edits it, the default year is this lunar year as the calendar engine gives it.
+  ensureTodayLunarYear();
+  if (!lunarInverseDraft || (lunarInverseDraft.guessed && todayLunarYear !== null)) {
+    lunarInverseDraft = {lunar_year: defaultLunarYear(), lunar_month: 1, lunar_day: 1, is_leap_month: false, guessed: todayLunarYear === null};
+  }
+  const row = append(result, 'div', 'inline-control lunar-inverse');
+  const y = createInput('农历年份', 'number', String(lunarInverseDraft.lunar_year), row); y.min = '1901'; y.max = '2099'; y.id = 'lunar-inverse-year';
+  const m = append(append(row, 'label', null, '农历月份'), 'select'); m.id = 'lunar-inverse-month';
+  fillSelect(m, LUNAR_MONTHS.map((name, i) => [String(i + 1), name])); m.value = String(lunarInverseDraft.lunar_month);
+  const d = append(append(row, 'label', null, '农历日期'), 'select'); d.id = 'lunar-inverse-day';
+  fillSelect(d, LUNAR_DAYS.map((name, i) => [String(i + 1), name])); d.value = String(lunarInverseDraft.lunar_day);
+  const check = append(row, 'label', 'check-line');
+  const leap = append(check, 'input'); leap.type = 'checkbox'; leap.id = 'lunar-inverse-leap'; leap.checked = lunarInverseDraft.is_leap_month;
+  check.append(' 闰月');
+  const go = append(row, 'button', null, '换算公历'); go.type = 'button'; go.id = 'lunar-inverse-run';
+  const error = append(result, 'p', 'inline-msg', lunarInverseError);
+  // Kept as typed, so a month calendar that finishes loading meanwhile does not reset the fields.
+  const keep = () => {lunarInverseDraft = {lunar_year: Number(y.value) || lunarInverseDraft.lunar_year, lunar_month: Number(m.value), lunar_day: Number(d.value), is_leap_month: leap.checked};};
+  [y, m, d, leap].forEach(control => control.addEventListener(control === y ? 'input' : 'change', keep));
+  go.addEventListener('click', async () => {
+    keep(); lunarInverseDraft.lunar_year = Number(y.value);
+    go.disabled = true; error.textContent = ''; lunarInverseError = '';
+    try {lunarInverseResult = await postJSON('/api/lunar-to-gregorian', lunarInverseDraft); showCalendarDay(lunarInverseResult.gregorian_date);}
+    catch (e) {lunarInverseResult = null; lunarInverseError = '换算失败：' + e.message; render();}
+    finally {go.disabled = false;}
   });
-  if(lunarInverseResult) append(result,'div','feature-note',
-      `公历 ${lunarInverseResult.gregorian_date} · ${lunarInverseResult.lunar_date.is_leap_month?'闰':''}${lunarInverseResult.lunar_date.month}月${lunarInverseResult.lunar_date.day}日`);
+  if (!lunarInverseResult) return;
+  const found = lunarInverseResult.gregorian_date, lunar = lunarInverseResult.lunar_date;
+  const box = append(result, 'div', 'feature-note lunar-inverse-result'); box.id = 'lunar-inverse-result';
+  texts(box, '农历', ' ');
+  append(box, 'span', null, lunarYearPillar(lunar.year) + ' · ' + lunarDateText(lunar)).dataset.noI18n = '';
+  box.append(' → ');
+  texts(box, '公历', ' ' + found + ' ', WEEKDAY_NAMES[(new Date(found + 'T00:00:00Z').getUTCDay() + 6) % 7]);
+  if (calendarSelected === found) {
+    box.append(' ');
+    const show = append(box, 'button', 'tiny-button', '在月历中查看'); show.type = 'button'; show.id = 'lunar-inverse-show';
+    show.addEventListener('click', () => {const day = $('#calendar-day-' + found); if (day) {day.focus(); day.scrollIntoView({block: 'center'});}});
+  }
 }
 function pairText() {
   const r = pairResult, z = pairZiweiResult;
