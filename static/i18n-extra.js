@@ -1146,6 +1146,10 @@ const UI_EXTRA = {
 "Same as clock time",
 "時計時刻と同じ"
 ],
+"丑时": [
+"Chou hour",
+"丑の刻"
+],
 "丑时 01–03": [
 "Chou hour 01–03",
 "丑の刻 01–03"
@@ -1502,6 +1506,10 @@ const UI_EXTRA = {
 "Hai–Zi–Chou",
 "亥子丑"
 ],
+"亥时": [
+"Hai hour",
+"亥の刻"
+],
 "亥时 21–23": [
 "Hai hour 21–23",
 "亥の刻 21–23"
@@ -1649,6 +1657,10 @@ const UI_EXTRA = {
 "仍不一致": [
 "Still differing",
 "なお不一致"
+],
+"仍不一致：": [
+"Still differing: ",
+"なお不一致："
 ],
 "仍有差异的月份": [
 "Months that still differ",
@@ -2025,6 +2037,10 @@ const UI_EXTRA = {
 "全部": [
 "All",
 "すべて"
+],
+"全部一致": [
+"All match",
+"すべて一致"
 ],
 "全部十二宫": [
 "All twelve palaces",
@@ -2902,6 +2918,10 @@ const UI_EXTRA = {
 "promotion",
 "昇進"
 ],
+"午时": [
+"Wu hour",
+"午の刻"
+],
 "午时 11–13": [
 "Wu hour 11–13",
 "午の刻 11–13"
@@ -2934,6 +2954,10 @@ const UI_EXTRA = {
 "Bo Shi",
 "博士"
 ],
+"占位时间": [
+"Placeholder time",
+"仮の時刻"
+],
 "卡片只在这台设备上生成，不上传。注意：四柱本身大致能反推出生日期与时辰（约 60 年一轮），介意的话只保留紫微部分。": [
 "The card is made on this device and never uploaded. Note: the four pillars alone roughly reveal the birth date and hour (they repeat about every 60 years); keep only the Zi Wei part if that matters to you.",
 "カードはこの端末で作成され、アップロードされません。注意：四柱だけでも出生日と時辰をおおよそ逆算できます（約 60 年周期）。気になる場合は紫微の部分だけを残してください。"
@@ -2941,6 +2965,10 @@ const UI_EXTRA = {
 "卡片只在这台设备上生成，不上传。画上的是称呼、四柱和传统标签，不画出生日期、时间和备注；但四柱本身大致能反推出生日期。": [
 "The card is made on this device and is not uploaded. It shows the names, the four pillars and the traditional labels, never birth dates, times or notes; the four pillars themselves still roughly reveal a birth date.",
 "カードはこの端末で作成され、アップロードされません。描くのは呼び名、四柱、伝統的なラベルだけで、生年月日・時刻・メモは描きません。ただし四柱から生年月日はおおよそ逆算できます。"
+],
+"卯时": [
+"Mao hour",
+"卯の刻"
 ],
 "卯时 05–07": [
 "Mao hour 05–07",
@@ -3210,6 +3238,10 @@ const UI_EXTRA = {
 "Palaces across layers",
 "各層の宮位対照表"
 ],
+"各时辰的对照结果": [
+"Result for each hour",
+"時辰ごとの照合結果"
+],
 "各流派专家意见 · ": [
 "Expert views by school · ",
 "各流派エキスパートの見解 · "
@@ -3261,6 +3293,10 @@ const UI_EXTRA = {
 "同一命盘两套明确输入/时制口径比较": [
 "Comparison of two explicit input/time-basis conventions for the same chart",
 "同一命盤における二つの明示的な入力・時制基準の比較"
+],
+"同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。": [
+"Same day, current rules: the birth time is moved to the middle of each double hour and recomputed, to see which hour the pasted chart fits.",
+"同じ日・現在の規則のまま、出生時刻を各時辰の中央に移して計算し直し、貼り付けた命盤がどの時辰と合うかを見ます。"
 ],
 "同一年的流年对每个人相同，所以成员之间只比较各自的大运：天干五合与地支同支、六合、六冲、六害、相刑。": [
 "The annual pillar is the same for everyone in a year, so members are compared by their luck pillars only: stem five combinations and the branch labels same branch, six harmony, six clash, six harm and punishment.",
@@ -4438,6 +4474,10 @@ const UI_EXTRA = {
 "寅卯辰 → 巳, 巳午未 → 申, 申酉戌 → 亥, 亥子丑 → 寅; read from the year branch",
 "寅卯辰は巳、巳午未は申、申酉戌は亥、亥子丑は寅。年支から求める"
 ],
+"寅时": [
+"Yin hour",
+"寅の刻"
+],
 "寅时 03–05": [
 "Yin hour 03–05",
 "寅の刻 03–05"
@@ -4457,6 +4497,10 @@ const UI_EXTRA = {
 "对应规则：": [
 "Corresponding rules:",
 "対応する規則："
+],
+"对得上的时辰：": [
+"Hours that fit: ",
+"合う時辰："
 ],
 "对方可能按平太阳时或真太阳时排盘。": [
 "The other program may use mean or apparent solar time.",
@@ -4730,6 +4774,10 @@ const UI_EXTRA = {
 "Proposed saving to profile memory; awaiting user confirmation",
 "プロフィール記憶への保存を提案しました。ユーザーの確認待ちです"
 ],
+"已改用对照里选的时辰排盘，并重新核对。": [
+"Cast with the hour chosen in the comparison and checked again.",
+"照合で選んだ時辰で命盤を出し、もう一度照合しました。"
+],
 "已根据问题执行 ": [
 "Ran, based on the question, ",
 "質問に基づき実行："
@@ -4781,6 +4829,10 @@ const UI_EXTRA = {
 "巳午未": [
 "Si–Wu–Wei",
 "巳午未"
+],
+"巳时": [
+"Si hour",
+"巳の刻"
 ],
 "巳时 09–11": [
 "Si hour 09–11",
@@ -5110,6 +5162,10 @@ const UI_EXTRA = {
 "Used for this chart",
 "この命盤で使用"
 ],
+"当前时间": [
+"Current time",
+"現在の時刻"
+],
 "当前月首和天文台表一致，但天文台仍提示一日不确定性": [
 "The current first day of the month matches the Observatory table, but the Observatory still notes a one-day uncertainty",
 "現在の月初日は天文台の表と一致していますが、天文台は1日の不確実性を注記しています"
@@ -5221,6 +5277,10 @@ const UI_EXTRA = {
 "戊癸合火": [
 "Wu–Gui combine (Fire)",
 "戊癸合火"
+],
+"戌时": [
+"Xu hour",
+"戌の刻"
 ],
 "戌时 19–21": [
 "Xu hour 19–21",
@@ -5513,6 +5573,10 @@ const UI_EXTRA = {
 "换一个时间再排一盘对比一下": [
 "Cast another chart at a different time to compare",
 "別の時刻でもう一度盤を作って比べる"
+],
+"换个时辰对照": [
+"Try other hours",
+"時刻を変えて照合"
 ],
 "换年失败：": [
 "Could not change the year: ",
@@ -5946,6 +6010,10 @@ const UI_EXTRA = {
 "Early Zi",
 "早子"
 ],
+"早子时": [
+"Early Zi hour",
+"早子の刻"
+],
 "早子时 00–01": [
 "Early Zi hour 00–01",
 "早子の刻 00–01"
@@ -6202,6 +6270,10 @@ const UI_EXTRA = {
 "Double-hour boundary",
 "時辰の境界"
 ],
+"时辰对照只换出生时辰、沿用当前规则；某个时辰与对方一致，不能证明出生时间就在这个时辰。": [
+"The hour comparison changes only the birth hour and keeps the current rules; an hour that matches does not prove the birth was in that hour.",
+"時辰の照合は出生時辰だけを変え、現在の規則のままです。ある時辰が一致しても、出生がその時辰だった証明にはなりません。"
+],
 "时辰序号 ": [
 "Double-hour index ",
 "時辰番号 "
@@ -6357,6 +6429,10 @@ const UI_EXTRA = {
 "晚子": [
 "Late Zi",
 "晩子"
+],
+"晚子时": [
+"Late Zi hour",
+"晩子の刻"
 ],
 "晚子时 23–24": [
 "Late Zi hour 23–24",
@@ -6625,6 +6701,10 @@ const UI_EXTRA = {
 "未指定方向": [
 "Direction not specified",
 "方向未指定"
+],
+"未时": [
+"Wei hour",
+"未の刻"
 ],
 "未时 13–15": [
 "Wei hour 13–15",
@@ -7270,6 +7350,10 @@ const UI_EXTRA = {
 "No matches; try keywords like BaZi, timing or MCP",
 "一致なし。八字・択時・MCP などのキーワードを試してください"
 ],
+"没有哪个时辰能让识别到的字段全部一致；不一致最少的时辰已加框。": [
+"No hour makes every recognized field match; the hours with the fewest differences are framed.",
+"認識した項目がすべて一致する時辰はありません。不一致が最も少ない時辰に枠を付けています。"
+],
 "没有填写出生地经度，表中不含平太阳时与真太阳时；在出生资料里填写经度后会一起比较。": [
 "No birthplace longitude, so mean and apparent solar time are not in the table; add a longitude in the birth details to compare them too.",
 "出生地の経度がないため、平均太陽時と真太陽時は表にありません。出生情報に経度を入力すると一緒に比較します。"
@@ -7901,6 +7985,10 @@ const UI_EXTRA = {
 "申子辰马在寅，寅午戌马在申，巳酉丑马在亥，亥卯未马在巳；以年支、日支查": [
 "Yi Ma: 申子辰 → 寅, 寅午戌 → 申, 巳酉丑 → 亥, 亥卯未 → 巳; read from the year and day branches",
 "駅馬：申子辰は寅、寅午戌は申、巳酉丑は亥、亥卯未は巳。年支・日支から求める"
+],
+"申时": [
+"Shen hour",
+"申の刻"
 ],
 "申时 15–17": [
 "Shen hour 15–17",
@@ -8914,6 +9002,10 @@ const UI_EXTRA = {
 "Every recognized field matches.",
 "認識した項目はすべて一致しました。"
 ],
+"识别到的字段全部一致（星曜亮度不计）。": [
+"Every recognized field matches (star brightness not counted).",
+"認識した項目はすべて一致しました（星の明るさは数えません）。"
+],
 "识别时辰、日界、节令和时区变更。仅保证当前已实现规则的数值分段，不保证所有流派的专业命盘。": [
 "Detects changes of double hour, day boundary, solar term and time zone. Only the numerical segmentation of currently implemented rules is guaranteed, not professional charts of every school.",
 "時辰・日界・節令・タイムゾーンの変化を識別します。保証するのは現在実装済みルールの数値的分割のみで、すべての流派の専門的な命盤は保証しません。"
@@ -9294,6 +9386,10 @@ const UI_EXTRA = {
 "Type a question; Enter sends, Shift+Enter adds a line",
 "質問を入力。Enter で送信、Shift+Enter で改行"
 ],
+"辰时": [
+"Chen hour",
+"辰の刻"
+],
 "辰时 07–09": [
 "Chen hour 07–09",
 "辰の刻 07–09"
@@ -9585,6 +9681,10 @@ const UI_EXTRA = {
 "部分排盘：现含 ": [
 "Partial chart: currently includes ",
 "部分的な盤：現在含むもの "
+],
+"酉时": [
+"You hour",
+"酉の刻"
 ],
 "酉时 17–19": [
 "You hour 17–19",

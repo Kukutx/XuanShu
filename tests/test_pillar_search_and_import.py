@@ -171,3 +171,39 @@ def test_a_late_zi_chart_with_brightness_still_finds_its_rule():
         p['name'] + ' ' + ' '.join(star + p['star_brightness'][star] for star in p['main_stars']) for p in other['palaces'] if p['main_stars'])
     out = chart_import_check(ChartImportRequest(birth=late, text=text))
     assert out['reproducing_variants'][0] == '23:00 换日（早晚子时）'
+
+
+def test_the_same_day_is_tried_at_every_double_hour():
+    # Cast at 04:00 (寅), checked against the 12:00 placeholder a chart without the hour stands on.
+    out = chart_import_check(ChartImportRequest(birth=dict(BIRTH, birth_datetime='2000-08-16T12:00'), text=chart_text(BIRTH)))
+    hours = out['hour_alternatives']
+    assert [h['label'] for h in hours] == ['早子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '晚子']
+    assert [h['birth_datetime'][11:] for h in hours[:3]] == ['00:30', '02:00', '04:00'] and hours[-1]['birth_datetime'][11:] == '23:30'
+    assert all(h['hour_pillar'][1] == h['branch'] for h in hours)
+    assert out['reproducing_hours'] == ['寅'] and [h['label'] for h in hours if h['current']] == ['午']
+    assert next(h for h in hours if h['label'] == '寅')['mismatched_fields'] == []
+
+
+def test_hour_alternatives_land_in_their_hour_under_solar_time_and_daylight_saving():
+    slot = lambda reading: 0 if reading[11:13] == '00' else 12 if reading[11:13] == '23' else (int(reading[11:13]) + 1) // 2
+    cases = [dict(birth_datetime='1990-05-17T00:10', timezone='Asia/Shanghai', longitude=75.99, time_mode='apparent_solar'),
+             dict(birth_datetime='2024-03-10T01:30', timezone='America/New_York', longitude=-74.0, time_mode='apparent_solar'),
+             dict(birth_datetime='2024-03-10T01:30', timezone='America/New_York')]
+    for birth in cases:
+        hours = chart_import_check(ChartImportRequest(birth=birth, text='时柱 甲子'))['hour_alternatives']
+        assert len(hours) == 13 and sum(h['current'] for h in hours) == 1
+        days = set()
+        for i, h in enumerate(hours):
+            reading = calculate_bazi(BirthInput(**dict(birth, birth_datetime=h['birth_datetime'])))['time_basis']['effective_local_reading']
+            assert slot(reading) == i, (birth, h, reading)
+            days.add(reading[:10])
+        assert len(days) == 1  # every hour of the same (effective) day
+    # 2024-03-10 02:00 does not exist in New York: 丑 is tried before the gap instead.
+    assert hours[1]['birth_datetime'] == '2024-03-10T01:15'
+
+
+def test_hours_are_not_tried_when_only_year_based_fields_differ():
+    z = calculate_ziwei(BirthInput(**BIRTH))
+    wrong = next(s for s in ('太阳', '武曲') if s != z['birth_year_transformations'][0]['star'])
+    out = chart_import_check(ChartImportRequest(birth=BIRTH, text=f'年柱 {pillars_of(BIRTH)["year"]} {wrong}化禄'))
+    assert out['summary']['mismatched'] == 1 and out['hour_alternatives'] == [] and out['reproducing_hours'] == []

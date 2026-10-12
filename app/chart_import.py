@@ -12,7 +12,7 @@ chart is reported. Nothing is stored; the text is data, never instructions.
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -225,6 +225,70 @@ def _causes(birth: BirthInput, fields: list[dict], bazi: dict, ziwei: dict) -> l
     return causes
 
 
+# The hours of one day, each sampled at the middle of its double hour (子 split at midnight into
+# its early and late halves, which programs place on different days).
+HOUR_SLOTS = [('早子', '子', 30)] + [(b, b, i * 120) for i, b in enumerate(BRANCHES[1:], 1)] + [('晚子', '子', 23 * 60 + 30)]
+
+
+def _hour_slot(reading: str) -> int:
+    hour = int(reading[11:13])
+    return 0 if hour == 0 else 12 if hour == 23 else (hour + 1) // 2
+
+
+def _hour_sensitive(key: str) -> bool:
+    """Fields the birth hour can change; the year-based ones (transformations, Body master) cannot."""
+    if key in ('pillar.hour', 'pillar.day'):
+        return True
+    return key.startswith('ziwei.') and not key.startswith(('ziwei.transformation', 'ziwei.brightness')) and key != 'ziwei.shen_master'
+
+
+def _hour_alternatives(birth: BirthInput, parsed: dict, bazi: dict) -> list[dict]:
+    """The same birth date under the current rules, recomputed once per double hour.
+
+    The clock time is chosen so the time the chart actually uses (solar time when selected)
+    falls in the middle of each double hour, so every hour appears once. Solar-time shifts change
+    with a daylight-saving switch, so each guess is corrected by where it actually landed, and a
+    clock time skipped by the switch is moved out of the gap.
+    """
+    basis = bazi['time_basis']
+    effective = datetime.fromisoformat(basis['effective_local_reading'])
+    midnight = effective.replace(hour=0, minute=0, second=0, microsecond=0)
+    shift = timedelta(minutes=basis['effective_shift_minutes'])
+    current = _hour_slot(basis['effective_local_reading'])
+    base = birth.model_dump()
+    out = []
+    for i, (label, branch, minutes) in enumerate(HOUR_SLOTS):
+        target = midnight + timedelta(minutes=minutes)
+        clock, found, gap_moves = target - shift, None, iter((-45, 90))
+        for _ in range(4):
+            clock = (clock + timedelta(seconds=30)).replace(second=0, microsecond=0)
+            try:
+                alternative = BirthInput(**{**base, 'birth_datetime': clock.isoformat(timespec='minutes')})
+                alt_bazi = calculate_bazi(alternative)
+            except ValueError:
+                move = next(gap_moves, None)
+                if move is None:
+                    break
+                clock += timedelta(minutes=move)
+                continue
+            landed = alt_bazi['time_basis']['effective_local_reading']
+            miss = target - datetime.fromisoformat(landed)
+            if landed[:10] == target.date().isoformat() and _hour_slot(landed) == i:
+                found = alternative, alt_bazi
+                if abs(miss) <= timedelta(minutes=2):
+                    break
+            clock += miss
+        if not found:
+            continue
+        alternative, alt_bazi = found
+        alt_fields = _compare(parsed, alt_bazi, calculate_ziwei(alternative))
+        wrong = [f['label'] for f in alt_fields if not f['match'] and not f['key'].startswith('ziwei.brightness')]
+        out.append({'label': label, 'branch': branch, 'birth_datetime': alternative.birth_datetime,
+                    'hour_pillar': alt_bazi['pillars']['hour']['text'], 'day_pillar': alt_bazi['pillars']['day']['text'],
+                    'current': i == current, 'mismatched': len(wrong), 'mismatched_fields': wrong})
+    return out
+
+
 def chart_import_check(req: ChartImportRequest) -> dict:
     parsed = parse_chart_text(req.text)
     bazi, ziwei = calculate_bazi(req.birth), calculate_ziwei(req.birth)
@@ -244,6 +308,8 @@ def chart_import_check(req: ChartImportRequest) -> dict:
                              'mismatched': len(wrong), 'mismatched_fields': wrong})
         variants.sort(key=lambda v: (v['mismatched'], v['label'].count('+')))
     reproducing = [v for v in variants if v['mismatched'] == 0]
+    # Only worth a row of hours when a field the hour can change disagrees.
+    hours = _hour_alternatives(req.birth, parsed, bazi) if any(_hour_sensitive(f['key']) for f in mismatched) else []
     return {
         'system': 'chart-import-check',
         'recognized': parsed,
@@ -252,6 +318,8 @@ def chart_import_check(req: ChartImportRequest) -> dict:
         'summary': {'matched': len(fields) - len(mismatched), 'mismatched': len(mismatched)},
         'variants': variants[:12],
         'reproducing_variants': [v['label'] for v in reproducing],
+        'hour_alternatives': hours,
+        'reproducing_hours': [h['label'] for h in hours if h['mismatched'] == 0],
         'possible_causes': _causes(req.birth, fields, bazi, ziwei) if mismatched else [],
         'accepted_formats': [
             '四柱：「年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅」或连续的「庚辰 甲申 丙午 庚寅」',
@@ -262,6 +330,7 @@ def chart_import_check(req: ChartImportRequest) -> dict:
         'limitations': [
             '只核对识别到的字段；没识别到的字段不代表一致。',
             '规则对照只覆盖常见差异（换日、闰月、时制、夏令时），不能证明对方使用的就是这套规则。',
+            '时辰对照只换出生时辰、沿用当前规则；某个时辰与对方一致，不能证明出生时间就在这个时辰。',
             '粘贴的内容只用于本次比对，服务器不保存。',
         ],
     }

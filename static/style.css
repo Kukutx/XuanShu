@@ -684,6 +684,30 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .import-verdict.ok{border-color:var(--green);color:var(--text)}
 .import-variant{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px}
 .import-table tr.mismatch td{background:var(--warn-soft)}
+/* 换个时辰对照: one cell per double hour with its hour pillar, clock time and how many fields still differ. */
+.ic-verdict{margin:4px 0 8px;font-size:13px;color:var(--text2)}
+.ic-verdict.is-ok{color:var(--green);font-weight:600}
+.ic-hours{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:0 0 8px}
+@media(min-width:1200px){.ic-hours{grid-template-columns:repeat(13,minmax(0,1fr))}}
+@media(max-width:640px){.ic-hours{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.ic-hour{display:flex;flex-direction:column;align-items:center;gap:1px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);padding:6px 2px 5px;cursor:pointer;min-width:0;color:var(--text)}
+.ic-hour:hover{border-color:var(--gold)}
+.ic-hour:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ic-hour.is-match{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}
+.ic-hour.is-best{border-color:var(--warn-line);box-shadow:inset 0 0 0 1px var(--warn-line)}
+.ic-hour.is-picked{background:var(--accent-soft);outline:2px solid var(--gold);outline-offset:1px}
+.ic-name{font-size:11px;color:var(--muted);white-space:nowrap}
+.ic-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.25}
+.ic-clock{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
+.ic-count{font-size:11px;color:var(--muted)}
+.ic-hour.is-match .ic-count{color:var(--green);font-weight:600}
+.ic-tag{font-size:10px;color:var(--gold2);border-top:1px dashed var(--border);margin-top:2px;padding-top:1px}
+.ic-detail{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel2);padding:10px 14px;margin:0 0 14px;font-size:13px}
+.ic-detail p{margin:0 0 6px}
+.ic-detail-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
+.ic-detail-diff{color:var(--text2)}
+.ic-detail-ok{color:var(--green)}
+html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-height:1.2}
 .import-result.same{color:var(--green);white-space:nowrap}
 .import-result.diff{color:var(--warn);white-space:nowrap;font-weight:600}
 .plain-list{margin:6px 0 12px 18px;font-size:13px;line-height:1.7;color:var(--text2)}
@@ -1262,7 +1286,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--panel3:#f4f1ea;--border:#d9d2c3;--border-strong:#c9bfa9;--text:#111;--text2:#222;--muted:#555;--faint:#777;--gold:#8a6428;--gold2:#6d4c16;--accent-soft:#faf7f0;--accent-line:#d9c7a3;--code-bg:#f7f5f0;--code-text:#111;--shadow:none;--wood:#2f8a54;--fire:#c4452c;--earth:#a26b1e;--metal:#6d6656;--water:#2a6bb0;--lu:#24864f;--quan:#7a48b8;--ke:#2a6db8;--ji:#c63a2c;--green:#2d7552;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45)}
   .bt-track,.bt-seg,.bt-tick,.bt-tick-num,.bt-pin,.bt-pillar.is-changed,.today-term-track,.today-term-fill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff;font-size:12px}
-  .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,.of-legend,.of-views,.fh-views,.ds-hour-card .tiny-button,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip):not(.fh-pick):not(.ds-pick){display:none!important}
+  .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,.of-legend,.of-views,.fh-views,.ds-hour-card .tiny-button,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip):not(.fh-pick):not(.ds-pick):not(.ic-hour){display:none!important}
   .shell{max-width:none;padding:0}
   .main-grid{display:block}
   .panel{border:0;box-shadow:none}

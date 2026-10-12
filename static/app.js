@@ -3724,6 +3724,8 @@ function renderPillarSearch() {
 
 // Paste a chart from other software and compare it with XuanShu field by field.
 let importDraft = '', importResult = null;
+// What the last check was run on: the birth sent (applied back with a chosen hour) and whether the hour was a placeholder.
+let importBirth = null, importHourUnknown = false, importHourPick = null, importRecheck = false;
 function renderImportCheck() {
   title(result, '外部命盘导入核对', '粘贴其他软件排出的命盘，逐项比对，并找出对方用的规则');
   append(result, 'p', 'info-inline', '按出生资料里的信息排出玄枢的盘再比较。粘贴的内容只用于本次核对，服务器不保存。');
@@ -3739,11 +3741,17 @@ function renderImportCheck() {
   run.addEventListener('click', async () => {
     if (!area.value.trim()) {message.textContent = '先粘贴命盘文字。'; return;}
     run.disabled = true; message.className = 'inline-msg progress'; message.textContent = '正在比对…';
-    try {importResult = await postJSON('/api/chart-import-check', {birth: readInput(), text: area.value}); render();
+    const birth = readInput(), hourUnknown = $('#hour_unknown').checked;
+    try {importResult = await postJSON('/api/chart-import-check', {birth, text: area.value}); importBirth = birth; importHourUnknown = hourUnknown; importHourPick = null; render();
       announce(`核对完成：${importResult.summary.matched} 项一致，${importResult.summary.mismatched} 项不同`);}
     catch (e) {importResult = null; message.className = 'inline-msg'; message.textContent = '核对失败：' + e.message;}
     finally {run.disabled = false;}
   });
+  // After a rule or an hour is applied, the check runs again on the new chart by itself.
+  if (importRecheck && !importResult && importDraft.trim() && current && JSON.stringify(readInput()) === JSON.stringify(currentInput)) {
+    importRecheck = false;
+    setTimeout(() => {if (active === 'import-check' && !run.disabled) run.click();});
+  }
   if (!importResult) return;
   const r = importResult;
   if (!r.recognized_count) {
@@ -3765,11 +3773,12 @@ function renderImportCheck() {
         append(line, 'small', 'muted', '需手动改时间'); return;
       }
       const apply = append(line, 'button', 'tiny-button', '套用到出生资料'); apply.type = 'button'; apply.id = 'import-apply-' + i;
-      apply.addEventListener('click', () => {setInput(v.settings); importResult = null; form.requestSubmit(); setFeedback('已套用：' + v.label);});
+      apply.addEventListener('click', () => {setInput(v.settings); importResult = null; importRecheck = true; form.requestSubmit(); setFeedback('已套用：' + v.label);});
     });
   } else if (!r.summary.mismatched) {
     append(result, 'div', 'import-verdict ok', '识别到的字段全部一致。');
   }
+  if (r.hour_alternatives && r.hour_alternatives.length) renderImportHours(r);
   const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table import-table');
   const head = append(append(table, 'thead'), 'tr');
   ['项目', '粘贴的命盘', '玄枢', '结果'].forEach(x => append(head, 'th', null, x));
@@ -3792,6 +3801,60 @@ function renderImportCheck() {
     near.forEach(v => {const tr = append(b2, 'tr'); append(tr, 'td', null, v.label); append(tr, 'td', null, v.mismatched_fields.join('、'));});
   }
   r.limitations.forEach(x => note(result, x));
+}
+// The same day recomputed once per double hour: a row of hours with how many recognized fields still differ.
+const IMPORT_HOUR_LABELS = ['早子', ...'丑寅卯辰巳午未申酉戌亥', '晚子'];  // the server's labels, in the order of LUNAR_HOURS
+function renderImportHours(r) {
+  const hours = r.hour_alternatives, best = Math.min(...hours.map(h => h.mismatched));
+  const nameOf = h => {const i = IMPORT_HOUR_LABELS.indexOf(h.label); return i < 0 ? h.label : LUNAR_HOURS[i + 1][1].split(' ')[0];};
+  append(result, 'h4', 'subheading', '换个时辰对照');
+  append(result, 'p', 'field-help', '同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。');
+  const matching = hours.filter(h => !h.mismatched);
+  const verdict = append(result, 'p', 'ic-verdict' + (matching.length ? ' is-ok' : ''));
+  if (matching.length) texts(verdict, '对得上的时辰：', matching.map(nameOf).join('、'));
+  else verdict.textContent = '没有哪个时辰能让识别到的字段全部一致；不一致最少的时辰已加框。';
+  if (!hours.some(h => h.label === importHourPick)) importHourPick = (matching[0] || hours.find(h => h.mismatched === best)).label;
+  const strip = append(result, 'div', 'ic-hours'); strip.id = 'import-hours';
+  strip.setAttribute('role', 'group'); strip.setAttribute('aria-label', '各时辰的对照结果');
+  const detail = elt('div', 'ic-detail'); detail.id = 'import-hour-detail'; detail.setAttribute('aria-live', 'polite');
+  const baseDate = importBirth ? importBirth.birth_datetime.slice(0, 10) : '';
+  const clockOf = h => (h.birth_datetime.slice(0, 10) === baseDate ? '' : h.birth_datetime.slice(5, 10).replace('-', '/') + ' ') + h.birth_datetime.slice(11, 16);
+  const cells = hours.map((h, i) => {
+    const cell = append(strip, 'button', 'ic-hour' + (!h.mismatched ? ' is-match' : !matching.length && h.mismatched === best ? ' is-best' : '') + (h.current ? ' is-current' : ''));
+    cell.type = 'button'; cell.id = 'import-hour-' + i;
+    append(cell, 'span', 'ic-name', nameOf(h));
+    const gz = append(cell, 'b', 'ic-gz'); gz.dataset.noI18n = '';
+    append(gz, 'span', stemClass(h.hour_pillar[0]), h.hour_pillar[0]); append(gz, 'span', branchClass(h.hour_pillar[1]), h.hour_pillar[1]);
+    append(cell, 'small', 'ic-clock', clockOf(h));
+    const count = append(cell, 'small', 'ic-count');
+    if (h.mismatched) texts(count, String(h.mismatched), ' 项不同'); else count.textContent = '全部一致';
+    if (h.current) append(cell, 'small', 'ic-tag', importHourUnknown ? '占位时间' : '当前时间');
+    cell.addEventListener('click', () => {importHourPick = h.label; pick();});
+    return cell;
+  });
+  result.append(detail);
+  function pick() {
+    const h = hours.find(x => x.label === importHourPick);
+    cells.forEach((cell, i) => {const on = hours[i] === h; cell.classList.toggle('is-picked', on); cell.setAttribute('aria-pressed', String(on));});
+    detail.replaceChildren();
+    const head = append(detail, 'p', 'ic-detail-head');
+    append(head, 'b', null, nameOf(h));
+    texts(append(head, 'span'), '出生时间', ' ', h.birth_datetime.replace('T', ' '));
+    const pillars = append(head, 'span'); texts(pillars, '时柱', ' ');
+    const hp = append(pillars, 'b'); hp.dataset.noI18n = ''; hp.textContent = h.hour_pillar;
+    texts(pillars, ' · ', '日柱', ' '); const dp = append(pillars, 'b'); dp.dataset.noI18n = ''; dp.textContent = h.day_pillar;
+    if (h.mismatched) texts(append(detail, 'p', 'ic-detail-diff'), '仍不一致：', h.mismatched_fields.join('、'));
+    else append(detail, 'p', 'ic-detail-ok', '识别到的字段全部一致（星曜亮度不计）。');
+    if (h.current && !importHourUnknown) return;
+    const use = append(detail, 'button', 'tiny-button', '用这个时间排盘'); use.type = 'button'; use.id = 'import-hour-use';
+    use.addEventListener('click', () => {
+      setInput({...(importBirth || readInput()), birth_datetime: h.birth_datetime});
+      $('#hour_unknown').checked = false; updateHourUnknown(); updateBirthSummary(); updateStaleBirthNotice();
+      importResult = null; importRecheck = true; form.requestSubmit();
+      setFeedback('已改用对照里选的时辰排盘，并重新核对。');
+    });
+  }
+  pick();
 }
 // Lunar to Gregorian: the date found is picked on the month calendar above.
 function renderLunarInverseSection() {

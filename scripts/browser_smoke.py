@@ -310,7 +310,28 @@ def main() -> None:
             page.locator('#import-check-run').click()
             page.wait_for_function("() => document.querySelectorAll('.import-table tr.mismatch').length === 1", timeout=30000)
             assert '可能的原因' in page.locator('#result').inner_text()
+            # A differing hour pillar: the same day is tried at every double hour. With the 命宫 above (the 寅 hour's)
+            # no hour matches both, and the closest ones are framed; the pillars alone match at 卯, 寅 is the chart's.
+            assert page.locator('#import-hours .ic-hour').count() == 13 and page.locator('.ic-hour.is-match').count() == 0
+            assert page.locator('.ic-hour.is-best').count() == 2
+            page.locator('#import-text').fill('乾造 庚辰 甲申 丙午 辛卯')
+            page.locator('#import-check-run').click()
+            page.locator('.ic-hour.is-match').first.wait_for(timeout=30000)
+            assert page.locator('.ic-hour.is-match').all_inner_texts() == [page.locator('#import-hour-3').inner_text()]
+            assert '卯时' in page.locator('.ic-verdict').inner_text() and '寅时' in page.locator('.ic-hour.is-current').inner_text()
+            assert page.locator('#import-hour-3').get_attribute('aria-pressed') == 'true'
+            assert '2000-08-16 06:00' in page.locator('#import-hour-detail').inner_text()
+            page.locator('#import-hour-1').click()
+            assert '仍不一致' in page.locator('#import-hour-detail').inner_text() and page.locator('#import-hour-3').get_attribute('aria-pressed') == 'false'
+            page.locator('#import-hour-3').click()
             page.screenshot(path=str(screenshot_dir / '34-import-check.png'), full_page=True)
+            # Casting with that hour checks the pasted chart again by itself.
+            page.locator('#import-hour-use').click()
+            page.wait_for_function("() => document.querySelector('.import-verdict.ok') !== null", timeout=30000)
+            assert page.locator('#birth_datetime').input_value() == '2000-08-16T06:00' and page.locator('#import-hours').count() == 0
+            page.locator('#birth_datetime').fill('2000-08-16T04:00')
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => currentInput && currentInput.birth_datetime === '2000-08-16T04:00'", timeout=30000)
             # Brightness printed after a star is compared too; a different grade is a table difference, not a rule.
             page.locator('#import-text').fill('命宫 紫微庙\n夫妻宫：七杀（平）')
             page.locator('#import-check-run').click()
