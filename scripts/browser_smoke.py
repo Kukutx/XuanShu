@@ -353,6 +353,22 @@ def main() -> None:
             assert page.locator('#group-timeline-year-2026').get_attribute('aria-pressed') == 'true'
             assert page.locator('#group-timeline .luck-timeline-range').inner_text() == '2022–2036'
             assert '未填性别，不排大运' in page.locator('#group-timeline tbody tr').nth(1).inner_text()
+            # The arrows move the window at once, also past the open year, and the text preview lists the same years.
+            timeline_range = lambda: page.locator('#group-timeline .luck-timeline-range').inner_text()
+            page.locator('#group-timeline-forward').click()
+            assert timeline_range() == '2027–2041' and page.evaluate('document.activeElement.id') == 'group-timeline-forward'
+            assert '\n大运时间轴（2027–2041）：\n' in page.locator('#group-text-text').text_content()
+            for expected in ('2022–2036', '2017–2031', '2012–2026', '2007–2021'):
+                page.locator('#group-timeline-back').click()
+                assert timeline_range() == expected and page.evaluate('document.activeElement.id') == 'group-timeline-back'
+            for _ in range(3):
+                page.locator('#group-timeline-forward').click()
+            assert timeline_range() == '2022–2036'
+            # With an unknown hour the twelfth period may end a year later: that year is a "?", not "已排完".
+            row = "{status: 'ok', born_year: 1917, periods: [{pillar: '丁酉', start_years: [2026, 2027], end_years: [2035, 2036]}, {pillar: '戊戌', start_years: [2036, 2037], end_years: [2045, 2046]}]}"
+            assert page.evaluate(f"(() => {{ const row = {row}; return [2045, 2046, 2047].map(y => luckAt(row, y).kind).concat([luckAt(row, 2046).after]); }})()") == ['period', 'maybe', 'beyond', None]
+            assert page.evaluate(f"luckSpanText({row}, 2042, 2056)") == '戊戌 2036/2037–2045/2046 → 已排完（时辰不详，交运年有两种可能）'
+            assert page.evaluate(f"luckSpanText({{...{row}, periods: [{{pillar: '甲子', start_years: [1990, 1991], end_years: [1999]}}, {{pillar: '乙丑', start_years: [2000], end_years: [2009]}}]}}, 2003, 2017)") == '乙丑 2000–2009 → 已排完'
             page.locator('#group-timeline-year-2030').click()
             page.wait_for_function("() => groupResult.year_view.year === 2030 && !groupYearPending", timeout=30000)
             assert page.evaluate('document.activeElement.id') == 'group-timeline-year-2030'
@@ -362,9 +378,15 @@ def main() -> None:
             assert page.locator('#group-timeline .luck-timeline-range').inner_text() == '2027–2041' and page.evaluate('document.activeElement.id') == 'group-timeline-forward'
             assert page.evaluate('groupResult.year_view.year') == 2030 and page.locator('#group-timeline .tl-change').count() >= 1
             page.locator('#group-timeline').screenshot(path=str(screenshot_dir / '42-group-timeline.png'))
-            page.locator('#group-timeline-back').click()
-            page.locator('#group-timeline-year-2026').click()
+            # At the end of the range the pressed arrow turns off and focus moves to the other one.
+            while not page.locator('#group-timeline-forward').is_disabled():
+                page.locator('#group-timeline-forward').click()
+            assert timeline_range() == '2085–2099' and page.evaluate('document.activeElement.id') == 'group-timeline-back'
+            # Opening another year puts the window back around it.
+            page.locator('#group-year-input').fill('2026')
+            page.locator('#group-year-input').dispatch_event('change')
             page.wait_for_function("() => groupResult.year_view.year === 2026 && !groupYearPending", timeout=30000)
+            assert timeline_range() == '2022–2036'
             page.locator('[data-filter="六冲"]').click()
             page.locator('#group-node-0').focus()
             page.keyboard.press('Enter')

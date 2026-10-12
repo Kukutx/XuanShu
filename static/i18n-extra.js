@@ -38,6 +38,10 @@ const UI_EXTRA = {
 " · hour unknown",
 " · 時辰不明"
 ],
+" · 时辰不详，交运年随时辰而定": [
+" · hour unknown, the year the period changes depends on the hour",
+" · 時刻不明のため、交運年は時刻次第"
+],
 " · 相冲 ": [
 " · Clash ",
 " · 相沖 "
@@ -9341,10 +9345,6 @@ const UI_EXTRA = {
 "：已省略": [
 ": omitted",
 "：省略"
-],
-"：时辰不详，交运年随时辰而定": [
-": hour unknown, the year this period begins depends on the hour",
-"：時刻不明のため、交運年は時刻次第"
 ],
 "：本宫为": [
 ": this palace is the ",
