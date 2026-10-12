@@ -127,6 +127,17 @@ def test_time_audit_has_three_comparable_results():
     assert a['choices'][2]['equation_of_time_minutes']!=0
 
 
+def test_time_audit_splits_daylight_saving_from_the_meridian_offset():
+    # Shanghai kept daylight saving (UTC+9) in the summer of 1988: the mean solar shift is the
+    # longitude against 120°E (+5.9 min) less the hour of daylight saving.
+    a = time_audit(TimeAuditRequest(birth=BirthInput(birth_datetime='1988-07-15T12:00', timezone='Asia/Shanghai', longitude=121.4737)))
+    assert a['dst_minutes'] == 60 and a['standard_utc_offset_minutes'] == 480
+    assert a['longitude_vs_standard_meridian_minutes'] == pytest.approx(5.8948, abs=1e-3)
+    assert a['choices'][1]['shift_minutes'] == pytest.approx(a['longitude_vs_standard_meridian_minutes'] - 60, abs=1e-3)
+    winter = time_audit(TimeAuditRequest(birth=BirthInput(birth_datetime='1988-01-15T12:00', timezone='Asia/Shanghai', longitude=121.4737)))
+    assert winter['dst_minutes'] == 0
+
+
 def test_time_audit_requires_longitude_even_clock():
     with pytest.raises(ValueError,match='longitude'):
         time_audit(TimeAuditRequest(birth=BirthInput(**BASE)))

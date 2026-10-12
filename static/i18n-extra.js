@@ -910,6 +910,10 @@ const UI_EXTRA = {
 "Month 3",
 "三月"
 ],
+"三种时制下四柱、命宫、身宫与农历日期都相同。": [
+"The four pillars, Life and Body palaces and lunar date are the same under all three time bases.",
+"三つの時制で四柱・命宮・身宮・旧暦日付はすべて同じです。"
+],
 "上一个大限": [
 "Previous major limit",
 "前の大限"
@@ -1105,6 +1109,14 @@ const UI_EXTRA = {
 "与本命四化分开显示 · 仅为星曜位置叠加": [
 "Shown separately from natal Four Transformations · star position overlay only",
 "本命四化とは別表示 · 星曜位置の重ね合わせのみ"
+],
+"与钟表时间不同": [
+"Differs from clock time",
+"時計時刻と異なる"
+],
+"与钟表时间相同": [
+"Same as clock time",
+"時計時刻と同じ"
 ],
 "丑时 01–03": [
 "Chou hour 01–03",
@@ -1541,6 +1553,10 @@ const UI_EXTRA = {
 "仅本机显式安装 xuanshu[professional] 后可使用。第三方引擎的流派、星曜与当前子集可能不同，不会隐式混合数据。": [
 "Available only after explicitly installing xuanshu[professional] on this machine. The third-party engine's school and stars may differ from the current subset; data is never implicitly mixed.",
 "このマシンに xuanshu[professional] を明示的にインストールした場合のみ使用可能。サードパーティエンジンの流派・星曜は現行サブセットと異なる場合があり、データを暗黙に混在させることはありません。"
+],
+"仅用于本页": [
+"This page only",
+"このページのみ"
 ],
 "仅识别规则中存在的符号配对，不判现实吉凶": [
 "Only identifies symbolic pairings that exist in the rules; does not judge real-world auspiciousness",
@@ -2370,6 +2386,18 @@ const UI_EXTRA = {
 "The moment is interpreted in the selected IANA time zone of the birthplace; lunar month phases follow the modern Chinese UTC+8 astronomical day definition, and the chart uses the effective Gregorian date at the birthplace. Day boundaries across time zones may produce school differences.",
 "時刻は出生地の選択した IANA タイムゾーンで解釈します。旧暦の月相は現代中国の UTC+8 天文日の定義に従い、排盤には出生地の有効な西暦日を用います。タイムゾーンをまたぐ日界により流派間の差異が生じることがあります。"
 ],
+"出生地法定钟表时间": [
+"Legal clock time at the birthplace",
+"出生地の法定時計時刻"
+],
+"出生地经度": [
+"Birthplace longitude",
+"出生地の経度"
+],
+"出生城市（仅用于本页）": [
+"Birth city (this page only)",
+"出生地の都市（このページのみ）"
+],
 "出生年地支": [
 "Birth year branch",
 "出生年の地支"
@@ -2489,6 +2517,10 @@ const UI_EXTRA = {
 "出生资料质量提示：": [
 "Birth data quality notes: ",
 "出生データの品質に関する注意："
+],
+"出生资料里没有经度：这里选的城市或经度只用于本页对照，不改出生资料，也不保存。": [
+"The birth data has no longitude: the city or longitude chosen here is used for this comparison only. It does not change the birth data and is not saved.",
+"出生データに経度がありません。ここで選んだ都市や経度はこのページの比較にだけ使い、出生データは変えず、保存もしません。"
 ],
 "出生资料：": [
 "Birth data: ",
@@ -3546,6 +3578,10 @@ const UI_EXTRA = {
 "Scenario ",
 "シナリオ "
 ],
+"均时差": [
+"Equation of time",
+"均時差"
+],
 "坎": [
 "Kan",
 "坎"
@@ -3677,6 +3713,10 @@ const UI_EXTRA = {
 "复制表格": [
 "Copy table",
 "表をコピー"
+],
+"夏令时": [
+"Daylight saving",
+"夏時間"
 ],
 "夏至": [
 "Summer Solstice (Xiazhi)",
@@ -4969,6 +5009,10 @@ const UI_EXTRA = {
 "当前干支年相同：": [
 "Same as current stem-branch year: ",
 "現在の干支年と同じ："
+],
+"当前排盘所用": [
+"Used for this chart",
+"この命盤で使用"
 ],
 "当前月首和天文台表一致，但天文台仍提示一日不确定性": [
 "The current first day of the month matches the Observatory table, but the Observatory still notes a one-day uncertainty",
@@ -6690,6 +6734,14 @@ const UI_EXTRA = {
 "Labels",
 "ラベル"
 ],
+"标色的项目和钟表时间不同；当前命盘已按加框的太阳时排盘，改按钟表时间会得到不同结果。": [
+"Coloured items differ from clock time; the current chart already uses the framed solar time, and casting by clock time would give different results.",
+"色付きの項目は時計時刻と異なります。現在の命盤は枠付きの太陽時で出しており、時計時刻で出すと結果が変わります。"
+],
+"标色的项目和钟表时间不同；换用太阳时会改变这些结果。": [
+"Coloured items differ from clock time; switching to solar time would change them.",
+"色付きの項目は時計時刻と異なります。太陽時に切り替えるとこれらの結果が変わります。"
+],
 "校时": [
 "Time correction",
 "時刻補正"
@@ -7045,6 +7097,14 @@ const UI_EXTRA = {
 "比较方案": [
 "Compare options",
 "案を比較"
+],
+"比钟表快": [
+"Ahead of the clock by",
+"時計より進み"
+],
+"比钟表慢": [
+"Behind the clock by",
+"時計より遅れ"
 ],
 "水": [
 "Water",
@@ -8190,6 +8250,14 @@ const UI_EXTRA = {
 "Longitude and time-system check",
 "経度と時刻制度の確認"
 ],
+"经度差": [
+"Longitude offset",
+"経度差"
+],
+"经度（东经为正）": [
+"Longitude (east is positive)",
+"経度（東経が正）"
+],
 "结束年": [
 "End year",
 "終了年"
@@ -8834,6 +8902,10 @@ const UI_EXTRA = {
 "Choose 2 to 8 people",
 "2〜8 人を選んでください"
 ],
+"请选择出生城市或填写经度（-180 到 180）。": [
+"Choose a birth city or enter a longitude (−180 to 180).",
+"出生地の都市を選ぶか、経度（−180〜180）を入力してください。"
+],
 "请选择有效日期": [
 "Please select a valid date",
 "有効な日付を選択してください"
@@ -9297,6 +9369,10 @@ const UI_EXTRA = {
 "选择「23:00 换日」后与 iztro 的“晚子时”一致": [
 "With \"day changes at 23:00\", matches iztro's \"late Zi\"",
 "「23:00 に日替わり」を選ぶと iztro の「晩子時」と一致"
+],
+"选择城市": [
+"Choose a city",
+"都市を選択"
 ],
 "选择宫位": [
 "Select palace",

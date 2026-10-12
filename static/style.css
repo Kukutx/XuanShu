@@ -822,13 +822,26 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .bt-card-head small{font-size:11px}
 .bt-badge{font-size:11px;font-weight:600;color:var(--gold2);border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:999px;padding:0 8px}
 .bt-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
-.bt-pillar{display:flex;flex-direction:column;align-items:center;border:1px solid var(--border);border-radius:6px;background:var(--panel);padding:4px 2px}
-.bt-pillar small{font-size:10px;color:var(--muted)}
+.bt-pillar{display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;border:1px solid var(--border);border-radius:6px;background:var(--panel);padding:4px 2px}
+.bt-pillar small{font-size:10px;line-height:1.2;color:var(--muted)}
 .bt-pillar.is-changed{border-color:var(--warn-line);background:var(--warn-soft)}
 .bt-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.25}
 .bt-ziwei,.bt-lunar{display:flex;flex-wrap:wrap;gap:3px 10px;margin:0;font-size:12px;color:var(--text2)}
-.bt-field.is-changed{color:var(--warn);font-weight:600}
+.bt-field.is-changed,.bt-lunar.is-changed{color:var(--warn);font-weight:600}
 .bt-utc{font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
+/* 时制对照: the three clocks side by side; the one the chart was cast with is outlined, and whatever differs
+   from the clock time is marked as in the boundary cards. */
+.tb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px;margin:4px 0 8px}
+.tb-card{border:1px solid var(--border);border-radius:10px;background:var(--panel2);padding:12px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.tb-card.is-used{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.tb-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px}
+.tb-head h4{margin:0;font-size:14px;font-weight:600;color:var(--text)}
+.tb-time{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin:0}
+.tb-time b{font-size:24px;font-weight:600;line-height:1.2;letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--text)}
+.tb-date{font-size:12px;font-weight:600;color:var(--warn);font-variant-numeric:tabular-nums}
+.tb-shift{margin:0;font-size:13px;color:var(--text2)}
+.tb-parts{margin:-4px 0 0;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+#time-city{min-width:9em}
 .today-facts{margin-top:10px}
 .today-empty{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:12px 14px}
 .today-table td,.today-table th{vertical-align:middle}
@@ -1107,7 +1120,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
 /* ---- print: a clean report on paper ---- */
 @media print{
   :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--panel3:#f4f1ea;--border:#d9d2c3;--border-strong:#c9bfa9;--text:#111;--text2:#222;--muted:#555;--faint:#777;--gold:#8a6428;--gold2:#6d4c16;--accent-soft:#faf7f0;--accent-line:#d9c7a3;--code-bg:#f7f5f0;--code-text:#111;--shadow:none;--wood:#2f8a54;--fire:#c4452c;--earth:#a26b1e;--metal:#6d6656;--water:#2a6bb0;--lu:#24864f;--quan:#7a48b8;--ke:#2a6db8;--ji:#c63a2c;--green:#2d7552;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45)}
-  .bt-track,.bt-seg,.bt-tick,.bt-tick-num,.bt-pin,.today-term-track,.today-term-fill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bt-track,.bt-seg,.bt-tick,.bt-tick-num,.bt-pin,.bt-pillar.is-changed,.today-term-track,.today-term-fill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff;font-size:12px}
   .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip){display:none!important}
   .shell{max-width:none;padding:0}
@@ -1121,7 +1134,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ziwei-board,.pillar,.qimen-cell,.palace,.chat-msg{break-inside:avoid}
   .wuxing{grid-template-columns:minmax(0,440px);justify-content:center;grid-template-areas:'figure' 'legend' 'detail';break-inside:avoid}
   .ev-toc{display:none!important}
-  .ev-card{break-inside:avoid}
+  .ev-card,.tb-card{break-inside:avoid}
   a[href^="http"]::after{content:' (' attr(href) ')';font-size:10px;color:#555}
 }
 /* Calculation cross-check dialog */
