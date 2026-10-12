@@ -723,6 +723,43 @@ def main() -> None:
             assert page.locator('.transform-card').count() == 4
             assert page.locator('#annual-year').input_value() == str(page.evaluate('todayLunarYear'))
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)
+            # The year sits on the natal board: twelve palaces, the birth-year four filled, this year's four outlined, the
+            # palaces holding this year's outlined, and the palace on the year branch named.
+            annual = page.evaluate('annualResult')
+            assert page.locator('#annual-board .ay-cell').count() == 12
+            assert page.locator('#annual-board .ay-cell .hua.layer').count() == 4 and page.locator('#annual-board .ay-cell .hua:not(.layer)').count() == 4
+            assert page.locator('#annual-board .has-year').count() == len({t['natal_palace'] for t in annual['transformations']})
+            assert page.locator('#annual-board .is-branch b').inner_text() == annual['year_branch_palace'].replace('宫', '')
+            assert page.locator('#annual-table tbody tr').count() == 4
+            assert annual['gregorian_span']['start'] in page.locator('.ay-head').inner_text()
+            assert page.locator('.ay-head [aria-current="date"] .ay-now').inner_text() == '今年'
+            # The arrows step a year and keep their place; the way back to this year comes with the step.
+            this_year = annual['lunar_year']
+            page.locator('#annual-next').click()
+            page.wait_for_function(f"() => annualResult.lunar_year === {this_year + 1}", timeout=30000)
+            assert page.evaluate('document.activeElement.id') == 'annual-next' and page.locator('#annual-year').input_value() == str(this_year + 1)
+            assert page.locator('#live-status').inner_text() == f"{this_year + 1} {page.evaluate('annualResult.year_pillar')}"
+            assert page.locator('.ay-head .ay-now').count() == 0
+            page.locator('#annual-now').click()
+            page.wait_for_function(f"() => annualResult.lunar_year === {this_year}", timeout=30000)
+            assert page.evaluate('document.activeElement.id') == 'annual-year' and page.locator('#annual-now').count() == 0
+            # A year outside the range is refused without a request.
+            page.locator('#annual-year').fill('2100')
+            assert page.locator('#annual-next').is_disabled() is False
+            page.locator('#annual-run').click()
+            assert '1901–2099' in page.locator('#result .inline-msg').inner_text() and page.evaluate('annualResult.lunar_year') == this_year
+            page.locator('#annual-year').fill('2099')
+            assert page.locator('#annual-next').is_disabled()
+            page.locator('#annual-year').fill(str(this_year))
+            # The run of years opens on the year-by-year page from this year, already drawn.
+            page.locator('#annual-timeline').click()
+            page.locator('#timeline-matrix').wait_for(timeout=30000)
+            assert page.locator('#timeline-start').input_value() == str(this_year) and page.locator('#timeline-matrix thead .yt-year').count() == 10
+            page.locator('[data-tab="annual"]').click()
+            layer_before = page.evaluate('JSON.stringify(ziweiLayer)')
+            page.locator('#annual-open-year').click()
+            page.wait_for_function(f"() => active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === {this_year}", timeout=30000)
+            page.evaluate('json => {ziweiLayer = JSON.parse(json);}', layer_before)  # later steps carry on from the layer they left
             # The reading page states the chart in two cards that open the full pages, and points on to related tools.
             page.locator('[data-tab="reading"]').click()
             page.locator('#reading-bazi').wait_for(timeout=30000)

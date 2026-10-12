@@ -178,6 +178,14 @@ class RuleComparisonRequest(BaseModel):
     alternative: BirthInput
 
 
+def _lunar_year_span(lunar_year: int) -> dict:
+    """Gregorian first and last day of a named lunar year (China calendar); the last day is None past 2099."""
+    from .extended import lunar_month_catalog
+    start = lunar_month_catalog(lunar_year)[0][2]
+    end = lunar_month_catalog(lunar_year + 1)[0][2] - timedelta(days=1) if lunar_year < 2099 else None
+    return {'start': start.isoformat(), 'end': end.isoformat() if end else None}
+
+
 def annual_transformations(request: AnnualRequest) -> dict:
     """Four-transformations for the given *named lunar year* mapped onto natal palaces.
 
@@ -191,19 +199,27 @@ def annual_transformations(request: AnnualRequest) -> dict:
     stem = STEMS[stem_idx]
     year_branch = BRANCHES[(request.lunar_year - 1984) % 12]
     natal_ming_branch_idx = BRANCHES.index(chart['ming_palace'])
+    palace_at = lambda branch: PALACE_NAMES[(natal_ming_branch_idx - BRANCHES.index(branch)) % 12]
+    natal = {t['star']: t['type'] for t in chart['birth_year_transformations']}
     overlays = []
     for tag, star in zip(FOUR_TYPES, FOUR_TRANSFORMATIONS[stem]):
         target_branch = chart['star_positions'][star]
         overlays.append({
             'type': tag, 'star': star, 'natal_branch': target_branch,
-            'natal_palace': PALACE_NAMES[(natal_ming_branch_idx - BRANCHES.index(target_branch)) % 12],
+            'natal_palace': palace_at(target_branch), 'natal_type': natal.get(star),
         })
     return {
         'system': 'annual-stem-four-transformations', 'lunar_year': request.lunar_year,
         'year_pillar': stem+year_branch, 'natal_ming_palace': chart['ming_palace'],
-        'transformations': overlays, 'school': TRANSFORMATION_SCHOOL,
+        'gregorian_span': _lunar_year_span(request.lunar_year),
+        'year_branch_palace': palace_at(year_branch),
+        'transformations': overlays,
+        'natal_transformations': [{'type': t['type'], 'star': t['star'], 'natal_branch': t['palace'],
+                                   'natal_palace': t['palace_name']} for t in chart['birth_year_transformations']],
+        'school': TRANSFORMATION_SCHOOL,
         'limitations': [
             '农历年干四化叠加至本命盘，非完整流年盘，不包含流年命宫、限运、流曜。',
+            '年支所在的本命宫位只是位置对照；完整的流年命宫与流曜见 ziwei_horoscope 的流年层。',
             '仅展示传统规则及位置，不预测个人当年的事件或结果。',
         ],
     }

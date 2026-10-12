@@ -719,6 +719,10 @@
   "← Previous day",
   "← 前日"
  ],
+ "← 前一年": [
+  "← Previous year",
+  "← 前年"
+ ],
  "← 左右滑动查看完整十二宫 →": [
   "← Swipe sideways to see all twelve palaces →",
   "← 左右にスワイプして十二宮すべてを表示 →"
@@ -1751,6 +1755,10 @@
   "From the month layer's Life palace, the first day first, one palace forward per day; transformations from the day stem",
   "流月の命宮から初一を起こし、一日ごとに一宮ずつ順行。四化は日干から"
  ],
+ "从这一年起看连续年份": [
+  "Consecutive years from this one",
+  "この年からの連続年を見る"
+ ],
  "代表本地时刻": [
   "Representative local time",
   "代表ローカル時刻"
@@ -2319,6 +2327,14 @@
   "Month",
   "月"
  ],
+ "公历起始": [
+  "Gregorian start",
+  "西暦の開始日"
+ ],
+ "公历起止": [
+  "Gregorian dates",
+  "西暦の期間"
+ ],
  "公开参考盘链接": [
   "Public reference chart link",
   "公開参考盤のリンク"
@@ -2495,9 +2511,17 @@
   "First day of the first lunar month",
   "旧暦正月一日"
  ],
+ "农历纪年": [
+  "Lunar year",
+  "旧暦の年"
+ ],
  "农历纪年 ": [
   "Lunar calendar year ",
   "旧暦紀年 "
+ ],
+ "农历纪年须是 1901–2099 之间的整数。": [
+  "The lunar year must be a whole number from 1901 to 2099.",
+  "旧暦の年は 1901–2099 の整数で入力してください。"
  ],
  "冠带": [
   "Guan Dai (Capping)",
@@ -2882,6 +2906,10 @@
  "加密导出失败：": [
   "Encrypted export failed: ",
   "暗号化エクスポート失敗："
+ ],
+ "加框的宫位有该年四化；「年支」是该年地支所在的本命宫。": [
+  "Outlined palaces hold this year's transformations; \"Year branch\" marks the natal palace on the year's earthly branch.",
+  "枠付きの宮にその年の四化があります。「年支」はその年の地支にある本命の宮です。"
  ],
  "劫煞": [
   "Jie Sha",
@@ -3575,6 +3603,10 @@
   "Next day →",
   "翌日 →"
  ],
+ "后一年 →": [
+  "Next year →",
+  "翌年 →"
+ ],
  "后辈、教养与创造性表达": [
   "Juniors, upbringing and creative expression",
   "後輩、養育と創造的な表現"
@@ -3658,6 +3690,10 @@
  "命盘时辰不详，出生当天又在农历年的交界：日子随时辰而定，生年天干可能不同，四化星、各宫宫干和宫干飞化都随时辰而变，暂不列出。": [
   "The birth hour is unknown and the birth date sits on the lunar new year: the day depends on the hour, so the year stem may differ, and the four transformations, the palace stems and their flying transformations all depend on the hour. They are not listed.",
   "出生時刻が不明で、出生日が旧正月の境目にあります。日付が時刻によって変わるため生年の天干が異なる可能性があり、四化星・各宮の宮干・宮干飛化はいずれも時刻次第です。表示しません。"
+ ],
+ "命盘时辰不详，出生当天又在农历年的交界：生年天干可能随时辰不同，生年四化暂不列出。": [
+  "The chart's birth hour is unknown and the birth day falls on a lunar new year boundary: the birth-year stem may depend on the hour, so the birth-year transformations are not listed.",
+  "出生時刻が不明で、出生日が旧暦の年の境目にあります。生年の天干が時刻によって変わりうるため、生年四化は表示しません。"
  ],
  "命盘时辰不详：四化星由生年天干决定，不随时辰变；但它们落在哪一宫、各宫的宫干和宫干飞化都按 12:00 占位时辰排出，会随时辰而变。": [
   "Birth hour unknown: the transformed stars follow the birth-year stem and do not change with the hour, but the palaces they sit in, each palace's stem and the palace-stem flying transformations are placed with the 12:00 placeholder hour and change with the hour.",
@@ -3815,6 +3851,10 @@
   "Back to today",
   "今日に戻る"
  ],
+ "回到今年": [
+  "Back to this year",
+  "今年に戻る"
+ ],
  "回到此刻": [
   "Back to now",
   "現在に戻る"
@@ -3882,6 +3922,10 @@
  "在紫微盘打开 ": [
   "Open on the Zi Wei chart: ",
   "紫微盤で開く："
+ ],
+ "在紫微盘打开该年流年层": [
+  "Open this year's layer on the Zi Wei chart",
+  "紫微盤でこの年の流年層を開く"
  ],
  "地劫": [
   "Di Jie",
@@ -5283,6 +5327,14 @@
   "Year branch",
   "年支"
  ],
+ "年支所在本命宫": [
+  "Natal palace on the year branch",
+  "年支にある本命の宮"
+ ],
+ "年支所在的本命宫位只是位置对照；完整的流年命宫与流曜见 ziwei_horoscope 的流年层。": [
+  "The natal palace on the year branch is only a position for comparison; the full annual Life palace and annual stars are in the year layer of ziwei_horoscope.",
+  "年支にある本命の宮は位置の対照にすぎません。完全な流年命宮と流曜は ziwei_horoscope の流年層を参照してください。"
+ ],
  "年支（生肖）": [
   "Year branch (zodiac)",
   "年支（干支の動物）"
@@ -6211,6 +6263,10 @@
   "None",
   "なし"
  ],
+ "无主星": [
+  "No main star",
+  "主星なし"
+ ],
  "无依据": [
   "No basis",
   "根拠なし"
@@ -6650,6 +6706,10 @@
  "时辰不详：哪些部分不受时辰影响": [
   "Hour unknown: what the hour does not change",
   "時辰不明：時辰に左右されない部分"
+ ],
+ "时辰不详：宫位按 12:00 占位时辰排出，四化星落在哪一宫会随时辰变化。": [
+  "Birth hour unknown: the palaces stand on a 12:00 placeholder hour, so the palace each transformed star falls in changes with the hour.",
+  "時刻不明：宮は 12:00 の仮の時刻で配置しているため、四化星の入る宮は時刻によって変わります。"
  ],
  "时辰不详：宫位按 12:00 占位时辰排出，落宫会随时辰变化。": [
   "Hour unknown: palaces are placed from the 12:00 placeholder, so the landing palaces change with the hour.",
@@ -7183,6 +7243,14 @@
   "Natal analysis",
   "本命分析"
  ],
+ "本命十二宫上的四化": [
+  "Transformations on the natal palaces",
+  "本命十二宮の四化"
+ ],
+ "本命十二宫上的生年四化与该年四化": [
+  "Birth-year and this year's transformations on the natal palaces",
+  "本命十二宮上の生年四化とその年の四化"
+ ],
  "本命十二宫逐年所落的流年四化": [
   "The annual four transformations falling in each natal palace, year by year",
   "本命十二宮に毎年入る流年四化"
@@ -7206,6 +7274,10 @@
  "本命概览": [
   "Natal overview",
   "本命の概要"
+ ],
+ "本命此星": [
+  "This star at birth",
+  "本命でのこの星"
  ],
  "本命盘固定，叠加多个命名农历年的天干四化标签": [
   "Natal chart fixed; overlays the stem Four Transformations labels of multiple named lunar years",
@@ -9315,6 +9387,10 @@
   "in the day void",
   "日空に入る"
  ],
+ "落本命宫": [
+  "Natal palace",
+  "入る本命の宮"
+ ],
  "藏干": [
   "Hidden stems",
   "蔵干"
@@ -9606,6 +9682,18 @@
  "该信息属于传统命盘符号解释，非事实预测；星曜覆盖未完成。": [
   "This information is a symbolic interpretation of a traditional chart, not a factual prediction; star coverage is incomplete.",
   "この情報は伝統的な命盤の象徴的解釈であり、事実の予測ではありません。星の網羅は未完了です。"
+ ],
+ "该宫主星": [
+  "Main stars there",
+  "その宮の主星"
+ ],
+ "该年四化": [
+  "This year's transformations",
+  "その年の四化"
+ ],
+ "该年四化逐项对照": [
+  "This year's transformations, item by item",
+  "その年の四化の一覧"
  ],
  "该报告由确定性规则工具编排生成，展示各步骤来源，不调用外部大语言模型，也不保存到服务器。": [
   "This report is generated by orchestrating deterministic rule tools and shows the source of each step; it does not call an external large language model and is not saved to the server.",

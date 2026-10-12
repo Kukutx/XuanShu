@@ -112,9 +112,36 @@ def test_annual_overlay_preserves_four_transformations(year):
     assert len(annual['transformations'])==4
     assert annual['natal_ming_palace']==z['ming_palace']
     assert {item['type'] for item in annual['transformations']}=={'化禄','化权','化科','化忌'}
+    natal={t['star']:t['type'] for t in z['birth_year_transformations']}
+    by_branch={x['branch']:x['name'] for x in z['palaces']}
     for item in annual['transformations']:
         assert z['star_positions'][item['star']]==item['natal_branch']
-        assert item['natal_palace'] in {x['name'] for x in z['palaces']}
+        assert item['natal_palace']==by_branch[item['natal_branch']]
+        assert item['natal_type']==natal.get(item['star'])
+    assert annual['year_branch_palace']==by_branch[annual['year_pillar'][1]]
+    assert [(t['type'],t['star'],t['natal_palace']) for t in annual['natal_transformations']]==\
+        [(t['type'],t['star'],t['palace_name']) for t in z['birth_year_transformations']]
+    # The named lunar year runs from its 正月初一 to the day before the next one.
+    span=annual['gregorian_span']
+    first=date.fromisoformat(span['start'])
+    assert chinese_lunar_date(first)['year']==year and chinese_lunar_date(first)['month']==1 and chinese_lunar_date(first)['day']==1
+    assert chinese_lunar_date(first-timedelta(days=1))['year']==year-1
+    if year<2099:
+        last=date.fromisoformat(span['end'])
+        assert chinese_lunar_date(last)['year']==year and chinese_lunar_date(last+timedelta(days=1))['year']==year+1
+    else:
+        assert span['end'] is None
+
+
+def test_annual_overlay_names_known_new_year_days_and_a_star_transformed_both_ways():
+    spans={y:annual_transformations(AnnualRequest(birth=BirthInput(**BASE),lunar_year=y))['gregorian_span'] for y in (1984,2023,2026)}
+    assert spans=={1984:{'start':'1984-02-02','end':'1985-02-19'},2023:{'start':'2023-01-22','end':'2024-02-09'},
+                   2026:{'start':'2026-02-17','end':'2027-02-05'}}
+    # 1990 (庚) puts 化忌 on 天同; 2026 (丙) puts 化禄 on it.
+    birth=BirthInput(birth_datetime='1990-05-17T14:30',timezone='Asia/Shanghai',gender='female')
+    annual=annual_transformations(AnnualRequest(birth=birth,lunar_year=2026))
+    lu=next(t for t in annual['transformations'] if t['type']=='化禄')
+    assert (lu['star'],lu['natal_type'])==('天同','化忌')
 
 
 def test_time_audit_has_three_comparable_results():
