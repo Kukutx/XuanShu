@@ -275,10 +275,40 @@ a{color:inherit;text-decoration:none}
 .shensha-where{display:table;cursor:help;border-bottom:1px dotted var(--border-strong);white-space:nowrap}
 .shensha-where + .shensha-where{margin-top:3px}
 .shensha-table td.muted{font-size:12px}
-.five-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
-.five-box{border:1px solid var(--border);padding:12px 6px;text-align:center;background:var(--panel2);border-radius:6px}
-.five-box strong{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:22px;font-weight:500;display:block}
-.five-box span{color:var(--muted);font-size:12px}
+.wuxing{display:grid;grid-template-columns:minmax(0,500px) minmax(0,1fr);grid-template-areas:'figure detail' 'legend detail';gap:6px 18px;align-items:center;margin:4px 0 6px}
+.wuxing-svg{grid-area:figure}.wuxing-detail{grid-area:detail}
+.wuxing-legend{grid-area:legend;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;font-size:12px;color:var(--muted)}
+.wuxing-legend span{display:inline-flex;align-items:center;gap:6px}
+.wuxing-legend i{display:inline-block;width:22px;height:0;border-top:2px solid var(--green)}
+.wuxing-legend i.wx-key-ke{border-top:2px dashed var(--red)}
+.wuxing-legend i.wx-key-master{width:12px;height:12px;border:1.5px dashed var(--gold);border-radius:50%}
+.wuxing-svg{display:block;width:100%;height:auto;overflow:visible}
+.wx-edge path,.wx-edge line{fill:none;stroke-width:1.6;transition:stroke-opacity .15s,stroke-width .15s}
+.wx-sheng path{stroke:var(--green);stroke-opacity:.45}
+.wx-ke line{stroke:var(--red);stroke-opacity:.35;stroke-dasharray:5 4}
+.wx-arrow-sheng{fill:var(--green)}.wx-arrow-ke{fill:var(--red)}
+.wx-edge.is-on path,.wx-edge.is-on line{stroke-opacity:1;stroke-width:2.4}
+.wx-node{cursor:pointer;outline:none}
+.wx-disc{fill:var(--panel2);stroke-width:2.5;transition:stroke-width .15s,fill .15s}
+.wx-el-wood .wx-disc{stroke:var(--wood)}.wx-el-fire .wx-disc{stroke:var(--fire)}.wx-el-earth .wx-disc{stroke:var(--earth)}.wx-el-metal .wx-disc{stroke:var(--metal)}.wx-el-water .wx-disc{stroke:var(--water)}
+.wx-node:hover .wx-disc,.wx-node:focus-visible .wx-disc{stroke-width:4}
+.wx-node:focus-visible .wx-disc{stroke-dasharray:4 3}
+.wx-node.is-focus .wx-disc{fill:var(--accent-soft);stroke-width:4.5}
+.wx-master-ring{fill:none;stroke:var(--gold);stroke-width:1.5;stroke-dasharray:2 3}
+.wx-char{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:24px;font-weight:600;fill:currentColor}
+.wx-node.is-empty .wx-char,.wx-node.is-empty .wx-count{opacity:.55}
+.wx-count{font-size:13px;fill:var(--text2);font-weight:600}
+.wx-group{font-size:15px;fill:var(--muted)}
+.wx-node.is-master .wx-group{fill:var(--gold2);font-weight:600}
+.wuxing-detail{border:1px solid var(--border);border-radius:8px;background:var(--panel2);padding:12px 14px;min-height:150px}
+.wuxing-detail h5{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:0 0 8px;font-size:15px}
+.wuxing-detail h5 b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:24px}
+.wuxing-master{font-size:12px;color:var(--gold2);border:1px solid var(--accent-line);border-radius:999px;padding:1px 8px}
+.wuxing-line{display:grid;grid-template-columns:8.5em 1.4em minmax(0,1fr);gap:0 6px;align-items:baseline;margin:6px 0;font-size:13px;line-height:1.6;color:var(--text2)}
+.wuxing-label{color:var(--muted)}
+.wuxing-line.wuxing-cycle{display:flex;flex-wrap:wrap;gap:0 4px}
+.wuxing-cycle .wuxing-label{flex:0 0 8.5em;margin-right:6px}
+.wuxing-cycle b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:16px;margin:0 2px}
 .element-bars{display:grid;gap:8px;max-width:640px}
 .element-bar{display:grid;grid-template-columns:28px minmax(0,1fr) 80px;gap:10px;align-items:center;font-size:12px}
 .element-bar>b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:16px;font-weight:500;text-align:center}
@@ -818,10 +848,10 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .void-mark{position:static;display:block;width:max-content;margin:2px auto 0}
   .pillar-link-label{font-size:11px}
   .pillar{padding:12px 3px 10px}
-  .pillar-badge{top:4px;right:4px;font-size:11px;padding:0 5px}
+  .pillar-badge{top:-9px;right:auto;left:50%;transform:translateX(-50%);font-size:11px;padding:0 6px;white-space:nowrap}
   .pillar-stem,.pillar-branch{font-size:30px}
   .hidden-stem{font-size:11px}
-  .five-row{gap:4px}
+  .wuxing{grid-template-columns:1fr;grid-template-areas:'figure' 'legend' 'detail'}
   /* The twelve-palace board keeps a readable size and scrolls sideways instead of shrinking. */
   .ziwei-wrap{overflow-x:auto;margin:0 -16px;padding:0 16px 6px}
   .ziwei-board{min-width:580px;gap:4px}

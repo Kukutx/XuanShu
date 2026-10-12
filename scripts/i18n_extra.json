@@ -823,6 +823,10 @@
   "Qi Sha",
   "七殺"
  ],
+ "七杀、正官": [
+  "Qi Sha, Direct Officer (Zheng Guan)",
+  "七殺、正官"
+ ],
  "三会": [
   "Seasonal trio",
   "三会"
@@ -1343,6 +1347,14 @@
   "Five-phase bureau ",
   "五行局 "
  ],
+ "五行生克": [
+  "Five phases: generating and controlling",
+  "五行の相生・相剋"
+ ],
+ "五行生克图": [
+  "Five-phase diagram",
+  "五行の相生相剋図"
+ ],
  "五行计数仅包含四柱明干与地支本气，不代表旺衰或缺失判定": [
   "Element counts include only the visible stems of the four pillars and the main qi of the branches; they do not indicate strength/weakness or missing-element judgments",
   "五行の計数は四柱の表に出た天干と地支の本気のみを含み、旺衰や欠落の判定を示すものではありません"
@@ -1775,9 +1787,17 @@
   "Indirect Resource (Pian Yin)",
   "偏印"
  ],
+ "偏印、正印": [
+  "Indirect Resource (Pian Yin), Direct Resource (Zheng Yin)",
+  "偏印、正印"
+ ],
  "偏财": [
   "Indirect Wealth (Pian Cai)",
   "偏財"
+ ],
+ "偏财、正财": [
+  "Indirect Wealth (Pian Cai), Direct Wealth (Zheng Cai)",
+  "偏財、正財"
  ],
  "停止生成": [
   "Stop",
@@ -2739,6 +2759,10 @@
   "Mao hour 05–07",
   "卯の刻 05–07"
  ],
+ "印星": [
+  "Resource",
+  "印星"
+ ],
  "危": [
   "Wei (Danger)",
   "危"
@@ -3527,6 +3551,10 @@
   "Summer Solstice (Xiazhi)",
   "夏至"
  ],
+ "外圈箭头是相生，内圈虚线是相克；圆的大小和其中的数字是明干与地支本气的个数，圆外是该五行对日主而言的十神类别。点一个五行看它在四柱里的位置和生克关系，方向键可以逐个切换。": [
+  "The outer arrows are the generating cycle and the dashed inner lines the controlling cycle. Each circle's size and number give how many visible stems and branch main qi belong to that phase; outside it is the ten-god group the phase stands for from the Day Master. Select a phase to see where it sits in the four pillars and how it generates and controls; the arrow keys move between phases.",
+  "外側の矢印は相生、内側の破線は相剋です。円の大きさと数字はその五行に属する天干と地支本気の数で、円の外はその五行が日主から見てどの十神に当たるかを示します。五行を選ぶと四柱での位置と生剋の関係が見られ、方向キーで順に切り替えられます。"
+ ],
  "外部命盘导入核对": [
   "Check a chart from other software",
   "外部命盤のインポート照合"
@@ -4046,6 +4074,10 @@
  "官府": [
   "Guan Fu (Officials)",
   "官府"
+ ],
+ "官杀": [
+  "Officer and Killings",
+  "官殺"
  ],
  "官禄": [
   "Career",
@@ -5683,6 +5715,10 @@
   "Time difference",
   "時差"
  ],
+ "时干": [
+  "Hour stem",
+  "時干"
+ ],
  "时干甲寄中五并取旬首六仪；其余以值使原始落宫起局，阴逆阳顺按1–9宫数排九干": [
   "When the hour stem is Jia, it lodges in center 5 and takes the Liu Yi of the xun leader; otherwise the chart starts from the Zhi Shi's original palace, and the nine stems are arranged by palace numbers 1–9, reverse for Yin and forward for Yang",
   "時干が甲の場合は中五に寄せて旬首の六儀を取ります。それ以外は値使の元の落宮から局を起こし、陰遁は逆・陽遁は順に1–9宮の数で九干を配置します"
@@ -5775,6 +5811,10 @@
   "hour unknown, the year this period begins depends on the hour",
   "時刻不明のため、交運年は時刻次第"
  ],
+ "时辰不详，时柱按 12:00 占位，不计入。": [
+  "The hour is unknown: the hour pillar is a 12:00 placeholder and is not counted.",
+  "時刻不明のため、時柱は 12:00 の仮置きで、数に入れていません。"
+ ],
  "时辰不详：出生当天早晚不同，大运也不同": [
   "Hour unknown: the luck pillar differs between early and late in the birth day",
   "時刻不明：誕生日の朝と夜で大運が異なる"
@@ -5846,6 +5886,10 @@
  "明干 + 地支本气 · 五行数量": [
   "Visible stems + branch main qi · Five Element counts",
   "明干 + 地支本気 · 五行の数"
+ ],
+ "明干与地支本气": [
+  "Visible stems and branch main qi",
+  "天干と地支本気"
  ],
  "明年的四化和今年比有什么变化？": [
   "How do next year's transformations differ from this year's?",
@@ -5994,6 +6038,10 @@
  "月喜": [
   "Xi (month)",
   "月の喜"
+ ],
+ "月干": [
+  "Month stem",
+  "月干"
  ],
  "月德贵人": [
   "Yue De Noble",
@@ -6703,9 +6751,17 @@
   "Each segment's representative chart is computed at its midpoint; near boundary endpoints, re-check using the original birth record.",
   "各区間の代表盤は中点で計算します。境界の端点付近では元の出生記録で再確認してください。"
  ],
+ "比劫": [
+  "Peers",
+  "比劫"
+ ],
  "比肩": [
   "Friend (Bi Jian)",
   "比肩"
+ ],
+ "比肩、劫财": [
+  "Friend (Bi Jian), Rob Wealth (Jie Cai)",
+  "比肩、劫財"
  ],
  "比较三种时制 / 相同天文瞬间": [
   "Compare three time standards / same astronomical instant",
@@ -7439,6 +7495,10 @@
   "Target date (annual / monthly / daily)",
   "対象日（流年 / 流月 / 流日）"
  ],
+ "相克": [
+  "Controlling",
+  "相剋"
+ ],
  "相冲": [
   "clash",
   "相冲"
@@ -7450,6 +7510,10 @@
  "相对钟表偏移": [
   "Offset from clock time",
   "時計時刻からのずれ"
+ ],
+ "相生": [
+  "Generating",
+  "相生"
  ],
  "真太阳时": [
   "True solar time",
@@ -8483,6 +8547,10 @@
   "Wealth Palace",
   "財帛宮"
  ],
+ "财星": [
+  "Wealth",
+  "財星"
+ ],
  "财运": [
   "Wealth luck",
   "金運"
@@ -9219,9 +9287,17 @@
   "Fei Lian",
   "飛廉"
  ],
+ "食伤": [
+  "Output",
+  "食傷"
+ ],
  "食神": [
   "Eating God (Shi Shen)",
   "食神"
+ ],
+ "食神、伤官": [
+  "Eating God (Shi Shen), Hurting Officer (Shang Guan)",
+  "食神、傷官"
  ],
  "首尔": [
   "Seoul",
