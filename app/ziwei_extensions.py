@@ -28,6 +28,7 @@ FEILIAN_BY_BRANCH = (8, 9, 10, 5, 6, 7, 2, 3, 4, 11, 0, 1)
 # Brightness by palace branch, 子 to 亥, as indexes into BRIGHTNESS_LEVELS (0 strongest, 6 weakest): the
 # table iztro publishes (data/stars.ts) for the 14 main stars and six minor ones. A dot marks a branch the
 # star never occupies. Schools grade 得, 利 and 平 differently; this is one published table, not the only one.
+# iztro is MIT-licensed (Copyright (c) 2023 All Contributors); its notice is in THIRD_PARTY_NOTICES.md.
 BRIGHTNESS_LEVELS = '庙旺得利平不陷'
 _BRIGHTNESS_CODES = {
     '紫微': '401121001121',

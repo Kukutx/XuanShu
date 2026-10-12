@@ -285,7 +285,10 @@ function applyLoadedLanguage(lang) {
         if (record.target.data !== translateText(uiOriginal.get(record.target) || '')) uiOriginal.set(record.target, record.target.data);
         translateNode(record.target);
       } else if (record.type === 'attributes') {
-        record.target.removeAttribute('data-i18n-' + record.attributeName);
+        // The app set a new value; our own translation of the stored source (already applied while handling the
+        // element's insertion earlier in this batch) is not one.
+        const key = 'data-i18n-' + record.attributeName, value = record.target.getAttribute(record.attributeName);
+        if (!record.target.hasAttribute(key) || value !== translateText(record.target.getAttribute(key))) record.target.removeAttribute(key);
         translateAttrs(record.target);
       } else record.addedNodes.forEach(translateNode);
     }

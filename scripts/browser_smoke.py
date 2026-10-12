@@ -594,6 +594,13 @@ def main() -> None:
             assert all(f'({english[x]})' in panel for x in selected_levels) and not re.search('（[庙旺得利平不陷]）', panel), panel[:300]
             assert '、' not in panel and '；' not in panel, panel[:300]
             page.screenshot(path=str(screenshot_dir / '41-ziwei-brightness-english.png'), full_page=True)
+            # A board drawn while English is active keeps its Chinese source text: the tooltips follow the next switch.
+            page.locator('.palace-btn').nth(1).click()
+            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').title.startsWith('Brightness: ')", timeout=10000)
+            page.locator('#ui-language').select_option('ja')
+            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').title.startsWith('明るさ：')", timeout=10000)
+            page.locator('#ui-language').select_option('zh-CN')
+            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').title.startsWith('亮度：')", timeout=10000)
             page.locator('#ui-language').select_option('ja')
             page.wait_for_function(f"() => {level} === {json.dumps(' '.join(m[0] + (chr(34) + '廟' + chr(34) if m[0] == '庙' else chr(34) + '陥' + chr(34) if m[0] == '陷' else m[1:]) for m in marks))}", timeout=10000)
             page.locator('#ui-language').select_option('zh-CN')

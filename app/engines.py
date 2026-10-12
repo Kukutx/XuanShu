@@ -376,7 +376,7 @@ def calculate_ziwei(inp: BirthInput) -> dict:
             'year_boundary': '农历正月初一',
             'late_zi_day_rollover_in_ziwei': inp.late_zi_day_rollover,
             'leap_month_second_half_as_next': inp.leap_month_second_half_as_next,
-            'star_coverage': '14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派',
+            'star_coverage': '14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派与流曜',
             'brightness_table': '庙旺得利平不陷，十四主星与文昌、文曲、火星、铃星、擎羊、陀罗；用 iztro 公开的亮度表，其他流派的得、利、平可能不同',
             'additional_star_rules': 'iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导',
             'ming_master_basis': '本命命宫地支（与公开示例相符）；其他流派可能用生年地支',
