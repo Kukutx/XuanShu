@@ -4970,31 +4970,184 @@ function renderZiweiPair(z) {
   }));
   z.limitations.forEach(x => note(result, x));
 }
+// One named lunar year at a time: step through the years, see where that year's stem puts 禄权科忌 among the natal
+// palaces beside the birth-year four, and open the full year layer on the Zi Wei board.
+let annualFocus = null;  // the control to focus again once the year asked for has drawn
+// A badge on this page reads by its full name: the glyph alone says 忌 or 年禄 to a screen reader.
+// Where the name is written out beside the badge, the glyph is only drawn.
+function quietBadge(parent, type, year) {
+  const badge = huaBadge(parent, type, year ? 'year' : undefined);
+  badge.title = (year ? '该年' : '生年') + type; badge.setAttribute('aria-hidden', 'true');
+  return badge;
+}
+function annualBadge(parent, type, year) {
+  const badge = quietBadge(parent, type, year);
+  append(parent, 'span', 'visually-hidden', badge.title);
+  return badge;
+}
 function renderAnnual() {
   title(result, '指定农历年干四化', '与本命四化分开显示 · 仅为星曜位置叠加');
   if (!current) {append(result, 'p', 'info-inline', '请先生成出生盘。'); return;}
-  const row = append(result, 'div', 'inline-control');
   ensureTodayLunarYear();
+  const row = append(result, 'div', 'inline-control ay-control');
+  const prev = append(row, 'button', 'tiny-button', '← 前一年'); prev.type = 'button'; prev.id = 'annual-prev';
   const year = createInput('目标农历纪年（1901–2099）', 'number', String(annualDraft ?? defaultLunarYear()), row);
-  year.min='1901'; year.max='2099'; year.id='annual-year'; keepTyped(year);
-  const button = append(row, 'button', null, '查询年干四化'); button.type='button'; button.id='annual-run';
-  const error = append(result, 'p', 'inline-msg');
-  button.addEventListener('click', async () => {
-    annualDraft = Number(year.value);
-    button.disabled=true;
-    try {const data=await postForChart('/api/annual',{birth:readInput(),lunar_year:annualDraft}); if (data!==STALE) {annualResult=data; render();}}
-    catch(e) {error.textContent='查询失败：'+e.message;}
-    finally {button.disabled=false;}
+  year.min = '1901'; year.max = '2099'; year.id = 'annual-year'; keepTyped(year);
+  const next = append(row, 'button', 'tiny-button', '后一年 →'); next.type = 'button'; next.id = 'annual-next';
+  const button = append(row, 'button', null, '查询年干四化'); button.type = 'button'; button.id = 'annual-run';
+  const nowYear = todayLunarYear;
+  let now = null;
+  if (nowYear !== null && annualResult && annualResult.lunar_year !== nowYear) {
+    now = append(row, 'button', 'tiny-button', '回到今年'); now.type = 'button'; now.id = 'annual-now';
+  }
+  const error = append(result, 'p', 'inline-msg'); error.setAttribute('role', 'alert');
+  const typed = () => {const y = numericEntry(year); return Number.isInteger(y) && y >= 1901 && y <= 2099 ? y : null;};
+  // A year typed outside 1901–2099 is refused by the arrows too, rather than stepping from the year shown.
+  const step = delta => year.value.trim() !== '' && typed() === null ? null : base() + delta;
+  const base = () => typed() ?? (annualResult ? annualResult.lunar_year : defaultLunarYear());
+  const edges = () => {prev.disabled = base() <= 1901; next.disabled = base() >= 2099;};
+  edges(); year.addEventListener('input', edges);
+  const run = async (y, focusId) => {
+    if (y === null) {error.textContent = '农历纪年须是 1901–2099 之间的整数。'; return;}
+    annualDraft = y; year.value = String(y); delete typedValues[year.id]; error.textContent = '';
+    [prev, next, button, now].forEach(b => {if (b) b.disabled = true;});
+    try {
+      // The chart shown, not the form: the board below is drawn from it.
+      const data = await postForChart('/api/annual', {birth: currentInput, lunar_year: y});
+      // A reply that lands after the reader moved on to another page or control draws quietly and takes no focus.
+      if (data !== STALE) {
+        annualResult = data;
+        if (active === 'annual') {
+          const at = document.activeElement;
+          annualFocus = focusId && (!at || at === document.body || result.contains(at)) ? focusId : null;
+          render(); announce(data.lunar_year + ' ' + data.year_pillar);
+        }
+      }
+    }
+    catch (e) {error.textContent = '查询失败：' + e.message;}
+    finally {if (prev.isConnected) {button.disabled = false; if (now) now.disabled = false; edges();}}
+  };
+  // The automatic run on opening presses this button from script, and leaves the keyboard where it was.
+  button.addEventListener('click', e => run(typed(), e.isTrusted ? 'annual-run' : null));
+  year.addEventListener('keydown', e => {if (e.key === 'Enter') {e.preventDefault(); run(typed(), 'annual-year');}});
+  prev.addEventListener('click', () => run(step(-1), 'annual-prev'));
+  next.addEventListener('click', () => run(step(1), 'annual-next'));
+  if (now) now.addEventListener('click', () => run(nowYear, 'annual-year'));
+  if (annualFocus) {
+    const target = $('#' + annualFocus); annualFocus = null;
+    (target && !target.disabled ? target : year).focus();
+  }
+  if (!annualResult) {append(result, 'p', 'info-inline', '选择目标农历年，查看其干四化在本命盘星曜中的位置。'); return;}
+  const a = annualResult, z = current.ziwei;
+  // Near the lunar new year an unknown hour can change the birth-year stem, so the birth-year four are left out.
+  const natalOpen = currentHourUnknown && lunarYearOpen(current.bazi, z);
+  const head = append(result, 'div', 'ay-head');
+  const gz = append(head, 'b', 'ay-gz'); gz.dataset.noI18n = '';
+  append(gz, 'span', stemClass(a.year_pillar[0]), a.year_pillar[0]); append(gz, 'span', branchClass(a.year_pillar[1]), a.year_pillar[1]);
+  const facts = append(head, 'dl', 'ay-facts');
+  const fact = (label, ...parts) => {const box = append(facts, 'div'); append(box, 'dt', null, label); return texts(append(box, 'dd'), ...parts);};
+  const yearFact = fact('农历纪年', a.lunar_year);
+  if (a.lunar_year === nowYear) {yearFact.append(' '); append(yearFact, 'small', 'ay-now', '今年'); yearFact.setAttribute('aria-current', 'date');}
+  const span = a.gregorian_span;
+  if (span.end) fact('公历起止', span.start, ' – ', span.end); else fact('公历起始', span.start);
+  const branch = fact('年支', a.year_pillar[1]); branch.dataset.noI18n = '';
+  fact('年支所在本命宫', a.year_branch_palace);
+  append(head, 'span', 'ay-school', a.school);
+  const cards = append(result, 'div', 'transform-grid ay-cards');
+  a.transformations.forEach(t => {
+    const box = append(cards, 'div', 'transform-card ay-card hua-card-' + (HUA_CLASS[t.type] || 'lu'));
+    const type = append(box, 'div', 'transform-type'); quietBadge(type, t.type, true); type.append(' ' + t.type);
+    append(box, 'div', 'transform-star', t.star);
+    append(box, 'div', 'transform-palace', t.natal_palace + ' · ' + t.natal_branch);
+    if (t.natal_type && !natalOpen) {
+      const same = append(box, 'div', 'ay-natal');
+      quietBadge(same, t.natal_type, false); same.append(' '); texts(same, '本命', ' ', t.natal_type);
+    }
   });
-  if (!annualResult) {append(result,'p','info-inline','选择目标农历年，查看其干四化在本命盘星曜中的位置。'); return;}
-  meta(result,[`农历纪年 ${annualResult.lunar_year}`,`年干支 ${annualResult.year_pillar}`, annualResult.school]);
-  const cards=append(result,'div','transform-grid');
-  annualResult.transformations.forEach(t=>{
-    const c=append(cards,'div','transform-card');
-    append(c,'div','transform-type',t.type);append(c,'div','transform-star',t.star);
-    append(c,'div','transform-palace',t.natal_palace+' · '+t.natal_branch);
+  // The natal board in miniature: main stars plus any star carrying a transformation, birth-year badges filled and
+  // this year's outlined, so the two sets read apart by shape and text.
+  const yearHua = new Map(), natalHua = new Map();
+  a.transformations.forEach(t => yearHua.set(t.star, t.type));
+  if (!natalOpen) a.natal_transformations.forEach(t => natalHua.set(t.star, t.type));
+  append(result, 'h4', 'subheading', '本命十二宫上的四化');
+  const board = append(result, 'ul', 'ay-board'); board.id = 'annual-board';
+  board.setAttribute('role', 'list');  // list-style:none drops the list role in Safari
+  board.setAttribute('aria-label', '本命十二宫上的生年四化与该年四化');
+  z.palaces.forEach((p, index) => {
+    const hits = a.transformations.filter(t => t.natal_palace === p.name);
+    const cell = append(board, 'li', 'ay-cell' + (hits.length ? ' has-year' : '') + (p.name === a.year_branch_palace ? ' is-branch' : ''));
+    cell.style.gridRow = String(ZIWEI_CELLS[index][0]); cell.style.gridColumn = String(ZIWEI_CELLS[index][1]);
+    const top = append(cell, 'div', 'ay-cell-head');
+    append(top, 'b', null, p.name.replace('宫', ''));
+    // A palace's stem follows the birth-year stem alone, so only an unsettled birth year hides it.
+    if (!natalOpen) {const at = append(top, 'small', null, p.stem + p.branch); at.dataset.noI18n = '';}
+    const stars = append(cell, 'div', 'ay-stars');
+    const shown = [...p.main_stars, ...p.auxiliary_stars.filter(star => yearHua.has(star) || natalHua.has(star))];
+    if (!shown.length) append(stars, 'span', 'ay-empty', '—');
+    shown.forEach(star => {
+      const holder = append(stars, 'span', 'ay-star' + (yearHua.has(star) ? ' is-year' : ''), star);
+      if (natalHua.has(star)) annualBadge(holder, natalHua.get(star), false);
+      if (yearHua.has(star)) annualBadge(holder, yearHua.get(star), true);
+    });
+    const marks = [p.is_ming && '命', p.is_shen && '身', p.name === a.year_branch_palace && '年支'].filter(Boolean);
+    if (marks.length) {const foot = append(cell, 'div', 'ay-marks'); marks.forEach(m => append(foot, 'span', 'palace-mark' + (m === '年支' ? ' layer-mark' : ''), m));}
   });
-  annualResult.limitations.forEach(t=>note(result,t));
+  const center = append(board, 'li', 'ay-center'); center.setAttribute('aria-hidden', 'true');
+  const big = append(center, 'b', 'ay-gz'); big.dataset.noI18n = '';
+  append(big, 'span', stemClass(a.year_pillar[0]), a.year_pillar[0]); append(big, 'span', branchClass(a.year_pillar[1]), a.year_pillar[1]);
+  append(center, 'small', null, String(a.lunar_year));
+  const sum = append(center, 'div', 'ay-center-hua');
+  a.transformations.forEach(t => {const item = append(sum, 'span'); quietBadge(item, t.type, true); append(item, 'span', null, t.star);});
+  const legend = append(result, 'p', 'field-help ay-legend');
+  if (!natalOpen) {const item = append(legend, 'span'); quietBadge(item, '化禄', false); item.append(' '); append(item, 'span', null, '生年四化');}
+  const item = append(legend, 'span'); quietBadge(item, '化禄', true); item.append(' '); append(item, 'span', null, '该年四化');
+  append(legend, 'span', null, '加框的宫位有该年四化；「年支」是该年地支所在的本命宫。');
+  // The same facts as a table, which is also what a screen reader and a printed page lean on.
+  const wrap = append(result, 'div', 'table-wrap');
+  const table = append(wrap, 'table', 'data-table ay-table'); table.id = 'annual-table';
+  append(table, 'caption', 'visually-hidden', '该年四化逐项对照');
+  const th = append(append(table, 'thead'), 'tr');
+  ['四化', '星曜', '落本命宫', '该宫主星', ...(natalOpen ? [] : ['本命此星'])].forEach(t => {append(th, 'th', null, t).scope = 'col';});
+  const tbody = append(table, 'tbody');
+  a.transformations.forEach(t => {
+    const tr = append(tbody, 'tr');
+    const first = append(tr, 'th'); first.scope = 'row'; quietBadge(first, t.type, true); first.append(' '); append(first, 'span', null, t.type);
+    append(tr, 'td', null, t.star);
+    append(tr, 'td', null, t.natal_palace + ' · ' + t.natal_branch);
+    const palace = z.palaces.find(p => p.name === t.natal_palace);
+    const mains = append(tr, 'td');
+    if (palace && palace.main_stars.length) enumList(mains, palace.main_stars); else mains.textContent = '无主星';
+    if (!natalOpen) append(tr, 'td', null, t.natal_type || '—');
+  });
+  const actions = append(result, 'div', 'ay-actions');
+  const layer = append(actions, 'button', 'tiny-button', '在紫微盘打开该年流年层'); layer.type = 'button'; layer.id = 'annual-open-year';
+  layer.addEventListener('click', () => {
+    ziweiLayer = {mode: 'year', decade: null, year: a.lunar_year, date: null};
+    activateTab(tabs.find(t => t.dataset.tab === 'ziwei'));
+    // The keyboard lands on the palace of the year's branch, the year's own 命宫 on that layer.
+    const node = $('#palace-' + z.palaces.findIndex(p => p.name === a.year_branch_palace));
+    if (node) node.focus();
+    announce('紫微盘已切到 ' + a.lunar_year + ' 年流年层');
+  });
+  // The year-by-year matrix starts here with the number of years chosen there, cut down so it does not pass 2099,
+  // and shows all twelve palaces rather than a palace filter left from before.
+  const fits = n => a.lunar_year + n - 1 <= 2099;
+  if (fits(3)) {
+    const ten = append(actions, 'button', 'tiny-button', '从这一年起看连续年份'); ten.type = 'button'; ten.id = 'annual-timeline';
+    ten.addEventListener('click', () => {
+      const want = Number(typedValues['timeline-years'] ?? timelineDraft.years) || 10;
+      const years = [30, 20, 10, 5, 3].find(n => n <= want && fits(n)) || 3;
+      timelineDraft = {start_lunar_year: a.lunar_year, years, focus_palace: ''}; timelineResult = null;
+      ['timeline-start', 'timeline-years', 'timeline-focus'].forEach(id => delete typedValues[id]);
+      autoOpened.add('timeline');  // run once below, whether or not the page has opened on this chart before
+      const tab = tabs.find(t => t.dataset.tab === 'timeline');
+      activateTab(tab); tab.focus();
+      const go = $('#timeline-run'); if (go) go.click();
+    });
+  }
+  if (natalOpen) append(result, 'p', 'field-help', '命盘时辰不详，出生当天又在农历年的交界：生年天干可能随时辰不同，生年四化暂不列出。');
+  if (currentHourUnknown) append(result, 'p', 'field-help', '时辰不详：宫位按 12:00 占位时辰排出，四化星落在哪一宫会随时辰变化。');
+  a.limitations.forEach(t => note(result, t));
 }
 function renderBirthWindowSection(){
   append(result,'h4','subheading','出生时间误差采样 · 不确定时刻对照');
@@ -5958,8 +6111,9 @@ async function postForChart(url, body) {
   return currentInput === chart && latestPost[url] === ticket ? data : STALE;
 }
 // Tools that need nothing but the chart shown and their settings show their result as soon as they open, once per
-// chart, by pressing their own button; a changed setting still waits for that button. Nothing runs while the birth
-// form holds edits not yet cast, since the buttons read the form rather than the chart shown.
+// chart, by pressing their own button; a changed setting still waits for that button. A tool whose button reads the
+// birth form rather than the chart shown does not run while the form holds edits not yet cast (READS_CHART lists the
+// ones that read the chart and so may run).
 const AUTO_OPEN = {
   annual: ['annual-run', () => annualResult, () => annualDraft !== null || !todayLunarPending],
   timeline: ['timeline-run', () => timelineResult, () => timelineDraft.start_lunar_year !== null || !todayLunarPending],
@@ -5968,6 +6122,7 @@ const AUTO_OPEN = {
   time: ['time-run', () => timeResult, () => readInput().longitude !== null],
   deep: ['deep-run', () => deepResult],
 };
+const READS_CHART = new Set(['annual', 'timeline']);
 let autoOpened = new Set();
 function autoOpen() {
   const [button, shown, possible = () => true] = AUTO_OPEN[active] || [];
@@ -5979,7 +6134,7 @@ function autoOpen() {
     return;
   }
   if (shown() || autoOpened.has(active) || !possible()) return;
-  if (JSON.stringify(readInput()) !== JSON.stringify(currentInput)) return;
+  if (!READS_CHART.has(active) && JSON.stringify(readInput()) !== JSON.stringify(currentInput)) return;
   autoOpened.add(active);
   const tab = active;
   setTimeout(() => {const run = document.getElementById(button); if (active === tab && run && !run.disabled) run.click();});

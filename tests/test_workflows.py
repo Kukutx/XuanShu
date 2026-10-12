@@ -79,7 +79,8 @@ def test_annual_sequence_matches_existing_year_overlay_exactly():
     for entry in timeline['entries']:
         old=annual_transformations(AnnualRequest(birth=request.birth,lunar_year=entry['lunar_year']))
         assert old['year_pillar']==entry['year_pillar']
-        assert old['transformations']==entry['transformations']
+        # The single-year overlay also names the birth-year transformation of the same star.
+        assert [{k: v for k, v in t.items() if k != 'natal_type'} for t in old['transformations']]==entry['transformations']
         assert all(hit['natal_palace']=='命宫' for hit in entry['focus_hits'])
     assert sum(timeline['natal_palace_label_counts'].values())==24
 
