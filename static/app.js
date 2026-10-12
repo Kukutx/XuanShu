@@ -416,8 +416,48 @@ function renderLuckStrip(parent, b) {
   }
   append(box, 'p', 'field-help', '十神按日主看天干。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。');
 }
+// Relations between the four pillars as brackets from the centre of one pillar to the centre of another, stems above
+// the pillars and branches below; the shortest brackets sit next to the pillars. Every bracket carries its label.
+const PILLAR_KEYS = ['year', 'month', 'day', 'hour'];
+function pillarLinks(parent, links, below) {
+  if (!links.length) return null;
+  const rows = [];
+  links.map(l => ({...l})).sort((a, b) => (a.to - a.from) - (b.to - b.from) || a.from - b.from).forEach(l => {
+    let row = rows.find(r => r.every(o => l.to < o.from || l.from > o.to));
+    if (!row) rows.push(row = []);
+    row.push(l);
+  });
+  const box = append(parent, 'div', 'pillar-links' + (below ? ' below' : ''));
+  box.setAttribute('aria-label', below ? '地支关系' : '天干关系');
+  (below ? rows : [...rows].reverse()).forEach(row => {
+    const line = append(box, 'div', 'pillar-link-row');
+    row.forEach(l => {
+      const item = append(line, 'div', 'pillar-link link-' + l.kind);
+      item.style.gridColumn = `${l.from + 1} / ${l.to + 2}`;
+      item.style.setProperty('--n', String(l.to - l.from + 1));
+      append(item, 'span', 'pillar-link-arc');
+      append(item, 'span', 'pillar-link-label', l.label);
+    });
+  });
+  return box;
+}
+function baziLinks(b) {
+  const at = key => PILLAR_KEYS.indexOf(key);
+  const stems = (b.stem_relations || []).filter(x => x.labels.length).map(x => ({from: at(x.a), to: at(x.b),
+    kind: x.labels[0] === '相冲' ? 'clash' : 'combine', label: x.labels.map(l => l === '相冲' ? x.stems.replace('/', '') + '相冲' : l).join('·')}));
+  const branches = b.branch_relations.filter(x => x.labels.length).map(x => ({from: at(x.a), to: at(x.b),
+    kind: LINK_CLASS[x.labels[0]] || 'same', label: x.branches.replace('/', '') + x.labels.join('·')}))
+    .concat((b.branch_groups || []).map(g => {
+      const columns = g.pillars.map(at);
+      return {from: Math.min(...columns), to: Math.max(...columns), kind: 'group',
+        label: g.branches + (g.kind === '三合' ? '三合局' : '三会方') + '（' + g.element + '）'};
+    }));
+  return {stems, branches};
+}
 function renderBazi(b) {
-  title(result, '四柱命式', '太阳节令 · 藏干十神 · 纳音');
+  title(result, '四柱命式', '太阳节令 · 藏干十神 · 纳音 · 星运 · 空亡');
+  const links = baziLinks(b);
+  pillarLinks(result, links.stems, false);
   const grid = append(result, 'div', 'pillar-grid');
   for (const [key, p] of Object.entries(b.pillars)) {
     const box = append(grid, 'div', 'pillar' + (key === 'day' ? ' day-master' : ''));
@@ -425,7 +465,12 @@ function renderBazi(b) {
     append(box, 'div', 'pillar-head', nameMap[key]);
     append(box, 'div', 'pillar-god', p.ten_god_of_stem);
     append(box, 'div', 'pillar-stem ' + elementClass(p.stem_element), p.stem);
-    append(box, 'div', 'pillar-branch ' + elementClass(p.branch_element), p.branch);
+    const branch = append(box, 'div', 'pillar-branch ' + elementClass(p.branch_element), p.branch);
+    // A branch inside the day pillar's or the year pillar's 旬空 is marked on the branch itself.
+    if ((p.void_of || []).length) {
+      const mark = append(branch, 'span', 'void-mark', p.void_of.map(k => k === 'day' ? '日空' : '年空').join('·'));
+      mark.title = p.void_of.map(k => k === 'day' ? '落在日柱旬空' : '落在年柱旬空').join('；');
+    }
     append(box, 'div', 'pillar-sub', p.stem_element + ' / ' + p.branch_element);
     const hidden = append(box, 'div', 'pillar-hidden');
     hidden.setAttribute('aria-label', '藏干');
@@ -433,8 +478,16 @@ function renderBazi(b) {
       const row = append(hidden, 'span', 'hidden-stem');
       append(row, 'b', elementClass(h.element), h.stem); row.append(h.ten_god);
     });
+    if (p.growth_stage) {
+      const stage = append(box, 'div', 'pillar-stage');
+      append(stage, 'span', 'pillar-stage-label', '星运'); append(stage, 'b', null, p.growth_stage);
+      append(stage, 'span', 'pillar-stage-label', '自坐'); append(stage, 'b', null, p.self_stage);
+      const empty = append(box, 'div', 'pillar-stage');
+      append(empty, 'span', 'pillar-stage-label', '空亡'); append(empty, 'b', null, p.xun_kong);
+    }
     append(box, 'div', 'pillar-nayin', '纳音：' + p.na_yin);
   }
+  pillarLinks(result, links.branches, true);
   renderLuckStrip(result, b);
   append(result, 'h4', 'subheading', '明干 + 地支本气 · 五行数量');
   const five = append(result, 'div', 'five-row');
@@ -446,8 +499,11 @@ function renderBazi(b) {
   elementBars(result, b.surface_five_elements, b.hidden_stem_elements_unweighted);
   append(result, 'h4', 'subheading', '地支关系标签与藏干统计');
   const relationBox = append(result, 'div', 'relationship-grid');
+  (b.stem_relations || []).filter(x => x.labels.length).forEach(x => append(relationBox, 'div', 'symbol-tag', `${nameMap[x.a]}·${nameMap[x.b]} ${x.stems} ${x.labels.join(' / ')}`));
   b.branch_relations.filter(x => x.labels.length).forEach(x => append(relationBox, 'div', 'symbol-tag', `${nameMap[x.a]}·${nameMap[x.b]} ${x.branches} ${x.labels.join(' / ')}`));
+  (b.branch_groups || []).forEach(g => append(relationBox, 'div', 'symbol-tag', `${g.pillars.map(k => nameMap[k]).join('·')} ${g.branches} ${g.kind}（${g.element}）`));
   if (!relationBox.childElementCount) append(relationBox, 'p', 'info-inline', '当前四柱无所列特定关系标签');
+  append(result, 'p', 'info-inline', '星运是日主在各柱地支的十二长生，自坐是各柱天干在本柱地支的十二长生（阳干顺行、阴干逆行，火土同宫）；空亡是各柱所在旬余下的两个地支，地支上的「日空」「年空」表示它落在日柱或年柱的旬空里。');
   const cnt = Object.entries(b.hidden_stem_elements_unweighted || {}).map(([n,v]) => `${n}${v}`).join(' · ');
   append(result, 'p', 'info-inline', '藏干元素出现次数（不加权）：' + cnt);
   meta(result, [
@@ -3132,6 +3188,7 @@ $('#share-card').addEventListener('click', openShareCard);
 
 // Calculation cross-check: the summary that scripts/eval_crosscheck.py writes.
 const CROSSCHECK_FIELDS = {lunar: '农历日期', day: '日柱', year: '年柱', month: '月柱', hour: '时柱',
+  growth_stage: '日主十二长生（星运）', xun_kong: '四柱旬空',
   jie_month: '交节前后月柱', jie_year: '立春前后年柱', solar_terms: '节气时刻', moon_phases: '月相时刻',
   ming: '命宫', shen: '身宫', bureau: '五行局', stars: '十四主星落宫', transformations: '生年四化',
   other_stars: '其余辅星、杂曜落宫', cycles: '长生、博士、岁前、将前十二神', brightness: '主星与昌曲、火铃、羊陀庙旺利陷'};

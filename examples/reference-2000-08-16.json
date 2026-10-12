@@ -20,6 +20,9 @@
           "branch_element": "土",
           "ten_god_of_stem": "偏财",
           "na_yin": "白蜡金",
+          "growth_stage": "冠带",
+          "self_stage": "养",
+          "xun_kong": "申酉",
           "hidden_stems": [
             {
               "stem": "戊",
@@ -36,7 +39,8 @@
               "element": "水",
               "ten_god": "正官"
             }
-          ]
+          ],
+          "void_of": []
         },
         "month": {
           "stem": "甲",
@@ -46,6 +50,9 @@
           "branch_element": "金",
           "ten_god_of_stem": "偏印",
           "na_yin": "泉中水",
+          "growth_stage": "病",
+          "self_stage": "绝",
+          "xun_kong": "午未",
           "hidden_stems": [
             {
               "stem": "庚",
@@ -62,6 +69,9 @@
               "element": "土",
               "ten_god": "食神"
             }
+          ],
+          "void_of": [
+            "year"
           ]
         },
         "day": {
@@ -72,6 +82,9 @@
           "branch_element": "火",
           "ten_god_of_stem": "日主",
           "na_yin": "天河水",
+          "growth_stage": "帝旺",
+          "self_stage": "帝旺",
+          "xun_kong": "寅卯",
           "hidden_stems": [
             {
               "stem": "丁",
@@ -83,7 +96,8 @@
               "element": "土",
               "ten_god": "伤官"
             }
-          ]
+          ],
+          "void_of": []
         },
         "hour": {
           "stem": "庚",
@@ -93,6 +107,9 @@
           "branch_element": "木",
           "ten_god_of_stem": "偏财",
           "na_yin": "松柏木",
+          "growth_stage": "长生",
+          "self_stage": "绝",
+          "xun_kong": "午未",
           "hidden_stems": [
             {
               "stem": "甲",
@@ -109,6 +126,9 @@
               "element": "土",
               "ten_god": "食神"
             }
+          ],
+          "void_of": [
+            "day"
           ]
         }
       },
@@ -180,6 +200,49 @@
           "labels": []
         }
       ],
+      "stem_relations": [
+        {
+          "a": "year",
+          "b": "month",
+          "stems": "庚/甲",
+          "labels": [
+            "相冲"
+          ]
+        },
+        {
+          "a": "year",
+          "b": "day",
+          "stems": "庚/丙",
+          "labels": []
+        },
+        {
+          "a": "year",
+          "b": "hour",
+          "stems": "庚/庚",
+          "labels": []
+        },
+        {
+          "a": "month",
+          "b": "day",
+          "stems": "甲/丙",
+          "labels": []
+        },
+        {
+          "a": "month",
+          "b": "hour",
+          "stems": "甲/庚",
+          "labels": [
+            "相冲"
+          ]
+        },
+        {
+          "a": "day",
+          "b": "hour",
+          "stems": "丙/庚",
+          "labels": []
+        }
+      ],
+      "branch_groups": [],
       "time_basis": {
         "mode": "clock",
         "civil_datetime": "2000-08-16T04:00:00+08:00",
@@ -216,7 +279,10 @@
         "day_boundary": "00:00",
         "solar_time_correction": false,
         "time_mode": "clock",
-        "hidden_stems": "本气、中气、余气传统顺序；不含藏干权重"
+        "hidden_stems": "本气、中气、余气传统顺序；不含藏干权重",
+        "growth_stage": "十二长生：阳干顺行、阴干逆行；长生位甲亥、乙午、丙戊寅、丁己酉、庚巳、辛子、壬申、癸卯（火土同宫）",
+        "xun_kong": "旬空：每旬十个干支余下的两个地支；标出落在日柱旬空、年柱旬空里的地支",
+        "stem_relations": "天干五合（甲己、乙庚、丙辛、丁壬、戊癸）与四冲（甲庚、乙辛、丙壬、丁癸），只作标签，不判断合化成败"
       },
       "notes": [
         "五行计数仅包含四柱明干与地支本气，不代表旺衰或缺失判定",

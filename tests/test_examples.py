@@ -20,7 +20,14 @@ def test_expanded_ziwei_preserves_independent_legacy_fixture():
     fixture = json.loads(p.read_text(encoding='utf-8'))
     actual = combined_chart(BirthInput.model_validate(fixture['input']))
     old = fixture['result']
-    assert actual['bazi'] == old['bazi']
+    # Fields added to the BaZi output since (growth stages, voids, stem relations) are allowed; every original one stays.
+    for key, value in old['bazi'].items():
+        if key in ('pillars', 'rules'):
+            for name, item in value.items():
+                expected = actual['bazi'][key][name]
+                assert ({k: expected[k] for k in item} if isinstance(item, dict) else expected) == item, (key, name)
+        else:
+            assert actual['bazi'][key] == value, key
     for key in ('lunar_date','ming_palace','shen_palace','five_elements_bureau','bureau_number',
                 'birth_year_transformations','transformation_school','time_basis'):
         assert actual['ziwei'][key] == old['ziwei'][key], key

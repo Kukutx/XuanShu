@@ -59,7 +59,11 @@ def test_committed_report_matches_its_data():
     assert [d['first'] for d in page['differences']] == [d['first'] for d in days['lunar_month_differences']]
     assert all(d['cause'] in {'forecast', 'old_almanac', 'table'} for d in page['differences'])
     assert [fix['cause'] for fix in page['fixes']] == ['beijing_meridian', 'ziwei_star_tables']
-    assert len(page['daily']) + len(page['ziwei']['rows']) == 19
+    assert len(page['daily']) + len(page['ziwei']['rows']) == 21
+    # Growth stages and voids: lunar_python's own pillars through XuanShu's tables, four per day.
+    for key in ('growth_stage', 'xun_kong'):
+        item = days['pillars_at_noon']['lunar_python.' + key]
+        assert item['mismatches'] == 0 and item['checked'] == 4 * days['pillars_at_noon']['lunar_python.day']['checked']
     assert page['ziwei']['late_zi_month_kept'] == late['iztro_keeps_month']['births']
     # Period layers: every difference from iztro falls in a month where lunar_python's calendar differs.
     horoscope = data['horoscope']
