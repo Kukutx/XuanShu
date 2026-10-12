@@ -767,9 +767,11 @@ function renderZiwei(z) {
     const cycles = p.natal_cycles || {};
     // On the 流年 layer that year's 岁前 takes the place of the natal one.
     const suiqian = live && live.twelve ? live.twelve[index][0] : cycles.natal_suiqian;
-    if (cycles.changsheng || cycles.boshi) {
-      const line = append(node, 'div', 'palace-cycles', [cycles.changsheng, cycles.boshi].filter(Boolean).join(' · '));
-      if (suiqian) {line.append(' · '); append(line, 'span', live && live.twelve ? 'layer-cycle' : null, suiqian);}
+    // 长生 and 博士 need a gender; 岁前 follows the year branch alone, so it shows either way.
+    const gendered = [cycles.changsheng, cycles.boshi].filter(Boolean);
+    if (gendered.length || suiqian) {
+      const line = append(node, 'div', 'palace-cycles', gendered.join(' · '));
+      if (suiqian) {if (gendered.length) line.append(' · '); append(line, 'span', live && live.twelve ? 'layer-cycle' : null, suiqian);}
     }
     const foot = append(node, 'div', 'palace-foot');
     const marks = append(foot, 'span');

@@ -327,6 +327,18 @@ def main() -> None:
             page.locator('#share-bazi').uncheck()
             assert page.evaluate("document.querySelector('#share-canvas').height") < full
             page.locator('#share-close').click()
+            # Without a gender there is no 长生 or 博士, but the year's own 岁前 still marks every palace.
+            page.locator('#gender').select_option('unspecified')
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => current && current.ziwei && current.ziwei.palaces.every(p => !p.natal_cycles.changsheng)", timeout=30000)
+            page.locator('[data-tab="ziwei"]').click()
+            page.locator('#ziwei-layer-year').click()
+            assert page.locator('#ziwei-board .layer-cycle').count() == 12
+            page.locator('#ziwei-layer-natal').click()
+            assert page.locator('#ziwei-board .palace-cycles').count() == 12
+            page.locator('#gender').select_option('female')
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => current && current.ziwei && current.ziwei.palaces.some(p => p.natal_cycles.changsheng)", timeout=30000)
 
             # Calculation cross-check: the committed evaluation summary in a dialog.
             page.locator('#crosscheck-open').click()
