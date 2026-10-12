@@ -1818,7 +1818,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix'].includes(active)) render();});
+document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report'].includes(active)) render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -5093,10 +5093,26 @@ function reportMarkdownSection(markdown, heading) {
   const end = lines.findIndex((line, i) => i > start && line.startsWith('## '));
   return lines.slice(start, end < 0 ? undefined : end).join('\n').trim();
 }
+// A copy that the browser refuses (no clipboard on a plain-http address, say) selects the text instead.
+async function reportCopy(button, label, text, region, done) {
+  try {await navigator.clipboard.writeText(text); label.textContent = done; announce(calT(done));}
+  catch (_) {
+    const range = document.createRange(); range.selectNodeContents(region);
+    const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
+    label.textContent = '已选中文字，请按 Ctrl+C 复制'; announce(calT('已选中文字，请按 Ctrl+C 复制'));
+  }
+  clearTimeout(button.xsReset);
+  button.xsReset = setTimeout(() => {if (label.isConnected) label.textContent = label.dataset.idle;}, 2500);
+}
+// With the hour unknown the report stands on the 12:00 placeholder, so the copies say so first.
+const REPORT_HOUR_NOTE = '命盘时辰不详：本报告按 12:00 占位时辰计算，时柱、命宫、身宫与紫微十二宫都不可靠。';
+const reportMarkdown = r => (r.xsHourUnknown ? '> ' + REPORT_HOUR_NOTE + '\n\n' : '') + r.markdown;
 function renderReport() {
   title(result, '可追溯综合报告', '独立八字、紫微计算 → 可选年干四化和太阳时审计 → Markdown');
   if (!current) {append(result,'p','info-inline','请先生成出生盘，再生成综合报告。');return;}
-  const input = readInput();
+  // The report is for the chart shown, like the other tools: its guards follow that chart, and a changed birth
+  // form takes effect when the chart is cast again.
+  const input = currentInput;
   // The settings are left out of print, which keeps only the report itself.
   const setup = append(result, 'div', 'rp-setup');
   append(setup, 'h4', 'subheading', '报告内容');
@@ -5108,9 +5124,11 @@ function renderReport() {
   const card = (id, what) => {
     const box = append(modules, 'div', 'rp-module'); box.id = id;
     const headLine = append(box, 'div', 'rp-module-head');
-    append(box, 'p', 'rp-module-what', what);
-    return {box, headLine};
+    append(box, 'p', 'rp-module-what', what).id = id + '-what';
+    return {box, headLine, what: id + '-what'};
   };
+  // Each switch or field is described by what its card adds and, when shown, what it still needs.
+  const describe = (control, ...ids) => control.setAttribute('aria-describedby', ids.join(' '));
   const check = (headLine, id, name, on) => {
     const label = append(headLine, 'label', 'rp-switch');
     const box = append(label, 'input'); box.type = 'checkbox'; box.id = id; box.checked = on;
@@ -5119,46 +5137,55 @@ function renderReport() {
   };
   const annual = card('report-module-annual', '把所选农历年的年干四化落到本命十二宫；留空不叠加。');
   append(annual.headLine, 'b', null, '农历年干四化叠加');
-  const yearRow = append(annual.box, 'div', 'rp-module-fields');
+  const yearRow = append(annual.box, 'div', 'rp-module-fields inline-control');
   const year = createInput('农历年', 'number', reportDraft.lunar_year === null ? '' : String(reportDraft.lunar_year), yearRow);
-  year.min = '1901'; year.max = '2099'; year.id = 'report-year'; year.placeholder = '留空不叠加';
+  year.min = '1901'; year.max = '2099'; year.id = 'report-year'; year.placeholder = '留空不叠加'; describe(year, annual.what);
   const thisYear = append(yearRow, 'button', 'tiny-button', '今年'); thisYear.type = 'button'; thisYear.id = 'report-year-now';
   const timeCard = card('report-module-time', '同一出生资料按钟表时间、平太阳时、真太阳时各排一次，列出四柱和命宫的差别。');
   const audit = check(timeCard.headLine, 'report-audit', '三套时制审计', reportDraft.include_time_audit && input.longitude !== null);
+  describe(audit, timeCard.what);
+  // Without a longitude the box stays focusable, so the reason is read with it, but cannot be ticked.
   if (input.longitude === null) {
-    audit.disabled = true; timeCard.box.classList.add('is-blocked');
-    append(timeCard.box, 'p', 'rp-module-need', '出生资料没有经度，太阳时算不出来；在出生资料里选城市或填经度后再勾选。');
+    audit.setAttribute('aria-disabled', 'true'); timeCard.box.classList.add('is-blocked');
+    audit.addEventListener('click', e => e.preventDefault());
+    append(timeCard.box, 'p', 'rp-module-need', '当前命盘没有经度，太阳时算不出来；在出生资料里选城市或填经度，重新生成命盘后再勾选。').id = 'report-module-time-need';
+    describe(audit, timeCard.what, 'report-module-time-need');
   }
-  const luckCard = card('report-module-dayun', '按年干阴阳与性别（或手动指定）排出十步大运和起运年龄。');
+  const luckCard = card('report-module-dayun', '按年干阴阳与性别（或手动指定）定顺逆，报告列出起运年龄和前六步大运干支。');
   const dy = check(luckCard.headLine, 'report-dayun', '十年干支大运', reportDraft.include_dayun);
-  const dyRow = append(luckCard.box, 'div', 'rp-module-fields');
+  const dyRow = append(luckCard.box, 'div', 'rp-module-fields inline-control');
   const dyLabel = append(dyRow, 'label', null, '大运方向');
   const dyselect = append(dyLabel, 'select'); dyselect.id = 'report-dayun-direction';
   [['', '自动'], ['forward', '顺排'], ['reverse', '逆排']].forEach(([v, t]) => {const op = append(dyselect, 'option', null, t); op.value = v;});
   dyselect.value = reportDraft.dayun_direction_override;
-  const dyNeed = append(luckCard.box, 'p', 'rp-module-need', '出生资料没有性别：自动方向排不出，请填性别或在这里选顺排、逆排。');
+  const dyNeed = append(luckCard.box, 'p', 'rp-module-need', '当前命盘没有性别：自动方向排不出，请在这里选顺排、逆排，或填性别后重新生成命盘。'); dyNeed.id = 'report-module-dayun-need';
+  describe(dy, luckCard.what, dyNeed.id); describe(dyselect, luckCard.what, dyNeed.id);
   const boundaryCard = card('report-module-boundary', '在出生时刻前后若干分钟内找出四柱、命宫等会变的切换点；留空不包含。');
   append(boundaryCard.headLine, 'b', null, '出生时刻临界地图');
-  const bdRow = append(boundaryCard.box, 'div', 'rp-module-fields');
+  const bdRow = append(boundaryCard.box, 'div', 'rp-module-fields inline-control');
   const bd = createInput('前后分钟数（1–120）', 'number', String(reportDraft.birth_boundary_minutes), bdRow);
-  bd.id = 'report-boundary-radius'; bd.min = '1'; bd.max = '120'; bd.placeholder = '留空不包含';
-  const deepCard = card('report-module-deep', '每条观察附上计算字段、规则编号和适用边界，并做八字与紫微的交叉核查。');
+  bd.id = 'report-boundary-radius'; bd.min = '1'; bd.max = '120'; bd.placeholder = '留空不包含'; describe(bd, boundaryCard.what);
+  const deepCard = card('report-module-deep', '加入八字与紫微的可追溯观察和交叉核查；每条观察依据的字段、规则编号和适用边界在 JSON 数据页里。');
   const evidenceBox = check(deepCard.headLine, 'report-deep', '证据溯源与跨体系复核', reportDraft.include_deep_evidence);
-  const actions = append(setup, 'div', 'rp-run');
+  describe(evidenceBox, deepCard.what);
+  const actions = append(setup, 'div', 'rp-run inline-control');
   const go = append(actions, 'button', null, '生成综合报告'); go.type = 'button'; go.id = 'report-run';
   const plan = append(actions, 'span', 'rp-plan'); plan.id = 'report-plan';
-  const error = append(setup, 'p', 'inline-msg');
+  const error = append(setup, 'p', 'inline-msg'); error.setAttribute('role', 'alert');
   // The cards light up as they are switched on, and the step count follows: two charts and the quality audit,
   // then one step per optional part.
   const refresh = () => {
     const needsDirection = dy.checked && input.gender === 'unspecified' && !dyselect.value;
     dyNeed.hidden = !needsDirection;
     luckCard.box.classList.toggle('is-blocked', needsDirection);
-    const on = {annual: year.value.trim() !== '', time: audit.checked, dayun: dy.checked, boundary: bd.value.trim() !== '', deep: evidenceBox.checked};
+    // A part that cannot run is not counted as a step.
+    const on = {annual: year.value.trim() !== '', time: audit.checked, dayun: dy.checked && !needsDirection, boundary: bd.value.trim() !== '', deep: evidenceBox.checked};
     [[annual, on.annual], [timeCard, on.time], [luckCard, on.dayun], [boundaryCard, on.boundary], [deepCard, on.deep]].forEach(([c, v]) => c.box.classList.toggle('is-on', v));
     plan.replaceChildren(); texts(plan, '将运行', ' ', 3 + Object.values(on).filter(Boolean).length, ' ', '个计算步骤');
     // Choices are kept as they are made, so another redraw does not undo them.
-    Object.assign(reportDraft, {lunar_year: year.value.trim() === '' ? null : Number(year.value), include_time_audit: audit.checked, include_dayun: dy.checked,
+    // A box that cannot be ticked for this chart keeps the earlier choice for the next chart.
+    Object.assign(reportDraft, {lunar_year: year.value.trim() === '' ? null : Number(year.value),
+      include_time_audit: input.longitude === null ? reportDraft.include_time_audit : audit.checked, include_dayun: dy.checked,
       include_deep_evidence: evidenceBox.checked, dayun_direction_override: dyselect.value, birth_boundary_minutes: bd.value.trim()});
   };
   [year, bd].forEach(x => x.addEventListener('input', refresh));
@@ -5166,18 +5193,20 @@ function renderReport() {
   thisYear.addEventListener('click', () => {year.value = String(defaultLunarYear()); refresh();});
   refresh();
   go.addEventListener('click',async()=>{
-    if (audit.checked && readInput().longitude===null){error.textContent='时制审计必须填写出生地经度。';return;}
+    if (audit.checked && input.longitude===null){error.textContent='时制审计必须填写出生地经度。';return;}
     const value=year.value.trim();
     const lunar_year=value===''?null:Number(value);
     const boundary_minutes=bd.value.trim()===''?null:Number(bd.value);
     if(boundary_minutes!==null && (!Number.isInteger(boundary_minutes)||boundary_minutes<1||boundary_minutes>120)){
       error.textContent='临界地图分钟数必须为1–120整数';return;
     }
-    if(dy.checked && readInput().gender==='unspecified' && !dyselect.value){error.textContent='大运方向需要指定性别或手动顺逆';return;}
+    if(dy.checked && input.gender==='unspecified' && !dyselect.value){error.textContent='大运方向需要指定性别或手动顺逆';return;}
     go.disabled=true;error.textContent='';
-    try {reportResult=await postJSON('/api/report',{birth:readInput(),lunar_year,
+    const hourUnknown = currentHourUnknown;
+    try {reportResult=await postJSON('/api/report',{birth:input,lunar_year,
       include_time_audit:audit.checked,include_dayun:dy.checked,include_deep_evidence:evidenceBox.checked,
-      dayun_direction_override:dyselect.value||null,birth_boundary_minutes:boundary_minutes});render();
+      dayun_direction_override:dyselect.value||null,birth_boundary_minutes:boundary_minutes});
+      reportResult.xsHourUnknown = hourUnknown; reportResult.xsBirth = input; render();
       const top = $('#report-doc'); if (top) top.focus();}
     catch(e){error.textContent='生成失败：'+e.message;}
     finally{go.disabled=false;}
@@ -5194,14 +5223,17 @@ function renderReport() {
     const cell = append(pillars, 'div', 'rp-pillar' + (i === 2 ? ' is-master' : ''));
     append(cell, 'small', null, name);
     const gz = append(cell, 'b'); gz.dataset.noI18n = '';
+    if (i === 3 && r.xsHourUnknown) {append(gz, 'span', 'muted', '?'); append(gz, 'span', 'muted', '?'); cell.title = calT('时辰不详'); return;}
     append(gz, 'span', stemClass(r.overview.pillars[i][0]), r.overview.pillars[i][0]); append(gz, 'span', branchClass(r.overview.pillars[i][1]), r.overview.pillars[i][1]);
   });
   const facts = append(head, 'div', 'rp-head-facts');
   const fact = (label, value, glyph) => {const p = append(facts, 'p'); append(p, 'span', 'muted', label); const b = append(p, 'b'); if (glyph) {b.dataset.noI18n = ''; append(b, 'span', glyph, value);} else b.textContent = value;};
   fact('日主', r.overview.day_master, stemClass(r.overview.day_master));
-  fact('命宫', r.overview.ming_palace, branchClass(r.overview.ming_palace));
-  fact('身宫', r.overview.shen_palace, branchClass(r.overview.shen_palace));
-  meta(head, [r.system + ' ' + r.version, `${r.tool_trace.length} 次计算步骤`]);
+  fact('命宫', r.xsHourUnknown ? '?' : r.overview.ming_palace, r.xsHourUnknown ? 'muted' : branchClass(r.overview.ming_palace));
+  fact('身宫', r.xsHourUnknown ? '?' : r.overview.shen_palace, r.xsHourUnknown ? 'muted' : branchClass(r.overview.shen_palace));
+  const birth = r.xsBirth || {};
+  meta(head, [(birth.birth_datetime || '').replace('T', ' ') + ' · ' + (birth.timezone || ''), r.system + ' ' + r.version, `${r.tool_trace.length} 次计算步骤`]);
+  if (r.xsHourUnknown) append(head, 'p', 'rp-hour-note', REPORT_HOUR_NOTE).id = 'report-hour-note';
   // The steps the server ran, in order, each named by its tool.
   const trace = append(doc, 'ol', 'rp-trace'); trace.id = 'report-trace'; trace.setAttribute('aria-label', '计算步骤');
   r.tool_trace.forEach(step => {
@@ -5218,19 +5250,20 @@ function renderReport() {
   r.sections.forEach((section, i) => {
     const link = append(append(tocList, 'li'), 'a', null, section.title); link.href = '#report-sec-' + i;
     const panel = append(body, 'section', 'rp-section'); panel.id = 'report-sec-' + i; panel.tabIndex = -1;
-    const heading = append(panel, 'h4', 'rp-section-title');
-    append(heading, 'span', 'rp-section-n', String(i + 1)); append(heading, 'span', null, section.title);
-    const copy = append(heading, 'button', 'tiny-button rp-copy', '复制本节'); copy.type = 'button'; copy.id = 'report-copy-' + i;
-    copy.setAttribute('aria-label', calT('复制本节') + ' ' + calT(section.title));
-    copy.addEventListener('click', async () => {
-      try {await navigator.clipboard.writeText(reportMarkdownSection(r.markdown, section.title)); copy.textContent = '已复制';}
-      catch (_) {copy.textContent = '复制失败';}
-    });
+    panel.setAttribute('aria-labelledby', 'report-sec-' + i + '-title');
+    const headRow = append(panel, 'div', 'rp-section-head');
+    const heading = append(headRow, 'h4', 'rp-section-title');
+    append(heading, 'span', 'rp-section-n', String(i + 1)); append(heading, 'span', null, section.title).id = 'report-sec-' + i + '-title';
+    const copy = append(headRow, 'button', 'tiny-button rp-copy'); copy.type = 'button'; copy.id = 'report-copy-' + i;
+    const copyLabel = append(copy, 'span', null, '复制本节'); copyLabel.dataset.idle = '复制本节';
+    copy.append(' '); append(copy, 'span', 'visually-hidden', section.title);
+    copy.addEventListener('click', () => reportCopy(copy, copyLabel, reportMarkdownSection(r.markdown, section.title), panel, '已复制'));
     const ul = append(panel, 'ul', 'rp-facts');
     section.facts.forEach(f => append(ul, 'li', null, f));
+    // Module names read as code; anything else in the sources (a published note, a document) as text.
     const source = append(panel, 'p', 'rp-source');
-    append(source, 'span', 'muted', '计算来源');
-    section.provenance.split(' / ').forEach(part => append(source, 'code', null, part.trim()));
+    append(source, 'span', 'muted', '来源');
+    section.provenance.split(' / ').forEach(part => {const text = part.trim(); append(source, /^[\w]+(\.[\w]+)+$/.test(text) ? 'code' : 'span', 'rp-source-part', text);});
   });
   // Moving through the contents keeps the keyboard with the section it opens.
   toc.addEventListener('click', e => {
@@ -5242,12 +5275,10 @@ function renderReport() {
   });
   const tools = append(result, 'div', 'rp-actions');
   const download=append(tools,'button','tiny-button','下载 Markdown 报告 ↓');download.type='button';download.id='report-download';
-  download.addEventListener('click',()=>downloadBlob(new Blob([r.markdown],{type:'text/markdown;charset=utf-8'}),'xuanshu-report.md'));
-  const copyAll = append(tools, 'button', 'tiny-button', '复制全文 Markdown'); copyAll.type = 'button'; copyAll.id = 'report-copy';
-  copyAll.addEventListener('click', async () => {
-    try {await navigator.clipboard.writeText(r.markdown); copyAll.textContent = '已复制全文';}
-    catch (_) {copyAll.textContent = '复制失败';}
-  });
+  download.addEventListener('click',()=>downloadBlob(new Blob([reportMarkdown(r)],{type:'text/markdown;charset=utf-8'}),'xuanshu-report.md'));
+  const copyAll = append(tools, 'button', 'tiny-button'); copyAll.type = 'button'; copyAll.id = 'report-copy';
+  const copyAllLabel = append(copyAll, 'span', null, '复制全文 Markdown'); copyAllLabel.dataset.idle = '复制全文 Markdown';
+  copyAll.addEventListener('click', () => reportCopy(copyAll, copyAllLabel, reportMarkdown(r), doc, '已复制全文'));
   const printIt = append(tools, 'button', 'tiny-button', '打印 / 存为 PDF'); printIt.type = 'button'; printIt.id = 'report-print';
   printIt.addEventListener('click', () => window.print());
   r.limitations.forEach(x=>note(result,x));

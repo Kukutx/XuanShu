@@ -2774,6 +2774,10 @@ const UI_EXTRA = {
 "Li Shi",
 "力士"
 ],
+"加入八字与紫微的可追溯观察和交叉核查；每条观察依据的字段、规则编号和适用边界在 JSON 数据页里。": [
+"Adds traceable BaZi and Zi Wei observations and a cross-check between the two; the fields, rule IDs and limits behind each observation are on the JSON data page.",
+"八字と紫微の追跡可能な所見と相互チェックを加えます。各所見の根拠となるフィールド、ルール番号、適用範囲は JSON データページにあります。"
+],
 "加入大运时间轴": [
 "Add the luck timeline",
 "大運タイムラインを加える"
@@ -3517,6 +3521,10 @@ const UI_EXTRA = {
 "命盘时辰不详：四化星由生年天干决定，不随时辰变；但它们落在哪一宫、各宫的宫干和宫干飞化都按 12:00 占位时辰排出，会随时辰而变。": [
 "Birth hour unknown: the transformed stars follow the birth-year stem and do not change with the hour, but the palaces they sit in, each palace's stem and the palace-stem flying transformations are placed with the 12:00 placeholder hour and change with the hour.",
 "出生時刻不明：四化星は生年の天干で決まり時刻では変わりませんが、どの宮に入るか、各宮の宮干と宮干飛化は 12:00 の仮の時刻で配置しており、時刻によって変わります。"
+],
+"命盘时辰不详：本报告按 12:00 占位时辰计算，时柱、命宫、身宫与紫微十二宫都不可靠。": [
+"Birth hour unknown: this report is computed with a 12:00 placeholder hour, so the hour pillar, Life Palace, Body Palace and the twelve Zi Wei palaces are not reliable.",
+"出生時刻不明：このレポートは 12:00 の仮の時刻で計算しているため、時柱・命宮・身宮・紫微十二宮は信頼できません。"
 ],
 "命盘时辰不详：本页按 12:00 占位时辰计算，时柱、宫位和时辰交界都不可靠，所以打开时不自动计算。": [
 "Birth hour unknown: this page would work from the 12:00 placeholder, so the hour pillar, palaces and hour boundaries are unreliable, and nothing is computed on opening.",
@@ -5266,6 +5274,14 @@ const UI_EXTRA = {
 "Current chart",
 "現在の命盤"
 ],
+"当前命盘没有性别：自动方向排不出，请在这里选顺排、逆排，或填性别后重新生成命盘。": [
+"The current chart has no gender, so the direction cannot be set automatically. Choose forward or reverse here, or fill in the gender and cast the chart again.",
+"現在の命盤には性別がないため、方向を自動で決められません。ここで順行・逆行を選ぶか、性別を入力して命盤を作り直してください。"
+],
+"当前命盘没有经度，太阳时算不出来；在出生资料里选城市或填经度，重新生成命盘后再勾选。": [
+"The current chart has no longitude, so solar time cannot be computed. Pick a city or enter a longitude in the birth details, cast the chart again, then tick this.",
+"現在の命盤には経度がないため、太陽時を計算できません。出生情報で都市を選ぶか経度を入力し、命盤を作り直してからチェックしてください。"
+],
 "当前命盘的出生时间晚于此刻，不列个人对照。": [
 "The current chart's birth time is later than this moment, so no personal comparison is shown.",
 "現在の命盤の出生時刻はこの時点より後のため、個人対照は表示しません。"
@@ -5709,6 +5725,10 @@ const UI_EXTRA = {
 "按宫列表": [
 "By palace",
 "宮ごとの一覧"
+],
+"按年干阴阳与性别（或手动指定）定顺逆，报告列出起运年龄和前六步大运干支。": [
+"Sets the direction from the year stem's yin or yang and the gender (or by hand); the report lists the starting age and the first six luck pillars.",
+"年干の陰陽と性別（または手動指定）で順逆を決め、レポートに起運年齢と最初の六つの大運干支を載せます。"
 ],
 "按年干阴阳与性别（或手动指定）排出十步大运和起运年龄。": [
 "Lays out ten luck pillars and the starting age from the year stem's yin or yang and the gender (or a direction you choose).",

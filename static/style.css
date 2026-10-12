@@ -152,7 +152,7 @@ a{color:inherit;text-decoration:none}
 .tiny-button:disabled{opacity:.5;cursor:not-allowed}
 
 /* ---- workspace ---- */
-.workspace{min-height:700px;overflow:hidden}
+.workspace{min-width:0;min-height:700px;overflow:hidden;overflow:clip}
 .workspace-top{padding:20px 26px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .toolbar button:disabled{opacity:.5;cursor:not-allowed}
@@ -1337,20 +1337,22 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .rp-modules{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .rp-module{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);transition:border-color .15s,box-shadow .15s}
 .rp-module.is-on{border-color:var(--gold);box-shadow:inset 3px 0 0 var(--gold)}
-.rp-module.is-blocked{border-color:var(--warn-line);box-shadow:inset 3px 0 0 var(--warn)}
+.rp-module.is-blocked{border-color:var(--warn-line);border-style:dashed;box-shadow:none}
 .rp-module-head{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text)}
 .rp-switch{display:flex;align-items:center;gap:8px;cursor:pointer}
 .rp-switch input{width:18px;height:18px;accent-color:var(--gold);margin:0}
-.rp-switch input:disabled+b{color:var(--muted)}
+.rp-switch input:disabled+b,.rp-switch input[aria-disabled="true"]+b{color:var(--muted)}
+.rp-switch:has(input[aria-disabled="true"]){cursor:not-allowed}
 .rp-module-what{margin:0;font-size:12px;line-height:1.6;color:var(--muted)}
 .rp-module-need{margin:0;font-size:12px;line-height:1.6;color:var(--warn)}
 .rp-module-fields{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
 .rp-module-fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--text2)}
-.rp-module-fields input{width:130px}
+.rp-module-fields.inline-control{margin:0}
+.rp-module-fields.inline-control input{width:150px}
 .rp-run{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 4px}
 .rp-plan{font-size:13px;color:var(--text2)}
-.rp-doc{margin:16px 0 8px;border:1px solid var(--border);border-radius:12px;background:var(--panel);overflow:hidden}
-.rp-doc:focus{outline:2px solid var(--gold);outline-offset:2px}
+.rp-doc{margin:16px 0 8px;border:1px solid var(--border);border-radius:12px;background:var(--panel);overflow:hidden;overflow:clip}
+.rp-doc:focus{outline:none}.rp-doc:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .rp-head{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border);background:linear-gradient(var(--accent-soft),var(--accent-soft)),var(--panel2)}
 .rp-head h3{grid-column:1/-1;margin:0;font-size:18px;color:var(--gold2)}
 .rp-head .meta-tags{grid-column:1/-1;margin:0}
@@ -1368,22 +1370,25 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .rp-step-n{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:999px;background:var(--panel3);font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
 .rp-step.is-done .rp-step-n{background:var(--green);color:var(--panel)}
 .rp-layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:0}
-.rp-toc{position:sticky;top:70px;align-self:start;padding:14px 12px 14px 18px;font-size:13px}
+.rp-toc{position:sticky;top:12px;align-self:start;padding:14px 12px 14px 18px;font-size:13px}
 .rp-toc>b{display:block;margin-bottom:6px;font-size:12px;color:var(--muted)}
 .rp-toc ol{margin:0;padding-left:20px;display:grid;gap:5px}
 .rp-toc a{color:var(--text2);text-decoration:none}
 .rp-toc a:hover,.rp-toc a:focus-visible{color:var(--gold2);text-decoration:underline}
 .rp-body{display:grid;gap:10px;padding:14px 18px 16px;border-left:1px solid var(--border)}
-.rp-section{padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);scroll-margin:80px}
-.rp-section:focus{outline:2px solid var(--gold);outline-offset:2px}
-.rp-section-title{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:15px;color:var(--text)}
+.rp-section{padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);scroll-margin:16px}
+.rp-section:focus{outline:none}.rp-section:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.rp-section-head{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+.rp-section-title{display:flex;align-items:center;gap:8px;margin:0;font-size:15px;color:var(--text)}
 .rp-section-n{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:999px;border:1px solid var(--gold);font-size:12px;font-weight:700;color:var(--gold2);font-variant-numeric:tabular-nums}
-.rp-copy{margin-left:auto;font-size:12px}
+.rp-copy{margin-left:auto;font-size:12px;white-space:nowrap}
 .rp-facts{margin:0;padding-left:20px;display:grid;gap:4px;font-size:13px;line-height:1.7;color:var(--text2)}
 .rp-source{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:10px 0 0;font-size:12px}
-.rp-source code{font-size:11px}
+.rp-source code{font-size:11px;padding:1px 6px;border-radius:4px;background:var(--panel3)}
+.rp-source span.rp-source-part{color:var(--text2)}
+.rp-hour-note{grid-column:1/-1;margin:0;font-size:13px;color:var(--warn)}
 .rp-actions{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
-@media(max-width:860px){.rp-layout{grid-template-columns:1fr}.rp-toc{position:static;border-bottom:1px solid var(--border)}.rp-toc ol{display:flex;flex-wrap:wrap;gap:4px 14px;padding-left:18px}.rp-body{border-left:0}}
+@media(max-width:860px){.rp-layout{grid-template-columns:1fr}.rp-toc{position:static;border-bottom:1px solid var(--border)}.rp-toc ol{display:flex;flex-wrap:wrap;gap:4px 18px;padding-left:0;list-style-position:inside}.rp-body{border-left:0}}
 @media(max-width:640px){.rp-head{grid-template-columns:1fr}.rp-pillar{min-width:0;flex:1}.rp-body{padding:12px}.rp-trace{padding:10px 12px}}
 
 /* Theme toggle icon drawn in CSS so it never depends on a font having the glyph. */
@@ -1529,7 +1534,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .yt-wrap,.yt-views,.yt-screen{display:none!important}.yt-print-list{display:block}.fh-wrap{overflow:visible}.fh-corner,.fh-palace{position:static}
   .fh-table,.fh-matrix{min-width:0;width:100%;table-layout:fixed}.fh-matrix td{min-width:0;padding:3px!important}
   .fh-cell,.fh-hua,.fh-pick,:is(.fh-table,.fh-matrix) thead th{white-space:normal}.fh-pick,.fh-hua{flex-wrap:wrap}
-  .rp-setup,.rp-toc,.rp-actions{display:none!important}.rp-layout{display:block}.rp-body{border-left:0}.rp-section,.rp-head{break-inside:avoid}
+  .rp-setup,.rp-toc,.rp-actions{display:none!important}.rp-step.is-done .rp-step-n{background:none;color:var(--green);border:1px solid currentColor}.rp-layout{display:block}.rp-body{border-left:0}.rp-section,.rp-head{break-inside:avoid}
   details{display:block}
   details>*{display:block}
   .ziwei-board,.pillar,.qimen-cell,.palace,.chat-msg{break-inside:avoid}
