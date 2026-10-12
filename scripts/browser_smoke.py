@@ -451,7 +451,52 @@ def main() -> None:
             full = page.evaluate("document.querySelector('#share-canvas').height")
             page.locator('#share-bazi').uncheck()
             assert page.evaluate("document.querySelector('#share-canvas').height") < full
+            page.locator('#share-bazi').check()
+            # Text chart: common chart notation; decade ages (which reveal gender) only with 乾造/坤造 ticked.
+            page.locator('#share-view-text').click()
+            assert page.locator('#share-canvas').is_hidden() and page.locator('#share-download').is_hidden()
+            share_text = "document.querySelector('#share-text').textContent"
+            text_chart = page.evaluate(share_text)
+            assert '干支：庚辰　　甲申　　丙午　　庚寅' in text_chart and '空亡：月柱申（年空），时柱寅（日空）' in text_chart, text_chart
+            assert '命宫在壬午，身宫在官禄宫，木三局，命主破军，身主文昌' in text_chart and '大限' not in text_chart and '坤造' not in text_chart
+            assert '天干关系：年月 庚甲相冲　月时 甲庚相冲' in text_chart and '地支关系：月时 申寅六冲·相刑' in text_chart
+            page.locator('#share-gender').check()
+            text_chart = page.evaluate(share_text)
+            assert '坤造' in text_chart and '命宫（壬午）：紫微庙｜文曲陷 凤阁 蜚廉｜大限 3–12' in text_chart
+            assert '官禄宫（丙戌，身宫）：廉贞利 天府庙｜' in text_chart and '田宅宫（乙酉）：空宫｜' in text_chart
+            # The page runs from set_content (no secure origin), so the clipboard is stubbed: first refused, then allowed.
+            page.evaluate('''() => {window.copiedText = null; Object.defineProperty(navigator, 'clipboard', {configurable: true,
+              value: {writeText: async () => {throw new Error('denied');}}});}''')
+            page.locator('#share-copy-text').click()
+            page.locator('#share-copy-text', has_text='已选中文字').wait_for(timeout=10000)
+            assert page.evaluate('getSelection().toString()') == text_chart
+            page.evaluate("() => {navigator.clipboard.writeText = async text => {window.copiedText = text;};}")
+            page.locator('#share-copy-text').click()
+            page.locator('#share-copy-text', has_text='已复制文字盘').wait_for(timeout=10000)
+            assert page.evaluate('window.copiedText') == text_chart
+            page.locator('#share-gender').uncheck()
+            assert page.locator('#share-copy-text').inner_text() == '复制文字盘'
+            # A language applied while the dialog is open (its table was still loading) regenerates the text chart.
+            page.evaluate("applyLoadedLanguage('zh-TW')")
+            assert '命宮在壬午' in page.evaluate(share_text)
+            page.evaluate("applyLoadedLanguage('zh-CN')")
+            assert '命宫在壬午' in page.evaluate(share_text) and '注：紫微为部分排盘' in page.evaluate(share_text)
             page.locator('#share-close').click()
+            # The system share sheet gets the prepared PNG (stubbed here; headless Linux has none).
+            page.evaluate('''() => {window.sharedFiles = null; navigator.canShare = () => true;
+              navigator.share = async data => {window.sharedFiles = data.files.map(f => f.name + ' ' + f.type).join();};}''')
+            page.locator('#share-card').click()
+            page.locator('#share-view-image').click()
+            assert page.locator('#share-copy-text').is_hidden()
+            page.locator('#share-system:not([disabled])').click(timeout=10000)
+            page.wait_for_function("() => window.sharedFiles === 'xuanshu-card.png image/png'", timeout=10000)
+            page.locator('#share-close').click()
+            # The text chart pastes back into the import check: every recognized field agrees.
+            page.locator('[data-tab="import-check"]').click()
+            page.locator('#import-text').fill(text_chart)
+            page.locator('#import-check-run').click()
+            page.locator('.import-table').wait_for(timeout=30000)
+            assert '识别到的字段全部一致' in page.locator('#result').inner_text() and '已识别字段 35' in page.locator('#result').inner_text()
             # Without a gender there is no 长生 or 博士, but the year's own 岁前 still marks every palace.
             page.locator('#gender').select_option('unspecified')
             page.locator('#run-btn').click()

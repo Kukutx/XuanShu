@@ -676,6 +676,13 @@ a{color:inherit;text-decoration:none}
 .share-options{display:flex;flex-wrap:wrap;gap:8px 16px;margin:12px 0;font-size:13px}
 .share-canvas{display:block;width:100%;height:auto;border-radius:8px;border:1px solid var(--border)}
 .share-dialog .primary-btn{width:auto;margin-top:6px;gap:10px}
+.share-dialog [hidden]{display:none!important}
+.share-views{display:flex;gap:6px;margin:12px 0 0}
+.share-text{margin:0;max-height:min(52vh,460px);overflow:auto;white-space:pre-wrap;word-break:break-word;font:13px/1.75 'Noto Serif SC','Songti SC','STSong',serif;color:var(--text);background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.share-text:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.share-actions{flex-wrap:wrap;align-items:center}
+.share-actions button{flex:0 0 auto}
+.share-actions .tiny-button{min-height:36px;padding:0 14px;margin-top:6px}
 
 /* ---- footer ---- */
 footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:26px 0;color:var(--faint);font-size:12px}

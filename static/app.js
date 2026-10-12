@@ -443,13 +443,13 @@ function pillarLinks(parent, links, below) {
 }
 function baziLinks(b) {
   const at = key => PILLAR_KEYS.indexOf(key);
-  const stems = (b.stem_relations || []).filter(x => x.labels.length).map(x => ({from: at(x.a), to: at(x.b),
+  const stems = (b.stem_relations || []).filter(x => x.labels.length).map(x => ({from: at(x.a), to: at(x.b), pillars: [x.a, x.b],
     kind: x.labels[0] === '相冲' ? 'clash' : 'combine', label: x.labels.map(l => l === '相冲' ? x.stems.replace('/', '') + '相冲' : l).join('·')}));
-  const branches = b.branch_relations.filter(x => x.labels.length).map(x => ({from: at(x.a), to: at(x.b),
+  const branches = b.branch_relations.filter(x => x.labels.length).map(x => ({from: at(x.a), to: at(x.b), pillars: [x.a, x.b],
     kind: LINK_CLASS[x.labels[0]] || 'same', label: x.branches.replace('/', '') + x.labels.join('·')}))
     .concat((b.branch_groups || []).map(g => {
       const columns = g.pillars.map(at);
-      return {from: Math.min(...columns), to: Math.max(...columns), kind: 'group',
+      return {from: Math.min(...columns), to: Math.max(...columns), kind: 'group', pillars: g.pillars, branches: g.branches,
         label: g.branches + (g.kind === '三合' ? '三合局' : '三会方') + '（' + g.element + '）'};
     }));
   return {stems, branches};
@@ -3067,9 +3067,75 @@ setBirthPanelCollapsed(!!(compactScreen&&compactScreen.matches));
 updateGeoControls();
 $('#print-view').addEventListener('click',()=>window.print());
 
-// Share card: a PNG drawn on a local canvas. Nothing is uploaded; birth date,
-// time and gender stay off the card unless the user ticks them.
-const shareOptions = {date: false, time: false, bazi: true, ziwei: true};
+// Share card: a PNG drawn on a local canvas, or the same chart as text. Nothing is
+// uploaded; birth date, time and gender stay off unless the user ticks them.
+const shareOptions = {date: false, time: false, gender: false, bazi: true, ziwei: true};
+let shareView = 'image', shareRefresh = null;
+// A language whose table was still loading when the dialog opened redraws the card and the text chart.
+document.addEventListener('xuanshu-language', () => {const dialog = $('#share-dialog'); if (dialog && dialog.open && shareRefresh) shareRefresh();});
+const GENDER_CHART = {male: '乾造', female: '坤造'};
+const PALACE_ORDER = ['命宫', '兄弟宫', '夫妻宫', '子女宫', '财帛宫', '疾厄宫', '迁移宫', '仆役宫', '官禄宫', '田宅宫', '福德宫', '父母宫'];
+// The text chart uses the notation other chart software prints (labelled pillars, 命宫在…,
+// 宫名：主星亮度), so it pastes into notes and chats and back into 外部命盘导入核对.
+function shareChartText() {
+  const b = current.bazi, z = current.ziwei, gap = '　';
+  const lines = ['玄枢命盘 · 本地确定性计算'];
+  const facts = [];
+  if (shareOptions.date) facts.push(currentInput.birth_datetime.slice(0, 10));
+  if (shareOptions.time && !currentHourUnknown) facts.push(currentInput.birth_datetime.slice(11, 16) + '（' + currentInput.timezone + '）');
+  const gender = shareOptions.gender ? GENDER_CHART[currentInput.gender] : '';
+  if (gender) facts.push(gender);
+  if (currentHourUnknown) facts.push('时辰不详');
+  if (facts.length) lines.push(facts.join(gap));
+  if (shareOptions.bazi) {
+    // A noon placeholder is not a real hour pillar, so nothing derived from it is listed.
+    const keys = currentHourUnknown ? PILLAR_KEYS.slice(0, 3) : PILLAR_KEYS;
+    const rows = [['干支', p => p.text], ['十神', p => p.ten_god_of_stem], ['藏干', p => p.hidden_stems.map(h => h.stem).join('')],
+      ['纳音', p => p.na_yin], ['星运', p => p.growth_stage], ['自坐', p => p.self_stage], ['旬空', p => p.xun_kong]]
+      .map(([label, value]) => [label + '：', PILLAR_KEYS.map(k => keys.includes(k) ? value(b.pillars[k]) : '—')]);
+    rows.unshift(['　　　', PILLAR_KEYS.map(k => nameMap[k])]);
+    // A table under 年柱 月柱 日柱 时柱; full-width padding keeps the columns aligned in any CJK font.
+    const widths = PILLAR_KEYS.map((_, i) => Math.max(...rows.map(([, cells]) => cells[i].length)));
+    lines.push('', '【四柱八字】');
+    rows.forEach(([label, cells]) => lines.push(label + cells.map((c, i) => i < 3 ? c.padEnd(widths[i], '　') : c).join(gap)));
+    const voids = keys.filter(k => (b.pillars[k].void_of || []).length)
+      .map(k => nameMap[k] + b.pillars[k].branch + '（' + b.pillars[k].void_of.map(v => v === 'day' ? '日空' : '年空').join('、') + '）');
+    lines.push('空亡：' + (voids.join('，') || '四柱地支不落日空、年空'), '日主：' + b.day_master + b.day_master_element);
+    // Each relation names its pillars (年月 = year and month), since the same pair of stems can meet twice.
+    const links = baziLinks(b), short = key => nameMap[key].charAt(0);
+    // A three-harmony or seasonal group stays when the known pillars complete it by themselves.
+    const known = x => x.kind === 'group' ? [...x.branches].every(br => keys.some(k => b.pillars[k].branch === br))
+      : x.pillars.every(k => keys.includes(k));
+    const listed = items => items.filter(known).sort((x, y) => x.from - y.from || x.to - y.to)
+      .map(x => keys.filter(k => x.pillars.includes(k)).map(short).join('') + ' ' + x.label).join(gap);
+    if (listed(links.stems)) lines.push('天干关系：' + listed(links.stems));
+    if (listed(links.branches)) lines.push('地支关系：' + listed(links.branches));
+  }
+  if (shareOptions.ziwei && currentHourUnknown) lines.push('', '紫微斗数需要出生时辰，时辰不详时不列出。');
+  else if (shareOptions.ziwei) {
+    const ming = z.palaces.find(p => p.is_ming), shen = z.palaces.find(p => p.is_shen);
+    lines.push('', '【紫微斗数】', ['命宫在' + ming.stem + ming.branch, '身宫在' + shen.name, z.five_elements_bureau,
+      '命主' + z.ming_master, '身主' + z.shen_master].join('，'));
+    lines.push('生年四化：' + z.birth_year_transformations.map(t => t.star + t.type).join(gap));
+    const graded = (p, stars) => stars.map(s => s + ((p.star_brightness || {})[s] || '')).join(' ');
+    PALACE_ORDER.map(name => z.palaces.find(p => p.name === name)).filter(Boolean).forEach(p => {
+      let line = p.name + '（' + [p.stem + p.branch].concat(p.is_shen ? ['身宫'] : []).join('，') + '）：' + (graded(p, p.main_stars) || '空宫');
+      if (p.auxiliary_stars.length) line += '｜' + graded(p, p.auxiliary_stars);
+      // Decade direction follows gender, so the ages are listed only when gender is shown.
+      if (gender && p.decade) line += '｜' + '大限' + ' ' + p.decade.start_age + '–' + p.decade.end_age;
+      lines.push(line);
+    });
+    // The copied text leaves the page, so it carries the engine's limits with it.
+    lines.push('注：紫微为部分排盘，含十四主星与选定的辅星、杂曜，不是全流派专业盘；四化表与亮度表因流派而异。');
+  }
+  const modes = {clock: '钟表时间', mean_solar: '平太阳时', apparent_solar: '真太阳时'};
+  lines.push('', '排盘规则：' + [currentInput.late_zi_day_rollover ? '23:00 换日' : '00:00 换日',
+    currentInput.leap_month_second_half_as_next ? '闰月后半月按下月' : '闰月整月按本月',
+    modes[currentInput.time_mode] || modes.clock].join(gap));
+  lines.push('传统文化符号，未经科学预测效力验证，不作医疗、投资、法律等决策依据。', 'XuanShu · 开源 · 确定性计算，可复现');
+  const text = lines.join('\n');
+  return typeof uiLang !== 'undefined' && uiLang === 'zh-TW' && typeof toTraditional === 'function' ? toTraditional(text) : text;
+}
 function drawShareCard(canvas) {
   const T = text => typeof translateText === 'function' ? translateText(text) : text;
   const css = getComputedStyle(document.documentElement);
@@ -3096,7 +3162,8 @@ function drawShareCard(canvas) {
   text(T('命盘卡片 · 本地确定性计算'), W - PAD, 128, 24, token('--muted'), sans, 'right', '400', W - PAD * 2 - 330);
   const facts = [];
   if (shareOptions.date) facts.push(currentInput.birth_datetime.slice(0, 10));
-  if (shareOptions.time) facts.push(currentInput.birth_datetime.slice(11, 16) + ' ' + currentInput.timezone);
+  if (shareOptions.time && !currentHourUnknown) facts.push(currentInput.birth_datetime.slice(11, 16) + ' ' + currentInput.timezone);
+  if (shareOptions.gender && GENDER_CHART[currentInput.gender]) facts.push(T(GENDER_CHART[currentInput.gender]));
   if (currentHourUnknown) facts.push(T('时辰不详'));
   else facts.push(T(z.five_elements_bureau), T('命主') + ' ' + T(z.ming_master), T('身主') + ' ' + T(z.shen_master));
   text(facts.join('  ·  '), PAD, 196, 26, token('--text2'));
@@ -3163,25 +3230,83 @@ function openShareCard() {
   append(head, 'h3', null, '分享卡片').id = 'share-title';
   const close = append(head, 'button', 'tiny-button', '关闭'); close.type = 'button'; close.id = 'share-close';
   close.addEventListener('click', () => dialog.close());
+  const views = append(dialog, 'div', 'share-views');
+  views.setAttribute('role', 'group'); views.setAttribute('aria-label', '分享格式');
+  const viewButtons = [['image', '图片卡片'], ['text', '文字盘']].map(([key, label]) => {
+    const chip = append(views, 'button', 'filter-chip', label); chip.type = 'button'; chip.id = 'share-view-' + key; chip.dataset.view = key;
+    chip.addEventListener('click', () => {shareView = key; refresh();});
+    return chip;
+  });
   const options = append(dialog, 'div', 'share-options');
   const canvas = append(dialog, 'canvas', 'share-canvas'); canvas.id = 'share-canvas';
   canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', '命盘卡片预览');
-  [['date', '显示出生日期'], ['time', '显示出生时间与时区'], ['bazi', '四柱八字'], ['ziwei', '紫微命宫']].forEach(([key, label]) => {
+  const textBox = append(dialog, 'pre', 'share-text'); textBox.id = 'share-text'; textBox.tabIndex = 0;
+  textBox.setAttribute('aria-label', '文字盘预览');
+  const gendered = Boolean(GENDER_CHART[currentInput.gender]);
+  [['date', '显示出生日期'], ['time', '显示出生时间与时区'], ['gender', '显示乾造 / 坤造'], ['bazi', '四柱八字'], ['ziwei', '紫微命盘']].forEach(([key, label]) => {
     const line = append(options, 'label', 'check-line');
     const box = append(line, 'input'); box.type = 'checkbox'; box.id = 'share-' + key; box.checked = shareOptions[key];
-    if (currentHourUnknown && (key === 'ziwei' || key === 'time')) {box.checked = false; box.disabled = true;}
+    if ((currentHourUnknown && (key === 'ziwei' || key === 'time')) || (key === 'gender' && !gendered)) {box.checked = false; box.disabled = true;}
     line.append(' ' + label);
-    box.addEventListener('change', () => {shareOptions[key] = box.checked; drawShareCard(canvas);});
+    box.addEventListener('change', () => {shareOptions[key] = box.checked; refresh();});
   });
-  append(dialog, 'p', 'field-help', '卡片只在这台设备上生成，不上传。注意：四柱本身大致能反推出生日期与时辰（约 60 年一轮），介意的话只保留紫微部分。');
-  const actions = append(dialog, 'div', 'profile-actions');
+  const help = append(dialog, 'p', 'field-help');
+  const actions = append(dialog, 'div', 'profile-actions share-actions');
   const save = append(actions, 'button', 'primary-btn', '下载 PNG'); save.type = 'button'; save.id = 'share-download';
-  save.addEventListener('click', () => canvas.toBlob(blob => {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob); const a = elt('a'); a.href = url; a.download = 'xuanshu-card.png';
+  const download = (blob, name) => {
+    const url = URL.createObjectURL(blob); const a = elt('a'); a.href = url; a.download = name;
     document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
-  }, 'image/png'));
-  drawShareCard(canvas);
+  };
+  save.addEventListener('click', () => canvas.toBlob(blob => {if (blob) download(blob, 'xuanshu-card.png');}, 'image/png'));
+  // The system share sheet (phones, some desktops). The PNG is prepared ahead of the click,
+  // because browsers allow navigator.share only while the click still counts as a user gesture.
+  let cardFile = null, cardVersion = 0;
+  const systemShare = typeof navigator.share === 'function' && typeof navigator.canShare === 'function';
+  const share = systemShare ? append(actions, 'button', 'tiny-button', '分享到…') : null;
+  if (share) {
+    share.type = 'button'; share.id = 'share-system';
+    share.addEventListener('click', async () => {
+      const file = cardFile;
+      if (!file || !navigator.canShare({files: [file]})) {share.textContent = '此浏览器不能分享图片，请下载 PNG'; return;}
+      try {await navigator.share({files: [file], title: '玄枢命盘'});}
+      catch (e) {if (e.name !== 'AbortError') share.textContent = '分享失败，请下载 PNG';}
+    });
+  }
+  const copy = append(actions, 'button', 'primary-btn', '复制文字盘'); copy.type = 'button'; copy.id = 'share-copy-text';
+  copy.addEventListener('click', async () => {
+    const text = textBox.textContent;
+    try {await navigator.clipboard.writeText(text); copy.textContent = '已复制文字盘';}
+    catch (_) {
+      // No clipboard permission: select the text so a keyboard copy takes it.
+      const range = document.createRange(); range.selectNodeContents(textBox);
+      const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
+      copy.textContent = '已选中文字，请按 Ctrl+C 复制';
+    }
+  });
+  const saveText = append(actions, 'button', 'tiny-button', '下载 TXT'); saveText.type = 'button'; saveText.id = 'share-download-text';
+  saveText.addEventListener('click', () => download(new Blob([textBox.textContent + '\n'], {type: 'text/plain;charset=utf-8'}), 'xuanshu-chart.txt'));
+  function refresh() {
+    const image = shareView === 'image';
+    viewButtons.forEach(chip => chip.setAttribute('aria-pressed', String(chip.dataset.view === shareView)));
+    canvas.hidden = !image; textBox.hidden = image;
+    save.hidden = !image; if (share) share.hidden = !image;
+    copy.hidden = image; saveText.hidden = image;
+    copy.textContent = '复制文字盘'; if (share) share.textContent = '分享到…';
+    help.textContent = image
+      ? '卡片只在这台设备上生成，不上传。注意：四柱本身大致能反推出生日期与时辰（约 60 年一轮），介意的话只保留紫微部分。'
+      : '文字盘用通行的命盘写法，可以贴到笔记、聊天或其他排盘软件，也能粘回「外部命盘导入核对」逐项比对。大限年龄会透露性别，只在勾选乾造 / 坤造时列出。';
+    drawShareCard(canvas);
+    textBox.textContent = shareChartText();
+    if (share) {
+      const version = ++cardVersion; cardFile = null; share.disabled = true;
+      canvas.toBlob(blob => {
+        if (!blob || version !== cardVersion) return;
+        cardFile = new File([blob], 'xuanshu-card.png', {type: 'image/png'}); share.disabled = false;
+      }, 'image/png');
+    }
+  }
+  shareRefresh = refresh;
+  refresh();
   if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
 }
 $('#share-card').addEventListener('click', openShareCard);
