@@ -1862,6 +1862,10 @@ const UI_EXTRA = {
 "Dui Palace",
 "兌宮"
 ],
+"兔": [
+"Rabbit",
+"兎"
+],
 "兔年": [
 "Year of the Rabbit",
 "卯年（うさぎ）"
@@ -2513,6 +2517,10 @@ const UI_EXTRA = {
 "力士": [
 "Li Shi",
 "力士"
+],
+"加入大运时间轴": [
+"Add the luck timeline",
+"大運タイムラインを加える"
 ],
 "加入证据溯源与跨体系规则复核": [
 "Include evidence tracing and cross-system rule review",
@@ -3649,6 +3657,10 @@ const UI_EXTRA = {
 "大运流年的神煞按原局日干、年干、年支、日支、月支查，只列名称与查法出处，不断吉凶。": [
 "Shen Sha on luck and year pillars are read from the natal day stem, year stem, year branch, day branch and month branch; only names, rules and sources are given, with no good-or-bad reading.",
 "大運・流年の神煞は原局の日干・年干・年支・日支・月支から求め、名称と求め方・出典だけを示し、吉凶は判断しません。"
+],
+"大运顺排还是逆排由性别决定，所以时间轴会透露每个人的性别；不勾选就不画。": [
+"Whether the luck periods run forward or backward depends on gender, so the timeline reveals each person's gender; it is drawn only when ticked.",
+"大運の順行・逆行は性別で決まるため、タイムラインから各人の性別が分かります。チェックしない限り描きません。"
 ],
 "大运：": [
 "Luck pillar: ",
@@ -7102,6 +7114,10 @@ const UI_EXTRA = {
 "Version: v.",
 "バージョン：v."
 ],
+"牛": [
+"Ox",
+"牛"
+],
 "牛年": [
 "Year of the Ox",
 "丑年（うし）"
@@ -7109,6 +7125,10 @@ const UI_EXTRA = {
 "状态 ": [
 "Status ",
 "状態 "
+],
+"狗": [
+"Dog",
+"犬"
 ],
 "狗年": [
 "Year of the Dog",
@@ -7126,9 +7146,17 @@ const UI_EXTRA = {
 "Independently verify the answer (one more model call)",
 "回答を独立検証（モデル呼び出しが一回増えます）"
 ],
+"猪": [
+"Pig",
+"猪"
+],
 "猪年": [
 "Year of the Pig",
 "亥年（いのしし）"
+],
+"猴": [
+"Monkey",
+"猿"
 ],
 "猴年": [
 "Year of the Monkey",
@@ -7890,6 +7918,10 @@ const UI_EXTRA = {
 "Confidence measures only whether birth-time error could change this chart result, not whether the traditional interpretation is correct.",
 "信頼度は出生時刻の誤差によってこの命盤結果が変わり得るかのみを測るもので、伝統的解釈が正しいかどうかは測りません。"
 ],
+"羊": [
+"Goat",
+"羊"
+],
 "羊刃": [
 "Yang Ren",
 "羊刃"
@@ -8082,6 +8114,10 @@ const UI_EXTRA = {
 "Hidden stems: ",
 "蔵干："
 ],
+"虎": [
+"Tiger",
+"虎"
+],
 "虎年": [
 "Year of the Tiger",
 "寅年（とら）"
@@ -8097,6 +8133,10 @@ const UI_EXTRA = {
 "虚龄": [
 "age",
 "数え"
+],
+"蛇": [
+"Snake",
+"蛇"
 ],
 "蛇年": [
 "Year of the Snake",
@@ -9198,6 +9238,10 @@ const UI_EXTRA = {
 "Hong Kong Observatory gives ",
 "香港天文台は "
 ],
+"马": [
+"Horse",
+"馬"
+],
 "马年": [
 "Year of the Horse",
 "午年（うま）"
@@ -9226,6 +9270,10 @@ const UI_EXTRA = {
 "Kui Gang",
 "魁罡"
 ],
+"鸡": [
+"Rooster",
+"鶏"
+],
 "鸡年": [
 "Year of the Rooster",
 "酉年（とり）"
@@ -9234,6 +9282,10 @@ const UI_EXTRA = {
 "By default the day does not change at 23:00, matching iztro's \"early Zi\"",
 "既定では 23:00 に日を替えず、iztro の「早子時」と一致"
 ],
+"鼠": [
+"Rat",
+"鼠"
+],
 "鼠年": [
 "Year of the Rat",
 "子年（ねずみ）"
@@ -9241,6 +9293,10 @@ const UI_EXTRA = {
 "鼠牛虎兔龙蛇马羊猴鸡狗猪": [
 "Rat Ox Tiger Rabbit Dragon Snake Horse Goat Monkey Rooster Dog Pig",
 "鼠牛虎兎龍蛇馬羊猿鶏犬猪"
+],
+"龙": [
+"Dragon",
+"龍"
 ],
 "龙年": [
 "Year of the Dragon",

@@ -37,11 +37,17 @@ def check_relation_card(page, kind: str, screenshot: Path) -> None:
     page.locator(f'#{kind}-card').click()
     page.locator('#relation-card-dialog[open]').wait_for(timeout=10000)
     assert page.evaluate("document.querySelector('#relation-card-canvas').width") == 1080
-    drawn = page.evaluate('window.__drawn')
     data = page.evaluate(f"(() => {{ const d = relationCardData('{kind}'); return {{labels: d.people.map(p => p.label), year: d.year_view.year}}; }})()")
+    # The luck timeline would give away each person's gender: it is drawn only once ticked.
+    assert '大运时间轴' not in ''.join(page.evaluate('window.__drawn'))
+    page.evaluate('window.__drawn = []')
+    page.locator('#relation-card-luck').check()
+    drawn = page.evaluate('window.__drawn')
     labels = data['labels']
-    assert labels and all(label in drawn or label[:4] in ''.join(drawn) for label in labels), (labels, drawn)
+    assert labels and all(label in ''.join(drawn) for label in labels), (labels, drawn)
     assert f"大运时间轴 · {data['year']}" in ''.join(drawn), drawn
+    # Pairs name the direction of each ten god; group members are numbered so cut names stay apart.
+    assert ('①→②' if kind == 'group' else 'A→B') in ''.join(drawn), drawn
     joined = '\n'.join(drawn)
     assert not re.search(r'\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}|备注', joined) and '一起做项目' not in joined and '表姐' not in joined, drawn
     page.locator('#relation-card-canvas').screenshot(path=str(screenshot))
@@ -894,6 +900,7 @@ def main() -> None:
             page.evaluate("() => { window.__post = postJSON; postJSON = async (url, body) => { await new Promise(r => setTimeout(r, 400)); return window.__post(url, body); }; }")
             page.locator('#pair-year-next').click()
             assert page.locator('#pair-ask-ai').is_disabled()
+            assert page.locator('#pair-card').is_disabled()
             page.wait_for_function("() => pairResult.year_view.year === 2028 && !pairYearPending", timeout=30000)
             page.evaluate("() => { postJSON = window.__post; }")
             page.locator('#pair-year-input').fill('2030')
@@ -911,6 +918,17 @@ def main() -> None:
             page.locator('#pair-year-input').dispatch_event('change')
             page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
             check_relation_card(page, 'pair', screenshot_dir / '45-pair-card.png')
+            # A year typed but not entered is loaded before the card opens, so the card shows the year the page shows;
+            # closing returns focus to the redrawn button.
+            page.locator('#pair-year-input').fill('2031')
+            page.locator('#pair-card').click()
+            page.locator('#relation-card-dialog[open]').wait_for(timeout=30000)
+            assert page.evaluate('pairResult.year_view.year') == 2031 and page.locator('#pair-year-input').input_value() == '2031'
+            page.keyboard.press('Escape')
+            page.wait_for_function("() => document.activeElement && document.activeElement.id === 'pair-card'", timeout=10000)
+            page.locator('#pair-year-input').fill('2026')
+            page.locator('#pair-year-input').dispatch_event('change')
+            page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
             # 4 pillar rows + every labelled branch link + 12 branch rows + 8 cross-chart transformations, besides the luck timeline.
             links = page.evaluate('pairResult.branch_links.length')
             assert links >= 1 and page.locator('#result tbody tr').count() - page.locator('#pair-timeline tbody tr').count() == 4 + links + 12 + 8

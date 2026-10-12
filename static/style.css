@@ -740,7 +740,8 @@ a{color:inherit;text-decoration:none}
 .share-views{display:flex;gap:6px;margin:12px 0 0}
 .share-text{margin:0;max-height:min(52vh,460px);overflow:auto;white-space:pre-wrap;word-break:break-word;font:13px/1.75 'Noto Serif SC','Songti SC','STSong',serif;color:var(--text);background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
 .share-text:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.share-actions{flex-wrap:wrap;align-items:center}
+/* The download and share buttons stay in reach under a tall card. */
+.share-actions{flex-wrap:wrap;align-items:center;position:sticky;bottom:-18px;z-index:1;background:var(--panel);padding:2px 0 12px;margin-bottom:-12px;border-top:1px solid transparent}
 .share-actions button{flex:0 0 auto}
 .share-actions .tiny-button{min-height:36px;padding:0 14px;margin-top:6px}
 
