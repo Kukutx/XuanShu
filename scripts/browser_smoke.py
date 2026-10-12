@@ -839,13 +839,51 @@ def main() -> None:
             assert page.locator('.palace-btn.selected').count() == 1
             page.screenshot(path=str(screenshot_dir / '02-ziwei-desktop.png'), full_page=True)
 
+            # Month calendar: a month at a glance with lunar dates, solar terms and day pillars; the keyboard moves the pick.
             page.locator('[data-tab="calendar"]').click()
-            page.locator('#calendar-run').click()
-            page.locator('#result tbody tr').first.wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() == 14
+            page.locator('#calendar-grid').wait_for(timeout=30000)
+            assert page.locator('#calendar-day-' + page.evaluate('localToday()')).get_attribute('aria-current') == 'date'
+            page.evaluate("() => showCalendarDay('2024-02-10')")
+            page.locator('#calendar-day-2024-02-29').wait_for(timeout=30000)
+            # February 2024 begins on a Thursday: three blank cells before the 1st and three after the 29th.
+            assert page.locator('#calendar-grid .cal-day').count() == 29 and page.locator('#calendar-grid .cal-blank').count() == 6
+            assert page.locator('#calendar-title').inner_text() == '2024年2月'
+            new_year = page.locator('#calendar-day-2024-02-10')
+            assert new_year.get_attribute('aria-pressed') == 'true' and '正月' in new_year.inner_text() and '甲辰' in new_year.inner_text()
+            assert '立春' in page.locator('#calendar-day-2024-02-04').inner_text()
+            assert '月柱 丙寅' in page.locator('.cal-terms').inner_text()  # 立春 opens the 寅 month of a 甲 year
+            detail = page.locator('#calendar-detail').inner_text()
+            assert '农历 甲辰 · 正月初一' in detail and '日柱 甲辰' in detail and '星期六' in detail, detail
+            new_year.focus()
+            page.keyboard.press('ArrowRight')
+            assert page.evaluate('document.activeElement.id') == 'calendar-day-2024-02-11'
+            page.keyboard.press('ArrowUp')
+            assert page.evaluate('document.activeElement.id') == 'calendar-day-2024-02-04' and page.evaluate('calendarSelected') == '2024-02-04'
+            page.keyboard.press('PageDown')
+            page.wait_for_function("() => document.activeElement && document.activeElement.id === 'calendar-day-2024-03-04'", timeout=30000)
+            page.locator('#calendar-prev').click()
+            page.locator('#calendar-day-2024-02-01').wait_for(timeout=30000)
+            assert page.evaluate('document.activeElement.id') == 'calendar-prev'
+            assert '2024-02-10' in page.locator('#calendar-text-text').text_content() and '正月初一' in page.locator('#calendar-text-text').text_content()
             page.screenshot(path=str(screenshot_dir / '05-calendar.png'), full_page=True)
+            # A lunar date turned into a Gregorian one is picked on the calendar.
+            page.locator('#calendar-next').click()
+            page.locator('#calendar-day-2024-03-01').wait_for(timeout=30000)
+            page.locator('#lunar-inverse-year').fill('2024')
+            page.locator('#lunar-inverse-month').select_option('1')
+            page.locator('#lunar-inverse-day').select_option('1')
             page.locator('#lunar-inverse-run').click()
             page.get_by_text('公历 2024-02-10', exact=False).first.wait_for(timeout=30000)
+            assert page.evaluate('calendarSelected') == '2024-02-10' and page.locator('#calendar-day-2024-02-10').get_attribute('aria-pressed') == 'true'
+            # The picked day opens in 今日历法, and 今日历法 opens its day on the calendar.
+            page.locator('#calendar-open-day').click()
+            page.locator('[data-tab="today"][aria-selected="true"]').wait_for(timeout=10000)
+            page.wait_for_function("() => todayPick && todayPick.date === '2024-02-10'", timeout=10000)
+            page.locator('#today-date').wait_for(timeout=30000)
+            assert page.locator('#today-date').input_value() == '2024-02-10'
+            page.locator('#today-calendar').click()
+            page.wait_for_function("() => document.activeElement && document.activeElement.id === 'calendar-day-2024-02-10'", timeout=30000)
+            page.evaluate("() => { todayPick = null; }")
 
             page.locator('[data-tab="pair"]').click()
             page.evaluate("() => { pairDraft.year = 2026; }")  # the device year would make the luck section vary
