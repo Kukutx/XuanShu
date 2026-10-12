@@ -327,7 +327,7 @@ const UI_EXTRA = {
 " 項目が一致、"
 ],
 " 项不同": [
-" differ",
+" off",
 " 項目が不一致"
 ],
 " 项已知边界提示。": [
@@ -2586,6 +2586,10 @@ const UI_EXTRA = {
 "Birth details are used only for the current calculation; the server keeps nothing",
 "出生情報はその場の計算にだけ使い、サーバーには保存しません"
 ],
+"出生资料在这次核对之后改过：下面的结果对应改动前的资料，请重新核对。": [
+"The birth details changed after this check: the results below belong to the old details. Run the check again.",
+"この照合の後に出生データが変更されました。以下の結果は変更前のデータのものです。もう一度照合してください。"
+],
 "出生资料质量提示：": [
 "Birth data quality notes: ",
 "出生データの品質に関する注意："
@@ -3297,6 +3301,10 @@ const UI_EXTRA = {
 "同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。": [
 "Same day, current rules: the birth time is moved to the middle of each double hour and recomputed, to see which hour the pasted chart fits.",
 "同じ日・現在の規則のまま、出生時刻を各時辰の中央に移して計算し直し、貼り付けた命盤がどの時辰と合うかを見ます。"
+],
+"同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。格子里的数字是仍不一致的项数，星曜亮度不计。": [
+"The same day under the current rules, recomputed at the middle of each double hour, to see which hour the pasted chart fits. Each cell counts the fields that still differ; star brightness is not counted.",
+"同じ日・現在の規則のまま、各時辰の中ほどで計算し直し、貼り付けた命盤がどの時辰に合うかを見ます。各マスの数字はなお一致しない項目の数で、星の明るさは数えません。"
 ],
 "同一年的流年对每个人相同，所以成员之间只比较各自的大运：天干五合与地支同支、六合、六冲、六害、相刑。": [
 "The annual pillar is the same for everyone in a year, so members are compared by their luck pillars only: stem five combinations and the branch labels same branch, six harmony, six clash, six harm and punishment.",
@@ -6478,6 +6486,14 @@ const UI_EXTRA = {
 "Largest difference",
 "最大差"
 ],
+"最接近": [
+"Closest",
+"最も近い"
+],
+"最接近：": [
+"Closest: ",
+"最も近い時辰："
+],
 "最近的交界": [
 "nearest boundary",
 "最寄りの境界"
@@ -7034,6 +7050,10 @@ const UI_EXTRA = {
 "Verification: ",
 "検証："
 ],
+"格子里写的是钟表时间，按所选太阳时换算后落在该时辰里。": [
+"Cells show clock times; converted to the selected solar time, each falls in its hour.",
+"マスの時刻は時計の時刻で、選んだ太陽時に換算するとその時辰に入ります。"
+],
 "桑柘木": [
 "Mulberry Wood (Sang Zhe Mu)",
 "桑柘木"
@@ -7349,6 +7369,10 @@ const UI_EXTRA = {
 "没有匹配项，请尝试八字、择时、MCP 等关键词": [
 "No matches; try keywords like BaZi, timing or MCP",
 "一致なし。八字・択時・MCP などのキーワードを試してください"
+],
+"没有哪个时辰能让识别到的字段全部一致。": [
+"No hour makes every recognized field match.",
+"認識した項目がすべて一致する時辰はありません。"
 ],
 "没有哪个时辰能让识别到的字段全部一致；不一致最少的时辰已加框。": [
 "No hour makes every recognized field match; the hours with the fewest differences are framed.",
@@ -9537,6 +9561,10 @@ const UI_EXTRA = {
 "这只说明规则选择会改变哪些字段，不判断哪种规则正确；以出生资料和你采用的流派为准。": [
 "This only shows which fields a rule choice changes; it does not say which rule is correct. Go by the birth details and the school you follow.",
 "ルールの選び方でどの項目が変わるかを示すだけで、どのルールが正しいかは判断しません。出生情報とご自身の流派に従ってください。"
+],
+"这天的夏令时切换跳过或重复了一段钟表时间，没有能唯一确定的出生时间落在这些时辰里，未列出：": [
+"A daylight-saving switch skipped or repeated clock time on this day, so no unambiguous birth time falls in these hours, which are not listed: ",
+"この日は夏時間の切り替えで時計の時刻が飛んだり重なったりしたため、一意に決まる出生時刻がこれらの時辰に入らず、表示していません："
 ],
 "这是一份确定性多工具计算报告，未运行外部大语言模型，不是自主推理结果。": [
 "This is a deterministic multi-tool calculation report; no external large language model was run, and it is not the result of autonomous reasoning.",
