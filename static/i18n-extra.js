@@ -8506,6 +8506,10 @@ const UI_EXTRA = {
 "One chart a day",
 "一日一盤"
 ],
+"每宫右侧一列自上而下：天干、暗干、地干。": [
+"In each palace the right-hand column reads, top to bottom: heaven stem, hidden stem, earth stem.",
+"各宮の右の列は上から天盤干・暗干・地盤干です。"
+],
 "每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。": [
 "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
 "各カードはこの年に本人がいる大運と流年です。十神は本人の日主から天干を見ます。流年の後ろの小さな印は原局の地支との関係（冲月は月柱と六冲、合・刑・害も同様、同は同支、日空・年空は旬空に当たる）で、ホバーで全文が見られます。年齢はその年に達する満年齢です。"

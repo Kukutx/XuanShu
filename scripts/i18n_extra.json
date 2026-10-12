@@ -5999,6 +5999,10 @@
   "Current chart",
   "現在の命盤"
  ],
+ "当前命盘与各工具最近一次结果 · 只在本机 · 复制或下载才离开页面": [
+  "The current chart and each tool's latest result · on this device only · leaves the page only when copied or downloaded",
+  "現在の命盤と各ツールの最新結果 · この端末のみ · コピーかダウンロードした時だけページの外へ"
+ ],
  "当前命盘没有性别：自动方向排不出，请在这里选顺排、逆排，或填性别后重新生成命盘。": [
   "The current chart has no gender, so the direction cannot be set automatically. Choose forward or reverse here, or fill in the gender and cast the chart again.",
   "現在の命盤には性別がないため、方向を自動で決められません。ここで順行・逆行を選ぶか、性別を入力して命盤を作り直してください。"
@@ -6006,10 +6010,6 @@
  "当前命盘没有经度，太阳时算不出来；在出生资料里选城市或填经度，重新生成命盘后再勾选。": [
   "The current chart has no longitude, so solar time cannot be computed. Pick a city or enter a longitude in the birth details, cast the chart again, then tick this.",
   "現在の命盤には経度がないため、太陽時を計算できません。出生情報で都市を選ぶか経度を入力し、命盤を作り直してからチェックしてください。"
- ],
- "当前命盘与各工具最近一次结果 · 只在本机 · 复制或下载才离开页面": [
-  "The current chart and each tool's latest result · on this device only · leaves the page only when copied or downloaded",
-  "現在の命盤と各ツールの最新結果 · この端末のみ · コピーかダウンロードした時だけページの外へ"
  ],
  "当前命盘的出生时间晚于此刻，不列个人对照。": [
   "The current chart's birth time is later than this moment, so no personal comparison is shown.",
@@ -8502,6 +8502,10 @@
  "每天一张盘": [
   "One chart a day",
   "一日一盤"
+ ],
+ "每宫右侧一列自上而下：天干、暗干、地干。": [
+  "In each palace the right-hand column reads, top to bottom: heaven stem, hidden stem, earth stem.",
+  "各宮の右の列は上から天盤干・暗干・地盤干です。"
  ],
  "每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。": [
   "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
