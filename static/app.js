@@ -540,20 +540,27 @@ function elementMatrix(parent, people, id) {
   const head = append(append(table, 'thead'), 'tr');
   append(head, 'th', null, '成员').scope = 'col';
   // The phases stay characters in every language, as in the pillars, so that the five columns fit on a phone.
-  PHASES.split('').forEach(e => {const th = append(head, 'th'); th.scope = 'col'; th.title = e; append(th, 'b', elementClass(e), e).dataset.noI18n = '';});
+  // The header's name (title and aria-label) is the translated word, for hover and for screen readers.
+  PHASES.split('').forEach(e => {
+    const th = append(head, 'th'); th.scope = 'col'; th.title = e; th.setAttribute('aria-label', e);
+    append(th, 'b', elementClass(e), e).dataset.noI18n = '';
+  });
   const body = append(table, 'tbody');
   people.forEach(([label, p]) => {
     const tr = append(body, 'tr'), counts = personElements(p);
-    const who = append(tr, 'th', 'user-text', label); who.scope = 'row';
+    const who = append(tr, 'th'); who.scope = 'row'; append(who, 'span', 'user-text', label);
+    if (!p.day_master_element) append(who, 'small', 'em-note', '日主未定');
     PHASES.split('').forEach(e => {
       const n = counts[e], master = e === p.day_master_element;
       const td = append(tr, 'td', 'em-cell em-' + ELEMENT_CLASS[e] + ' em-' + Math.min(n, 4) + (master ? ' em-master' : ''));
       append(td, 'b', null, String(n));
-      if (p.day_master_element) append(td, 'small', null, master ? '日主 · 比劫' : tenGodGroupOf(p.day_master_element, e));
+      // 日主 and its group on lines of their own, so that a narrow cell never splits a word.
+      if (master) {append(td, 'small', null, '日主'); append(td, 'small', null, '比劫');}
+      else if (p.day_master_element) append(td, 'small', null, tenGodGroupOf(p.day_master_element, e));
     });
   });
 }
-const ELEMENT_MATRIX_HELP = '每格是该成员已知各柱的天干地支属这一五行的个数（不含藏干），小字是这一五行对该成员日主而言的十神类别；日主所在的五行加框。时辰不详不计时柱，当天交节或换日而不定的柱也不计。';
+const ELEMENT_MATRIX_HELP = '每格是该成员已知各柱的天干地支属这一五行的个数（不含藏干），小字是这一五行对该成员日主而言的十神类别；日主所在的五行加框。时辰不详不计时柱，当天交节或换日而不定的柱也不计；日柱也不定时写「日主未定」，不标十神。';
 // The five phases of each person as text rows, for the text copy.
 const elementRows = people => textColumns([['', ...PHASES.split('')], ...people.map(([name, p]) => {
   const counts = personElements(p);

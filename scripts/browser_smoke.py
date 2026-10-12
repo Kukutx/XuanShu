@@ -978,7 +978,8 @@ def main() -> None:
             links = page.evaluate('pairResult.branch_links.length')
             assert links >= 1 and page.locator('#result tbody tr').count() - page.locator('#pair-timeline tbody tr').count() == 4 + links + 12 + 8 + 2
             assert page.locator('#pair-elements tbody tr').count() == 2 and page.locator('#pair-elements .em-master').count() == 2
-            assert page.locator('#pair-elements tbody tr').first.locator('.em-master small').inner_text() == '日主 · 比劫'
+            assert page.locator('#pair-elements tbody tr').first.locator('.em-master small').all_inner_texts() == ['日主', '比劫']
+            assert page.locator('#pair-elements th[scope=col]').nth(1).get_attribute('aria-label') == '木'
             assert page.locator('.meta-tags span', has_text='A 命宫落在 B 的').count() == 1
             facts = page.locator('#pair-facts').inner_text()
             assert 'A → B：' + page.evaluate('pairResult.day_stems.a_sees_b') in facts and 'B → A：' in facts, facts

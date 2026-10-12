@@ -5498,13 +5498,13 @@ const UI_EXTRA = {
 "Day Master",
 "日主"
 ],
-"日主 · 比劫": [
-"Day Master · Peers",
-"日主・比劫"
-],
 "日主十二长生（星运）": [
 "Day master's growth stage per pillar",
 "日主の十二長生（星運）"
+],
+"日主未定": [
+"Day Master unsettled",
+"日主未定"
 ],
 "日主：": [
 "Day Master: ",
@@ -6790,9 +6790,9 @@ const UI_EXTRA = {
 "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
 "各カードはこの年に本人がいる大運と流年です。十神は本人の日主から天干を見ます。流年の後ろの小さな印は原局の地支との関係（冲月は月柱と六冲、合・刑・害も同様、同は同支、日空・年空は旬空に当たる）で、ホバーで全文が見られます。年齢はその年に達する満年齢です。"
 ],
-"每格是该成员已知各柱的天干地支属这一五行的个数（不含藏干），小字是这一五行对该成员日主而言的十神类别；日主所在的五行加框。时辰不详不计时柱，当天交节或换日而不定的柱也不计。": [
-"Each cell counts the stems and branches of that member's known pillars belonging to the phase (without hidden stems); the small text is the ten-god group the phase stands for from that member's Day Master, and the Day Master's own phase is outlined. With the hour unknown the hour pillar is not counted, nor a pillar left open by a solar term or day change on the birth day.",
-"各マスはそのメンバーの判明している柱の天干地支のうち、その五行に属する数です（蔵干を除く）。小さい文字はその五行がメンバーの日主から見てどの十神に当たるかで、日主の五行は枠で囲みます。時刻不明なら時柱は数えず、生まれた日に節入りや日替わりがあって決まらない柱も数えません。"
+"每格是该成员已知各柱的天干地支属这一五行的个数（不含藏干），小字是这一五行对该成员日主而言的十神类别；日主所在的五行加框。时辰不详不计时柱，当天交节或换日而不定的柱也不计；日柱也不定时写「日主未定」，不标十神。": [
+"Each cell counts the stems and branches of that member's known pillars belonging to the phase (without hidden stems); the small text is the ten-god group the phase stands for from that member's Day Master, and the Day Master's own phase is outlined. With the hour unknown the hour pillar is not counted, nor a pillar left open by a solar term or day change on the birth day; when the day pillar is open as well the row reads “Day Master unsettled” and no ten-god groups are shown.",
+"各マスはそのメンバーの判明している柱の天干地支のうち、その五行に属する数です（蔵干を除く）。小さい文字はその五行がメンバーの日主から見てどの十神に当たるかで、日主の五行は枠で囲みます。時刻不明なら時柱は数えず、生まれた日に節入りや日替わりがあって決まらない柱も数えません。日柱も決まらないときは「日主未定」と書き、十神は示しません。"
 ],
 "每段按中点计算代表盘，边界端点附近应使用原始出生记录重新核对。": [
 "Each segment's representative chart is computed at its midpoint; near boundary endpoints, re-check using the original birth record.",
