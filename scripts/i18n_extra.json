@@ -839,6 +839,14 @@
   "One week per row, starting on Monday; each cell shows the date, the day stem-branch and the noon officer, with today's date filled in. A jie day also shows the term and its time (Beijing time): “17:52 → Kai” means Kai follows the term, “Cheng → 04:02” means Cheng comes before it.",
   "1 行が 1 週で月曜始まりです。マスには日付、日干支、正午の十二直があり、今日の日付は塗りつぶしで示します。節入りの日は節気と節入り時刻（北京時間）も書きます。「17:52 → 開」は節入り後が開、「成 → 04:02」は節入り前が成という意味です。"
  ],
+ "一行一宫，按命宫、兄弟宫……父母宫的顺序；每格是该宫宫干化出的星和它所在的宫。星就在本宫时标「自化」。点宫名在下方查看该宫详情。": [
+  "One palace per row, from the Life Palace and Siblings Palace through the Parents Palace; each cell is the star that palace's stem transforms and the palace holding it. A star in the same palace is marked self-transformation. Click a palace name to see its detail below.",
+  "1 行が 1 宮で、命宮・兄弟宮……父母宮の順です。各マスはその宮の宮干が化す星と、その星がある宮です。星が同じ宮にあれば「自化」と記します。宮名をクリックすると下に詳細を表示します。"
+ ],
+ "一行是宫干所在的宫，一列是四化星所在的宫；对角线上的格子是自化。列头的 ×N 是落入该宫的宫干四化条数。所选宫位的行和列加框。": [
+  "Each row is the palace whose stem transforms, each column the palace holding the transformed star; cells on the diagonal are self-transformations. The ×N in a column header counts the palace-stem transformations landing in that palace. The selected palace's row and column are outlined.",
+  "行は宮干のある宮、列は四化星のある宮で、対角線上のマスが自化です。列見出しの ×N はその宮に入る宮干四化の数です。選んだ宮の行と列を枠で囲みます。"
+ ],
  "丁壬合木": [
   "Ding–Ren combine (Wood)",
   "丁壬合木"
@@ -2763,6 +2771,10 @@
   "The twelve palace branches have no duplicates",
   "十二宮の地支構造に重複なし"
  ],
+ "十二宫宫干四化总表": [
+  "Palace-stem Four Transformations of all twelve palaces",
+  "十二宮の宮干四化一覧"
+ ],
  "十二宫宫干飞化查询": [
   "Twelve-palace stem flying-transformation lookup",
   "十二宮の宮干飛化照会"
@@ -3339,6 +3351,14 @@
   "Chart generated: ",
   "命盤を作成しました："
  ],
+ "命盘时辰不详，出生当天又在农历年的交界：日子随时辰而定，生年天干可能不同，四化星、各宫宫干和宫干飞化都随时辰而变，暂不列出。": [
+  "The birth hour is unknown and the birth date sits on the lunar new year: the day depends on the hour, so the year stem may differ, and the four transformations, the palace stems and their flying transformations all depend on the hour. They are not listed.",
+  "出生時刻が不明で、出生日が旧正月の境目にあります。日付が時刻によって変わるため生年の天干が異なる可能性があり、四化星・各宮の宮干・宮干飛化はいずれも時刻次第です。表示しません。"
+ ],
+ "命盘时辰不详：四化星由生年天干决定，不随时辰变；但它们落在哪一宫、各宫的宫干和宫干飞化都按 12:00 占位时辰排出，会随时辰而变。": [
+  "Birth hour unknown: the transformed stars follow the birth-year stem and do not change with the hour, but the palaces they sit in, each palace's stem and the palace-stem flying transformations are placed with the 12:00 placeholder hour and change with the hour.",
+  "出生時刻不明：四化星は生年の天干で決まり時刻では変わりませんが、どの宮に入るか、各宮の宮干と宮干飛化は 12:00 の仮の時刻で配置しており、時刻によって変わります。"
+ ],
  "命盘时辰不详：本页按 12:00 占位时辰计算，时柱、宫位和时辰交界都不可靠，所以打开时不自动计算。": [
   "Birth hour unknown: this page would work from the 12:00 placeholder, so the hour pillar, palaces and hour boundaries are unreliable, and nothing is computed on opening.",
   "出生時刻不明：このページは 12:00 の仮の時刻で計算するため、時柱・宮位・時辰の境目は当てにならず、開いたときに自動では計算しません。"
@@ -3534,6 +3554,10 @@
  "在月历中查看": [
   "Show in the month calendar",
   "月暦で見る"
+ ],
+ "在紫微盘上看飞化线": [
+  "Show flying lines on the Zi Wei chart",
+  "紫微盤で飛化線を見る"
  ],
  "在紫微盘打开 ": [
   "Open on the Zi Wei chart: ",
@@ -4326,6 +4350,10 @@
  "宫内主星、辅星与四化分别按照哪些计算规则安置？": [
   "Which calculation rules place the main stars, auxiliary stars and Four Transformations in each palace?",
   "宮内の主星、補助星、四化はそれぞれどの計算規則で配置されているか？"
+ ],
+ "宫干 → 落宫": [
+  "Stem palace → landing palace",
+  "宮干 → 入る宮"
  ],
  "宫干支": [
   "Palace stem-branch",
@@ -5406,6 +5434,10 @@
  "按出生资料里的信息排出玄枢的盘再比较。粘贴的内容只用于本次核对，服务器不保存。": [
   "XuanShu casts its own chart from the birth details and compares. The pasted text is used only for this check; the server keeps nothing.",
   "出生情報から玄枢の命盤を出して比較します。貼り付けた内容はこの照合にだけ使い、サーバーには保存しません。"
+ ],
+ "按宫列表": [
+  "By palace",
+  "宮ごとの一覧"
  ],
  "按日期排列": [
   "Sorted by date",
@@ -8227,6 +8259,10 @@
   "Zi Wei chart switched to ",
   "紫微盤を切り替えました："
  ],
+ "紫微盘已打开宫干飞化：": [
+  "Zi Wei board opened with palace-stem flying lines: ",
+  "紫微盤で宮干飛化を表示："
+ ],
  "紫微辅星对照 iztro 时查出两张安星表有误：辛年天魁、天钺互换，封诰逆行。已按所引规则改正（辛年天魁在午、天钺在寅；封诰从寅宫起子时顺行），重跑后全部辅星一致。": [
   "Checking the minor stars against iztro found two wrong tables: in Xin years Tian Kui and Tian Yue were swapped, and Feng Gao counted backwards. Both now follow the cited rules (Xin year: Tian Kui in 午, Tian Yue in 寅; Feng Gao from 寅 at the Zi hour, counting forward); every minor star agrees on the rerun.",
   "補星を iztro と照合して二つの配置表の誤りが見つかりました：辛年の天魁・天鉞が逆、封誥が逆行。引用した規則どおり修正し（辛年は天魁が午、天鉞が寅；封誥は寅宮の子時から順行）、再実行で全補星が一致しました。"
@@ -8428,7 +8464,7 @@
   "自動検出"
  ],
  "自化": [
-  "Self-transform",
+  "Self-transformation",
   "自化"
  ],
  "自化忌": [

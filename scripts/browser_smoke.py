@@ -497,6 +497,36 @@ def main() -> None:
             page.locator('#rule-only-diff').check()
             page.wait_for_function("() => document.querySelectorAll('#rule-matrix tbody tr').length === 1", timeout=30000)
             page.screenshot(path=str(screenshot_dir / '37-rule-matrix.png'), full_page=True)
+            # The flying table: a row per palace in the usual order with its four transformations, 自化 marked where the star
+            # sits in the same palace; the matrix puts each in its landing column, with 自化 on the diagonal.
+            page.locator('[data-tab="transform"]').click()
+            page.locator('#transform-table').wait_for(timeout=30000)
+            assert page.locator('#transform-table tbody tr').count() == 12
+            assert page.locator('#transform-table tbody th').first.inner_text().startswith('命宫')
+            self_count = page.evaluate("current.ziwei.palaces.flatMap(p => p.palace_flying_transformations).filter(t => t.self_transform).length")
+            assert page.locator('#transform-table td.fh-cell').count() == 48 and page.locator('#transform-table td.is-self').count() == self_count
+            page.locator('#transform-pick-1').click()
+            assert page.evaluate('selectedPalace') == '兄弟宫' and page.locator('.palace-panel h4').inner_text().startswith('兄弟宫')
+            assert page.locator('#transform-table tr.is-focus th').inner_text().startswith('兄弟宫')
+            page.locator('#transform-view-matrix').click()
+            assert page.locator('#transform-matrix .fh-hua').count() == 48 and page.locator('#transform-matrix td.is-diag').count() == 12
+            assert page.locator('#transform-matrix td.is-diag .fh-hua').count() == self_count
+            assert page.locator('#transform-matrix td.is-focus-col').count() == 12
+            page.screenshot(path=str(screenshot_dir / '47-transform-matrix.png'), full_page=True)
+            # The matrix badges name the palace stem, not the birth year.
+            assert page.locator('#transform-matrix .fh-hua .hua').first.get_attribute('title').startswith('命宫（')
+            page.locator('#transform-view-table').click()
+            assert page.locator('#transform-table thead .hua[title]').count() == 0
+            # The board opens on the palace picked here, with the flying lines on even if they were turned off before.
+            page.evaluate("showFlying = false")
+            page.locator('#transform-pick-4').click()
+            page.locator('#transform-to-ziwei').click()
+            page.wait_for_function("active === 'ziwei'", timeout=10000)
+            assert page.locator('.palace-panel h4').first.inner_text().startswith('财帛宫')
+            page.locator('#ziwei-board path.fly:not(.in)').first.wait_for(state='attached', timeout=10000)
+            assert page.evaluate("document.activeElement.id") == 'palace-' + str(page.evaluate("current.ziwei.palaces.findIndex(p => p.name === '财帛宫')"))
+            assert page.locator('#live-status').inner_text() == '紫微盘已打开宫干飞化：财帛宫'
+            page.evaluate("selectedPalace = '命宫'")
             page.locator('[data-tab="bazi"]').click()
             # As on a fresh page, today's lunar year is not known yet: the result still comes once it is.
             page.evaluate("todayLunarYear = null")
@@ -879,6 +909,10 @@ def main() -> None:
             # 2000-02-04 is the last day of the twelfth lunar month, so a 23:00 birth would fall in the new lunar year.
             assert page.locator('#reading-ziwei [class*="reading-hua-"]').count() == 0
             assert page.locator('#reading-ziwei .reading-value').inner_text() == '随时辰而定'
+            # The year stem, so every palace stem, is open too: the flying table is held back, not drawn from 12:00.
+            page.locator('[data-tab="transform"]').click()
+            page.get_by_text('出生当天又在农历年的交界', exact=False).wait_for(timeout=30000)
+            assert page.locator('#transform-table, #transform-matrix, .transform-card').count() == 0
             # Which way the day can move decides it. 2000-02-05 is the first day of the first lunar month: the 23:00
             # change only moves the day forward, so the year (and its stars) stays; so it does in mean solar time at
             # 115°E (20 minutes behind the clock), where 23:40 the evening before is counted back to this day.

@@ -821,6 +821,15 @@ function unsettledPillars(b) {
 }
 // The stars those pillars place are then not settled either.
 function shenshaUnsettled(b) {return unsettledPillars(b).size > 1;}
+// The four transformations follow the lunar year's stem. With the day depending on the hour, the year is open when
+// the day can move across the lunar new year: forward past the end of the twelfth month, or back past the first
+// day of the first month, by as many days as the first or last moment of the birth date moves.
+function lunarYearOpen(b, z) {
+  if (!unsettledPillars(b).has('day')) return false;
+  const lunar = z.lunar_date, days = birthDayOffsets(b);
+  return (days.last > days.here && lunar.month === 12 && lunar.month_days - lunar.day < days.last - days.here)
+    || (days.first < days.here && lunar.month === 1 && !lunar.is_leap_month && lunar.day <= days.here - days.first);
+}
 // Which pillars the five-phase counts leave out with the hour unknown, as one sentence per case (each translated whole).
 function wuxingUnsettledNote(unsettled) {
   const year = unsettled.has('year'), month = unsettled.has('month'), day = unsettled.has('day');
@@ -1452,8 +1461,19 @@ function renderZiwei(z) {
   if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。');
   note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）、主星与昌曲火铃羊陀的庙旺利陷、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。`);
 }
+// 宫干飞化 for the whole chart: each palace's stem and where its four transformations land, as a palace-per-row table
+// or as a palace × palace matrix with 自化 on the diagonal. A palace picked in either shows its detail below.
+let transformView = 'table';
+const HUA_TYPES = ['化禄', '化权', '化科', '化忌'];
 function renderTransform(z) {
   title(result, '生年四化 / 宫干飞化', '《全书》系公开十干四化表 · 流派差异需核对');
+  // Near the lunar new year an unknown hour can change the year stem itself, and with it every palace stem (五虎遁).
+  if (currentHourUnknown && lunarYearOpen(current.bazi, z)) {
+    append(result, 'p', 'field-help', '命盘时辰不详，出生当天又在农历年的交界：日子随时辰而定，生年天干可能不同，四化星、各宫宫干和宫干飞化都随时辰而变，暂不列出。');
+    note(result, '四化是星曜的传统标识，不是新增星曜；宫干飞化仅列出四化星所在宫，尚未实施完整飞星断法。');
+    return;
+  }
+  if (currentHourUnknown) append(result, 'p', 'field-help', '命盘时辰不详：四化星由生年天干决定，不随时辰变；但它们落在哪一宫、各宫的宫干和宫干飞化都按 12:00 占位时辰排出，会随时辰而变。');
   const cards = append(result, 'div', 'transform-grid');
   z.birth_year_transformations.forEach(item => {
     const box = append(cards, 'div', 'transform-card hua-card-' + (HUA_CLASS[item.type] || 'lu'));
@@ -1461,13 +1481,87 @@ function renderTransform(z) {
     append(box, 'div', 'transform-star', item.star);
     append(box, 'div', 'transform-palace', item.palace_name + ' · ' + item.palace);
   });
+  const order = PALACE_ORDER.map(name => z.palaces.find(p => p.name === name)).filter(Boolean);
+  const selected = findPalace(z, selectedPalace).name;
+  append(result, 'h4', 'subheading', '十二宫宫干四化总表');
+  const tags = append(result, 'div', 'meta-tags');
+  append(tags, 'span', null, z.transformation_school);
+  texts(append(tags, 'span'), '自化', ' ×', order.reduce((n, p) => n + p.palace_flying_transformations.filter(t => t.self_transform).length, 0));
+  const views = append(result, 'div', 'layer-modes fh-views');
+  views.setAttribute('role', 'group'); views.setAttribute('aria-label', '显示方式');
+  [['table', '按宫列表'], ['matrix', '宫位矩阵']].forEach(([key, name]) => {
+    const button = append(views, 'button', 'layer-btn' + (transformView === key ? ' active' : ''), name);
+    button.type = 'button'; button.id = 'transform-view-' + key; button.setAttribute('aria-pressed', String(transformView === key));
+    button.addEventListener('click', () => {transformView = key; render();});
+  });
+  const wrap = append(result, 'div', 'fh-wrap');
+  const table = append(wrap, 'table', transformView === 'table' ? 'fh-table' : 'fh-matrix'); table.id = 'transform-' + transformView;
+  append(table, 'caption', 'visually-hidden', '十二宫宫干四化总表');
+  const head = append(append(table, 'thead'), 'tr');
+  const corner = append(head, 'th', 'fh-corner', transformView === 'table' ? '宫干支' : '宫干 → 落宫'); corner.scope = 'col';
+  // The row header picks the palace shown in the detail below.
+  const rowHead = (tr, p, i) => {
+    const th = append(tr, 'th', 'fh-palace'); th.scope = 'row';
+    const pick = append(th, 'button', 'fh-pick'); pick.type = 'button'; pick.id = 'transform-pick-' + i;
+    pick.setAttribute('aria-pressed', String(p.name === selected));
+    append(pick, 'span', 'fh-palace-name', p.name);
+    const gz = append(pick, 'span', 'fh-gz'); gz.dataset.noI18n = '';
+    append(gz, 'span', stemClass(p.stem), p.stem); append(gz, 'span', branchClass(p.branch), p.branch);
+    pick.addEventListener('click', () => {selectedPalace = p.name; render();});
+  };
+  const body = append(table, 'tbody');
+  if (transformView === 'table') {
+    // The badge's own title says 生年; these are palace-stem transformations, and the header already names the type.
+    HUA_TYPES.forEach(type => {const th = append(head, 'th', 'fh-type fh-' + HUA_CLASS[type]); th.scope = 'col'; huaBadge(th, type).removeAttribute('title'); th.append(' ' + type);});
+    order.forEach((p, i) => {
+      const tr = append(body, 'tr', p.name === selected ? 'is-focus' : null);
+      rowHead(tr, p, i);
+      HUA_TYPES.forEach(type => {
+        const t = p.palace_flying_transformations.find(x => x.type === type), td = append(tr, 'td', 'fh-cell' + (t && t.self_transform ? ' is-self' : ''));
+        if (!t) {td.textContent = '—'; return;}
+        append(td, 'b', 'fh-star', t.star); append(td, 'span', 'fh-arrow', '→'); append(td, 'span', 'fh-target', t.target_palace || '—');
+        if (t.self_transform) append(td, 'small', 'fh-self', '自化');
+      });
+    });
+    append(result, 'p', 'field-help', '一行一宫，按命宫、兄弟宫……父母宫的顺序；每格是该宫宫干化出的星和它所在的宫。星就在本宫时标「自化」。点宫名在下方查看该宫详情。');
+  } else {
+    order.forEach(q => {
+      const th = append(head, 'th', 'fh-col' + (q.name === selected ? ' is-focus' : '')); th.scope = 'col';
+      append(th, 'span', 'fh-palace-name', q.name);
+      const n = order.reduce((m, p) => m + p.palace_flying_transformations.filter(t => t.target_palace === q.name).length, 0);
+      texts(append(th, 'small', 'fh-count'), '×', n);
+    });
+    order.forEach((p, i) => {
+      const tr = append(body, 'tr', p.name === selected ? 'is-focus' : null);
+      rowHead(tr, p, i);
+      order.forEach(q => {
+        const td = append(tr, 'td', (p === q ? 'is-diag' : '') + (q.name === selected ? ' is-focus-col' : ''));
+        const here = p.palace_flying_transformations.filter(t => t.target_palace === q.name);
+        here.forEach(t => {
+          const line = append(td, 'span', 'fh-hua'); huaBadge(line, t.type).title = `${p.name}（${p.stem}干）${t.star}${t.type}→${q.name}`;
+          append(line, 'span', null, t.star);
+        });
+        if (p === q && here.length) append(td, 'span', 'visually-hidden', '自化');
+      });
+    });
+    append(result, 'p', 'field-help', '一行是宫干所在的宫，一列是四化星所在的宫；对角线上的格子是自化。列头的 ×N 是落入该宫的宫干四化条数。所选宫位的行和列加框。');
+  }
   append(result, 'h4', 'subheading', '十二宫宫干飞化查询');
   const row = append(result, 'div', 'inline-control');
   const label = append(row, 'label', null, '选择宫位');
   const picker = append(label, 'select', null);
-  z.palaces.forEach(p => {const opt = append(picker, 'option', null, p.name + ' · ' + p.stem + p.branch); opt.value = p.name;});
-  picker.value = selectedPalace;
+  order.forEach(p => {const opt = append(picker, 'option', null, p.name + ' · ' + p.stem + p.branch); opt.value = p.name;});
+  picker.value = selected;
   picker.addEventListener('change', () => {selectedPalace = picker.value; render();});
+  const open = append(row, 'button', 'tiny-button', '在紫微盘上看飞化线'); open.type = 'button'; open.id = 'transform-to-ziwei';
+  // The board opens with the flying lines on, whatever was chosen there before, and the keyboard lands on the palace.
+  open.addEventListener('click', () => {
+    selectedPalace = selected; showFlying = true; flyPinned = null;
+    activateTab(tabs.find(t => t.dataset.tab === 'ziwei'));
+    const node = $('#palace-' + z.palaces.findIndex(p => p.name === selected));
+    if (node) node.focus();
+    announce(calT('紫微盘已打开宫干飞化：') + calT(selected));
+  });
   renderPalacePanel(result, findPalace(z, selectedPalace));
   note(result, '四化是星曜的传统标识，不是新增星曜；宫干飞化仅列出四化星所在宫，尚未实施完整飞星断法。');
 }
@@ -1507,13 +1601,7 @@ function renderReading(reading) {
   else PHASES.split('').forEach(e => {const chip = append(phases, 'span', 'reading-chip'); append(chip, 'b', elementClass(e), e); chip.append(' ' + counts.surface[e]);});
   if (currentHourUnknown) append(bazi, 'p', 'field-help', wuxingUnsettledNote(unsettled));
   const ziwei = card('reading-ziwei', '紫微斗数', 'ziwei', '打开紫微斗数', () => {selectedPalace = '命宫';});
-  // The four transformations follow the lunar year's stem. With the day depending on the hour, the year is open when
-  // the day can move across the lunar new year: forward past the end of the twelfth month, or back past the first
-  // day of the first month, by as many days as the first or last moment of the birth date moves.
-  const lunar = z.lunar_date, days = currentHourUnknown ? birthDayOffsets(b) : {first: 0, here: 0, last: 0};
-  const yearOpen = unsettled.has('day') && (
-    (days.last > days.here && lunar.month === 12 && lunar.month_days - lunar.day < days.last - days.here)
-    || (days.first < days.here && lunar.month === 1 && !lunar.is_leap_month && lunar.day <= days.here - days.first));
+  const yearOpen = lunarYearOpen(b, z);
   const hua = (box, withPalace) => {
     const value = row(box, '生年四化');
     if (yearOpen) {
