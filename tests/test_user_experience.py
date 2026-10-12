@@ -57,10 +57,30 @@ def test_python315_acceptance_includes_packaging():
 
 def test_mcp_onboarding_snippet_is_copyable_and_portable():
     js=(ROOT/'static/app.js').read_text(encoding='utf-8')
-    assert "copy.id='integration-copy'" in js
+    assert "'integration-copy'" in js
     assert "'C:\\\\path\\\\to\\\\xuanshu'" in js
-    assert "navigator.clipboard.writeText(snippet)" in js
+    assert "navigator.clipboard.writeText(text())" in js
     assert "'/path/to/xuanshu'" in js
+
+
+def test_integration_catalogue_groups_every_mcp_tool_and_links_real_pages():
+    """Every tool the server lists has a purpose group, and every workbench link names an existing tab."""
+    import re
+    from app.mcp import TOOLS
+    js=(ROOT/'static/app.js').read_text(encoding='utf-8')
+    html=(ROOT/'static/index.html').read_text(encoding='utf-8')
+    groups=js[js.index('const AG_GROUPS = ['):js.index('];', js.index('const AG_GROUPS = ['))]
+    grouped=re.findall(r"'([a-z_]+)'", groups.split('\n', 1)[1])
+    named={g for g in re.findall(r"\['([a-z]+)', '", groups)}
+    tool_names=set(grouped)-named
+    assert tool_names==set(TOOLS) and len(grouped)-len(named)==len(TOOLS)
+    links=js[js.index('const AG_TABS = {'):js.index('};', js.index('const AG_TABS = {'))]
+    pairs=dict(re.findall(r"([a-z_]+): '([a-z-]+)'", links))
+    tabs=set(re.findall(r'data-tab="([a-z-]+)"', html))
+    assert pairs and set(pairs)<=set(TOOLS) and set(pairs.values())<=tabs
+    # Example calls never read the birth form.
+    examples=js[js.index('const AG_BIRTH ='):js.index('function agExample')]
+    assert 'readInput' not in examples and "$('#birth_datetime')" not in examples
 
 
 
