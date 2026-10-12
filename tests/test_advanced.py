@@ -135,6 +135,11 @@ def test_boundary_map_dst_spring_in_rome():
     out=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2024-03-31T01:58',timezone='Europe/Rome'),uncertainty_minutes=60))
     assert any('时区夏令时/历史UTC偏移界' in b['types'] for b in out['boundaries'])
     assert any('2024-03-31T03:00:00+02:00' == b['local'] for b in out['boundaries'])
+    # Each segment's local ends follow the zone's own offset on either side of the switch.
+    assert out['segments'][0]['start_local_inclusive']=='2024-03-31T00:58:00+01:00'
+    assert out['segments'][-1]['end_local_exclusive']=='2024-03-31T03:58:00+02:00'
+    for before,after in zip(out['segments'],out['segments'][1:]):
+        assert before['end_local_exclusive']==after['start_local_inclusive'] and before['end_utc_exclusive']==after['start_utc_inclusive']
 
 
 @pytest.mark.parametrize('offset',['+01:00','+02:00'])

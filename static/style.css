@@ -710,6 +710,69 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .today-term small{font-size:11px;color:var(--muted)}
 .today-term-track{height:6px;border-radius:3px;background:var(--panel3);overflow:hidden}
 .today-term-fill{display:block;height:100%;background:linear-gradient(90deg,var(--accent-line),var(--gold))}
+/* 排盘质量审计: a status line, the birth between its two jie, the hour and day boundaries, then the flags. */
+.qa-status{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:4px 0 10px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);font-size:13px}
+.qa-status.is-clear strong{color:var(--green)}
+.qa-status.is-review{border-color:var(--warn-line);background:var(--warn-soft)}.qa-status.is-review strong,.qa-status.is-review span{color:var(--warn)}
+.qa-term{margin:14px 0 10px}
+.qa-term .is-near strong,.qa-near{color:var(--warn)}
+.qa-near{font-weight:600}
+.qa-gaps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px;margin:6px 0 4px}
+.qa-gap{display:flex;flex-direction:column;gap:3px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);padding:10px 14px}
+.qa-gap.is-near{border-color:var(--warn-line);background:var(--warn-soft)}
+.qa-gap-label{font-size:12px;color:var(--muted)}
+.qa-gap-value{font-size:18px;color:var(--text);font-weight:600}
+.qa-gap small{font-size:11px;color:var(--muted)}
+.qa-window{margin:2px 0 8px}
+.qa-flags{display:flex;flex-direction:column;gap:8px;margin:0 0 10px}
+.qa-flag{border:1px solid var(--border);border-left:3px solid var(--border-strong);border-radius:6px;background:var(--panel2);padding:9px 12px;font-size:13px;line-height:1.7;color:var(--text2)}
+.qa-flag.is-review{border-left-color:var(--warn)}
+.qa-flag p{margin:4px 0 0}
+.qa-flag a{font-size:12px;color:var(--gold2)}
+.qa-flag-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.qa-chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 9px;border:1px solid var(--border-strong);color:var(--muted)}
+.qa-flag.is-review .qa-chip{border-color:var(--warn-line);color:var(--warn);background:var(--warn-soft)}
+.qa-code{font-size:11px;color:var(--faint);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+/* 出生时刻临界地图: the interval as a line, the switches in order, a card per segment. */
+.bt-line{margin:8px 0 14px;padding:26px 0 0}
+.bt-track{position:relative;height:30px;border-radius:6px;background:var(--panel3)}
+.bt-seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);border-right:1px solid var(--bg);box-sizing:border-box}
+.bt-bands{position:absolute;inset:0;border-radius:6px;overflow:hidden}
+.bt-seg:last-child{border-right:0}
+.bt-seg.is-alt{background:var(--panel2)}
+.bt-seg.is-birth{box-shadow:inset 0 0 0 2px var(--gold)}
+.bt-seg-num{font-size:11px;color:var(--muted);font-weight:600}
+.bt-seg.is-narrow .bt-seg-num{display:none}
+.bt-tick{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--text2)}
+.bt-tick>.bt-tick-num{position:absolute;bottom:100%;left:50%;transform:translate(-50%,-2px)}
+.bt-tick-num{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:var(--text2);color:var(--bg);font-size:11px;font-weight:700;line-height:1}
+.bt-pin{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);box-shadow:0 0 0 1px var(--gold)}
+.bt-axis{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bt-axis-birth{color:var(--gold2);font-weight:600}
+.bt-switches{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
+.bt-switch{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;border:1px solid var(--border);border-radius:8px;background:var(--panel2);padding:9px 12px}
+.bt-switch .bt-tick-num{margin-top:2px}
+.bt-switch-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:0;font-size:13px}
+.bt-switch-head b{font-variant-numeric:tabular-nums}
+.bt-type{font-size:11px;border:1px solid var(--accent-line);border-radius:999px;padding:0 8px;color:var(--gold2);background:var(--accent-soft)}
+.bt-changes{display:flex;flex-wrap:wrap;gap:4px 8px;margin:5px 0 0;font-size:12px;color:var(--text2)}
+.bt-change{border:1px solid var(--border);border-radius:999px;padding:0 9px;background:var(--panel)}
+.bt-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px;margin:0 0 10px}
+.bt-card{border:1px solid var(--border);border-radius:10px;background:var(--panel2);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.bt-card.is-birth{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.bt-card-head{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:12px}
+.bt-card-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:var(--panel3);font-size:11px}
+.bt-card-range{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.bt-card-head small{font-size:11px}
+.bt-badge{font-size:11px;font-weight:600;color:var(--gold2);border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:999px;padding:0 8px}
+.bt-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.bt-pillar{display:flex;flex-direction:column;align-items:center;border:1px solid var(--border);border-radius:6px;background:var(--panel);padding:4px 2px}
+.bt-pillar small{font-size:10px;color:var(--muted)}
+.bt-pillar.is-changed{border-color:var(--warn-line);background:var(--warn-soft)}
+.bt-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.25}
+.bt-ziwei,.bt-lunar{display:flex;flex-wrap:wrap;gap:3px 10px;margin:0;font-size:12px;color:var(--text2)}
+.bt-field.is-changed{color:var(--warn);font-weight:600}
+.bt-utc{font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
 .today-facts{margin-top:10px}
 .today-empty{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:12px 14px}
 .today-table td,.today-table th{vertical-align:middle}

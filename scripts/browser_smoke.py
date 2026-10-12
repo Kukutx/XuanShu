@@ -1150,7 +1150,21 @@ def main() -> None:
             # The opening result is for ±60 minutes; wait for the ±8 one the button asked for.
             page.get_by_text('±8分钟',exact=False).first.wait_for(timeout=30000)
             page.get_by_text('各区间代表命盘',exact=False).first.wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() >= 1
+            # The interval drawn as a line: a band per segment card, a tick per switch, one pin and one birth segment.
+            cards = page.locator('.bt-card').count()
+            assert cards >= 1 and page.locator('#boundary-timeline .bt-seg').count() == cards
+            assert page.locator('#boundary-timeline .bt-tick').count() == page.locator('#boundary-switches li').count() == cards - 1
+            assert page.locator('#boundary-timeline .bt-pin').count() == 1 and page.locator('.bt-card.is-birth').count() == 1
+            # 立春 2000 falls at 20:40:23 and the hour changes at 21:00: each switch says what it changes.
+            page.evaluate("""async () => {boundaryResult = await postJSON('/api/birth-boundaries',
+              {birth: {...readInput(), birth_datetime: '2000-02-04T20:30', timezone: 'Asia/Shanghai', time_mode: 'clock', longitude: null, late_zi_day_rollover: false}, uncertainty_minutes: 60}); render();}""")
+            page.wait_for_function("() => document.querySelectorAll('#boundary-switches li').length === 2", timeout=30000)
+            first, second = page.locator('#boundary-switches li').all_inner_texts()
+            assert '20:40:23' in first and '节令界 · 立春' in first and '年柱 己卯 → 庚辰' in first and '月柱 丁丑 → 戊寅' in first, first
+            assert '21:00' in second and '时辰界' in second and '时柱 庚戌 → 辛亥' in second and '命宫 卯 → 寅' in second, second
+            assert page.locator('#boundary-segment-1').get_attribute('class') == 'bt-card is-birth'
+            assert page.locator('#boundary-segment-3 .bt-pillar.is-changed').count() == 3  # year, month and hour differ from the birth's
+            assert '1 小时 10 分' in page.locator('#boundary-segment-1 .bt-card-head').inner_text()
             page.screenshot(path=str(screenshot_dir / '18-boundaries-desktop.png'), full_page=True)
 
             # All three independently implemented 开发阶段 workflows must work from visible controls.
@@ -1207,6 +1221,11 @@ def main() -> None:
             page.wait_for_function("() => qualityResult && qualityResult !== window.openingQuality", timeout=30000)
             assert page.locator('#quality-minutes').input_value() == '10'
             assert '未发现当前规则已知边界问题' in page.locator('#result').inner_text()
+            # Distances read as days, hours and minutes, measured from the named jie on either side.
+            assert page.locator('#quality-status.is-clear').count() == 1
+            term = page.locator('#quality-term').inner_text()
+            assert '交节已过' in term and '距交节还有' in term and ' 天' in term, term
+            assert page.locator('#quality-hour .qa-gap-value').inner_text() and page.locator('.qa-gap.is-near').count() == 0
             page.screenshot(path=str(screenshot_dir / '11-quality-desktop.png'), full_page=True)
 
             # Auditable deep cross-method review: real Chromium controls invoking FastAPI.
@@ -1248,6 +1267,7 @@ def main() -> None:
             page.locator('[data-tab="quality"]').click()
             page.locator('#quality-run').click()
             page.get_by_text('published_new_moon_uncertainty', exact=False).first.wait_for(timeout=30000)
+            assert page.locator('#quality-status.is-review').count() == 1 and page.locator('.qa-flag.is-review .qa-code', has_text='published_new_moon_uncertainty').count() == 1
             assert page.locator('a[href="https://www.hko.gov.hk/en/gts/time/conversion.htm"]').count() > 0
             page.screenshot(path=str(screenshot_dir / '12-quality-hko-desktop.png'), full_page=True)
 

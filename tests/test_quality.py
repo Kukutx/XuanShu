@@ -108,6 +108,9 @@ def test_quality_nearest_jie_is_detected_using_actual_astronomical_time():
     result = audit((minute + timedelta(minutes=2)).isoformat())
     assert 'jie_boundary' in codes(result)
     assert result['calculation_snapshot']['minutes_since_previous_jie'] < 3
+    # The jie on either side are named, with the instants the distances are measured from.
+    assert result['calculation_snapshot']['previous_jie']['name'] == '立春'
+    assert result['calculation_snapshot']['next_jie']['name'] == '惊蛰'
 
 
 def test_quality_solar_time_date_change_and_timezone_notice():

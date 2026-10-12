@@ -334,6 +334,10 @@ const UI_EXTRA = {
 " known boundary notes.",
 " 件の既知の境界に関する注意。"
 ],
+" 项需核对": [
+" item(s) to review",
+" 件の要確認"
+],
 " 项（当前页面保留）": [
 " items (kept on this page)",
 " 項目（現在のページに保持）"
@@ -1418,6 +1422,10 @@ const UI_EXTRA = {
 "is only about ",
 "の節入りまで約 "
 ],
+"交节已过": [
+"Since the transition",
+"節入りから"
+],
 "交节约 ": [
 " is about ",
 "の節入りまで約 "
@@ -2361,6 +2369,10 @@ const UI_EXTRA = {
 "出生当天的不同时刻这些字段也会不同（当天交节、按 23:00 换日或换用太阳时），同样不参与对照：": [
 "These fields also differ at different times of the birth date (a solar term that day, the 23:00 day change or solar time), so they are left out too: ",
 "出生当日の時刻によって次の項目も変わるため（当日の節入り、23:00 の日替わり、太陽時）、同じく比較しません："
+],
+"出生所在": [
+"Birth falls here",
+"出生はここ"
 ],
 "出生数据与排盘边界审计": [
 "Birth data and charting boundary audit",
@@ -3358,6 +3370,10 @@ const UI_EXTRA = {
 "Four Pillars and time basis",
 "四柱と時基"
 ],
+"四柱与紫微字段不变": [
+"Four pillars and Zi Wei fields unchanged",
+"四柱と紫微の項目は変わりません"
+],
 "四柱与藏干统计": [
 "Four Pillars and hidden stems statistics",
 "四柱と蔵干の統計"
@@ -3445,6 +3461,10 @@ const UI_EXTRA = {
 "在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。": [
 "Choose a gender in the birth details to set the decade direction from the year stem and gender.",
 "出生情報で性別を選ぶと、年干の陰陽と性別から大運の順逆を決めます。"
+],
+"在敏感窗口内": [
+"Within the sensitivity window",
+"感度ウィンドウ内"
 ],
 "在月历中查看": [
 "Show in the month calendar",
@@ -5278,6 +5298,14 @@ const UI_EXTRA = {
 "Zhi Bei",
 "指背"
 ],
+"按 00:00 换日": [
+"Day changes at 00:00",
+"00:00 で日替わり"
+],
+"按 23:00 换日": [
+"Day changes at 23:00",
+"23:00 で日替わり"
+],
 "按传统规则自动": [
 "Auto by traditional rules",
 "伝統ルールで自動"
@@ -5437,6 +5465,10 @@ const UI_EXTRA = {
 "放在源码 skills/ 目录": [
 "Located in the source skills/ directory",
 "ソースの skills/ ディレクトリに配置"
+],
+"敏感窗口": [
+"Sensitivity window",
+"感度ウィンドウ"
 ],
 "数值定位精度不等于真实出生记录精度；仅覆盖当前实现的流派规则。": [
 "Numerical positioning precision does not equal the precision of the real birth record; only the currently implemented school rules are covered.",
@@ -6182,6 +6214,10 @@ const UI_EXTRA = {
 "Largest difference",
 "最大差"
 ],
+"最近的交界": [
+"nearest boundary",
+"最寄りの境界"
+],
 "月": [
 "Month",
 "月"
@@ -6297,6 +6333,10 @@ const UI_EXTRA = {
 "有效当地时间": [
 "Effective local time",
 "有効な現地時刻"
+],
+"有效时刻": [
+"Effective time",
+"有効時刻"
 ],
 "有效时间 ": [
 "Effective time ",
@@ -6645,6 +6685,10 @@ const UI_EXTRA = {
 "核对数": [
 "Checked",
 "照合数"
+],
+"核对项": [
+"Items to check",
+"確認項目"
 ],
 "核验": [
 "Verification",
@@ -8282,6 +8326,10 @@ const UI_EXTRA = {
 "Solar-term month branch × day branch · traditional labels only, no auspicious/inauspicious or do/avoid conclusions",
 "節令月支 × 日支 · 伝統ラベルのみで吉凶・宜忌の結論は出さない"
 ],
+"节令界": [
+"Solar-term boundary",
+"節気境界"
+],
 "节令界:": [
 "Solar-term boundary:",
 "節気境界:"
@@ -8873,6 +8921,10 @@ const UI_EXTRA = {
 "距下一节令": [
 "To next solar term",
 "次の節令まで"
+],
+"距交节还有": [
+"Until the transition",
+"節入りまで"
 ],
 "距当前八字换日界仅 ": [
 "Only this far from the current BaZi day-change boundary: ",

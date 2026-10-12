@@ -126,6 +126,8 @@ def calculation_quality_audit(request: QualityAuditRequest) -> dict:
         'effective_traditional_time': actual_reading.isoformat(timespec='seconds'),
         'time_mode': inp.time_mode,
         'longitude_east_degrees': inp.longitude,
+        'previous_jie': bazi['jie_boundaries']['previous'],
+        'next_jie': bazi['jie_boundaries']['next'],
         'minutes_since_previous_jie': previous_minutes,
         'minutes_until_next_jie': next_minutes,
         'minutes_to_nearest_hour_boundary': hour_minutes,
