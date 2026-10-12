@@ -1226,19 +1226,37 @@ def main() -> None:
             page.screenshot(path=str(screenshot_dir / '14-day-officers-desktop.png'), full_page=True)
 
             page.locator('[data-tab="timeline"]').click()
+            years_shown = "() => document.querySelectorAll('#timeline-matrix thead .yt-year').length"
             # A setting picked while the opening result is still on its way stays in its field through the redraw
             # that result brings, and the button (enabled again once it lands) applies it.
             page.locator('#timeline-years').select_option('5')
-            page.locator('#result tbody tr').first.wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() in (5, 10) and page.locator('#timeline-years').input_value() == '5'
+            page.locator('#timeline-matrix').wait_for(timeout=30000)
+            assert page.evaluate(years_shown) in (5, 10) and page.locator('#timeline-years').input_value() == '5'
             page.locator('#timeline-run').click()
-            page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 5", timeout=30000)
+            page.wait_for_function(years_shown + " === 5", timeout=30000)
             assert page.locator('#timeline-years').input_value() == '5'
             page.locator('#timeline-years').select_option('10')
+            page.locator('#timeline-focus').select_option('官禄宫')
             page.locator('#timeline-run').click()
-            page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 10", timeout=30000)
+            page.wait_for_function(years_shown + " === 10 && document.querySelector('#timeline-matrix tr.is-focus')", timeout=30000)
+            # The palace-by-year grid: twelve palaces, each year's four transformations once, this lunar year tinted.
+            assert page.locator('#timeline-matrix tbody tr').count() == 12 and page.locator('#timeline-matrix .hua').count() == 40
+            assert page.locator('#timeline-matrix tr.is-focus th').inner_text().startswith('官禄宫')
+            assert page.locator('#timeline-matrix thead .is-now').count() == 1
+            hua_total = sum(int(t[1:]) for t in page.locator('#timeline-matrix .yt-count').all_inner_texts())
+            assert hua_total == 40, hua_total
+            # The list by year keeps the selected palace's column; a year opens the Zi Wei year layer.
+            page.locator('#timeline-view-list').click()
+            assert page.locator('#timeline-list tbody tr').count() == 10 and page.locator('#timeline-list thead th').last.inner_text() == '所选宫位'
+            assert page.locator('#timeline-view-list').get_attribute('aria-pressed') == 'true'
+            page.locator('#timeline-view-matrix').click()
             assert '年度轨迹' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '15-annual-timeline-desktop.png'), full_page=True)
+            first_year = page.locator('#timeline-matrix thead .yt-year').first.get_attribute('id').split('-')[-1]
+            page.locator('#timeline-matrix thead .yt-year').first.click()
+            page.wait_for_function("() => active === 'ziwei' && ziweiLayer.mode === 'year'", timeout=30000)
+            assert page.evaluate('ziweiLayer.year') == int(first_year)
+            page.locator('#ziwei-layer-natal').click()
 
             page.locator('[data-tab="decision"]').click()
             page.locator('#decision-add-criterion').click()
