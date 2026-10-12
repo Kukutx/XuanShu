@@ -6242,6 +6242,10 @@ const UI_EXTRA = {
 "Note: method reference documents cannot substitute for third-party chart-by-chart certification of this chart.",
 "注：方法の参考文書は、この命盤に対する第三者による個別認証の代わりにはなりません。"
 ],
+"注：紫微为部分排盘，含十四主星与选定的辅星、杂曜，不是全流派专业盘；四化表与亮度表因流派而异。": [
+"Note: the Zi Wei chart is partial, with the fourteen major stars and selected auxiliary and minor stars; it is not a complete all-school professional chart, and transformation and brightness tables differ between schools.",
+"注：紫微は部分的な作盤で、十四主星と選定した補佐星・雑曜を含み、全流派の専門盤ではありません。四化表と明るさの表は流派によって異なります。"
+],
 "洛杉矶": [
 "Los Angeles",
 "ロサンゼルス"

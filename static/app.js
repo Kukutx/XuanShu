@@ -449,7 +449,7 @@ function baziLinks(b) {
     kind: LINK_CLASS[x.labels[0]] || 'same', label: x.branches.replace('/', '') + x.labels.join('·')}))
     .concat((b.branch_groups || []).map(g => {
       const columns = g.pillars.map(at);
-      return {from: Math.min(...columns), to: Math.max(...columns), kind: 'group', pillars: g.pillars,
+      return {from: Math.min(...columns), to: Math.max(...columns), kind: 'group', pillars: g.pillars, branches: g.branches,
         label: g.branches + (g.kind === '三合' ? '三合局' : '三会方') + '（' + g.element + '）'};
     }));
   return {stems, branches};
@@ -3070,7 +3070,9 @@ $('#print-view').addEventListener('click',()=>window.print());
 // Share card: a PNG drawn on a local canvas, or the same chart as text. Nothing is
 // uploaded; birth date, time and gender stay off unless the user ticks them.
 const shareOptions = {date: false, time: false, gender: false, bazi: true, ziwei: true};
-let shareView = 'image';
+let shareView = 'image', shareRefresh = null;
+// A language whose table was still loading when the dialog opened redraws the card and the text chart.
+document.addEventListener('xuanshu-language', () => {const dialog = $('#share-dialog'); if (dialog && dialog.open && shareRefresh) shareRefresh();});
 const GENDER_CHART = {male: '乾造', female: '坤造'};
 const PALACE_ORDER = ['命宫', '兄弟宫', '夫妻宫', '子女宫', '财帛宫', '疾厄宫', '迁移宫', '仆役宫', '官禄宫', '田宅宫', '福德宫', '父母宫'];
 // The text chart uses the notation other chart software prints (labelled pillars, 命宫在…,
@@ -3101,8 +3103,11 @@ function shareChartText() {
     lines.push('空亡：' + (voids.join('，') || '四柱地支不落日空、年空'), '日主：' + b.day_master + b.day_master_element);
     // Each relation names its pillars (年月 = year and month), since the same pair of stems can meet twice.
     const links = baziLinks(b), short = key => nameMap[key].charAt(0);
-    const listed = items => items.filter(x => x.pillars.every(k => keys.includes(k)))
-      .sort((x, y) => x.from - y.from || x.to - y.to).map(x => PILLAR_KEYS.filter(k => x.pillars.includes(k)).map(short).join('') + ' ' + x.label).join(gap);
+    // A three-harmony or seasonal group stays when the known pillars complete it by themselves.
+    const known = x => x.kind === 'group' ? [...x.branches].every(br => keys.some(k => b.pillars[k].branch === br))
+      : x.pillars.every(k => keys.includes(k));
+    const listed = items => items.filter(known).sort((x, y) => x.from - y.from || x.to - y.to)
+      .map(x => keys.filter(k => x.pillars.includes(k)).map(short).join('') + ' ' + x.label).join(gap);
     if (listed(links.stems)) lines.push('天干关系：' + listed(links.stems));
     if (listed(links.branches)) lines.push('地支关系：' + listed(links.branches));
   }
@@ -3120,6 +3125,8 @@ function shareChartText() {
       if (gender && p.decade) line += '｜' + '大限' + ' ' + p.decade.start_age + '–' + p.decade.end_age;
       lines.push(line);
     });
+    // The copied text leaves the page, so it carries the engine's limits with it.
+    lines.push('注：紫微为部分排盘，含十四主星与选定的辅星、杂曜，不是全流派专业盘；四化表与亮度表因流派而异。');
   }
   const modes = {clock: '钟表时间', mean_solar: '平太阳时', apparent_solar: '真太阳时'};
   lines.push('', '排盘规则：' + [currentInput.late_zi_day_rollover ? '23:00 换日' : '00:00 换日',
@@ -3298,6 +3305,7 @@ function openShareCard() {
       }, 'image/png');
     }
   }
+  shareRefresh = refresh;
   refresh();
   if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
 }

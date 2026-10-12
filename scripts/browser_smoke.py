@@ -476,6 +476,11 @@ def main() -> None:
             assert page.evaluate('window.copiedText') == text_chart
             page.locator('#share-gender').uncheck()
             assert page.locator('#share-copy-text').inner_text() == '复制文字盘'
+            # A language applied while the dialog is open (its table was still loading) regenerates the text chart.
+            page.evaluate("applyLoadedLanguage('zh-TW')")
+            assert '命宮在壬午' in page.evaluate(share_text)
+            page.evaluate("applyLoadedLanguage('zh-CN')")
+            assert '命宫在壬午' in page.evaluate(share_text) and '注：紫微为部分排盘' in page.evaluate(share_text)
             page.locator('#share-close').click()
             # The system share sheet gets the prepared PNG (stubbed here; headless Linux has none).
             page.evaluate('''() => {window.sharedFiles = null; navigator.canShare = () => true;
