@@ -746,7 +746,10 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .ev-observation{margin:0;font-size:13px;line-height:1.75;color:var(--text2)}
 .ev-limit{margin:0;font-size:12px;line-height:1.65;color:var(--muted)}
 .ev-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.ev-pillar{display:flex;flex-direction:column;align-items:center;border:1px solid var(--border);border-radius:6px;background:var(--panel);padding:5px 2px}
+.ev-pillar{display:flex;flex-direction:column;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:6px;background:var(--panel);padding:5px 2px}
+.ev-pillar.is-open{border-style:dashed}.ev-pillar.is-open .ev-gz{color:var(--muted)}
+.ev-basis{margin:0;font-size:12px;color:var(--muted)}
+.ev-self{border-left:1px solid currentColor;padding-left:4px;margin-left:2px;font-size:10px}
 .ev-pillar small{font-size:10px;color:var(--muted)}
 .ev-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:20px;line-height:1.25}
 .ev-hidden{border-collapse:collapse;width:100%;font-size:12px}
@@ -764,10 +767,10 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .ev-more>summary{cursor:pointer;color:var(--gold2);width:max-content}
 .ev-more>summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .ev-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;margin:8px 0 0}
-.ev-fields dt code{font-size:11px;color:var(--text2)}
+.ev-fields dt code{font-size:11px;color:var(--text2);overflow-wrap:anywhere}
 .ev-fields dd{margin:0 0 6px;display:flex;flex-direction:column;gap:1px;min-width:0}
 .ev-value{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
-.ev-hash{font-size:10px;color:var(--faint);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.ev-hash{font-size:10px;color:var(--faint);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
 .ev-rules{margin:6px 0 0}
 .ev-checks{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
 .ev-checks li{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--border);border-radius:999px;padding:3px 12px;font-size:12px;background:var(--panel2);color:var(--text2)}
@@ -775,11 +778,14 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .ev-refs td{font-size:12px;vertical-align:top}
 .ev-refs td:first-child{font-weight:600;color:var(--text)}
 .ev-refs code{font-size:11px;overflow-wrap:anywhere}
+.ev-refs a{color:var(--gold2);text-decoration:underline;text-underline-offset:2px}
+.ev-cell-label{display:none;color:var(--muted);font-size:11px}
 @media(max-width:640px){
   .ev-refs thead{display:none}
   .ev-refs,.ev-refs tbody,.ev-refs tr,.ev-refs td{display:block;width:100%}
   .ev-refs tr{border-bottom:1px solid var(--border);padding:8px 0}
   .ev-refs td{border:0;padding:1px 0}
+  .ev-refs .ev-cell-label{display:block}
 }
 /* 出生时刻临界地图: the interval as a line, the switches in order, a card per segment. */
 .bt-line{margin:8px 0 14px;padding:26px 0 0}
@@ -1114,6 +1120,8 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   details>*{display:block}
   .ziwei-board,.pillar,.qimen-cell,.palace,.chat-msg{break-inside:avoid}
   .wuxing{grid-template-columns:minmax(0,440px);justify-content:center;grid-template-areas:'figure' 'legend' 'detail';break-inside:avoid}
+  .ev-toc{display:none!important}
+  .ev-card{break-inside:avoid}
   a[href^="http"]::after{content:' (' attr(href) ')';font-size:10px;color:#555}
 }
 /* Calculation cross-check dialog */

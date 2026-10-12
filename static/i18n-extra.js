@@ -5722,6 +5722,10 @@ const UI_EXTRA = {
 "Day pillar date boundary",
 "日柱の日付境界"
 ],
+"日柱随时辰而定，日主未定，不标十神。": [
+"The day pillar depends on the hour, so the day master is open and ten gods are not marked.",
+"日柱は時刻次第のため日主が定まらず、十神は付けていません。"
+],
 "日柱随时辰而定，日主未定，十神暂不标注。": [
 "The day pillar depends on the hour, so the Day Master is unsettled and no ten gods are given.",
 "日柱が時刻次第のため日主が定まらず、十神は示しません。"
@@ -5990,6 +5994,10 @@ const UI_EXTRA = {
 "The hour is unknown: the hour pillar is a 12:00 placeholder and is not counted.",
 "時刻不明のため、時柱は 12:00 の仮置きで、数に入れていません。"
 ],
+"时辰不详：不列牵涉可能随时辰变化的柱的关系。": [
+"Hour unknown: relations involving pillars the hour could change are not listed.",
+"時刻不明：時刻によって変わりうる柱が関わる関係は挙げていません。"
+],
 "时辰不详：出生当天早晚不同，大运也不同": [
 "Hour unknown: the luck pillar differs between early and late in the birth day",
 "時刻不明：誕生日の朝と夜で大運が異なる"
@@ -5997,6 +6005,10 @@ const UI_EXTRA = {
 "时辰不详：哪些部分不受时辰影响": [
 "Hour unknown: what the hour does not change",
 "時辰不明：時辰に左右されない部分"
+],
+"时辰不详：宫位按 12:00 占位时辰排出，落宫会随时辰变化。": [
+"Hour unknown: palaces are placed from the 12:00 placeholder, so the landing palaces change with the hour.",
+"時刻不明：宮位は 12:00 の仮の時刻で配置しており、落宮は時刻によって変わります。"
 ],
 "时辰不详：时柱按 12:00 占位；出生当天交节，又按 23:00 换日或按太阳时换算，月柱、日柱随时辰而定。这三柱都不计入，日主未定，也不标十神。": [
 "The hour is unknown: the hour pillar is a 12:00 placeholder; a solar term (jie) falls on the birth day and the day changes at 23:00 or follows solar time, so the month and day pillars depend on the hour. These three pillars are not counted, and with no settled Day Master the Ten Gods are not shown.",
@@ -7408,7 +7420,7 @@ const UI_EXTRA = {
 ],
 "焦点宫宫干飞化": [
 "Focus palace stem transformations",
-"焦点宮の宮干飛化"
+"注目宮の宮干飛化"
 ],
 "然后": [
 "Then",
@@ -8306,6 +8318,10 @@ const UI_EXTRA = {
 "Auto-detect",
 "自動検出"
 ],
+"自化": [
+"Self-transform",
+"自化"
+],
 "自化忌": [
 "Self Ji",
 "自化忌"
@@ -8620,11 +8636,15 @@ const UI_EXTRA = {
 ],
 "计算字段与规则": [
 "Fields and rules",
-"計算項目と規則"
+"計算フィールドと規則"
 ],
 "计算字段：": [
 "Calculated fields: ",
 "計算フィールド："
+],
+"计算时制": [
+"Time basis",
+"計算時制"
 ],
 "计算时制对照": [
 "Compute time-standard comparison",

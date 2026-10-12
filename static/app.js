@@ -3858,14 +3858,23 @@ function renderDeep() {
   const toc = append(result, 'nav', 'ev-toc'); toc.setAttribute('aria-label', '证据分组');
   groups.forEach((group, i) => {
     const link = append(toc, 'a', 'ev-toc-link'); link.href = '#deep-group-' + i;
-    append(link, 'b', null, group); append(link, 'small', null, String(deepResult.findings.filter(f => f.group === group).length));
-    link.addEventListener('click', event => {event.preventDefault(); const target = $('#deep-group-' + i); if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});});
+    append(link, 'b', null, group); append(link, 'span', 'visually-hidden', '：'); append(link, 'small', null, String(deepResult.findings.filter(f => f.group === group).length));
+    // The link keeps #tool=deep in the address, so it scrolls itself and moves focus to the group for keyboard users.
+    link.addEventListener('click', event => {
+      event.preventDefault(); const target = $('#deep-group-' + i); if (!target) return;
+      target.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start'});
+      target.focus({preventScroll: true});
+    });
   });
   const evidenceOf = (f, path) => (f.evidence.find(x => x.path === path) || {}).value;
+  // With the hour unknown, the pillars the hour could change are the 12:00 placeholder's, so they are not shown as known.
+  const open = current && current.bazi ? unsettledPillars(current.bazi) : new Set();
+  const TIME_MODES = {clock: '钟表时间', mean_solar: '平太阳时', apparent_solar: '真太阳时'};
   const pillarsOf = value => {
     const row = elt('div', 'ev-pillars');
     PILLAR_KEYS.forEach(k => {
-      const cell = append(row, 'span', 'ev-pillar'); append(cell, 'small', null, nameMap[k]);
+      const cell = append(row, 'span', 'ev-pillar' + (open.has(k) ? ' is-open' : '')); append(cell, 'small', null, nameMap[k]);
+      if (open.has(k)) {append(cell, 'b', 'ev-gz', '?'); append(cell, 'small', 'muted', '随时辰而定'); return;}
       const gz = append(cell, 'b', 'ev-gz'); gz.dataset.noI18n = '';
       append(gz, 'span', stemClass(value[k][0]), value[k][0]); append(gz, 'span', branchClass(value[k][1]), value[k][1]);
     });
@@ -3873,26 +3882,38 @@ function renderDeep() {
   };
   // Structured views for the findings whose evidence is a table; the rest show the observation sentence.
   const views = {
-    'bazi-pillars': f => {const value = evidenceOf(f, 'bazi.pillars'); return value && pillarsOf(value);},
+    'bazi-pillars': f => {
+      const value = evidenceOf(f, 'bazi.pillars'), mode = evidenceOf(f, 'bazi.time_basis');
+      if (!value) return null;
+      const box = elt('div', 'ev-hua'); box.append(pillarsOf(value));
+      if (mode) texts(append(box, 'p', 'ev-basis'), '计算时制', ' ', TIME_MODES[mode] || mode);
+      return box;
+    },
     'bazi-hidden': f => {
       const hidden = evidenceOf(f, 'bazi.pillars'), base = deepResult.findings.find(x => x.id === 'bazi-pillars');
       const texts4 = base && evidenceOf(base, 'bazi.pillars');
       if (!hidden) return null;
       const table = elt('table', 'ev-hidden');
       PILLAR_KEYS.forEach(k => {
-        const tr = append(table, 'tr');
+        const tr = append(table, 'tr', open.has(k) ? 'is-open' : null);
         const th = append(tr, 'th'); th.scope = 'row'; append(th, 'span', null, nameMap[k]);
+        if (open.has(k)) {append(append(tr, 'td'), 'span', 'muted', '随时辰而定'); return;}
         if (texts4) {const branch = append(th, 'b', branchClass(texts4[k][1]), texts4[k][1]); branch.dataset.noI18n = '';}
         const stems = append(append(tr, 'td'), 'div', 'ev-chips');
-        (hidden[k] || []).forEach(h => {const chip = append(stems, 'span', 'ev-chip'); append(chip, 'b', elementClass(h.element), h.stem); append(chip, 'span', null, h.ten_god);});
+        // Ten gods are counted from the day stem, so with the day pillar open they are left out.
+        (hidden[k] || []).forEach(h => {const chip = append(stems, 'span', 'ev-chip'); append(chip, 'b', elementClass(h.element), h.stem); if (!open.has('day')) append(chip, 'span', null, h.ten_god);});
       });
-      return table;
+      if (!open.has('day')) return table;
+      const box = elt('div', 'ev-hua'); box.append(table); append(box, 'p', 'ev-basis', '日柱随时辰而定，日主未定，不标十神。');
+      return box;
     },
     'bazi-relations': f => {
       const pairs = evidenceOf(f, 'bazi.branch_relations');
       if (!Array.isArray(pairs) || !pairs.length) return null;
       const box = elt('div', 'ev-hua');
-      pairs.forEach(r => {
+      const settled = pairs.filter(r => !open.has(r.a) && !open.has(r.b));
+      if (settled.length < pairs.length) append(box, 'p', 'ev-basis', '时辰不详：不列牵涉可能随时辰变化的柱的关系。');
+      settled.forEach(r => {
         const row = append(box, 'p', 'ev-hua-row');
         texts(append(row, 'span', 'ev-hua-label'), nameMap[r.a] || r.a, ' · ', nameMap[r.b] || r.b);
         const branches = append(row, 'b', null, r.branches); branches.dataset.noI18n = '';
@@ -3906,16 +3927,20 @@ function renderDeep() {
       const box = elt('div', 'ev-hua');
       const line = (label, items) => {
         const row = append(box, 'p', 'ev-hua-row'); append(row, 'span', 'ev-hua-label', label);
-        items.forEach(t => {const chip = append(row, 'span', 'reading-chip reading-hua-' + {化禄: 'lu', 化权: 'quan', 化科: 'ke', 化忌: 'ji'}[t.type]); append(chip, 'b', null, t.star); append(chip, 'span', null, t.type); append(chip, 'small', null, t.palace_name);});
+        items.forEach(t => {
+          const chip = append(row, 'span', 'reading-chip reading-hua-' + {化禄: 'lu', 化权: 'quan', 化科: 'ke', 化忌: 'ji'}[t.type]); append(chip, 'b', null, t.star); append(chip, 'span', null, t.type); append(chip, 'small', null, t.palace_name);
+          if (t.self) append(chip, 'small', 'ev-self', '自化');
+        });
       };
+      if (currentHourUnknown) append(box, 'p', 'ev-basis', '时辰不详：宫位按 12:00 占位时辰排出，落宫会随时辰变化。');
       line('生年四化', natal);
       const flying = f.evidence.find(x => /palace_flying_transformations$/.test(x.path));
-      if (flying && Array.isArray(flying.value)) line('焦点宫宫干飞化', flying.value.map(t => ({type: t.type, star: t.star, palace_name: t.target_palace})));
+      if (flying && Array.isArray(flying.value)) line('焦点宫宫干飞化', flying.value.map(t => ({type: t.type, star: t.star, palace_name: t.target_palace, self: t.self_transform})));
       return box;
     },
   };
   groups.forEach((group, i) => {
-    const section = append(result, 'section', 'ev-group'); section.id = 'deep-group-' + i;
+    const section = append(result, 'section', 'ev-group'); section.id = 'deep-group-' + i; section.tabIndex = -1;
     append(section, 'h4', 'subheading', group);
     const grid = append(section, 'div', 'ev-grid');
     deepResult.findings.filter(f => f.group === group).forEach(f => {
@@ -3932,10 +3957,10 @@ function renderDeep() {
         const term = append(fields, 'dt'); append(term, 'code', null, x.path);
         const value = append(fields, 'dd');
         const raw = typeof x.value === 'string' ? x.value : JSON.stringify(x.value);
-        append(value, 'code', 'ev-value', raw.length > 160 ? raw.slice(0, 157) + '…' : raw).title = raw;
-        const hash = append(value, 'small', 'ev-hash', 'sha256 ' + x.sha256.slice(0, 12)); hash.title = x.sha256;
+        append(value, 'code', 'ev-value', raw);
+        append(value, 'small', 'ev-hash', 'sha256 ' + x.sha256);
       });
-      texts(append(more, 'p', 'ev-rules'), '规则 ID', '：', f.rule_ids.join('、'));
+      texts(append(more, 'p', 'ev-rules'), '规则 ID：', f.rule_ids.join('、'));
     });
   });
   append(result,'h4','subheading','内部一致性核查（不等于外部准确率认证）');
@@ -3948,11 +3973,12 @@ function renderDeep() {
   deepResult.references.forEach(ref=>{
     const tr = append(refBody, 'tr');
     append(tr, 'td', null, ref.title);
-    const source = append(tr, 'td');
+    // On phones the rows stack, so each stacked cell carries its column name (hidden on wide screens).
+    const source = append(tr, 'td'); append(source, 'small', 'ev-cell-label', '来源');
     if(ref.reference.startsWith('https://')){
       const a=append(source,'a',null,'查看公开方法文档 ↗');a.href=ref.reference;a.target='_blank';a.rel='noopener noreferrer';
     } else append(source,'code',null,ref.reference);
-    append(tr, 'td', null, ref.scope);
+    const scope = append(tr, 'td'); append(scope, 'small', 'ev-cell-label', '适用范围'); append(scope, 'span', null, ref.scope);
   });
   const save=append(result,'button','tiny-button','导出带证据的 Markdown ↓');save.type='button';save.id='deep-download';
   save.addEventListener('click',()=>{
@@ -4192,6 +4218,9 @@ function renderBirthBoundaries(){
   });
   d.limitations.forEach(x=>note(result,x));
 }
+// Printing opens the collapsed field sections (print CSS cannot open a closed <details>) and closes them afterwards.
+addEventListener('beforeprint', () => document.querySelectorAll('details.ev-more:not([open])').forEach(d => {d.open = true; d.dataset.printOpened = '';}));
+addEventListener('afterprint', () => document.querySelectorAll('details[data-print-opened]').forEach(d => {d.open = false; delete d.dataset.printOpened;}));
 // The counts on the integration page come from the running server, so they never fall behind a new tool.
 let capabilities = null, capabilitiesPending = false, capabilitiesError = '', capabilitiesToken = '';
 function renderIntegration() {
