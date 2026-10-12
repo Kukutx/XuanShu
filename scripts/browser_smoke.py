@@ -830,7 +830,7 @@ def main() -> None:
             open_cells = page.locator('#reading-bazi .reading-pillar .muted').all_inner_texts()
             assert open_cells == ['随时辰而定', '随时辰而定', '时辰不详'], open_cells
             assert page.locator('#reading-bazi .is-master').count() == 1
-            assert page.locator('#reading-ziwei .reading-label').all_inner_texts() == ['生年四化']
+            assert page.locator('#reading-ziwei .reading-label').all_inner_texts() == ['生年四化', '身主']
             assert page.locator('#reading-ziwei [class*="reading-hua-"]').count() == 4
             assert page.locator('#reading-ziwei [class*="reading-hua-"] small').count() == 0
             assert page.locator('#reading-next-annual').count() == 0 and page.locator('.reading-link').count() == 3
@@ -848,7 +848,24 @@ def main() -> None:
             # 2000-02-04 is the last day of the twelfth lunar month, so a 23:00 birth would fall in the new lunar year.
             assert page.locator('#reading-ziwei [class*="reading-hua-"]').count() == 0
             assert page.locator('#reading-ziwei .reading-value').inner_text() == '随时辰而定'
+            # Which way the day can move decides it. 2000-02-05 is the first day of the first lunar month: the 23:00
+            # change only moves the day forward, so the year (and its stars) stays; so it does in mean solar time at
+            # 115°E (20 minutes behind the clock), where 23:40 the evening before is counted back to this day.
+            def reading_on(day, mode='clock', longitude='', late=False):
+                page.locator('[data-tab="bazi"]').click()
+                page.evaluate(f"() => {{document.querySelector('#birth_datetime').value = '{day}T12:00'; document.querySelector('#time_mode').value = '{mode}';"
+                              f" document.querySelector('#longitude').value = '{longitude}'; document.querySelector('#late_zi_day_rollover').checked = {str(late).lower()};}}")
+                page.locator('#run-btn').click()
+                page.wait_for_function(f"() => document.querySelector('#result-subtitle').textContent.startsWith('{day}')", timeout=30000)
+                page.locator('[data-tab="reading"]').click()
+                page.locator('#reading-bazi').wait_for(timeout=30000)
+                return page.locator('#reading-ziwei [class*="reading-hua-"]').count()
+            assert reading_on('2000-02-05', late=True) == 4
+            assert reading_on('2000-02-05', 'mean_solar', '115', late=True) == 4 and '身主' in page.locator('#reading-ziwei').inner_text()
+            # Over two hours behind the clock (87.6°E), the small hours fall on the last day of the old year.
+            assert reading_on('2000-02-05', 'mean_solar', '87.6') == 0 and page.locator('#reading-ziwei .reading-value').first.inner_text() == '随时辰而定'
             page.locator('[data-tab="bazi"]').click()
+            page.evaluate("() => {document.querySelector('#time_mode').value = 'clock'; document.querySelector('#longitude').value = '';}")
             page.evaluate("document.querySelector('#late_zi_day_rollover').checked = false")
             page.locator('#hour_unknown').uncheck()
             page.locator('#lunar-entry summary').click()

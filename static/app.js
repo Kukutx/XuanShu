@@ -778,6 +778,32 @@ const shenshaBasis = star => '查法起点：' + star.by.map(x => SHENSHA_BASIS[
 // With the hour unknown any time of the birth day is possible, so the noon placeholder's hour pillar is not known;
 // a jie inside that day changes the month pillar (立春 the year pillar too), and the 23:00 day change or a solar-time
 // shift can move the day pillar. A cautious reading, off the chart alone, of the first-and-last-minute check in app/group.py.
+// The UTC offset (minutes east) of a zone at a wall-clock minute of a date, from the browser's zone data.
+function zoneOffsetAt(zone, date, minute, guess) {
+  try {
+    const format = new Intl.DateTimeFormat('en-US', {timeZone: zone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'});
+    const wallOf = instant => {const p = {}; format.formatToParts(new Date(instant)).forEach(x => {p[x.type] = x.value;}); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute);};
+    const wall = Date.parse(date + 'T00:00:00Z') + Math.floor(minute) * 60000;
+    let offset = guess;
+    for (let i = 0; i < 2; i++) offset = (wallOf(wall - offset * 60000) - (wall - offset * 60000)) / 60000;
+    return offset;
+  } catch (_) {return guess;}
+}
+// With the hour unknown the chart stands on a placeholder time, and the day the engine counts can still move: a solar
+// time ahead of or behind the clock, or the 23:00 day change, can carry the first or last moment of the birth date
+// into the day before or after. Day offsets (as the engine counts them: the effective date, plus one from 23:00 with
+// the 23:00 change) of the first moment, the placeholder and the last moment. In solar time the shift follows the
+// zone offset, so a clock-change day is counted with the offset in force at each end.
+function birthDayOffsets(b) {
+  const t = currentInput.birth_datetime, date = t.slice(0, 10), here = +t.slice(11, 13) * 60 + +t.slice(14, 16);
+  const basis = b.time_basis, shift = basis.effective_shift_minutes || 0, base = basis.civil_utc_offset_minutes || 0;
+  const at = minute => {
+    const zone = basis.mode === 'clock' ? 0 : base - zoneOffsetAt(currentInput.timezone, date, minute, base);
+    const e = minute + shift + zone, d = Math.floor(e / 1440);
+    return d + (currentInput.late_zi_day_rollover && e - d * 1440 >= 1380 ? 1 : 0);
+  };
+  return {first: at(0), here: at(here), last: at(1440 - 1 / 60)};
+}
 function unsettledPillars(b) {
   const out = new Set();
   if (!currentHourUnknown) return out;
@@ -787,7 +813,8 @@ function unsettledPillars(b) {
     out.add('month');
     if (j.name === '立春') out.add('year');
   });
-  if (currentInput.late_zi_day_rollover || Math.abs(b.time_basis.effective_shift_minutes || 0) > 0) out.add('day');
+  const days = birthDayOffsets(b);
+  if (days.first !== days.here || days.last !== days.here) out.add('day');
   return out;
 }
 // The stars those pillars place are then not settled either.
@@ -1453,9 +1480,11 @@ function renderReading(reading) {
     const box = append(grid, 'section', 'reading-card'); box.id = id;
     const head = append(box, 'div', 'reading-head'); append(head, 'h4', null, heading);
     const go = append(head, 'button', 'reading-go', label); go.type = 'button'; go.id = id + '-open';
-    go.addEventListener('click', () => {if (before) before(); activateTab(tabs.find(t => t.dataset.tab === tab));});
+    go.addEventListener('click', () => {if (before) before(); openTab(tab);});
     return box;
   };
+  // Keyboard focus goes to the tab of the page opened, rather than falling back to the start of the document.
+  const openTab = name => {const tab = tabs.find(t => t.dataset.tab === name); activateTab(tab); tab.focus({preventScroll: true});};
   // A labelled row whose value is built from separate nodes, so that fixed words and chart values translate apart.
   const row = (box, label) => {const line = append(box, 'div', 'reading-row'); append(line, 'span', 'reading-label', label); return append(line, 'span', 'reading-value');};
   const bazi = card('reading-bazi', '八字四柱', 'bazi', '打开四柱八字');
@@ -1471,16 +1500,18 @@ function renderReading(reading) {
   if (counts.master) {append(master, 'b', elementClass(b.day_master_element), b.day_master + ' · ' + b.day_master_element); append(master, 'span', 'muted', '十神都以日主为参照，不是对个人特征的科学判断。');}
   else append(master, 'span', 'muted', '日柱随时辰而定，日主未定，十神暂不标注。');
   const phases = row(bazi, '明干与地支本气');
-  PHASES.split('').forEach(e => {const chip = append(phases, 'span', 'reading-chip'); append(chip, 'b', elementClass(e), e); chip.append(' ' + counts.surface[e]);});
+  // With every pillar open nothing is counted, which reads better said than as five zeros.
+  if (PHASES.split('').every(e => !counts.surface[e])) append(phases, 'span', 'muted', '四柱都不计入');
+  else PHASES.split('').forEach(e => {const chip = append(phases, 'span', 'reading-chip'); append(chip, 'b', elementClass(e), e); chip.append(' ' + counts.surface[e]);});
   if (currentHourUnknown) append(bazi, 'p', 'field-help', wuxingUnsettledNote(unsettled));
   const ziwei = card('reading-ziwei', '紫微斗数', 'ziwei', '打开紫微斗数', () => {selectedPalace = '命宫';});
   // The four transformations follow the lunar year's stem. With the day depending on the hour, the year is open when
-  // the day can move across the lunar new year: forward from the last day of the twelfth month (the 23:00 day change
-  // or a solar time ahead of the clock), back from the first day of the first month (a solar time behind it).
-  const lunar = z.lunar_date, shift = b.time_basis.effective_shift_minutes || 0;
+  // the day can move across the lunar new year: forward past the end of the twelfth month, or back past the first
+  // day of the first month, by as many days as the first or last moment of the birth date moves.
+  const lunar = z.lunar_date, days = currentHourUnknown ? birthDayOffsets(b) : {first: 0, here: 0, last: 0};
   const yearOpen = unsettled.has('day') && (
-    ((currentInput.late_zi_day_rollover || shift > 0) && lunar.month === 12 && lunar.day === lunar.month_days)
-    || (shift < 0 && lunar.month === 1 && lunar.day === 1 && !lunar.is_leap_month));
+    (days.last > days.here && lunar.month === 12 && lunar.month_days - lunar.day < days.last - days.here)
+    || (days.first < days.here && lunar.month === 1 && !lunar.is_leap_month && lunar.day <= days.here - days.first));
   const hua = (box, withPalace) => {
     const value = row(box, '生年四化');
     if (yearOpen) {
@@ -1496,13 +1527,16 @@ function renderReading(reading) {
   };
   if (currentHourUnknown) {
     append(ziwei, 'p', 'field-help', yearOpen ? '紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列。'
-      : '紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列；下面只有按生年天干定的四化星。');
+      : '紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列；下面只有按农历生年定的四化星和身主。');
     hua(ziwei, false);
+    // 身主 follows the lunar year's branch, so it is known whenever the lunar year is.
+    if (!yearOpen) append(row(ziwei, '身主'), 'b', null, z.shen_master);
+    append(ziwei, 'p', 'field-help', z.transformation_school);
   } else {
     const palace = flag => z.palaces.find(p => p[flag]);
     [['命宫', palace('is_ming')], ['身宫', palace('is_shen')]].forEach(([label, p]) => {
       const value = row(ziwei, label);
-      append(value, 'b', null, p.name + ' · ' + p.branch);
+      append(value, 'b', null, p.name + ' · ' + p.stem + p.branch);
       if (!p.main_stars.length) append(value, 'span', 'muted', '空宫');
       p.main_stars.forEach(star => {const chip = append(value, 'span', 'reading-chip'); append(chip, 'b', null, star); brightMark(chip, (p.star_brightness || {})[star]);});
     });
@@ -1512,15 +1546,16 @@ function renderReading(reading) {
     append(row(ziwei, '身主'), 'b', null, z.shen_master);
     append(ziwei, 'p', 'field-help', z.transformation_school);
   }
-  // Where to go next from here, among the pages that read this same chart.
-  append(result, 'h4', 'subheading', '接着看');
-  const next = append(result, 'div', 'reading-next');
+  // Where to go next from here, among the pages that read this same chart (left out of print, being only buttons).
+  const nav = append(result, 'nav', 'reading-nav'); nav.setAttribute('aria-label', '接着看');
+  append(nav, 'h4', 'subheading', '接着看');
+  const next = append(nav, 'div', 'reading-next');
   [['dayun', '大运十年干支', '十步大运与起运年龄'], ['today', '今日历法', '今天的四柱与命盘的关系'], ['annual', '指定农历年干四化', '今年的四化落在哪些宫'], ['pair', '双人对照', '与另一个人的命盘对照']]
     .filter(([tab]) => !(tab === 'annual' && currentHourUnknown))
     .forEach(([tab, name, what]) => {
       const go = append(next, 'button', 'reading-link'); go.type = 'button'; go.id = 'reading-next-' + tab;
       append(go, 'b', null, name); append(go, 'small', null, what);
-      go.addEventListener('click', () => activateTab(tabs.find(t => t.dataset.tab === tab)));
+      go.addEventListener('click', () => openTab(tab));
     });
   append(result, 'h4', 'subheading', '规则限制');
   reading.limitations.forEach(x => append(result, 'div', 'feature-note', x));

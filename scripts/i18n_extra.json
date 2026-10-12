@@ -3387,6 +3387,10 @@
   "None of the sixteen listed Shen Sha falls on the four pillars.",
   "収録している十六種の神煞は四柱にありません。"
  ],
+ "四柱都不计入": [
+  "No pillar counted",
+  "四柱とも数えない"
+ ],
  "四柱（年/月/日/时）": [
   "Four Pillars (year/month/day/hour)",
   "四柱（年/月/日/時）"
@@ -8031,9 +8035,9 @@
   "Zi Wei's Life and Body palaces, bureau and the stars of the twelve palaces are all placed from the birth hour, so with the hour unknown they are not listed.",
   "紫微の命宮・身宮・五行局と十二宮の星はすべて生まれた時刻で決まるため、時刻不明のときは示しません。"
  ],
- "紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列；下面只有按生年天干定的四化星。": [
-  "Zi Wei's Life and Body palaces, bureau and the stars of the twelve palaces are all placed from the birth hour, so with the hour unknown they are not listed; below are only the transformation stars set by the birth year's stem.",
-  "紫微の命宮・身宮・五行局と十二宮の星はすべて生まれた時刻で決まるため、時刻不明のときは示しません。以下は生年の天干で決まる四化星だけです。"
+ "紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列；下面只有按农历生年定的四化星和身主。": [
+  "Zi Wei's Life and Body palaces, bureau and the stars of the twelve palaces are all placed from the birth hour, so with the hour unknown they are not listed; below are only the transformation stars and the Body master, set by the lunar birth year.",
+  "紫微の命宮・身宮・五行局と十二宮の星はすべて生まれた時刻で決まるため、時刻不明のときは示しません。以下は旧暦の生年で決まる四化星と身主だけです。"
  ],
  "紫微盘已切到 ": [
   "Zi Wei chart switched to ",
@@ -8940,7 +8944,7 @@
   "身宮は"
  ],
  "身宫地支": [
-  "Body palace branch",
+  "Body Palace branch",
   "身宮の地支"
  ],
  "身宫所在宫": [
