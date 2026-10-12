@@ -289,7 +289,7 @@ python -m app.cli tools
 | `POST /api/deep-review` | 八字与原生紫微结构的详细证据引用、已知冲突辨析和内部一致性审计 |
 | `POST /api/day-officers` | 传统建除十二值日标签（1–93 日、含节令交接提示） |
 | `POST /api/annual-timeline` | 连续农历纪年四化在本命宫位上的静态映射 |
-| `POST /api/decision-matrix` | 多方案加权评分与单指标剔除敏感性 |
+| `POST /api/decision-matrix` | 多方案加权评分、单指标剔除敏感性与各指标的权重临界点 |
 | `POST /api/bazi` | 八字四柱、藏干和地支关系 |
 | `POST /api/ziwei` | 紫微部分本命盘 |
 | `POST /api/combined` | 两套同时排盘 |

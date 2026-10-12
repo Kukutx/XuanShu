@@ -118,6 +118,49 @@ def test_decision_scale_is_weight_invariant_and_ties_are_stable():
     assert ties['leave_one_out_sensitivity']==[]
 
 
+
+def test_decision_weight_thresholds_are_the_exact_crossings():
+    d=decision_matrix(DecisionMatrixRequest(**valid_matrix()))
+    # B leads 3.8 to 3.2. A rates higher on 成本, so B loses once 成本 weighs 6 against 维护性's 2 (both 3.5);
+    # B rates higher on 维护性, so B loses once 维护性 falls to 1 against 成本's 3 (3.75 each).
+    cost,upkeep=d['weight_thresholds']
+    assert cost=={'criterion':'成本','raw_weight':3.0,'lower':None,'upper':{'raw_weight':6.0,'normalized_weight':0.75,'new_leaders':['A']}}
+    assert upkeep=={'criterion':'维护性','raw_weight':2.0,'lower':{'raw_weight':1.0,'normalized_weight':0.25,'new_leaders':['A']},'upper':None}
+    def leader(weights):
+        data=valid_matrix()
+        for c in data['criteria']:c['weight']=weights[c['name']]
+        return decision_matrix(DecisionMatrixRequest(**data))['joint_leaders']
+    assert leader({'成本':5.99,'维护性':2})==['B'] and leader({'成本':6,'维护性':2})==['A','B'] and leader({'成本':6.01,'维护性':2})==['A']
+    assert leader({'成本':3,'维护性':1.01})==['B'] and leader({'成本':3,'维护性':.99})==['A']
+
+
+def test_decision_weight_thresholds_pick_the_option_gaining_fastest():
+    # C and D both meet A when 速度 weighs .75 against 成本's 1; past it D, rated higher on 速度, leads.
+    data={'question':'三个以上方案','criteria':[{'name':'速度','weight':.5},{'name':'成本','weight':1}],
+          'options':[{'name':'A','ratings':{'速度':1,'成本':5}},{'name':'C','ratings':{'速度':3,'成本':3.5}},
+                     {'name':'D','ratings':{'速度':5,'成本':2}}]}
+    speed=decision_matrix(DecisionMatrixRequest(**data))['weight_thresholds'][0]
+    assert speed['upper']=={'raw_weight':0.75,'normalized_weight':0.428571,'new_leaders':['D']} and speed['lower'] is None
+    data['criteria'][0]['weight']=.76
+    assert decision_matrix(DecisionMatrixRequest(**data))['joint_leaders']==['D']
+
+
+def test_decision_weight_threshold_near_zero_keeps_significant_figures():
+    # L leads O unless 速度 weighs almost nothing: 5w + 2 = 2.0002 at w = 0.00004, not rounded to 0.
+    data={'question':'临界点贴近零','criteria':[{'name':'速度','weight':1},{'name':'成本','weight':1}],
+          'options':[{'name':'L','ratings':{'速度':5,'成本':2}},{'name':'O','ratings':{'速度':0,'成本':2.0002}}]}
+    speed=decision_matrix(DecisionMatrixRequest(**data))['weight_thresholds'][0]
+    assert speed['lower']['raw_weight']==pytest.approx(4e-05) and speed['lower']['normalized_weight']==pytest.approx(4e-05, rel=1e-4)
+    assert speed['lower']['new_leaders']==['O'] and speed['upper'] is None
+
+
+def test_decision_weight_thresholds_need_a_single_leader_and_a_second_criterion():
+    data=valid_matrix(); data['options'][1]['ratings']={'成本':4,'维护性':2}
+    assert decision_matrix(DecisionMatrixRequest(**data))['weight_thresholds']==[]
+    data=valid_matrix(); data['criteria']=[{'name':'成本','weight':1}]
+    for option in data['options']:option['ratings']={'成本':option['ratings']['成本']}
+    assert decision_matrix(DecisionMatrixRequest(**data))['weight_thresholds']==[{'criterion':'成本','raw_weight':1.0,'lower':None,'upper':None}]
+
 @pytest.mark.parametrize('bad',[
     {'criteria':[{'name':'重复','weight':1},{'name':'重复','weight':1}]},
     {'criteria':[{'name':'A','weight':0}]},

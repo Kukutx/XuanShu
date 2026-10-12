@@ -228,6 +228,45 @@ class DecisionMatrixRequest(BaseModel):
         return self
 
 
+def _weight_thresholds(request: DecisionMatrixRequest, leaders: list[str]) -> list[dict]:
+    """For each criterion, the nearest raw weights (the other weights held fixed) at which another option overtakes
+    a single score leader. Every score is a weighted mean, so two options swap order where their weighted sums meet:
+    the crossing is exact, not sampled."""
+    if len(leaders) != 1:
+        return []
+    leader = next(o for o in request.options if o.name == leaders[0])
+    rows = []
+    for criterion in request.criteria:
+        rest = sum(c.weight for c in request.criteria if c.name != criterion.name)
+        def others(option):
+            return sum(c.weight * option.ratings[c.name] for c in request.criteria if c.name != criterion.name)
+        sides = {'lower': [], 'upper': []}
+        for option in request.options:
+            slope = option.ratings[criterion.name] - leader.ratings[criterion.name]
+            if option is leader or slope == 0:
+                continue
+            # A higher rating on this criterion gains on the leader as its weight rises, a lower one as it falls;
+            # a crossing at or below zero weight is never reached by a positive weight.
+            weight = (others(leader) - others(option)) / slope
+            if slope > 0:
+                sides['upper'].append((weight, option))
+            elif weight > 1e-12:
+                sides['lower'].append((weight, option))
+        row = {'criterion': criterion.name, 'raw_weight': criterion.weight, 'lower': None, 'upper': None}
+        for side, found in sides.items():
+            if not found:
+                continue
+            nearest = max(w for w, _ in found) if side == 'lower' else min(w for w, _ in found)
+            meeting = [o for w, o in found if abs(w - nearest) < 1e-9]
+            # Of options meeting the leader at the same weight, the one gaining fastest leads past it.
+            best = (max if side == 'upper' else min)(o.ratings[criterion.name] for o in meeting)
+            # Six significant figures, so an edge close to zero is not rounded to 0 itself.
+            row[side] = {'raw_weight': float(f'{nearest:.6g}'), 'normalized_weight': float(f'{nearest / (rest + nearest):.6g}'),
+                         'new_leaders': sorted(o.name for o in meeting if o.ratings[criterion.name] == best)}
+        rows.append(row)
+    return rows
+
+
 def decision_matrix(request: DecisionMatrixRequest) -> dict:
     """Transparent, user-specified weighted scoring; never occult prediction."""
     total = sum(c.weight for c in request.criteria)
@@ -269,6 +308,7 @@ def decision_matrix(request: DecisionMatrixRequest) -> dict:
         'ranked_options': computed,
         'joint_leaders': sorted(leaders),
         'leave_one_out_sensitivity': sensitivity,
+        'weight_thresholds': _weight_thresholds(request, leaders),
         'limitations': [
             '所有数值来自用户输入的主观评分与权重；排序不是客观真理、概率或现实结果预测。',
             '方案结果不引用命理术数；现实重大决策应另行核对事实、成本、法律、安全与专业意见。',
