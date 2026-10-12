@@ -774,7 +774,47 @@ html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:cent
 .luck-natal{font-size:12px;color:var(--text2);margin:-2px 0 8px;line-height:1.7}
 
 /* 四柱反查 and 导入核对 */
-.pillar-pickers select{min-width:84px;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:15px}
+.ps-builder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0 6px;max-width:760px}
+.ps-col{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);min-width:0}
+.ps-label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+.ps-label select{width:100%;min-height:36px;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:15px}
+.ps-preview{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:82px;justify-content:center}
+.ps-glyph{display:flex;flex-direction:column;align-items:center;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:26px;font-weight:600;line-height:1.15}
+.ps-preview small{font-size:11px;color:var(--text2);text-align:center;font-variant-numeric:tabular-nums}
+.ps-any{font-size:13px;color:var(--muted);padding:18px 0}
+.ps-axis{margin:16px 0 6px;padding:30px 12px 6px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
+.ps-track{position:relative;height:6px;border-radius:3px;background:var(--border-strong)}
+.ps-mark{position:absolute;bottom:0;transform:translateX(-50%);display:flex;align-items:baseline;gap:2px;padding:1px 7px;margin-bottom:12px;border:1px solid var(--gold);border-radius:999px;background:var(--panel);color:var(--gold2);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;text-decoration:none;white-space:nowrap}
+.ps-mark::after{content:'';position:absolute;left:50%;top:100%;width:1px;height:12px;background:var(--gold)}
+.ps-mark small{font-size:10px;font-weight:400;color:var(--muted)}
+.ps-mark:hover{background:var(--accent-soft);box-shadow:0 0 0 2px var(--gold)}
+.ps-mark:focus-visible{background:var(--accent-soft);outline:2px solid var(--text);outline-offset:2px}
+.ps-mark.is-first{transform:translateX(-8px)}
+.ps-mark.is-first::after{left:8px}
+.ps-mark.is-last{transform:translateX(calc(-100% + 8px))}
+.ps-mark.is-last::after{left:auto;right:8px}
+.ps-now{position:absolute;top:-4px;width:2px;height:14px;margin-left:-1px;background:var(--green)}
+.ps-now small{position:absolute;top:15px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--green);white-space:nowrap}
+.ps-ends{display:flex;justify-content:space-between;margin-top:16px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ps-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin:10px 0;padding:0;list-style:none}
+.ps-card{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);scroll-margin:80px}
+.ps-card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ps-card-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.ps-index{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:999px;border:1px solid var(--border-strong);font-size:11px;font-weight:700;color:var(--text2);font-variant-numeric:tabular-nums}
+.ps-date{font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
+.ps-weekday{font-size:12px;color:var(--text2)}
+.ps-age{margin-left:auto;padding:1px 8px;border:1px solid var(--accent-line);border-radius:999px;font-size:11px;color:var(--gold2)}
+.ps-age.is-future{border-color:var(--border-strong);color:var(--muted)}
+.ps-when{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin:0;color:var(--text);font-variant-numeric:tabular-nums}
+.ps-span{font-size:19px;font-weight:700;min-width:0}
+.ps-from,.ps-to{white-space:nowrap}
+.ps-span .ps-zone{font-weight:400}
+.ps-zone{font-size:11px;color:var(--muted)}
+.ps-facts{display:grid;gap:2px;font-size:13px;color:var(--text2)}
+.ps-facts p{margin:0}
+.ps-card .tiny-button{align-self:flex-start;margin-top:4px}
+@media print{.ps-builder,.ps-builder+.field-help{display:none}.ps-card{break-inside:avoid}}
+@media(max-width:640px){.ps-builder{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .import-text{width:100%;min-height:150px;background:var(--panel2);color:var(--text);border:1px solid var(--border-strong);border-radius:6px;padding:10px 12px;line-height:1.6;resize:vertical}
 .import-verdict{border:1px solid var(--border-strong);border-radius:var(--radius);padding:12px 14px;margin:6px 0 14px;font-size:13px}
 .import-verdict.ok{border-color:var(--green);color:var(--text)}
@@ -1381,7 +1421,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
 /* ---- print: a clean report on paper ---- */
 @media print{
   :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--panel3:#f4f1ea;--border:#d9d2c3;--border-strong:#c9bfa9;--text:#111;--text2:#222;--muted:#555;--faint:#777;--gold:#8a6428;--gold2:#6d4c16;--accent-soft:#faf7f0;--accent-line:#d9c7a3;--code-bg:#f7f5f0;--code-text:#111;--shadow:none;--wood:#2f8a54;--fire:#c4452c;--earth:#a26b1e;--metal:#6d6656;--water:#2a6bb0;--lu:#24864f;--quan:#7a48b8;--ke:#2a6db8;--ji:#c63a2c;--green:#2d7552;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45);--dm-0:#9a6a1c;--dm-1:#2f6db5;--dm-2:#2e7d4a;--dm-3:#c0482f;--dm-4:#7550b5;--dm-5:#1f7f7f;--dm-6:#b0427a;--dm-7:#5c6877}
-  .dm-seg,.dm-swatch,.dm-band,.dm-mark,.dm-weights,.dm-track,.dm-range,.is-lead .dm-rank,.bt-track,.bt-seg,.bt-tick,.bt-tick-num,.bt-pin,.bt-pillar.is-changed,.today-term-track,.today-term-fill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .dm-seg,.dm-swatch,.dm-band,.dm-mark,.dm-weights,.dm-track,.dm-range,.is-lead .dm-rank,.bt-track,.bt-seg,.bt-tick,.bt-tick-num,.bt-pin,.bt-pillar.is-changed,.today-term-track,.today-term-fill,.ps-track,.ps-now,.ps-mark::after{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff;font-size:12px}
   .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,.of-legend,.of-views,.fh-views,.ds-hour-card .tiny-button,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip):not(.fh-pick):not(.ds-pick):not(.ic-hour):not(.qh-hour){display:none!important}
   .shell{max-width:none;padding:0}

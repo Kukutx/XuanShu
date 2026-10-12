@@ -1818,7 +1818,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan'].includes(active)) render();});
+document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search'].includes(active)) render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -3928,30 +3928,117 @@ function renderTodayChip() {
   texts(chip, t.lunar.label, ' · ', t.pillars.day, ' · ', t.solar_term.current.name);
   chip.hidden = false;
 }
+// Month and hour stems follow from the year and day stems (五虎遁, 五鼠遁), so only those twelve are offered.
+const MONTH_JIE = ['立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪', '小寒'];
+const HOUR_SPANS = ['23–01', '01–03', '03–05', '05–07', '07–09', '09–11', '11–13', '13–15', '15–17', '17–19', '19–21', '21–23'];
+const monthPillars = year => [...'寅卯辰巳午未申酉戌亥子丑'].map((b, k) => STEM_ORDER[(2 + 2 * (STEM_ORDER.indexOf(year[0]) % 5) + k) % 10] + b);
+const hourPillars = day => [...BRANCH_ORDER].map((b, k) => STEM_ORDER[(2 * (STEM_ORDER.indexOf(day[0]) % 5) + k) % 10] + b);
+// The sixty pairs in their six decades (甲子旬 …), so a long list is easier to scan.
+function jiaziOptions(select) {
+  for (let x = 0; x < 60; x += 10) {
+    const group = append(select, 'optgroup'); group.label = JIAZI[x] + '旬';
+    JIAZI.slice(x, x + 10).forEach(text => {const op = append(group, 'option', null, text); op.value = text;});
+  }
+}
+function pillarGlyph(parent, text) {
+  const glyph = append(parent, 'b', 'ps-glyph'); glyph.dataset.noI18n = '';
+  append(glyph, 'span', stemClass(text[0]), text[0]); append(glyph, 'span', branchClass(text[1]), text[1]);
+  return glyph;
+}
+// Whole years of age on a date, for a birth at the start of a match (null when the match is still to come).
+function ageOn(birth, today) {
+  if (birth > today) return null;
+  const [by, bm, bd] = birth.split('-').map(Number), [ty, tm, td] = today.split('-').map(Number);
+  return ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
+}
+// A match is cast under the time zone and time basis the search used, even if the form was changed since.
+function restoreSearchBasis(r) {
+  const zone = $('#timezone'), mode = $('#time_mode'), longitude = r.rules.longitude_east_degrees;
+  const changed = zone.value !== r.timezone || mode.value !== r.rules.time_mode || (longitude != null && Number($('#longitude').value) !== longitude);
+  if (!changed) return;
+  if (![...zone.options].some(op => op.value === r.timezone)) {const op = append(zone, 'option', null, r.timezone); op.value = r.timezone;}
+  zone.value = r.timezone; mode.value = r.rules.time_mode;
+  if (longitude != null) $('#longitude').value = String(longitude);
+  $('#birth_city').value = '';
+  updateGeoControls();
+}
 function renderPillarSearch() {
   title(result, '四柱反查出生时间', '给出四柱，列出 1901–2099 年间所有对得上的出生时段');
   append(result, 'p', 'info-inline', '时区、时制和经度沿用出生资料；边界用和排盘相同的计算逐秒校准。');
-  if (!pillarDraft) {
-    const p = current ? current.bazi.pillars : null;
-    pillarDraft = {year: p ? p.year.text : JIAZI[0], month: p ? p.month.text : JIAZI[2], day: p ? p.day.text : JIAZI[0], hour: p ? p.hour.text : '',
-      start_year: 1901, end_year: 2099, late_zi_day_rollover: readInput().late_zi_day_rollover};
+  // Pillars filled in from the chart follow a newly cast chart until they are changed by hand.
+  const p = current ? current.bazi.pillars : null;
+  const chartKey = p ? [p.year.text, p.month.text, p.day.text, currentHourUnknown ? '' : p.hour.text].join(' ') : '';
+  if (!pillarDraft || (pillarDraft.fromChart !== undefined && pillarDraft.fromChart !== chartKey)) {
+    pillarDraft = {year: p ? p.year.text : JIAZI[0], month: p ? p.month.text : JIAZI[2], day: p ? p.day.text : JIAZI[0],
+      hour: p && !currentHourUnknown ? p.hour.text : '', start_year: 1901, end_year: 2099, late_zi_day_rollover: readInput().late_zi_day_rollover,
+      fromChart: chartKey};
   }
-  const row = append(result, 'div', 'inline-control pillar-pickers');
-  const pickers = {};
-  [['year', '年柱'], ['month', '月柱'], ['day', '日柱'], ['hour', '时柱（可不选）']].forEach(([key, label]) => {
-    const wrap = append(row, 'label', null, label);
-    const select = append(wrap, 'select'); select.id = 'pillar-' + key;
-    if (key === 'hour') {const op = append(select, 'option', null, '不限'); op.value = '';}
-    JIAZI.forEach(text => {const op = append(select, 'option', null, text); op.value = text;});
-    select.value = pillarDraft[key];
+  const builder = append(result, 'div', 'ps-builder');
+  const pickers = {}, previews = {};
+  const column = (key, label) => {
+    const col = append(builder, 'div', 'ps-col');
+    const select = append(append(col, 'label', 'ps-label', label), 'select'); select.id = 'pillar-' + key;
     pickers[key] = select;
-  });
+    previews[key] = append(col, 'div', 'ps-preview');
+    select.setAttribute('aria-describedby', 'pillar-' + key + '-hint');
+    return select;
+  };
+  jiaziOptions(column('year', '年柱'));
+  column('month', '月柱');
+  jiaziOptions(column('day', '日柱'));
+  column('hour', '时柱（可不选）');
+  // The month list follows the year stem and the hour list the day stem; a branch already chosen is kept.
+  const fill = (select, pillars, keep, blank) => {
+    const branch = keep ? keep[1] : null;
+    select.replaceChildren();
+    if (blank) {const op = append(select, 'option', null, '不限'); op.value = '';}
+    pillars.forEach(text => {const op = append(select, 'option', null, text); op.value = text;});
+    select.value = keep === '' && blank ? '' : (pillars.find(p => p[1] === branch) || pillars[0]);
+  };
+  // The large glyph repeats the picked value, so only the line saying where the pillar changes is read out.
+  const preview = key => {
+    const box = previews[key], value = pickers[key].value;
+    box.replaceChildren();
+    let hint;
+    if (!value) hint = append(box, 'span', 'ps-any', '不限');
+    else {
+      pillarGlyph(box, value).setAttribute('aria-hidden', 'true');
+      if (key === 'month') {
+        const k = '寅卯辰巳午未申酉戌亥子丑'.indexOf(value[1]);
+        hint = append(box, 'small', null, termText(MONTH_JIE[k], true) + ' – ' + termText(MONTH_JIE[(k + 1) % 12], true));
+        hint.dataset.noI18n = '';
+      }
+      // Under the 00:00 day change the 子 hour of a day is its first and its last hour, not one span from the evening before.
+      if (key === 'hour') hint = append(box, 'small', null, value[1] === '子' && !(pickers.late && pickers.late.checked) ? '00–01 · 23–24' : HOUR_SPANS[BRANCH_ORDER.indexOf(value[1])]);
+      if (key === 'year') hint = append(box, 'small', null, '立春换年');
+      if (key === 'day') hint = append(box, 'small', null, pickers.late && pickers.late.checked ? '23:00 换日' : '00:00 换日');
+    }
+    hint.id = 'pillar-' + key + '-hint';
+  };
+  pickers.year.value = pillarDraft.year; pickers.day.value = pillarDraft.day;
+  fill(pickers.month, monthPillars(pillarDraft.year), pillarDraft.month, false);
+  fill(pickers.hour, hourPillars(pillarDraft.day), pillarDraft.hour, true);
+  pickers.year.addEventListener('change', () => {fill(pickers.month, monthPillars(pickers.year.value), pickers.month.value, false); preview('year'); preview('month');});
+  pickers.day.addEventListener('change', () => {fill(pickers.hour, hourPillars(pickers.day.value), pickers.hour.value, true); preview('day'); preview('hour');});
+  pickers.month.addEventListener('change', () => preview('month'));
+  pickers.hour.addEventListener('change', () => preview('hour'));
+  // Choices not yet searched survive a re-render (a language switch, another tab and back).
+  const keep = () => {
+    pillarDraft = {year: pickers.year.value, month: pickers.month.value, day: pickers.day.value, hour: pickers.hour.value,
+      start_year: Number(from.value) || pillarDraft.start_year, end_year: Number(to.value) || pillarDraft.end_year, late_zi_day_rollover: late.checked};
+  };
+  append(result, 'p', 'field-help', '月柱天干由年干定（五虎遁），时柱天干由日干定（五鼠遁），所以月柱、时柱只列能对上的十二个。');
   const options = append(result, 'div', 'inline-control');
   const from = createInput('起始年', 'number', String(pillarDraft.start_year), options); from.id = 'pillar-from'; from.min = '1901'; from.max = '2099';
   const to = createInput('结束年', 'number', String(pillarDraft.end_year), options); to.id = 'pillar-to'; to.min = '1901'; to.max = '2099';
   const lateLine = append(options, 'label', 'check-line');
   const late = append(lateLine, 'input'); late.type = 'checkbox'; late.id = 'pillar-late-zi'; late.checked = pillarDraft.late_zi_day_rollover;
   lateLine.append(' 23:00 换日（早晚子时）');
+  pickers.late = late;
+  late.addEventListener('change', () => {preview('day'); preview('hour');});
+  ['year', 'month', 'day', 'hour'].forEach(preview);
+  [pickers.year, pickers.month, pickers.day, pickers.hour, late].forEach(el => el.addEventListener('change', keep));
+  [from, to].forEach(el => el.addEventListener('input', keep));
   const actions = append(result, 'div', 'inline-control');
   if (current) {
     const mine = append(actions, 'button', 'tiny-button', '填入当前命盘的四柱'); mine.type = 'button'; mine.id = 'pillar-mine';
@@ -3967,7 +4054,7 @@ function renderPillarSearch() {
       timezone: input.timezone, time_mode: input.time_mode, longitude: input.longitude,
       late_zi_day_rollover: pillarDraft.late_zi_day_rollover, start_year: pillarDraft.start_year, end_year: pillarDraft.end_year};
     run.disabled = true; message.className = 'inline-msg progress'; message.textContent = '正在逐年反查…';
-    try {pillarResult = await postJSON('/api/pillars-to-dates', body); render(); announce('四柱反查完成：' + pillarResult.count + ' 个时段');}
+    try {pillarResult = await postJSON('/api/pillars-to-dates', body); if (active === 'pillar-search') {render(); announce('四柱反查完成：' + pillarResult.count + ' 个时段');}}
     catch (e) {pillarResult = null; message.className = 'inline-msg'; message.textContent = '反查失败：' + e.message;}
     finally {run.disabled = false;}
   });
@@ -3978,25 +4065,75 @@ function renderPillarSearch() {
     `${r.range.start_year}–${r.range.end_year}`, `换日 ${r.rules.day_boundary}`, r.timezone]);
   if (!r.count && !r.impossible_combination.length) append(result, 'p', 'info-inline', '这段年份里没有对得上的时间。可以放宽年份，或切换换日规则再试。');
   if (r.count) {
-    const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table');
-    const head = append(append(table, 'thead'), 'tr');
-    ['起（含）', '止（不含）', '时长', '农历', ''].forEach(x => append(head, 'th', null, x));
-    const body = append(table, 'tbody');
+    const today = localToday(), span = Math.max(1, r.range.end_year - r.range.start_year + 1);
+    const at = date => {const [y, m, d] = date.split('-').map(Number); return Math.min(1, (y - r.range.start_year + ((m - 1) * 30.6 + d) / 366) / span);};
+    // The searched years as one axis: the year pillar comes round every sixty years, so matches gather in a few years.
+    const axis = append(result, 'div', 'ps-axis'); axis.id = 'pillar-axis';
+    axis.setAttribute('role', 'group'); axis.setAttribute('aria-label', '对得上的年份');
+    const track = append(axis, 'div', 'ps-track');
+    const thisYear = Number(today.slice(0, 4));
+    if (thisYear >= r.range.start_year && thisYear <= r.range.end_year) {
+      const now = append(track, 'span', 'ps-now'); now.style.left = 100 * at(today) + '%';
+      now.setAttribute('aria-hidden', 'true');
+      append(now, 'small', null, '今天');
+    }
+    const years = new Map();
+    r.matches.forEach((m, i) => {const y = m.start.slice(0, 4); if (!years.has(y)) years.set(y, []); years.get(y).push(i);});
+    years.forEach((list, y) => {
+      // A mark at either end of the range is pinned inside the axis instead of centred on its year.
+      const left = 100 * at(r.matches[list[0]].start.slice(0, 10));
+      const mark = append(track, 'a', 'ps-mark' + (left < 6 ? ' is-first' : left > 94 ? ' is-last' : '')); mark.href = '#pillar-match-' + list[0];
+      mark.style.left = left + '%';
+      texts(mark, y); if (list.length > 1) append(mark, 'small', null, '×' + list.length);
+      mark.dataset.noI18n = '';
+      mark.setAttribute('aria-label', y + ' · ' + (list.length === 1 ? calT('1 个时段') : list.length + ' ' + calT('个时段')));
+    });
+    const ends = append(axis, 'div', 'ps-ends');
+    append(ends, 'span', null, String(r.range.start_year)); append(ends, 'span', null, String(r.range.end_year));
+    append(result, 'p', 'field-help', '每个时段含起点、不含止点；止点那一刻已换成别的柱。');
+    const list = append(result, 'ol', 'ps-cards'); list.id = 'pillar-matches';
     r.matches.forEach((m, i) => {
-      const tr = append(body, 'tr');
-      append(tr, 'td', null, m.start.slice(0, 19).replace('T', ' '));
-      append(tr, 'td', null, m.end_exclusive.slice(0, 19).replace('T', ' '));
-      append(tr, 'td', null, m.duration_minutes >= 120 ? (m.duration_minutes / 60).toFixed(1) + ' 小时' : m.duration_minutes + ' 分钟');
-      append(tr, 'td', null, `${m.lunar_date.year}年${m.lunar_date.is_leap_month ? '闰' : ''}${m.lunar_date.month}月${m.lunar_date.day}日`);
-      const cell = append(tr, 'td');
-      if (!m.suggested_local) {append(cell, 'small', 'field-help', '整段落在夏令时重复或跳过的钟点，请手动填写'); return;}
-      const use = append(cell, 'button', 'tiny-button', '用这个时间排盘'); use.type = 'button'; use.id = 'pillar-use-' + i;
+      const card = append(list, 'li', 'ps-card'); card.id = 'pillar-match-' + i; card.tabIndex = -1;
+      const head = append(card, 'div', 'ps-card-head');
+      texts(append(head, 'span', 'ps-index'), i + 1);
+      const day = m.start.slice(0, 10), endDay = m.end_exclusive.slice(0, 10);
+      append(head, 'b', 'ps-date', day).id = 'pillar-date-' + i;
+      append(head, 'span', 'ps-weekday', WEEKDAY_NAMES[weekdayOf(day)]);
+      const age = ageOn(day, today);
+      if (age === null) append(head, 'span', 'ps-age is-future', '未来日期');
+      else texts(append(head, 'span', 'ps-age'), age, ' ', '周岁');
+      // Start and end each keep their own UTC offset when a daylight-saving switch falls between them, and the
+      // line breaks at the dash rather than running out of the card when the end is on another date.
+      const when = append(card, 'p', 'ps-when'); when.id = 'pillar-when-' + i;
+      const span = append(when, 'span', 'ps-span');
+      const startZone = m.start.slice(19), endZone = m.end_exclusive.slice(19);
+      append(span, 'span', 'ps-from', m.start.slice(11, 19));
+      if (startZone !== endZone) {span.append(' '); append(span, 'small', 'ps-zone', 'UTC' + startZone);}
+      span.append(' – ');
+      append(span, 'span', 'ps-to', endDay === day ? m.end_exclusive.slice(11, 19) : m.end_exclusive.slice(0, 19).replace('T', ' '));
+      span.append(' '); append(span, 'small', 'ps-zone', 'UTC' + endZone);
+      when.dataset.noI18n = '';
+      const facts = append(card, 'div', 'ps-facts');
+      const fact = (label, ...parts) => texts(append(append(facts, 'p'), 'span', 'muted', label).parentElement, ' ', ...parts);
+      durationText(fact('时长'), m.duration_minutes);
+      const lunar = append(fact('农历'), 'span', null, lunarYearPillar(m.lunar_date.year) + ' · ' + lunarDateText(m.lunar_date));
+      lunar.dataset.noI18n = '';
+      if (m.effective_start) fact(r.rules.time_mode === 'apparent_solar' ? '真太阳时' : '平太阳时', m.effective_start.slice(0, 19).replace('T', ' '));
+      if (!m.suggested_local) {append(card, 'p', 'field-help', '整段落在夏令时重复或跳过的钟点，请手动填写'); return;}
+      const use = append(card, 'button', 'tiny-button', '用这个时间排盘'); use.type = 'button'; use.id = 'pillar-use-' + i;
+      use.setAttribute('aria-describedby', 'pillar-date-' + i + ' pillar-when-' + i);
       use.addEventListener('click', () => {
+        // The search's own time zone and time basis go back with the time, in case the form changed since.
         $('#birth_datetime').value = m.suggested_local; $('#late_zi_day_rollover').checked = r.rules.day_boundary === '23:00';
+        restoreSearchBasis(r);
         $('#hour_unknown').checked = !r.pillars.hour; updateHourUnknown(); updateStaleBirthNotice();
         activateTab(tabs.find(t => t.dataset.tab === 'bazi'));
         form.requestSubmit();
       });
+    });
+    axis.addEventListener('click', e => {
+      const mark = e.target.closest('.ps-mark'); if (!mark) return;
+      e.preventDefault(); const card = $(mark.getAttribute('href')); card.scrollIntoView({block: 'nearest'}); card.focus({preventScroll: true});
     });
     if (r.truncated) note(result, '结果较多，只列出前 40 个时段。');
   }

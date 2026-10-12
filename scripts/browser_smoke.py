@@ -291,11 +291,75 @@ def main() -> None:
             # Pillars to dates: prefilled from the chart, every interval listed, one click casts it.
             page.locator('[data-tab="pillar-search"]').click()
             assert page.locator('#pillar-year').input_value() == '庚辰' and page.locator('#pillar-hour').input_value() == '庚寅'
+            # Only the twelve month pillars the year stem allows (五虎遁) and the twelve hours the day stem allows (五鼠遁).
+            assert page.locator('#pillar-month option').count() == 12 and page.locator('#pillar-hour option').count() == 13
+            assert page.locator('#pillar-year optgroup').count() == 6
+            assert page.locator('.ps-col').nth(1).locator('.ps-preview small').inner_text() == '立秋 – 白露'
+            assert page.locator('.ps-col').nth(3).locator('.ps-preview small').inner_text() == '03–05'
+            # A new year stem moves the month stems and keeps the month branch.
+            page.locator('#pillar-year').select_option('甲子')
+            assert page.locator('#pillar-month').input_value() == '壬申'
+            page.locator('#pillar-year').select_option('庚辰')
+            assert page.locator('#pillar-month').input_value() == '甲申'
+            # A new day stem re-derives the hour stems and keeps the hour branch; 不限 stays 不限.
+            page.locator('#pillar-day').select_option('戊辰')
+            assert page.locator('#pillar-hour').input_value() == '甲寅'
+            page.locator('#pillar-hour').select_option('')
+            page.locator('#pillar-day').select_option('丙午')
+            assert page.locator('#pillar-hour').input_value() == ''
+            # Under the 00:00 day change the 子 hour is the first and the last hour of the day.
+            page.locator('#pillar-hour').select_option('戊子')
+            hour_hint = page.locator('#pillar-hour-hint')
+            assert page.locator('#pillar-hour').get_attribute('aria-describedby') == 'pillar-hour-hint'
+            assert hour_hint.inner_text() == '00–01 · 23–24'
+            page.locator('#pillar-late-zi').check()
+            assert hour_hint.inner_text() == '23–01' and page.locator('#pillar-day-hint').inner_text() == '23:00 换日'
+            page.locator('#pillar-late-zi').uncheck()
+            page.locator('#pillar-hour').select_option('庚寅')
+            # Unsearched choices and the derived text follow a language switch.
+            page.locator('#pillar-from').fill('1990')
+            page.locator('#ui-language').select_option('en')
+            assert page.locator('#pillar-from').input_value() == '1990' and page.locator('#pillar-hour').input_value() == '庚寅'
+            month_en = page.locator('#pillar-month-hint').inner_text()
+            assert '立秋' not in month_en and month_en.count(' – ') == 1
+            page.locator('#ui-language').select_option('zh-CN')
+            assert page.locator('#pillar-month-hint').inner_text() == '立秋 – 白露'
+            page.locator('#pillar-from').fill('1901')
             page.locator('#pillar-search-run').click()
             page.locator('#pillar-use-1').wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() == 2
-            assert '2000-08-16 03:00:00' in page.locator('#result').inner_text()
+            assert page.locator('#pillar-matches > li').count() == 2
+            # The year pillar returns every sixty years: one mark per year on the axis, and a card per interval.
+            assert page.locator('#pillar-axis .ps-mark').all_inner_texts() == ['1940', '2000']
+            card = page.locator('#pillar-match-1')
+            assert card.locator('.ps-date').inner_text() == '2000-08-16' and card.locator('.ps-weekday').inner_text() == '星期三'
+            assert card.locator('.ps-when').inner_text().startswith('03:00:00 – 05:00:00')
+            assert '庚辰 · 七月十七' in card.inner_text() and '2 小时' in card.inner_text()
+            assert 'UTC+09:00' in page.locator('#pillar-match-0').inner_text()
+            page.locator('#pillar-axis .ps-mark').nth(1).click()
+            assert page.evaluate("document.activeElement.id") == 'pillar-match-1'
+            assert page.locator('#pillar-use-1').get_attribute('aria-describedby') == 'pillar-date-1 pillar-when-1'
             page.screenshot(path=str(screenshot_dir / '33-pillar-search.png'), full_page=True)
+            # A whole day across a daylight-saving switch (Shanghai, 4 May 1986): each end keeps its own offset, and the
+            # line wraps at the dash instead of running out of the card.
+            page.locator('#pillar-year').select_option('丙寅')
+            page.locator('#pillar-month').select_option('壬辰')
+            page.locator('#pillar-day').select_option('戊申')
+            page.locator('#pillar-hour').select_option('')
+            page.locator('#pillar-from').fill('1986')
+            page.locator('#pillar-to').fill('1986')
+            page.locator('#pillar-search-run').click()
+            page.wait_for_function("() => document.querySelector('#pillar-match-0 .ps-date')?.textContent === '1986-05-04'", timeout=30000)
+            dst = page.locator('#pillar-match-0 .ps-when')
+            assert dst.inner_text().replace('\n', ' ').split() == ['00:00:00', 'UTC+08:00', '–', '1986-05-05', '00:00:00', 'UTC+09:00']
+            assert page.evaluate("[...document.querySelectorAll('#pillar-matches .ps-when')].every(p => p.scrollWidth <= p.clientWidth + 1)")
+            page.locator('#pillar-year').select_option('庚辰')
+            page.locator('#pillar-month').select_option('甲申')
+            page.locator('#pillar-day').select_option('丙午')
+            page.locator('#pillar-hour').select_option('庚寅')
+            page.locator('#pillar-from').fill('1901')
+            page.locator('#pillar-to').fill('2099')
+            page.locator('#pillar-search-run').click()
+            page.wait_for_function("() => document.querySelectorAll('#pillar-matches > li').length === 2", timeout=30000)
             page.locator('#pillar-use-1').click()
             assert page.locator('#birth_datetime').input_value() == '2000-08-16T04:00'
             page.locator('.pillar-stem').first.wait_for(timeout=30000)

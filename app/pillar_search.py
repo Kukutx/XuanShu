@@ -138,15 +138,21 @@ def pillars_to_dates(req: PillarSearchRequest) -> dict:
     def edge(inside: datetime, outside: datetime) -> datetime:
         """Whole second where a run starts (first matching) or ends (first non-matching), by bisection.
 
-        Bisecting to a millisecond and then rounding up keeps both readings on the correct side of a jie
-        instant that falls between two whole seconds."""
+        Bisection narrows the switch to a millisecond; the first whole second at or after the earlier end of
+        that bracket is the answer when it already reads like the later end (a switch exactly on a second),
+        otherwise the next second is. Both readings stay on the correct side of a jie instant that falls
+        between two whole seconds."""
         while abs((outside - inside).total_seconds()) > 0.001:
             middle = inside + (outside - inside) / 2
             if matches(middle):
                 inside = middle
             else:
                 outside = middle
-        return _ceil_second(outside if outside > inside else inside)
+        later = max(inside, outside)
+        second = _ceil_second(min(inside, outside))
+        if second <= later and matches(second) != (later == inside):
+            second += timedelta(seconds=1)
+        return second
 
     runs: list[tuple[datetime, datetime]] = []
     if not problems:
