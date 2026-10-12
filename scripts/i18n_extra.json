@@ -5719,6 +5719,10 @@
   "Day pillar date boundary",
   "日柱の日付境界"
  ],
+ "日柱随时辰而定，日主未定，不标十神。": [
+  "The day pillar depends on the hour, so the day master is open and ten gods are not marked.",
+  "日柱は時刻次第のため日主が定まらず、十神は付けていません。"
+ ],
  "日柱随时辰而定，日主未定，十神暂不标注。": [
   "The day pillar depends on the hour, so the Day Master is unsettled and no ten gods are given.",
   "日柱が時刻次第のため日主が定まらず、十神は示しません。"
@@ -5987,6 +5991,10 @@
   "The hour is unknown: the hour pillar is a 12:00 placeholder and is not counted.",
   "時刻不明のため、時柱は 12:00 の仮置きで、数に入れていません。"
  ],
+ "时辰不详：不列牵涉可能随时辰变化的柱的关系。": [
+  "Hour unknown: relations involving pillars the hour could change are not listed.",
+  "時刻不明：時刻によって変わりうる柱が関わる関係は挙げていません。"
+ ],
  "时辰不详：出生当天早晚不同，大运也不同": [
   "Hour unknown: the luck pillar differs between early and late in the birth day",
   "時刻不明：誕生日の朝と夜で大運が異なる"
@@ -5994,6 +6002,10 @@
  "时辰不详：哪些部分不受时辰影响": [
   "Hour unknown: what the hour does not change",
   "時辰不明：時辰に左右されない部分"
+ ],
+ "时辰不详：宫位按 12:00 占位时辰排出，落宫会随时辰变化。": [
+  "Hour unknown: palaces are placed from the 12:00 placeholder, so the landing palaces change with the hour.",
+  "時刻不明：宮位は 12:00 の仮の時刻で配置しており、落宮は時刻によって変わります。"
  ],
  "时辰不详：时柱按 12:00 占位；出生当天交节，又按 23:00 换日或按太阳时换算，月柱、日柱随时辰而定。这三柱都不计入，日主未定，也不标十神。": [
   "The hour is unknown: the hour pillar is a 12:00 placeholder; a solar term (jie) falls on the birth day and the day changes at 23:00 or follows solar time, so the month and day pillars depend on the hour. These three pillars are not counted, and with no settled Day Master the Ten Gods are not shown.",
@@ -6583,6 +6595,10 @@
   "Bars total the surface elements of every member's stems and branches (hidden stems excluded); on the right are the members whose day master has that element.",
   "棒は全メンバーの四柱の天干・地支の表面五行の合計です（蔵干は含みません）。右側はその五行の日主を持つメンバーです。"
  ],
+ "来源": [
+  "Source",
+  "出典"
+ ],
  "来源：": [
   "Source: ",
   "出典："
@@ -6618,6 +6634,10 @@
  "查看公开方法文档": [
   "View public method documentation",
   "公開手法ドキュメントを見る"
+ ],
+ "查看公开方法文档 ↗": [
+  "View public method documentation ↗",
+  "公開手法ドキュメントを見る ↗"
  ],
  "查看这天的四柱、月相和与命盘的关系": [
   "See this day's four pillars, moon phase and labels against the chart",
@@ -7394,6 +7414,10 @@
  "点线：": [
   "Dotted lines:",
   "点線："
+ ],
+ "焦点宫宫干飞化": [
+  "Focus palace stem transformations",
+  "注目宮の宮干飛化"
  ],
  "然后": [
   "Then",
@@ -8291,6 +8315,10 @@
   "Auto-detect",
   "自動検出"
  ],
+ "自化": [
+  "Self-transform",
+  "自化"
+ ],
  "自化忌": [
   "Self Ji",
   "自化忌"
@@ -8531,6 +8559,10 @@
   "Rules",
   "規則"
  ],
+ "规则 ID": [
+  "Rule ID",
+  "ルール ID"
+ ],
  "规则 ID：": [
   "Rule ID: ",
   "ルール ID："
@@ -8599,9 +8631,17 @@
   "Calculated fields → traditional labels → scope",
   "計算フィールド → 伝統ラベル → 適用範囲"
  ],
+ "计算字段与规则": [
+  "Fields and rules",
+  "計算フィールドと規則"
+ ],
  "计算字段：": [
   "Calculated fields: ",
   "計算フィールド："
+ ],
+ "计算时制": [
+  "Time basis",
+  "計算時制"
  ],
  "计算时制对照": [
   "Compute time-standard comparison",
@@ -8634,6 +8674,10 @@
  "证据 来源 文献 规则": [
   "evidence source literature rule",
   "根拠 出典 文献 ルール"
+ ],
+ "证据分组": [
+  "Evidence groups",
+  "証拠のグループ"
  ],
  "证据字段：": [
   "Evidence fields: ",
@@ -9230,6 +9274,10 @@
  "迪拜": [
   "Dubai",
   "ドバイ"
+ ],
+ "适用范围": [
+  "Scope",
+  "適用範囲"
  ],
  "适用边界：": [
   "Scope limits: ",

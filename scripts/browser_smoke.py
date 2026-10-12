@@ -1238,6 +1238,28 @@ def main() -> None:
             page.get_by_text('内部一致性核查', exact=False).first.wait_for(timeout=30000)
             assert '三方四正' in page.locator('#result').inner_text()
             assert page.locator('#deep-download').is_visible()
+            # Findings come grouped as cards, the evidence tables drawn as such, the exact fields one click away.
+            groups = page.locator('.ev-group').count()
+            assert groups >= 4 and page.locator('.ev-toc-link').count() == groups
+            assert page.locator('.ev-card').count() == int(page.get_by_text('组可追溯观察').first.inner_text().split()[0])
+            assert page.locator('#deep-bazi-pillars .ev-pillar').count() == 4 and page.locator('#deep-bazi-hidden tr').count() == 4
+            assert page.locator('#deep-ziwei-four [class*="reading-hua-"]').count() == 8  # four natal and four from the focus palace stem
+            # A focus-stem transformation landing back in the focus palace says 自化, as the server's text does.
+            self_count = page.evaluate("() => deepResult.findings.flatMap(f => f.evidence).filter(x => /palace_flying_transformations$/.test(x.path)).flatMap(x => x.value).filter(t => t.self_transform).length")
+            assert page.locator('#deep-ziwei-four .ev-self').count() == self_count
+            assert page.locator('#deep-bazi-pillars .ev-basis').inner_text() == '计算时制 钟表时间'
+            assert not page.locator('#deep-bazi-pillars .ev-fields').is_visible()
+            page.locator('#deep-bazi-pillars summary').click()
+            assert page.locator('#deep-bazi-pillars .ev-fields code', has_text='bazi.pillars').first.is_visible()
+            # Printing opens the other collapsed field sections and closes them again afterwards.
+            page.evaluate("() => dispatchEvent(new Event('beforeprint'))")
+            assert page.locator('details.ev-more:not([open])').count() == 0
+            page.evaluate("() => dispatchEvent(new Event('afterprint'))")
+            assert page.locator('details.ev-more[open]').count() == 1
+            # The group links move keyboard focus to the group they name.
+            page.locator('.ev-toc-link').nth(1).click()
+            assert page.evaluate("() => document.activeElement.id") == 'deep-group-1'
+            assert page.locator('#deep-checks li.is-pass').count() == page.locator('#deep-checks li').count() == 4
             assert page.locator('a[href="https://docs.iztro.com/en_US/posts/palace"]').count() > 0
             page.screenshot(path=str(screenshot_dir / '24-deep-evidence-desktop.png'), full_page=True)
             page.locator('#deep-year').fill('2100')
