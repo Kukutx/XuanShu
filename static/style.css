@@ -734,6 +734,53 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .qa-chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 9px;border:1px solid var(--border-strong);color:var(--muted)}
 .qa-flag.is-review .qa-chip{border-color:var(--warn-line);color:var(--warn);background:var(--warn-soft)}
 .qa-code{font-size:11px;color:var(--faint);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+/* 深度证据: group links, then a card per finding (observation, limit, then the exact fields on request). */
+.ev-toc{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.ev-toc-link{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--border);border-radius:999px;padding:3px 12px;background:var(--panel2);font-size:12px;color:var(--text)}
+.ev-toc-link:hover{border-color:var(--gold)}
+.ev-toc-link small{color:var(--muted)}
+.ev-group{scroll-margin-top:16px}
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start;gap:10px;margin:0 0 6px}
+.ev-card{display:flex;flex-direction:column;gap:8px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);padding:12px 14px;min-width:0}
+.ev-title{margin:0;font-size:14px;color:var(--text)}
+.ev-observation{margin:0;font-size:13px;line-height:1.75;color:var(--text2)}
+.ev-limit{margin:0;font-size:12px;line-height:1.65;color:var(--muted)}
+.ev-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.ev-pillar{display:flex;flex-direction:column;align-items:center;border:1px solid var(--border);border-radius:6px;background:var(--panel);padding:5px 2px}
+.ev-pillar small{font-size:10px;color:var(--muted)}
+.ev-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:20px;line-height:1.25}
+.ev-hidden{border-collapse:collapse;width:100%;font-size:12px}
+.ev-hidden th{text-align:left;font-weight:400;color:var(--muted);padding:4px 10px 4px 0;white-space:nowrap;width:1%}
+.ev-hidden th b{margin-left:6px;font-size:14px}
+.ev-hidden td{padding:4px 0;border-top:1px solid var(--border)}
+.ev-hidden tr:first-child td{border-top:0}
+.ev-chips{display:flex;flex-wrap:wrap;gap:4px 6px}
+.ev-chip{display:inline-flex;align-items:baseline;gap:4px;border:1px solid var(--border);border-radius:999px;padding:0 8px;background:var(--panel);color:var(--text2)}
+.ev-chip b{font-size:13px}
+.ev-hua{display:flex;flex-direction:column;gap:6px}
+.ev-hua-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;margin:0;font-size:12px}
+.ev-hua-label{color:var(--muted);margin-right:4px}
+.ev-more{font-size:12px;color:var(--muted)}
+.ev-more>summary{cursor:pointer;color:var(--gold2);width:max-content}
+.ev-more>summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ev-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;margin:8px 0 0}
+.ev-fields dt code{font-size:11px;color:var(--text2)}
+.ev-fields dd{margin:0 0 6px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.ev-value{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.ev-hash{font-size:10px;color:var(--faint);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.ev-rules{margin:6px 0 0}
+.ev-checks{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.ev-checks li{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--border);border-radius:999px;padding:3px 12px;font-size:12px;background:var(--panel2);color:var(--text2)}
+.ev-checks li.is-pass b{color:var(--green)}.ev-checks li.is-fail{border-color:var(--warn-line);background:var(--warn-soft)}.ev-checks li.is-fail b{color:var(--warn)}
+.ev-refs td{font-size:12px;vertical-align:top}
+.ev-refs td:first-child{font-weight:600;color:var(--text)}
+.ev-refs code{font-size:11px;overflow-wrap:anywhere}
+@media(max-width:640px){
+  .ev-refs thead{display:none}
+  .ev-refs,.ev-refs tbody,.ev-refs tr,.ev-refs td{display:block;width:100%}
+  .ev-refs tr{border-bottom:1px solid var(--border);padding:8px 0}
+  .ev-refs td{border:0;padding:1px 0}
+}
 /* 出生时刻临界地图: the interval as a line, the switches in order, a card per segment. */
 .bt-line{margin:8px 0 14px;padding:26px 0 0}
 .bt-line.has-up1{padding-top:46px}.bt-line.has-up2{padding-top:66px}

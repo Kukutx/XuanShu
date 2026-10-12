@@ -151,8 +151,8 @@ def test_web_declares_new_workbench_and_safe_response_rendering():
     assert html.count('data-tab=') == 29
     assert 'data-tab="deep"' in html
     assert "'/api/deep-review'" in js
-    assert "append(panel,'p','feature-note',f.observation)" in js
-    assert "append(panel,'p','feature-note',f.observation)" in js and 'innerHTML' not in js
+    # Server text is placed as text nodes, never parsed as markup.
+    assert "append(card, 'p', 'ev-observation', f.observation)" in js and 'innerHTML' not in js
     assert 'report-deep' in js
 
 

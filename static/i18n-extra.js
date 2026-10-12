@@ -6586,6 +6586,10 @@ const UI_EXTRA = {
 "Bars total the surface elements of every member's stems and branches (hidden stems excluded); on the right are the members whose day master has that element.",
 "棒は全メンバーの四柱の天干・地支の表面五行の合計です（蔵干は含みません）。右側はその五行の日主を持つメンバーです。"
 ],
+"来源": [
+"Source",
+"出典"
+],
 "来源：": [
 "Source: ",
 "出典："
@@ -6621,6 +6625,10 @@ const UI_EXTRA = {
 "查看公开方法文档": [
 "View public method documentation",
 "公開手法ドキュメントを見る"
+],
+"查看公开方法文档 ↗": [
+"View public method documentation ↗",
+"公開手法ドキュメントを見る ↗"
 ],
 "查看这天的四柱、月相和与命盘的关系": [
 "See this day's four pillars, moon phase and labels against the chart",
@@ -7397,6 +7405,10 @@ const UI_EXTRA = {
 "点线：": [
 "Dotted lines:",
 "点線："
+],
+"焦点宫宫干飞化": [
+"Focus palace stem transformations",
+"焦点宮の宮干飛化"
 ],
 "然后": [
 "Then",
@@ -8534,6 +8546,10 @@ const UI_EXTRA = {
 "Rules",
 "規則"
 ],
+"规则 ID": [
+"Rule ID",
+"ルール ID"
+],
 "规则 ID：": [
 "Rule ID: ",
 "ルール ID："
@@ -8602,6 +8618,10 @@ const UI_EXTRA = {
 "Calculated fields → traditional labels → scope",
 "計算フィールド → 伝統ラベル → 適用範囲"
 ],
+"计算字段与规则": [
+"Fields and rules",
+"計算項目と規則"
+],
 "计算字段：": [
 "Calculated fields: ",
 "計算フィールド："
@@ -8637,6 +8657,10 @@ const UI_EXTRA = {
 "证据 来源 文献 规则": [
 "evidence source literature rule",
 "根拠 出典 文献 ルール"
+],
+"证据分组": [
+"Evidence groups",
+"証拠のグループ"
 ],
 "证据字段：": [
 "Evidence fields: ",
@@ -9233,6 +9257,10 @@ const UI_EXTRA = {
 "迪拜": [
 "Dubai",
 "ドバイ"
+],
+"适用范围": [
+"Scope",
+"適用範囲"
 ],
 "适用边界：": [
 "Scope limits: ",

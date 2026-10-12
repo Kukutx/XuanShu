@@ -3852,26 +3852,107 @@ function renderDeep() {
   });
   if(!deepResult)return;
   meta(result,[`关注 ${deepResult.focus_palace}`,`${deepResult.findings.length} 组可追溯观察`,`${deepResult.checks.filter(c=>c.passed).length}/${deepResult.checks.length} 条内部一致性检查`]);
-  deepResult.findings.forEach(f=>{
-    const panel=append(result,'section','report-section');
-    append(panel,'h4','subheading',f.title);
-    append(panel,'p','feature-note',f.observation);
-    const paths=append(panel,'div','small-text');
-    append(paths,'strong',null,'计算字段：');
-    append(paths,'span',null,f.evidence.map(x=>x.path).join(' · '));
-    append(panel,'p','disclaimer','适用边界：'+f.limit);
-    append(panel,'p','feature-note','规则 ID：'+f.rule_ids.join('、'));
+  // Findings by group, with a row of links to each group; every card states the observation first, then its limit,
+  // and keeps the exact fields, values and hashes it rests on one click away.
+  const groups = [...new Set(deepResult.findings.map(f => f.group))];
+  const toc = append(result, 'nav', 'ev-toc'); toc.setAttribute('aria-label', '证据分组');
+  groups.forEach((group, i) => {
+    const link = append(toc, 'a', 'ev-toc-link'); link.href = '#deep-group-' + i;
+    append(link, 'b', null, group); append(link, 'small', null, String(deepResult.findings.filter(f => f.group === group).length));
+    link.addEventListener('click', event => {event.preventDefault(); const target = $('#deep-group-' + i); if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});});
+  });
+  const evidenceOf = (f, path) => (f.evidence.find(x => x.path === path) || {}).value;
+  const pillarsOf = value => {
+    const row = elt('div', 'ev-pillars');
+    PILLAR_KEYS.forEach(k => {
+      const cell = append(row, 'span', 'ev-pillar'); append(cell, 'small', null, nameMap[k]);
+      const gz = append(cell, 'b', 'ev-gz'); gz.dataset.noI18n = '';
+      append(gz, 'span', stemClass(value[k][0]), value[k][0]); append(gz, 'span', branchClass(value[k][1]), value[k][1]);
+    });
+    return row;
+  };
+  // Structured views for the findings whose evidence is a table; the rest show the observation sentence.
+  const views = {
+    'bazi-pillars': f => {const value = evidenceOf(f, 'bazi.pillars'); return value && pillarsOf(value);},
+    'bazi-hidden': f => {
+      const hidden = evidenceOf(f, 'bazi.pillars'), base = deepResult.findings.find(x => x.id === 'bazi-pillars');
+      const texts4 = base && evidenceOf(base, 'bazi.pillars');
+      if (!hidden) return null;
+      const table = elt('table', 'ev-hidden');
+      PILLAR_KEYS.forEach(k => {
+        const tr = append(table, 'tr');
+        const th = append(tr, 'th'); th.scope = 'row'; append(th, 'span', null, nameMap[k]);
+        if (texts4) {const branch = append(th, 'b', branchClass(texts4[k][1]), texts4[k][1]); branch.dataset.noI18n = '';}
+        const stems = append(append(tr, 'td'), 'div', 'ev-chips');
+        (hidden[k] || []).forEach(h => {const chip = append(stems, 'span', 'ev-chip'); append(chip, 'b', elementClass(h.element), h.stem); append(chip, 'span', null, h.ten_god);});
+      });
+      return table;
+    },
+    'bazi-relations': f => {
+      const pairs = evidenceOf(f, 'bazi.branch_relations');
+      if (!Array.isArray(pairs) || !pairs.length) return null;
+      const box = elt('div', 'ev-hua');
+      pairs.forEach(r => {
+        const row = append(box, 'p', 'ev-hua-row');
+        texts(append(row, 'span', 'ev-hua-label'), nameMap[r.a] || r.a, ' · ', nameMap[r.b] || r.b);
+        const branches = append(row, 'b', null, r.branches); branches.dataset.noI18n = '';
+        r.labels.forEach(label => append(row, 'span', 'ev-chip', label));
+      });
+      return box;
+    },
+    'ziwei-four': f => {
+      const natal = evidenceOf(f, 'ziwei.birth_year_transformations');
+      if (!natal) return null;
+      const box = elt('div', 'ev-hua');
+      const line = (label, items) => {
+        const row = append(box, 'p', 'ev-hua-row'); append(row, 'span', 'ev-hua-label', label);
+        items.forEach(t => {const chip = append(row, 'span', 'reading-chip reading-hua-' + {化禄: 'lu', 化权: 'quan', 化科: 'ke', 化忌: 'ji'}[t.type]); append(chip, 'b', null, t.star); append(chip, 'span', null, t.type); append(chip, 'small', null, t.palace_name);});
+      };
+      line('生年四化', natal);
+      const flying = f.evidence.find(x => /palace_flying_transformations$/.test(x.path));
+      if (flying && Array.isArray(flying.value)) line('焦点宫宫干飞化', flying.value.map(t => ({type: t.type, star: t.star, palace_name: t.target_palace})));
+      return box;
+    },
+  };
+  groups.forEach((group, i) => {
+    const section = append(result, 'section', 'ev-group'); section.id = 'deep-group-' + i;
+    append(section, 'h4', 'subheading', group);
+    const grid = append(section, 'div', 'ev-grid');
+    deepResult.findings.filter(f => f.group === group).forEach(f => {
+      const card = append(grid, 'article', 'ev-card'); card.id = 'deep-' + f.id;
+      append(card, 'h5', 'ev-title', f.title);
+      const view = views[f.id] && views[f.id](f);
+      if (view) card.append(view);
+      if (!view) append(card, 'p', 'ev-observation', f.observation);
+      append(card, 'p', 'ev-limit', '适用边界：' + f.limit);
+      const more = append(card, 'details', 'ev-more');
+      append(more, 'summary', null, '计算字段与规则');
+      const fields = append(more, 'dl', 'ev-fields');
+      f.evidence.forEach(x => {
+        const term = append(fields, 'dt'); append(term, 'code', null, x.path);
+        const value = append(fields, 'dd');
+        const raw = typeof x.value === 'string' ? x.value : JSON.stringify(x.value);
+        append(value, 'code', 'ev-value', raw.length > 160 ? raw.slice(0, 157) + '…' : raw).title = raw;
+        const hash = append(value, 'small', 'ev-hash', 'sha256 ' + x.sha256.slice(0, 12)); hash.title = x.sha256;
+      });
+      texts(append(more, 'p', 'ev-rules'), '规则 ID', '：', f.rule_ids.join('、'));
+    });
   });
   append(result,'h4','subheading','内部一致性核查（不等于外部准确率认证）');
-  deepResult.checks.forEach(c=>append(result,'p','feature-note',(c.passed?'✓':'⚠')+' '+c.meaning));
+  const checks = append(result, 'ul', 'ev-checks'); checks.id = 'deep-checks';
+  deepResult.checks.forEach(c => {const item = append(checks, 'li', c.passed ? 'is-pass' : 'is-fail'); append(item, 'b', null, c.passed ? '✓' : '⚠'); append(item, 'span', null, c.meaning);});
   append(result,'h4','subheading','参考来源与适用范围');
+  const refs = append(append(result, 'div', 'table-wrap'), 'table', 'data-table ev-refs');
+  const refHead = append(append(refs, 'thead'), 'tr'); ['规则', '来源', '适用范围'].forEach(x => append(refHead, 'th', null, x));
+  const refBody = append(refs, 'tbody');
   deepResult.references.forEach(ref=>{
-    const row=append(result,'p','feature-note');
-    append(row,'strong',null,ref.title+'：');
+    const tr = append(refBody, 'tr');
+    append(tr, 'td', null, ref.title);
+    const source = append(tr, 'td');
     if(ref.reference.startsWith('https://')){
-      const a=append(row,'a',null,'查看公开方法文档');a.href=ref.reference;a.target='_blank';a.rel='noopener noreferrer';
-    } else append(row,'span',null,ref.reference);
-    append(row,'span',null,' · '+ref.scope);
+      const a=append(source,'a',null,'查看公开方法文档 ↗');a.href=ref.reference;a.target='_blank';a.rel='noopener noreferrer';
+    } else append(source,'code',null,ref.reference);
+    append(tr, 'td', null, ref.scope);
   });
   const save=append(result,'button','tiny-button','导出带证据的 Markdown ↓');save.type='button';save.id='deep-download';
   save.addEventListener('click',()=>{

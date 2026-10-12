@@ -1238,6 +1238,16 @@ def main() -> None:
             page.get_by_text('内部一致性核查', exact=False).first.wait_for(timeout=30000)
             assert '三方四正' in page.locator('#result').inner_text()
             assert page.locator('#deep-download').is_visible()
+            # Findings come grouped as cards, the evidence tables drawn as such, the exact fields one click away.
+            groups = page.locator('.ev-group').count()
+            assert groups >= 4 and page.locator('.ev-toc-link').count() == groups
+            assert page.locator('.ev-card').count() == int(page.get_by_text('组可追溯观察').first.inner_text().split()[0])
+            assert page.locator('#deep-bazi-pillars .ev-pillar').count() == 4 and page.locator('#deep-bazi-hidden tr').count() == 4
+            assert page.locator('#deep-ziwei-four [class*="reading-hua-"]').count() == 8  # four natal and four from the focus palace stem
+            assert not page.locator('#deep-bazi-pillars .ev-fields').is_visible()
+            page.locator('#deep-bazi-pillars summary').click()
+            assert page.locator('#deep-bazi-pillars .ev-fields code', has_text='bazi.pillars').first.is_visible()
+            assert page.locator('#deep-checks li.is-pass').count() == page.locator('#deep-checks li').count() == 4
             assert page.locator('a[href="https://docs.iztro.com/en_US/posts/palace"]').count() > 0
             page.screenshot(path=str(screenshot_dir / '24-deep-evidence-desktop.png'), full_page=True)
             page.locator('#deep-year').fill('2100')
