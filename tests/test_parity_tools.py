@@ -1,6 +1,8 @@
 """Date-range candidate scan (择日择时) and Life Path event review."""
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -21,6 +23,11 @@ def test_scan_filters_match_the_officer_calendar():
                 if d['officer'] in ('成', '开')]
     assert [c['date'] for c in out['candidates']] == expected
     assert out['excluded_counts']['officer_not_included'] == 30 - len(expected)
+    # Every scanned day is either a candidate or an excluded day with its reason, so a calendar can show the whole range.
+    assert sorted([c['date'] for c in out['candidates']] + [d['date'] for d in out['excluded_days']]) == [
+        d['date'] for d in day_officer_calendar(DayOfficerRequest(start_date='2026-11-01', days=30))['days']]
+    assert {d['reason'] for d in out['excluded_days']} == {'officer_not_included'} and out['scanned_through'] == '2026-11-30'
+    assert set(out['excluded_days'][0]) == {'date', 'day_pillar', 'officer', 'jie_on_date', 'reason', 'natal_clashes'}
     assert out['order'].startswith('chronological')
     assert all('score' not in c for c in out['candidates'])
 
@@ -33,6 +40,8 @@ def test_scan_natal_clash_labels_and_exclusion():
     filtered = date_candidate_scan(DateScanRequest(start_date='2026-11-01', days=24, birth=BIRTH, exclude_natal_clash=True))
     assert not clashing & {c['date'] for c in filtered['candidates']}
     assert filtered['excluded_counts']['natal_clash'] == len(clashing)
+    assert {d['date'] for d in filtered['excluded_days'] if d['reason'] == 'natal_clash'} == clashing
+    assert all(d['natal_clashes'] for d in filtered['excluded_days'])
 
 
 def test_scan_hour_charts_use_qimen_engine_and_are_capped():
@@ -43,8 +52,26 @@ def test_scan_hour_charts_use_qimen_engine_and_are_capped():
     assert sum(len(c['hour_charts']) for c in capped['candidates']) == MAX_QIMEN_CHARTS and capped['truncated']
     # Every emitted candidate carries all requested charts; none is left half-computed.
     assert all(len(c['hour_charts']) == 2 for c in capped['candidates'])
+    # The scan stops on the first day it cannot chart: days up to it are listed, later ones are not scanned.
+    scanned = sorted([c['date'] for c in capped['candidates']] + [d['date'] for d in capped['excluded_days']])
+    assert scanned[0] == '2026-01-01' and scanned[-1] == capped['scanned_through'] == '2026-01-20' and len(scanned) == 20
     odd = date_candidate_scan(DateScanRequest(start_date='2026-01-01', days=60, hours=['09:00', '12:00', '15:00']))
     assert all(len(c['hour_charts']) == 3 for c in odd['candidates']) and len(odd['candidates']) == MAX_QIMEN_CHARTS // 3
+
+
+def test_scan_reason_is_the_first_filter_and_exclusions_continue_past_the_cap():
+    # 2006-05-05 is a jie-boundary day; excluding its officer as well names the officer filter, which comes first.
+    officer = day_officer_calendar(DayOfficerRequest(start_date='2006-05-05', days=1))['days'][0]['officer']
+    out = date_candidate_scan(DateScanRequest(start_date='2006-05-04', days=3, exclude_officers=[officer], exclude_jie_boundary_days=True))
+    assert {d['date']: d['reason'] for d in out['excluded_days']}['2006-05-05'] == 'officer_excluded'
+    assert out['excluded_counts']['jie_boundary'] == 0
+    # With one result allowed the scan still classifies the dropped days after it, up to the next candidate.
+    days = day_officer_calendar(DayOfficerRequest(start_date='2026-11-01', days=30))['days']
+    kept = [d['date'] for d in days if d['officer'] in ('成', '开')]
+    capped = date_candidate_scan(DateScanRequest(start_date='2026-11-01', days=30, include_officers=['成', '开'], max_results=1))
+    assert [c['date'] for c in capped['candidates']] == kept[:1] and capped['truncated']
+    assert capped['scanned_through'] == (date.fromisoformat(kept[1]) - timedelta(days=1)).isoformat()
+    assert max(d['date'] for d in capped['excluded_days']) == capped['scanned_through']
 
 
 def test_jie_boundary_found_when_the_jie_falls_after_23_00():
@@ -53,6 +80,7 @@ def test_jie_boundary_found_when_the_jie_falls_after_23_00():
     assert [days[k]['jie_boundary_on_date'] for k in sorted(days)] == [False, True, False]
     out = date_candidate_scan(DateScanRequest(start_date='2006-05-04', days=3, exclude_jie_boundary_days=True))
     assert '2006-05-05' not in {c['date'] for c in out['candidates']} and out['excluded_counts']['jie_boundary'] == 1
+    assert [(d['date'], d['reason'], d['jie_on_date']['name']) for d in out['excluded_days']] == [('2006-05-05', 'jie_boundary', '立夏')]
 
 
 @pytest.mark.parametrize('payload', [

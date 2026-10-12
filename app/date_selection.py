@@ -72,26 +72,24 @@ def date_candidate_scan(req: DateScanRequest) -> dict:
         pillars = calculate_bazi(req.birth)['pillars']
         natal = {'year': pillars['year']['branch'], 'day': pillars['day']['branch']}
     excluded = {'officer_not_included': 0, 'officer_excluded': 0, 'jie_boundary': 0, 'natal_clash': 0}
-    candidates, charts, truncated = [], 0, False
+    candidates, excluded_days, charts, truncated, scanned_through = [], [], 0, False, None
     for day in calendar['days']:
         clashes = [{'with': f'natal_{key}_branch', 'natal_branch': branch, 'day_branch': day['day_branch']}
                    for key, branch in (natal or {}).items() if frozenset((branch, day['day_branch'])) in BRANCH_CLASH]
-        if req.include_officers and day['officer'] not in req.include_officers:
-            excluded['officer_not_included'] += 1
-            continue
-        if day['officer'] in req.exclude_officers:
-            excluded['officer_excluded'] += 1
-            continue
-        if req.exclude_jie_boundary_days and day['jie_boundary_on_date']:
-            excluded['jie_boundary'] += 1
-            continue
-        if req.exclude_natal_clash and clashes:
-            excluded['natal_clash'] += 1
-            continue
+        reason = ('officer_not_included' if req.include_officers and day['officer'] not in req.include_officers
+                  else 'officer_excluded' if day['officer'] in req.exclude_officers
+                  else 'jie_boundary' if req.exclude_jie_boundary_days and day['jie_boundary_on_date']
+                  else 'natal_clash' if req.exclude_natal_clash and clashes else None)
         # Stop rather than emit candidates whose requested hour charts were not computed.
-        if len(candidates) >= req.max_results or charts + len(req.hours) > MAX_QIMEN_CHARTS:
+        if reason is None and (len(candidates) >= req.max_results or charts + len(req.hours) > MAX_QIMEN_CHARTS):
             truncated = True
             break
+        scanned_through = day['date']
+        if reason:
+            excluded[reason] += 1
+            excluded_days.append({key: day[key] for key in ('date', 'day_pillar', 'officer', 'jie_on_date')}
+                                 | {'reason': reason, 'natal_clashes': clashes})
+            continue
         lunar = chinese_lunar_date(date.fromisoformat(day['date']))
         entry = {**day, 'lunar_date': {k: lunar[k] for k in ('year', 'month', 'day', 'is_leap_month')},
                  'natal_clashes': clashes, 'hour_charts': []}
@@ -112,6 +110,8 @@ def date_candidate_scan(req: DateScanRequest) -> dict:
                      'hours': req.hours, 'timezone': req.timezone},
         'candidates': candidates,
         'excluded_counts': excluded,
+        'excluded_days': excluded_days,
+        'scanned_through': scanned_through,
         'truncated': truncated,
         'order': 'chronological; no luck ranking',
         'limitations': [
