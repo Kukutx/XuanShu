@@ -10,10 +10,6 @@ const UI_EXTRA = {
 " SDK: run pip install 'xuanshu[",
 " SDK：pip install 'xuanshu["
 ],
-" · 不变": [
-" · Unchanged",
-" · 変化なし"
-],
 " · 交节 ": [
 " · Solar-term change ",
 " · 節入り "
@@ -45,10 +41,6 @@ const UI_EXTRA = {
 " · 相冲 ": [
 " · Clash ",
 " · 相沖 "
-],
-" · 结果变化": [
-" · Result changed",
-" · 結果が変化"
 ],
 " · 藏 ": [
 " · hidden ",
@@ -1310,10 +1302,6 @@ const UI_EXTRA = {
 "Main stars: ",
 "主星："
 ],
-"主观加权分数（0–5）": [
-"Subjective weighted score (0–5)",
-"主観的加重スコア（0–5）"
-],
 "之前": [
 "before",
 "以前"
@@ -1709,6 +1697,10 @@ const UI_EXTRA = {
 "以左侧时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。": [
 "Centered on the time at left, samples discretely across the error window and lists the distinct BaZi charts and Life/Body Palaces that actually occur. Undetected differences may still exist between sample points.",
 "左側の時刻を中心に前後の誤差範囲で離散サンプリングし、実際に現れる異なる八字と命宮・身宮を列挙します。サンプル点の間に未検出の差異が残る可能性があります。"
+],
+"任意权重下首位都不变": [
+"The leader holds at any weight",
+"どの重みでも首位は変わりません"
 ],
 "伏兵": [
 "Fu Bing",
@@ -2298,6 +2290,10 @@ const UI_EXTRA = {
 "of which",
 "うち"
 ],
+"其他权重不变时，每个指标的权重在区间内变动，首位都不变；越过边界时领先的方案写在箭头后。最后一列是完全去掉该指标后的首位。": [
+"With the other weights unchanged, the leader holds while a criterion's weight stays inside its range; the option that leads past each edge follows the arrow. The last column is the leader with the criterion left out entirely.",
+"ほかの重みを変えないとき、各指標の重みがこの範囲内なら首位は変わりません。境界を越えたときに首位になる案は矢印の後に書きます。最後の列は、その指標を完全に外したときの首位です。"
+],
 "其他流派（例如以春节换年、23:00 换日）会得到不同的区间，可切换换日规则或时制重新反查。": [
 "Other schools (for example changing the year at Chinese New Year, or the day at 23:00) give different intervals; switch the day-boundary rule or time basis and search again.",
 "他の流派（春節で年替わり、23:00 で日替わりなど）では区間が変わります。日替わり規則や時制を切り替えて再検索できます。"
@@ -2626,10 +2622,6 @@ const UI_EXTRA = {
 "Share format",
 "共有形式"
 ],
-"分数来源": [
-"Score source",
-"スコアの出典"
-],
 "分析失败：": [
 "Analysis failed: ",
 "分析失敗："
@@ -2938,10 +2930,6 @@ const UI_EXTRA = {
 "Hua Gai",
 "華蓋"
 ],
-"单指标剔除敏感性": [
-"Leave-one-criterion-out sensitivity",
-"単一指標除外の感度"
-],
 "南": [
 "South",
 "南"
@@ -3018,9 +3006,9 @@ const UI_EXTRA = {
 "Xiamen",
 "アモイ"
 ],
-"去掉「": [
-"Remove \"",
-"「"
+"去掉此项后首位": [
+"Leader without it",
+"外したときの首位"
 ],
 "参数校验失败：": [
 "Parameter validation failed:",
@@ -3145,6 +3133,10 @@ const UI_EXTRA = {
 "只有 lunardate 不同；这份表的月份长度与天象不符。": [
 "Only lunardate differs; its table gives month lengths that do not match the sky.",
 "lunardate のみ異なります。この表の月の長さが天象と合いません。"
+],
+"只有一个指标时，权重不影响排序。": [
+"With a single criterion, its weight cannot change the order.",
+"指標が一つだけのときは、重みで順位は変わりません。"
 ],
 "只标传统标签，不打分、不排名": [
 "Traditional labels only: no scores, no ranking",
@@ -3810,9 +3802,9 @@ const UI_EXTRA = {
 "Note: ",
 "メモ："
 ],
-"备选方案（每项输入 0–5 的评分）": [
-"Options (enter a 0–5 score for each)",
-"選択肢（各項目に 0–5 の評価を入力）"
+"备选方案在各评价维度上的评分": [
+"Ratings of each option on each criterion",
+"各案の評価軸ごとの評点"
 ],
 "复制": [
 "Copy",
@@ -5034,6 +5026,10 @@ const UI_EXTRA = {
 "Age",
 "年齢"
 ],
+"并列首位": [
+"Joint leaders",
+"同率首位"
+],
 "广州": [
 "Guangzhou",
 "広州"
@@ -5197,6 +5193,10 @@ const UI_EXTRA = {
 "当前月首和天文台表一致，但天文台仍提示一日不确定性": [
 "The current first day of the month matches the Observatory table, but the Observatory still notes a one-day uncertainty",
 "現在の月初日は天文台の表と一致していますが、天文台は1日の不確実性を注記しています"
+],
+"当前权重": [
+"Weight now",
+"現在の重み"
 ],
 "当前模型在此检查范围内未检出时辰、日界、节令或时区变更。": [
 "Within this check range, the current model detected no change of hour, day boundary, solar term or time zone.",
@@ -5542,6 +5542,10 @@ const UI_EXTRA = {
 "Chosen time",
 "指定時刻"
 ],
+"指标": [
+"Criterion",
+"指標"
+],
 "指标 ": [
 "Criterion ",
 "指標 "
@@ -5833,6 +5837,10 @@ const UI_EXTRA = {
 "方案 B": [
 "Option B",
 "案 B"
+],
+"方案 × 指标": [
+"Options × criteria",
+"案 × 指標"
 ],
 "方案 对比 权重 决策": [
 "option comparison weight decision",
@@ -6902,6 +6910,10 @@ const UI_EXTRA = {
 "Weight",
 "重み"
 ],
+"权重占比": [
+"Share of the weight",
+"重みの割合"
+],
 "权重归一化 · 逐项贡献 · 剔除单项敏感性 · 无命理加权": [
 "Weight normalization · per-criterion contribution · leave-one-out sensitivity · no divination weighting",
 "重みの正規化 · 項目ごとの寄与 · 単一項目除外の感度 · 命理による加重なし"
@@ -7377,6 +7389,10 @@ const UI_EXTRA = {
 "比钟表慢": [
 "Behind the clock by",
 "時計より遅れ"
+],
+"比首位低": [
+"Behind the leader by",
+"首位との差"
 ],
 "水": [
 "Water",
@@ -8113,6 +8129,10 @@ const UI_EXTRA = {
 "盈凸月": [
 "Waxing gibbous",
 "十三夜月（満ちていく凸月）"
+],
+"目前有并列首位，只列去掉各指标后的首位，不算权重临界点。": [
+"The lead is shared, so only the leader without each criterion is listed; no weight thresholds are worked out.",
+"首位が同率のため、各指標を外したときの首位だけを示し、重みの臨界点は計算しません。"
 ],
 "目前未触发已知敏感边界提示。": [
 "No known sensitive-boundary warnings have been triggered so far.",
@@ -8886,6 +8906,10 @@ const UI_EXTRA = {
 "Completes",
 "補成"
 ],
+"表头写评价维度和权重（大于零），每行一个方案，格子里填 0–5 的评分。": [
+"The header holds the criteria and their weights (above zero); each row is an option, rated 0–5 in each cell.",
+"見出しに評価軸と重み（0 より大きい値）を書き、各行が一つの案、マスに 0–5 の評点を入れます。"
+],
 "表面合计：": [
 "Surface totals:",
 "表面の合計："
@@ -9053,10 +9077,6 @@ const UI_EXTRA = {
 "证据字段：": [
 "Evidence fields: ",
 "根拠フィールド："
-],
-"评价维度（权重必须大于零）": [
-"Criteria (weights must be greater than zero)",
-"評価軸（重みは0より大きくする）"
 ],
 "评分": [
 "Score",
@@ -9449,6 +9469,10 @@ const UI_EXTRA = {
 "辅星：": [
 "Auxiliary stars: ",
 "輔星："
+],
+"输入改动后还没算出新结果，下面是上一次的比较。": [
+"The grid has changed and no new result has come back yet; below is the last comparison.",
+"入力を変えた後の新しい結果はまだ出ていません。下は前回の比較です。"
 ],
 "输入框里有其他人的出生资料：请先在对话设置里勾选「已获对方同意使用其出生资料（双人或多人）」再发送，或删掉这些资料。": [
 "The input contains other people's birth data: tick \"The other person or people agreed to use their birth data\" in the chat settings before sending, or delete that data.",
@@ -10053,6 +10077,22 @@ const UI_EXTRA = {
 "食神、伤官": [
 "Eating God (Shi Shen), Hurting Officer (Shang Guan)",
 "食神、傷官"
+],
+"首位": [
+"Leader",
+"首位"
+],
+"首位不变的权重区间": [
+"Weight range keeping the leader",
+"首位が変わらない重みの範囲"
+],
+"首位改变": [
+"Leader changes",
+"首位が変わる"
+],
+"首位有多稳": [
+"How firm the lead is",
+"首位はどれだけ安定か"
 ],
 "首尔": [
 "Seoul",
