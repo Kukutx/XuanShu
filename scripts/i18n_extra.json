@@ -431,6 +431,10 @@
   "Day turns at 00:00",
   "00:00 で日替わり"
  ],
+ "1 个时段": [
+  "1 interval",
+  "1 件の時間帯"
+ ],
  "1 天": [
   "1 day",
   "1 日"
@@ -4511,6 +4515,10 @@
   "Corresponding rules:",
   "対応する規則："
  ],
+ "对得上的年份": [
+  "Matching years",
+  "一致する年"
+ ],
  "对得上的时辰：": [
   "Hours that fit: ",
   "合う時辰："
@@ -7346,6 +7354,10 @@
  "每个命盘事实可追溯到工具调用": [
   "Every chart fact traces back to a tool call",
   "命盤の各事実はツール呼び出しまで遡れます"
+ ],
+ "每个时段含起点、不含止点；止点那一刻已换成别的柱。": [
+  "Each interval includes its start and excludes its end; at the end instant the pillars have already changed.",
+  "各時間帯は開始時刻を含み、終了時刻を含みません。終了の瞬間には別の柱に変わっています。"
  ],
  "每人十二步大运与各自列出的公历年，交运当年记在新大运下": [
   "Each person's twelve luck periods with the calendar years each covers; the year a period begins is listed under the new period",

@@ -71,6 +71,18 @@ def test_jie_edges_round_to_the_correct_side_of_the_instant():
     assert got(end) != got(start)
 
 
+def test_a_switch_exactly_on_a_whole_second_is_not_reported_a_second_late():
+    # Mean solar time at 87.6°E runs 2 h 9 min 36 s behind the clock, so the 丑 hour opens at 03:09:36 exactly.
+    out = pillars_to_dates(PillarSearchRequest(year='庚辰', month='甲申', day='丙午', hour='己丑', time_mode='mean_solar',
+                                               longitude=87.6, start_year=2000, end_year=2000))
+    (m,) = out['matches']
+    assert m['start'] == '2000-08-16T03:09:36+08:00' and m['end_exclusive'] == '2000-08-16T05:09:36+08:00'
+    assert m['effective_start'] == '2000-08-16T01:00:00'
+    got = lambda t: pillar_indices(t, False, 'mean_solar', 87.6)[0]
+    start = datetime.fromisoformat(m['start'])
+    assert got(start)[3] != got(start - timedelta(seconds=1))[3]
+
+
 def test_suggested_reading_avoids_repeated_and_skipped_clock_times():
     zone = 'America/New_York'
     fall = pillars_of({'birth_datetime': '2021-11-07T02:30', 'timezone': zone})
