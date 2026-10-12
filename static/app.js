@@ -110,6 +110,7 @@ let calendarResult = null;
 let pairResult = null;
 let pairZiweiResult = null;
 let pairKey = null;  // the request the pair result belongs to
+let pairChatBlock = null;  // the last pair draft put into the chat input, so a newer one replaces it
 let annualResult = null;
 let timeResult = null;
 let reportResult = null;
@@ -1908,47 +1909,60 @@ function renderGroup() {
   if (groupKey !== JSON.stringify(members)) append(result, 'p', 'feature-note', '成员已改变，下面仍是上一次的结果；点「对照关系」更新。');
   renderGroupResult(groupResult);
 }
-// The members of a group result as a chat question; birth data goes to the model only when the user sends it.
-// Each line carries the member's own rule choices, so the model's group_relations call reproduces this result.
+// One person as a line of a chat draft. It carries the person's own rule choices, so the model's tool call
+// reproduces the result shown; birth data goes to the model only when the user sends the message.
+function chatBirthLine(label, birth, hourUnknown, note) {
+  const tr = text => typeof translateText === 'function' ? translateText(text) : text;
+  const rules = [];
+  if (birth.late_zi_day_rollover) rules.push(tr('23:00 换日'));
+  if (birth.leap_month_second_half_as_next === false) rules.push(tr('闰月整月按本月'));
+  if (birth.time_mode === 'mean_solar') rules.push(tr('平太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
+  if (birth.time_mode === 'apparent_solar') rules.push(tr('真太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
+  const gender = GENDER_TEXT[birth.gender];
+  return ['- ' + label, birth.birth_datetime.slice(0, 10) + ' ' + (hourUnknown ? tr('时辰不详') : birth.birth_datetime.slice(11, 16)),
+    birth.timezone, ...(gender ? [tr(gender)] : []), ...rules, ...(note ? [tr('备注：') + note] : [])].join(' · ');
+}
+// The members of a group result as a chat question.
 function groupChatDraft(g, inputs) {
   const tr = text => typeof translateText === 'function' ? translateText(text) : text;
   const lines = g.members.map((m, i) => {
     const birth = (inputs[i] || {}).birth || {};
-    const rules = [];
-    if (birth.late_zi_day_rollover) rules.push(tr('23:00 换日'));
-    if (birth.leap_month_second_half_as_next === false) rules.push(tr('闰月整月按本月'));
-    if (birth.time_mode === 'mean_solar') rules.push(tr('平太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
-    if (birth.time_mode === 'apparent_solar') rules.push(tr('真太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
     // The note is the user's own words about this member, shown in the draft before anything is sent.
     const note = groupNote(groupResultKeys[i] || '').replace(/\s+/g, ' ');
-    const gender = GENDER_TEXT[birth.gender];
-    return ['- ' + m.label, m.birth_datetime.slice(0, 10) + ' ' + (m.hour_unknown ? tr('时辰不详') : m.birth_datetime.slice(11, 16)),
-      m.timezone, ...(gender ? [tr(gender)] : []), ...rules, ...(note ? [tr('备注：') + note] : [])].join(' · ');
+    return chatBirthLine(m.label, {...birth, birth_datetime: m.birth_datetime, timezone: m.timezone}, m.hour_unknown, note);
   });
   const ask = [tr('请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。')];
   if (g.year_view) ask.push(tr('也请对照这一年的大运流年：') + g.year_view.year);
   return {text: [...ask, ...lines].join('\n'), lines};
 }
-function renderGroupResult(g) {
+// Puts a draft into the chat input and opens the chat. Anything the user had typed stays; clicking again does not
+// add the same people twice, and a draft for the same people (another year, edited notes) replaces its earlier block.
+function sendDraftToChat(draft, lines, block, key) {
+  chatThirdPartyLines = [...new Set([...chatThirdPartyLines, ...lines])];
+  const previous = block && block.key === key ? block.text : null;
+  if (previous && chatDraft.includes(previous)) chatDraft = chatDraft.replace(previous, () => draft);
+  else if (!chatDraft.includes(draft)) chatDraft = chatDraft.trim() ? chatDraft.trimEnd() + '\n\n' + draft : draft;
+  activateTab(tabs.find(t => t.dataset.tab === 'chat'));
+  const box = $('#chat-input'); if (box) {box.focus(); box.setSelectionRange(box.value.length, box.value.length);}
+  return {key, text: draft};
+}
+// The 带进 AI 对话 button with its hint; it is off until the chat service is configured.
+function chatAskButton(id, page, readyText, offText) {
   const ask = append(result, 'div', 'group-ask');
-  const askButton = append(ask, 'button', 'tiny-button', '带进 AI 对话'); askButton.type = 'button'; askButton.id = 'group-ask-ai';
-  // The chat status is normally read by the chat tab; a page opened straight at #group asks for it here.
-  if (chatStatus === null) {chatStatus = {pending: true}; fetchChatStatus().then(() => {if (active === 'group') render();});}
-  const chatReady = Boolean(chatStatus && chatStatus.enabled === true);
-  askButton.disabled = !chatReady;
-  append(ask, 'small', 'muted', chatStatus.pending ? '正在检查对话服务…' : chatReady ? '把成员的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。'
-    : 'AI 对话尚未启用，配置语言模型后可以把这些成员带进对话。');
+  const button = append(ask, 'button', 'tiny-button', '带进 AI 对话'); button.type = 'button'; button.id = id;
+  // The chat status is normally read by the chat tab; a page opened straight here asks for it.
+  if (chatStatus === null) {chatStatus = {pending: true}; fetchChatStatus().then(() => {if (active === page) render();});}
+  const ready = Boolean(chatStatus && chatStatus.enabled === true);
+  button.disabled = !ready;
+  append(ask, 'small', 'muted', chatStatus.pending ? '正在检查对话服务…' : ready ? readyText : offText);
+  return button;
+}
+function renderGroupResult(g) {
+  const askButton = chatAskButton('group-ask-ai', 'group', '把成员的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。',
+    'AI 对话尚未启用，配置语言模型后可以把这些成员带进对话。');
   askButton.addEventListener('click', () => {
-    // Keep anything the user had already typed; clicking again does not add the members twice, and the same
-    // group with edited notes replaces its earlier block instead of adding a second one.
     const {text: draft, lines} = groupChatDraft(g, JSON.parse(groupKey || '[]'));
-    chatThirdPartyLines = [...new Set([...chatThirdPartyLines, ...lines])];
-    const previous = groupChatBlock && groupChatBlock.key === groupKey ? groupChatBlock.text : null;
-    if (previous && chatDraft.includes(previous)) chatDraft = chatDraft.replace(previous, () => draft);
-    else if (!chatDraft.includes(draft)) chatDraft = chatDraft.trim() ? chatDraft.trimEnd() + '\n\n' + draft : draft;
-    groupChatBlock = {key: groupKey, text: draft};
-    activateTab(tabs.find(t => t.dataset.tab === 'chat'));
-    const box = $('#chat-input'); if (box) {box.focus(); box.setSelectionRange(box.value.length, box.value.length);}
+    groupChatBlock = sendDraftToChat(draft, lines, groupChatBlock, groupKey);
   });
   textExport(result, 'group-text', () => groupText(g), 'xuanshu-group.txt');
   const cards = append(result, 'div', 'group-members');
@@ -2895,6 +2909,12 @@ function renderPair() {
   const zodiac = append(facts, 'span');
   texts(zodiac, '生肖', ' ' + (r.zodiac.a || '?') + ' / ' + (r.zodiac.b || '?'));
   r.zodiac.labels.forEach(x => zodiac.append(' · ', x));
+  const askButton = chatAskButton('pair-ask-ai', 'pair', '把两人的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。',
+    'AI 对话尚未启用，配置语言模型后可以把两人带进对话。');
+  askButton.addEventListener('click', () => {
+    const {text: draft, lines} = pairChatDraft(r, JSON.parse(pairKey || '{}'));
+    pairChatBlock = sendDraftToChat(draft, lines, pairChatBlock, pairKey);
+  });
   textExport(result, 'pair-text', pairText, 'xuanshu-pair.txt');
   const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table'); table.id = 'pair-pillars';
   const hr = append(append(table, 'thead'), 'tr');
@@ -2920,6 +2940,14 @@ function renderPair() {
   r.notes.forEach(x => note(result, x));
   if (pairZiweiResult) renderZiweiPair(pairZiweiResult);
   else append(result, 'p', 'feature-note', PAIR_ZIWEI_NEEDS_HOURS);
+}
+// The two people of a pair result as a chat question, from the request the result belongs to.
+function pairChatDraft(r, body) {
+  const tr = text => typeof translateText === 'function' ? translateText(text) : text;
+  const lines = [chatBirthLine('A', body.person_a, body.person_a_hour_unknown), chatBirthLine('B', body.person_b, body.person_b_hour_unknown)];
+  const ask = [tr('请结合双人对照，帮我看看下面两位之间的关系，只解释传统标签的含义，不要打分。')];
+  if (r.year_view) ask.push(tr('也请对照这一年的大运流年：') + r.year_view.year);
+  return {text: [...ask, ...lines].join('\n'), lines};
 }
 // Another year for the same two people: the request of the result shown, not the form being edited. While
 // 比较两人命盘 runs, only the year asked for changes; that run's reply fetches it for the new pair.

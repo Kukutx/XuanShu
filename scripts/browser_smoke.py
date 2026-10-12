@@ -826,6 +826,29 @@ def main() -> None:
             page.locator('#pair-year-input').fill('2025')
             page.locator('#pair-year-next').click()
             page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
+            # The two people can go to the AI chat as a draft, as on the group page; another year replaces that draft.
+            assert page.locator('#pair-ask-ai').is_disabled() and 'AI 对话尚未启用' in page.locator('#result .group-ask').inner_text()
+            page.evaluate("() => { chatStatus.enabled = true; chatDraft = ''; }")
+            page.locator('[data-tab="calendar"]').click()
+            page.locator('[data-tab="pair"]').click()
+            page.locator('#pair-ask-ai:not([disabled])').click()
+            page.locator('[data-tab="chat"][aria-selected="true"]').wait_for(timeout=30000)
+            draft = page.locator('#chat-input').input_value()
+            assert draft.startswith('请结合双人对照') and draft.count('\n- ') == 2 and '\n也请对照这一年的大运流年：2026\n- A · ' in draft, draft
+            assert draft.endswith('\n- B · 2001-01-01 12:00 · Asia/Shanghai · 女'), draft
+            assert page.locator('#chat-send').is_disabled() and page.locator('#chat-consent-needed').is_visible()
+            page.screenshot(path=str(screenshot_dir / '43-pair-to-chat.png'), full_page=True)
+            page.locator('[data-tab="pair"]').click()
+            page.locator('#pair-year-next').click()
+            page.wait_for_function("() => pairResult.year_view.year === 2027 && !pairYearPending", timeout=30000)
+            page.locator('#pair-ask-ai:not([disabled])').click()
+            page.locator('[data-tab="chat"][aria-selected="true"]').wait_for(timeout=30000)
+            draft = page.locator('#chat-input').input_value()
+            assert draft.count('请结合双人对照') == 1 and '大运流年：2027\n' in draft and '2026' not in draft, draft
+            page.evaluate("() => { chatStatus.enabled = false; chatDraft = ''; chatThirdPartyLines = []; }")
+            page.locator('[data-tab="pair"]').click()
+            page.locator('#pair-year-prev').click()
+            page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
             # 4 pillar rows + every labelled branch link + 12 branch rows + 8 cross-chart transformations, besides the luck timeline.
             links = page.evaluate('pairResult.branch_links.length')
             assert links >= 1 and page.locator('#result tbody tr').count() - page.locator('#pair-timeline tbody tr').count() == 4 + links + 12 + 8

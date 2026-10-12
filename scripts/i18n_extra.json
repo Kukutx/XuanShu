@@ -507,6 +507,10 @@
   "AI chat is not enabled yet",
   "AI チャットはまだ有効になっていません"
  ],
+ "AI 对话尚未启用，配置语言模型后可以把两人带进对话。": [
+  "AI chat is not enabled yet; once a language model is configured, you can bring the two people into a chat.",
+  "AI 対話はまだ有効ではありません。言語モデルを設定すると、二人を対話に持ち込めます。"
+ ],
  "AI 对话尚未启用，配置语言模型后可以把这些成员带进对话。": [
   "AI chat is not enabled; once a language model is configured you can bring these members into a conversation.",
   "AI 対話はまだ有効になっていません。言語モデルを設定すると、これらのメンバーを対話に持ち込めます。"
@@ -5011,6 +5015,10 @@
   "Found ",
   "検出 "
  ],
+ "把两人的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。": [
+  "Puts both people's birth details into the chat box for you to check before sending; tick the other person's consent in the chat settings before you send.",
+  "二人の出生データを対話の入力欄に入れます。確認してから送信してください。送信前に対話設定で相手の同意にチェックが必要です。"
+ ],
  "把成员的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。": [
   "Puts the members' birth details in the chat box for you to check before sending; tick the consent box in the chat settings first.",
   "メンバーの出生情報を入力欄に入れます。確認してから送信してください。送信前に対話設定で同意の項目にチェックが必要です。"
@@ -8346,6 +8354,10 @@
  "请确认农历年月日及是否闰月，再调用 lunar_to_gregorian；不存在的闰月或农历三十日应明确报错。": [
   "Confirm the lunar year, month, day, and whether it is a leap month, then call lunar_to_gregorian; a nonexistent leap month or lunar 30th day should produce an explicit error.",
   "旧暦の年月日と閏月かどうかを確認してから lunar_to_gregorian を呼び出してください。存在しない閏月や旧暦30日は明確にエラーとすべきです。"
+ ],
+ "请结合双人对照，帮我看看下面两位之间的关系，只解释传统标签的含义，不要打分。": [
+  "Using the two-person comparison, please look at the relationship between the two people below. Only explain what the traditional labels mean, and do not give a score.",
+  "二人の比較をもとに、下の二人の関係を見てください。伝統的なラベルの意味だけを説明し、点数は付けないでください。"
  ],
  "请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。": [
   "Using the group relations comparison, look at the relationships among the people below. Explain only what the traditional labels mean, with no scores.",
