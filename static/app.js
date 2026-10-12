@@ -3699,51 +3699,112 @@ function renderBirthWindowSection(){
   });
   windowResult.limitations.forEach(t=>note(result,t));
 }
+// The three clocks side by side. Without a longitude in the birth data, one can be picked here for this page only:
+// it never changes the birth data, so the chart and its exports stay as generated.
+let timeLongitude = '', timeRun = null;
 function renderTimeAudit() {
   title(result,'出生时间与经度审计','比较三种时制 / 相同天文瞬间');
-  const inp=readInput();
+  const inp=readInput(), formLongitude = inp.longitude;
   append(result,'p','info-inline','填写出生地经度后，计算钟表时间、地方平太阳时、真太阳时的四柱与命身宫差异。');
   const row=append(result,'div','inline-control');
+  let box = null;
+  if (formLongitude === null) {
+    const label = append(row, 'label', null, '出生城市（仅用于本页）');
+    const city = append(label, 'select'); city.id = 'time-city';
+    append(city, 'option', null, '选择城市').value = '';
+    // Only cities on the birth time zone's clock, so the clock time keeps its meaning.
+    (typeof CITY_PRESETS === 'object' ? CITY_PRESETS : []).forEach(([region, list]) => {
+      const group = append(city, 'optgroup'); group.label = region;
+      list.filter(c => c[1] === inp.timezone).forEach(([name, , longitude]) => {append(group, 'option', null, name).value = String(longitude);});
+      if (!group.children.length) group.remove();
+    });
+    box = createInput('经度（东经为正）', 'number', timeLongitude, row); box.id = 'time-longitude';
+    box.min = '-180'; box.max = '180'; box.step = 'any';
+    city.value = [...city.options].some(o => o.value && o.value === timeLongitude) ? timeLongitude : '';
+    city.addEventListener('change', () => {if (city.value) {box.value = city.value; timeLongitude = city.value;}});
+    box.addEventListener('input', () => {timeLongitude = box.value.trim(); city.value = [...city.options].some(o => o.value && o.value === timeLongitude) ? timeLongitude : '';});
+  }
   const run=append(row,'button',null,'计算时制对照');run.id='time-run';run.type='button';
   const error=append(result,'p','inline-msg');
   run.addEventListener('click',async()=>{
-    if(readInput().longitude===null){error.textContent='请先在出生资料里填写出生地经度。';return;}
-    run.disabled=true;
-    try{const data=await postForChart('/api/time-audit',{birth:readInput()});if(data!==STALE){timeResult=data;render();}}
+    const typed = box ? box.value.trim() : '', longitude = formLongitude !== null ? formLongitude : Number(typed);
+    if (formLongitude === null && (typed === '' || !Number.isFinite(longitude) || longitude < -180 || longitude > 180)) {
+      error.textContent = '请选择出生城市或填写经度（-180 到 180）。'; return;
+    }
+    run.disabled=true; error.textContent='';
+    try{
+      const birth = {...readInput(), longitude};
+      const data = await postForChart('/api/time-audit',{birth});
+      if (data !== STALE) {timeResult = data; timeRun = {birth, ownLongitude: formLongitude === null}; render();}
+    }
     catch(e){error.textContent='计算失败：'+e.message;}
     finally{run.disabled=false;}
   });
+  if (formLongitude === null) append(result, 'p', 'field-help', '出生资料里没有经度：这里选的城市或经度只用于本页对照，不改出生资料，也不保存。');
+  if(timeResult) {
+    const used = timeRun ? timeRun.birth : {...inp, longitude: timeResult.longitude};
+    const where = append(result, 'p', 'meta-tags');
+    texts(append(where, 'span'), '出生地经度', ' ' + Math.abs(timeResult.longitude) + '°' + (timeResult.longitude >= 0 ? 'E' : 'W'));
+    if (timeRun && timeRun.ownLongitude) append(where, 'span', null, '仅用于本页');
+    texts(append(where, 'span'), '时区', ' ' + used.timezone);
+    const clock = timeResult.choices.find(t => t.mode === 'clock') || timeResult.choices[0];
+    const names = {clock: '钟表时间', mean_solar: '平太阳时', apparent_solar: '真太阳时'};
+    const grid = append(result, 'div', 'tb-grid'); grid.id = 'time-cards';
+    timeResult.choices.forEach(t => {
+      const card = append(grid, 'section', 'tb-card' + (t.mode === timeResult.original_time_mode ? ' is-used' : '')); card.id = 'time-' + t.mode;
+      const head = append(card, 'div', 'tb-head');
+      append(head, 'h5', null, names[t.mode]);
+      if (t.mode === timeResult.original_time_mode) append(head, 'span', 'bt-badge', '当前排盘所用');
+      const at = append(card, 'p', 'tb-time');
+      append(at, 'b', null, t.effective_reading.slice(11, 19));
+      if (t.effective_reading.slice(0, 10) !== clock.effective_reading.slice(0, 10)) append(at, 'small', 'tb-date', t.effective_reading.slice(0, 10));
+      const shift = append(card, 'p', 'tb-shift');
+      if (t.mode === 'clock') append(shift, 'span', null, '出生地法定钟表时间');
+      else {
+        if (Math.round(t.shift_minutes * 60) === 0) append(shift, 'span', null, '与钟表时间相同');
+        else durationText(texts(shift, t.shift_minutes < 0 ? '比钟表慢' : '比钟表快', ' '), t.shift_minutes);
+        // A mean solar shift is the longitude against the zone meridian; the apparent one adds the equation of time.
+        const parts = append(card, 'p', 'tb-parts');
+        const signed = n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(1);
+        texts(parts, '经度差', ' ' + signed(t.shift_minutes - (t.equation_of_time_minutes || 0)), ' 分');
+        if (t.mode === 'apparent_solar') texts(parts, ' · ', '均时差', ' ' + signed(t.equation_of_time_minutes), ' 分');
+      }
+      const pillars = append(card, 'div', 'bt-pillars');
+      PILLAR_KEYS.forEach(k => {
+        const gz = t.pillars[k];
+        const cell = append(pillars, 'span', 'bt-pillar' + (t !== clock && gz !== clock.pillars[k] ? ' is-changed' : ''));
+        append(cell, 'small', null, nameMap[k]);
+        const text = append(cell, 'b', 'bt-gz'); text.dataset.noI18n = '';
+        append(text, 'span', stemClass(gz[0]), gz[0]); append(text, 'span', branchClass(gz[1]), gz[1]);
+      });
+      const ziwei = append(card, 'p', 'bt-ziwei');
+      texts(append(ziwei, 'span', 'bt-field' + (t !== clock && t.ming_palace !== clock.ming_palace ? ' is-changed' : '')), '命宫', ' ', t.ming_palace);
+      texts(append(ziwei, 'span', 'bt-field' + (t !== clock && t.shen_palace !== clock.shen_palace ? ' is-changed' : '')), '身宫', ' ', t.shen_palace);
+      const la = t.lunar_date, lb = clock.lunar_date;
+      const lunar = append(card, 'p', 'bt-lunar' + (t !== clock && (la.year !== lb.year || la.month !== lb.month || la.day !== lb.day || la.is_leap_month !== lb.is_leap_month) ? ' is-changed' : ''));
+      texts(lunar, '农历', ' '); append(lunar, 'span', null, lunarDateText(la)).dataset.noI18n = '';
+    });
+    const differ = timeResult.choices.filter(t => t !== clock && (PILLAR_KEYS.some(k => t.pillars[k] !== clock.pillars[k]) || t.ming_palace !== clock.ming_palace || t.shen_palace !== clock.shen_palace));
+    append(result, 'p', 'field-help', differ.length ? '标色的柱与宫位和钟表时间不同；换用太阳时会改变这些结果。' : '三种时制下四柱与命宫、身宫都相同。');
+    title(result,'规则敏感性比较','固定出生参数，仅切换时制');
+    const choose=append(result,'div','inline-control');
+    const label=append(choose,'label',null,'作为对照的时制');
+    const select=append(label,'select');select.id='rule-alt-mode';
+    [['clock','钟表时间'],['mean_solar','平太阳时'],['apparent_solar','真太阳时']].forEach(([mode,name])=>{let o=append(select,'option',null,name);o.value=mode;});
+    const compare=append(choose,'button',null,'执行规则差异对照');compare.id='compare-rules';compare.type='button';
+    const msg=append(result,'p','inline-msg');
+    compare.addEventListener('click',async()=>{
+      compare.disabled=true;
+      try{
+        const orig={...readInput(), longitude: readInput().longitude ?? used.longitude};const alt={...orig,time_mode:select.value};
+        const out=await postJSON('/api/rules-compare',{original:orig,alternative:alt});
+        msg.textContent='变化的四柱：'+(out.differences.pillars.map(k=>nameMap[k]).join('、')||'无')+
+          '；命宫：'+(out.differences.ming?'变化':'不变')+'；身宫：'+(out.differences.shen?'变化':'不变')+'。';
+      }catch(e){msg.textContent=e.message;}finally{compare.disabled=false;}
+    });
+    timeResult.warnings.forEach(t=>note(result,t));
+  } else append(result,'p','info-inline','不会自动保存出生资料或经度；审计结果包含具体时差与命盘差异。');
   renderBirthWindowSection();
-  if(!timeResult){append(result,'p','info-inline','不会自动保存出生资料或经度；审计结果包含具体时差与命盘差异。');return;}
-  const wrap=append(result,'div','table-wrap'); const table=append(wrap,'table','data-table');
-  const tr=append(append(table,'thead'),'tr');
-  ['时基','有效当地时间','相对钟表偏移','四柱','命宫 / 身宫'].forEach(t=>append(tr,'th',null,t));
-  const body=append(table,'tbody');
-  timeResult.choices.forEach(t=>{
-    const row=append(body,'tr');
-    append(row,'td',null,({clock:'钟表时间',mean_solar:'平太阳时',apparent_solar:'真太阳时'})[t.mode]);
-    append(row,'td',null,t.effective_reading.replace('T',' '));
-    append(row,'td',null,t.shift_minutes.toFixed(2)+' 分钟');
-    append(row,'td',null,Object.values(t.pillars).join(' / '));
-    append(row,'td',null,t.ming_palace+' / '+t.shen_palace);
-  });
-  title(result,'规则敏感性比较','固定出生参数，仅切换时制');
-  const choose=append(result,'div','inline-control');
-  const label=append(choose,'label',null,'作为对照的时制');
-  const select=append(label,'select');select.id='rule-alt-mode';
-  [['clock','钟表时间'],['mean_solar','平太阳时'],['apparent_solar','真太阳时']].forEach(([mode,name])=>{let o=append(select,'option',null,name);o.value=mode;});
-  const compare=append(choose,'button',null,'执行规则差异对照');compare.id='compare-rules';compare.type='button';
-  const msg=append(result,'p','inline-msg');
-  compare.addEventListener('click',async()=>{
-    compare.disabled=true;
-    try{
-      const orig=readInput();const alt={...orig,time_mode:select.value};
-      const out=await postJSON('/api/rules-compare',{original:orig,alternative:alt});
-      msg.textContent='变化的四柱：'+(out.differences.pillars.map(k=>nameMap[k]).join('、')||'无')+
-        '；命宫：'+(out.differences.ming?'变化':'不变')+'；身宫：'+(out.differences.shen?'变化':'不变')+'。';
-    }catch(e){msg.textContent=e.message;}finally{compare.disabled=false;}
-  });
-  timeResult.warnings.forEach(t=>note(result,t));
 }
 function renderQualityAudit() {
   title(result, '出生记录与排盘质量审计', '节令 / 时辰 / 公历日界 / 远期历法不确定性');
@@ -4411,7 +4472,7 @@ const AUTO_OPEN = {
   timeline: ['timeline-run', () => timelineResult, () => timelineDraft.start_lunar_year !== null || !todayLunarPending],
   boundaries: ['boundary-run', () => boundaryResult],
   quality: ['quality-run', () => qualityResult],
-  time: ['time-run', () => timeResult, () => readInput().longitude !== null],
+  time: ['time-run', () => timeResult, () => readInput().longitude !== null || timeLongitude !== ''],
   deep: ['deep-run', () => deepResult],
 };
 let autoOpened = new Set();
@@ -4559,7 +4620,7 @@ form.addEventListener('submit', async event => {
     ]);
     current = {...chart, reading}; currentInput = data;
     consultResult=null;consultCursor=null;
-    pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
+    pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; timeRun = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
     dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
     // A group reply still on its way belongs to the previous chart.

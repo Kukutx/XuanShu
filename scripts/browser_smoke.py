@@ -521,6 +521,22 @@ def main() -> None:
             page.locator('#reading-next-dayun').click()
             assert page.locator('[data-tab="dayun"]').get_attribute('aria-selected') == 'true'
             page.locator('[data-tab="time"]').click()
+            # Without a longitude in the birth data, a city picked on the page serves this comparison only.
+            assert page.locator('#time-cards').count() == 0 and page.locator('#time-city').count() == 1
+            page.locator('#time-run').click()
+            assert '请选择出生城市或填写经度' in page.locator('#result').inner_text()
+            page.locator('#time-city').select_option('87.6168')
+            assert page.locator('#time-longitude').input_value() == '87.6168'
+            page.locator('#time-run').click()
+            page.locator('#time-cards').wait_for(timeout=30000)
+            assert page.locator('#time-cards .tb-card').count() == 3 and page.locator('#time-cards .tb-card.is-used').count() == 1
+            assert page.locator('#longitude').input_value() == '' and '仅用于本页' in page.locator('#result').inner_text()
+            # Urumqi's solar time runs over two hours behind Beijing time, so the hour pillar always changes;
+            # the clock card itself marks nothing, and the apparent one names the equation of time.
+            assert page.locator('#time-mean_solar .tb-shift').inner_text().startswith('比钟表慢')
+            assert page.locator('#time-mean_solar .bt-pillar.is-changed').count() >= 1 and page.locator('#time-clock .is-changed').count() == 0
+            assert '均时差' in page.locator('#time-apparent_solar .tb-parts').inner_text() and '均时差' not in page.locator('#time-mean_solar .tb-parts').inner_text()
+            assert '换用太阳时会改变这些结果' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '04-time-audit.png'), full_page=True)
 
             # New 开发阶段 hour-Qimen page: click through real UI, verify 3x3 Lo Shu cells,
