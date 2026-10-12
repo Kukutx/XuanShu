@@ -335,10 +335,34 @@ def main() -> None:
             assert page.locator('#ziwei-fly-toggle').get_attribute('aria-pressed') == 'false'
             page.locator('#ziwei-fly-toggle').click()
             assert page.locator('#ziwei-board path.fly').count() == 3
+            # The panel lists the reverse direction too: 紫微 and 文曲 sit in 午, so 乙 (酉) sends 紫微化科,
+            # 辛 (巳) sends 文曲化科 and both 己 palaces send 文曲化忌; 午's own 壬 紫微化权 is a self-transformation.
+            fly_in = page.locator('.palace-panel .fly-in').inner_text()
+            assert fly_in.startswith('飞入本宫：') and fly_in.count('；') == 3, fly_in
+            assert all(item in fly_in for item in ('田宅宫（乙干）紫微化科', '兄弟宫（辛干）文曲化科', '疾厄宫（己干）文曲化忌', '子女宫（己干）文曲化忌')), fly_in
+            # Arrow keys move between palaces in board order and jump the empty middle; the board is one tab stop.
+            assert page.locator('#ziwei-board .palace[tabindex="0"]').count() == 1 and page.locator('#palace-6').get_attribute('tabindex') == '0'
+            page.locator('#palace-6').focus()
+            for key, expected in (('ArrowRight', 'palace-7'), ('ArrowDown', 'palace-0'), ('ArrowLeft', 'palace-1'), ('ArrowUp', 'palace-6')):
+                page.keyboard.press(key)
+                page.wait_for_function(f"() => document.activeElement.id === '{expected}' && document.activeElement.getAttribute('aria-pressed') === 'true' && document.activeElement.tabIndex === 0", timeout=10000)
+            page.locator('#palace-5').focus()
+            page.keyboard.press('ArrowLeft')  # the edge of the board: nothing moves
+            assert page.evaluate('document.activeElement.id') == 'palace-5' and page.locator('#palace-6').get_attribute('aria-pressed') == 'true'
             page.locator('#ziwei-layer-decade').click()
             assert page.locator('.palace-layer').count() == 12
             assert page.locator('.palace.layer-anchor').count() == 1
             assert page.locator('#ziwei-board .hua.layer').count() == 4
+            # The layer starts on its own Life palace, whose stem is the decade stem: its curves are the layer's, drawn once.
+            assert page.locator('#ziwei-board path.fly.layer').count() == 0 and '点线' not in page.locator('.hua-legend').inner_text()
+            # Another palace keeps the layer's four transformations as dotted curves from the layer's Life palace.
+            page.locator('#palace-6').click()
+            layer_curves = page.evaluate('''() => {const z = current.ziwei, info = ziweiLayerInfo(z);
+              return info.anchor === 6 ? -1 : info.hua.filter(t => t.target_palace !== z.palaces[info.anchor].name).length;}''')
+            assert layer_curves >= 1 and page.locator('#ziwei-board path.fly.layer').count() == layer_curves, layer_curves
+            assert page.locator('#ziwei-board path.fly:not(.layer)').count() == 3
+            assert '点线：大限四化飞入的宫位' in page.locator('.hua-legend').inner_text(), page.locator('.hua-legend').inner_text()
+            page.locator('#ziwei-board').screenshot(path=str(screenshot_dir / '42-ziwei-layer-flying.png'))
             # The decade and year layers draw their 流曜 in the browser; they must match the engine's.
             flow_check = '''async key => {
               // 1 July always falls inside the lunar year of the same number.

@@ -478,6 +478,10 @@ function renderPalacePanel(parent, palace, layer) {
   append(block, 'p', null, '辅星：' + (palace.auxiliary_stars.map(star => withBrightness(palace, star)).join('、') || '—'));
   append(block, 'p', null, '生年四化：' + (palace.birth_year_transformations.map(t => `${t.star}${t.type}`).join('、') || '此宫无生年四化标记'));
   append(block, 'p', null, '宫干飞化：' + palace.palace_flying_transformations.map(t => `${t.star}${t.type}→${t.target_palace}${t.self_transform ? '（自化）' : ''}`).join('；'));
+  // The reverse view: which other palaces' stems transform a star sitting here.
+  const incoming = current && current.ziwei ? current.ziwei.palaces.filter(p => p.name !== palace.name).flatMap(p =>
+    p.palace_flying_transformations.filter(t => t.target_palace === palace.name).map(t => `${p.name}（${p.stem}干）${t.star}${t.type}`)) : [];
+  append(block, 'p', 'fly-in', '飞入本宫：' + (incoming.join('；') || '无其他宫位的宫干四化飞入'));
   if (palace.three_harmonies_and_opposite) {
     const link = palace.three_harmonies_and_opposite;
     append(block, 'p', null, '三方四正：' + link.trine.map(x => `${x.palace}·${x.branch}`).join('、') + '；对宫 ' + link.opposite.palace + '·' + link.opposite.branch);
@@ -511,7 +515,7 @@ function withBrightness(palace, star) {
 }
 // Grid cell (row, column) of each palace index on the traditional 4×4 board.
 const ZIWEI_CELLS = {5:[1,1], 6:[1,2], 7:[1,3], 8:[1,4], 4:[2,1], 9:[2,4], 3:[3,1], 10:[3,4], 2:[4,1], 1:[4,2], 0:[4,3], 11:[4,4]};
-function ziweiLines(board, z, selected) {
+function ziweiLines(board, z, selected, live) {
   const link = selected && selected.three_harmonies_and_opposite;
   if (!link) return;
   const svgNS = 'http://www.w3.org/2000/svg';
@@ -536,27 +540,50 @@ function ziweiLines(board, z, selected) {
   // The three harmonies form a triangle; the opposite palace gets its own line.
   line(points[0], points[1]); line(points[1], points[2]); line(points[2], points[0]);
   targets.filter(x => x[1] === 'opposite').forEach(x => line(from, centre(x[0]), 'opposite'));
-  // The selected palace's stem transformations fly to the palaces holding those stars. Each curve bows towards
-  // the middle of the board, so it shows between the cells, and ends at the edge of the target cell.
-  if (showFlying) selected.palace_flying_transformations.forEach((t, i) => {
-    const to = centre(t.target_palace);
-    if (!from || !to || t.self_transform) return;
-    const mid = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2];
+  // Stem transformations fly to the palaces holding those stars. Each curve bows towards the middle of the
+  // board, so it shows between the cells, and ends at the edge of the target cell.
+  const curve = (startName, t, i, layer) => {
+    const start = centre(startName), to = centre(t.target_palace);
+    if (!start || !to || t.target_palace === startName) return;  // a transformation in its own palace stays a badge
+    const mid = [(start[0] + to[0]) / 2, (start[1] + to[1]) / 2];
     const pull = [200 - mid[0], 200 - mid[1]];
     const length = Math.hypot(pull[0], pull[1]) || 1;
-    const spread = (i - 1.5) * 9;  // four curves to one palace stay apart
+    const spread = (i - 1.5) * 9 + (layer ? 4.5 : 0);  // curves to one palace stay apart
     const control = [mid[0] + pull[0] * .7 - pull[1] / length * spread, mid[1] + pull[1] * .7 + pull[0] / length * spread];
     const edge = (point, toward) => {
       const d = [toward[0] - point[0], toward[1] - point[1]], scale = 44 / (Math.max(Math.abs(d[0]), Math.abs(d[1])) || 1);
       return [point[0] + d[0] * scale, point[1] + d[1] * scale];
     };
-    const a = edge(from, control), b = edge(to, control);
+    const a = edge(start, control), b = edge(to, control);
     const path = document.createElementNS(svgNS, 'path');
     path.setAttribute('d', `M${a[0]} ${a[1]} Q${control[0]} ${control[1]} ${b[0]} ${b[1]}`);
-    path.setAttribute('class', 'fly fly-' + (HUA_CLASS[t.type] || 'lu'));
+    path.setAttribute('class', 'fly fly-' + (HUA_CLASS[t.type] || 'lu') + (layer ? ' layer' : ''));
     svg.append(path);
-  });
+  };
+  if (showFlying) {
+    selected.palace_flying_transformations.forEach((t, i) => curve(selected.name, t, i, false));
+    // On a time layer, that layer's four transformations start from the layer's Life palace, dotted.
+    if (layerFlying(z, selected, live)) live.hua.forEach((t, i) => curve(z.palaces[live.anchor].name, t, i, true));
+  }
   board.prepend(svg);
+}
+// The layer's own curves, unless they would repeat the selected palace's: the layer Life palace with the layer stem.
+function layerFlying(z, selected, live) {
+  if (!showFlying || !live || !live.hua.length) return false;
+  return !(selected.name === z.palaces[live.anchor].name && selected.stem === live.stem);
+}
+// Arrow keys move the selection to the palace in that direction; across the empty middle they reach the far side.
+const ZIWEI_STEPS = {ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1]};
+function ziweiNeighbour(index, key) {
+  const step = ZIWEI_STEPS[key];
+  if (!step) return null;
+  let [row, col] = ZIWEI_CELLS[index];
+  for (;;) {
+    row += step[0]; col += step[1];
+    if (row < 1 || row > 4 || col < 1 || col > 4) return null;
+    const found = Object.keys(ZIWEI_CELLS).find(k => ZIWEI_CELLS[k][0] === row && ZIWEI_CELLS[k][1] === col);
+    if (found !== undefined) return Number(found);
+  }
 }
 // Badge text in the palace a transformation flies into; a self-transformation stays in its own palace.
 const FLY_MARKS = {'化禄': ['禄入', '自化禄'], '化权': ['权入', '自化权'], '化科': ['科入', '自化科'], '化忌': ['忌入', '自化忌']};
@@ -773,6 +800,9 @@ function renderZiwei(z) {
     node.style.gridColumn = String(ZIWEI_CELLS[index][1]);
     node.setAttribute('aria-label', `查看${p.name}飞化`);
     node.setAttribute('aria-pressed', String(selected.name === p.name));
+    // One tab stop for the board: Tab reaches the selected palace and the arrow keys move between palaces.
+    node.tabIndex = selected.name === p.name ? 0 : -1;
+    node.setAttribute('aria-keyshortcuts', 'ArrowUp ArrowDown ArrowLeft ArrowRight');
     const head = append(node, 'div', 'palace-head');
     append(head, 'b', null, p.name.replace('宫', '')); append(head, 'span', 'palace-ganzhi', p.stem + p.branch);
     if (live) {
@@ -828,8 +858,15 @@ function renderZiwei(z) {
     if (p.decade) append(foot, 'span', 'decade', `${p.decade.start_age}–${p.decade.end_age}岁`);
     if (p.small_limit_nominal_ages) node.title = '小限虚岁：' + p.small_limit_nominal_ages.slice(0, 6).join('、') + '…';
     node.addEventListener('click', () => {selectedPalace = p.name; render();});
+    node.addEventListener('keydown', event => {
+      const next = ziweiNeighbour(index, event.key);
+      if (next === null) return;
+      event.preventDefault();
+      selectedPalace = z.palaces[next].name; render();
+      const target = document.getElementById('palace-' + next); if (target) target.focus({preventScroll: true});
+    });
   });
-  ziweiLines(board, z, selected);
+  ziweiLines(board, z, selected, live);
   const center = append(board, 'div', 'board-center see-through');
   append(center, 'div', 'center-symbol', '☯');
   append(center, 'div', 'center-title', '紫 微 斗 数');
@@ -847,6 +884,7 @@ function renderZiwei(z) {
   const fly = append(legend, 'button', 'filter-chip fly-toggle', '飞化连线'); fly.type = 'button'; fly.id = 'ziwei-fly-toggle';
   fly.setAttribute('aria-pressed', String(showFlying));
   fly.title = '彩色曲线：所选宫位的宫干四化飞入哪一宫';
+  if (layerFlying(z, selected, live)) append(legend, 'span', 'legend-lines', '点线：' + LAYER_NAMES[live.mode] + '四化飞入的宫位');
   fly.addEventListener('click', () => {showFlying = !showFlying; render();});
   renderPalacePanel(result, selected, live);
   if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。');

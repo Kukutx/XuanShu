@@ -2899,6 +2899,10 @@
   "The Four Transformations table uses ",
   "四化表は "
  ],
+ "四化飞入的宫位": [
+  "Four Transformations flying to their palaces",
+  "四化の飛び先"
+ ],
  "四化（": [
   "four transformations (",
   "四化（"
@@ -4815,6 +4819,10 @@
   "No basis",
   "根拠なし"
  ],
+ "无其他宫位的宫干四化飞入": [
+  "no other palace's stem transformation lands here",
+  "他の宮の宮干四化は飛び入らない"
+ ],
  "无标记": [
   "No labels",
   "ラベルなし"
@@ -6314,6 +6322,10 @@
  "点击左侧「生成命盘」开始计算": [
   "Click 'Generate chart' at left to start",
   "左側の「命盤を生成」をクリックして計算開始"
+ ],
+ "点线：": [
+  "Dotted lines:",
+  "点線："
  ],
  "然后": [
   "Then",
@@ -8202,6 +8214,10 @@
  "顺逆规则参考立春年柱阴阳；自选 direction_override 优先。不同流派可按不同起运和顺逆规则排盘。": [
   "The forward/reverse rule refers to the Yin/Yang of the year pillar as bounded by Start of Spring (Lichun); a user-selected direction_override takes precedence. Different schools may chart with different starting-age and direction rules.",
   "順逆の規則は立春基準の年柱の陰陽を参照します。任意指定の direction_override が優先されます。流派によって起運や順逆の規則が異なる場合があります。"
+ ],
+ "飞入本宫：": [
+  "Flying into this palace:",
+  "この宮へ飛び入る四化："
  ],
  "飞化": [
   "Flying transformations",
