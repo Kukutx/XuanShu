@@ -907,9 +907,9 @@
   "Month 3",
   "三月"
  ],
- "三种时制下四柱与命宫、身宫都相同。": [
-  "The Four Pillars and the Life and Body Palaces are the same under all three time standards.",
-  "三つの時刻制度のいずれでも、四柱と命宮・身宮は同じです。"
+ "三种时制下四柱、命宫、身宫与农历日期都相同。": [
+  "The four pillars, Life and Body palaces and lunar date are the same under all three time bases.",
+  "三つの時制で四柱・命宮・身宮・旧暦日付はすべて同じです。"
  ],
  "上一个大限": [
   "Previous major limit",
@@ -1106,6 +1106,10 @@
  "与本命四化分开显示 · 仅为星曜位置叠加": [
   "Shown separately from natal Four Transformations · star position overlay only",
   "本命四化とは別表示 · 星曜位置の重ね合わせのみ"
+ ],
+ "与钟表时间不同": [
+  "Differs from clock time",
+  "時計時刻と異なる"
  ],
  "与钟表时间相同": [
   "Same as clock time",
@@ -3706,6 +3710,10 @@
  "复制表格": [
   "Copy table",
   "表をコピー"
+ ],
+ "夏令时": [
+  "Daylight saving",
+  "夏時間"
  ],
  "夏至": [
   "Summer Solstice (Xiazhi)",
@@ -6723,9 +6731,13 @@
   "Labels",
   "ラベル"
  ],
- "标色的柱与宫位和钟表时间不同；换用太阳时会改变这些结果。": [
-  "Highlighted pillars and palaces differ from clock time: switching to solar time would change them.",
-  "色付きの柱と宮位は時計時刻と異なります。太陽時に切り替えるとこれらが変わります。"
+ "标色的项目和钟表时间不同；当前命盘已按加框的太阳时排盘，改按钟表时间会得到不同结果。": [
+  "Coloured items differ from clock time; the current chart already uses the framed solar time, and casting by clock time would give different results.",
+  "色付きの項目は時計時刻と異なります。現在の命盤は枠付きの太陽時で出しており、時計時刻で出すと結果が変わります。"
+ ],
+ "标色的项目和钟表时间不同；换用太阳时会改变这些结果。": [
+  "Coloured items differ from clock time; switching to solar time would change them.",
+  "色付きの項目は時計時刻と異なります。太陽時に切り替えるとこれらの結果が変わります。"
  ],
  "校时": [
   "Time correction",

@@ -231,9 +231,14 @@ def time_audit(request: TimeAuditRequest) -> dict:
             'ming_palace': z['ming_palace'], 'shen_palace': z['shen_palace'],
             'lunar_date': z['lunar_date'],
         })
+    # The solar shifts are the longitude against the zone's standard meridian, minus any daylight saving.
+    dst = (dt.dst() or timedelta(0)).total_seconds() / 60
+    standard = dt.utcoffset().total_seconds() / 60 - dst
     return {
         'system': 'time-basis-audit', 'original_time_mode': inp.time_mode,
         'longitude': inp.longitude, 'choices': choices,
+        'dst_minutes': round(dst, 4), 'standard_utc_offset_minutes': round(standard, 4),
+        'longitude_vs_standard_meridian_minutes': round(inp.longitude * 4 - standard, 4),
         'warnings': ['地理经度必须准确；历史时区与流派对时辰起止仍可能有差异。',
                      '这只是时制敏感性对照，不判断哪个时间体系具有预测效力。'],
     }

@@ -537,7 +537,16 @@ def main() -> None:
             assert page.locator('#time-mean_solar .bt-pillar.is-changed').count() >= 1 and page.locator('#time-clock .is-changed').count() == 0
             assert '均时差' in page.locator('#time-apparent_solar .tb-parts').inner_text() and '均时差' not in page.locator('#time-mean_solar .tb-parts').inner_text()
             assert '换用太阳时会改变这些结果' in page.locator('#result').inner_text()
+            # Changes are spelled out for screen readers too; the page-only longitude stays out of the JSON export.
+            assert page.locator('#time-mean_solar .visually-hidden', has_text='与钟表时间不同').count() >= 1
+            assert page.locator('#time-clock .visually-hidden').count() == 0
+            assert page.evaluate('() => jsonData().time_audit') is None
             page.screenshot(path=str(screenshot_dir / '04-time-audit.png'), full_page=True)
+            # A new chart starts without the city picked for the previous one.
+            page.evaluate("() => document.getElementById('run-btn').click()")
+            page.wait_for_function('() => timeResult === null && timeLongitude === ""', timeout=30000)
+            page.locator('#time-city').wait_for(timeout=30000)
+            assert page.locator('#time-longitude').input_value() == '' and page.locator('#time-cards').count() == 0
 
             # New 开发阶段 hour-Qimen page: click through real UI, verify 3x3 Lo Shu cells,
             # and ensure an edited input cannot silently reuse an old chart.
@@ -1182,6 +1191,25 @@ def main() -> None:
             assert page.locator('#boundary-segment-3 .bt-pillar.is-changed').count() == 3  # year, month and hour differ from the birth's
             assert '1 小时 10 分' in page.locator('#boundary-segment-1 .bt-card-head').inner_text()
             page.screenshot(path=str(screenshot_dir / '18-boundaries-desktop.png'), full_page=True)
+            # An older reply landing after a newer run of the same tool is dropped: hold the ±60 reply back,
+            # redraw (which brings back an enabled button), run ±8, then let the ±60 reply arrive.
+            page.evaluate("""() => {
+              const real = window.fetch; window.heldBack = null;
+              window.fetch = (path, opt) => path === '/api/birth-boundaries' && JSON.parse(opt.body).uncertainty_minutes === 60
+                ? new Promise(resolve => {window.heldBack = () => real(path, opt).then(resolve);}) : real(path, opt);
+              window.restoreFetch = () => {window.fetch = real;};
+            }""")
+            page.locator('#boundary-radius').fill('60')
+            page.locator('#boundary-run').click()
+            page.wait_for_function('() => window.heldBack !== null')
+            page.evaluate('() => render()')
+            page.locator('#boundary-radius').fill('8')
+            page.locator('#boundary-run').click()
+            page.get_by_text('±8分钟', exact=False).first.wait_for(timeout=30000)
+            page.evaluate('() => window.heldBack()')
+            page.wait_for_timeout(500)
+            assert '±8分钟' in page.locator('#result').inner_text() and '±60分钟' not in page.locator('#result').inner_text()
+            page.evaluate('() => window.restoreFetch()')
 
             # All three independently implemented 开发阶段 workflows must work from visible controls.
             page.locator('[data-tab="officers"]').click()
