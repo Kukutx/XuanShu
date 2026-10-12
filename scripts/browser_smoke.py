@@ -1700,12 +1700,25 @@ def main() -> None:
             page.locator('[data-tab="report"]').click()
             assert page.locator('#report-year').input_value() == ''
             assert page.locator('#report-deep').is_checked()
+            # Each optional part is a card that says what it needs: without a longitude there is no solar-time audit.
+            assert page.locator('#report-audit').is_disabled() and '没有经度' in page.locator('#report-module-time').inner_text()
+            assert page.locator('#report-plan').inner_text() == '将运行 4 个计算步骤'
+            page.locator('#report-dayun').check()
+            assert page.locator('#report-plan').inner_text() == '将运行 5 个计算步骤'
+            page.locator('#report-dayun').uncheck()
             page.locator('#report-run').click()
             page.get_by_text('可追溯综合报告', exact=False).first.wait_for(timeout=30000)
             page.locator('#report-download').wait_for(timeout=30000)
             assert '出生数据与排盘边界审计' in page.locator('#result').inner_text()
             assert '规则证据与跨体系差异复核' in page.locator('#result').inner_text()
             assert page.locator('#report-year').input_value() == ''
+            # The report as a document: the pillars, the steps run, a contents list that moves the keyboard to its section.
+            assert page.locator('.rp-pillar').count() == 4 and page.locator('#report-trace li').count() == 4
+            assert page.locator('#report-toc a').count() == page.locator('.rp-section').count() == 5
+            assert page.evaluate("document.activeElement.id") == 'report-doc'
+            page.locator('#report-toc a').nth(4).click()
+            assert page.evaluate("document.activeElement.id") == 'report-sec-4'
+            assert page.evaluate("reportMarkdownSection(reportResult.markdown, '规则证据与跨体系差异复核').startsWith('## 规则证据与跨体系差异复核')")
             page.screenshot(path=str(screenshot_dir / '10-report.png'), full_page=True)
             page.locator('[data-tab="integration"]').click()
             # The counts come from the running server's capabilities.
