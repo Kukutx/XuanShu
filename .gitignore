@@ -22,3 +22,4 @@ htmlcov/
 !.env.example
 .artifacts/
 .venv-py313-backup/
+node_modules/

@@ -2,7 +2,8 @@
 
 Every day from 1901 to 2099 is compared for the lunar date and the four pillars;
 every solar term and principal moon phase is compared for its instant; a fixed
-random sample of births is compared for the Zi Wei Dou Shu chart. A full run
+random sample of births is compared for the Zi Wei Dou Shu chart and its
+period layers. A full run
 writes docs/evals/crosscheck.json, docs/evals/README.md and the page summary
 static/crosscheck-summary.json together; a quick run writes only to
 build/evals-quick/ so it never replaces the committed report.
@@ -11,19 +12,24 @@ The reference libraries are not XuanShu dependencies. Install the pinned set in
 a separate environment, then run the script:
 
     pip install -r requirements.txt -r docs/evals/requirements.txt
+    npm install --prefix docs/evals              # iztro, the original JavaScript library
     python scripts/eval_crosscheck.py            # full run
     python scripts/eval_crosscheck.py --quick    # every tenth year, smaller Zi Wei sample, build/evals-quick/
 
 References: sxtwl (寿星天文历 by 许剑伟), lunar_python (6tail), lunardate
-(table based), PyEphem (libastro, VSOP87) and iztro-py (port of iztro).
+(table based), PyEphem (libastro, VSOP87), iztro-py (port of iztro) and iztro
+itself, run through Node.js (scripts/iztro_reference.cjs) for the stars and
+period stars iztro-py does not provide.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import math
+import os
 import random
 import statistics
+import subprocess
 import sys
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
@@ -43,7 +49,7 @@ from lunar_python import Solar  # noqa: E402
 
 from app.almanac import moon_phases  # noqa: E402
 from app.astronomy import TERMS, _new_moons_between, calendar_zone, chinese_lunar_date, from_jd, solar_term_jd, to_jd  # noqa: E402
-from app.engines import BirthInput, calculate_ziwei, pillar_indices  # noqa: E402
+from app.engines import ZIWEI_STARS, TIANFU_STARS, BirthInput, calculate_ziwei, pillar_indices  # noqa: E402
 from app.ziwei_horoscope import ZiweiHoroscopeRequest, ziwei_horoscope  # noqa: E402
 
 UTC = timezone.utc
@@ -55,7 +61,10 @@ EXAMPLES = 20
 FIXES = [{'months': ['1914-11-17', '1916-02-03', '1920-11-10'], 'cause': 'beijing_meridian',
           'text': '1914、1916、1920 年各有一个月，玄枢原来一律按北京时间（东经 120°）编历，初一比三家参考都晚一天；'
                   '这三个月的朔在北京时间午夜后几分钟，按 1912–1928 年实际使用的北京地方平时（东经 116°25′）则在午夜前。'
-                  '已改为这些年份按北京地方平时编历，重跑后三个月全部一致。'}]
+                  '已改为这些年份按北京地方平时编历，重跑后三个月全部一致。'},
+         {'cause': 'ziwei_star_tables',
+          'text': '紫微辅星对照 iztro 时查出两张安星表与所引规则不符：辛年天魁、天钺互换（应为天魁在午、天钺在寅，“辛年午寅”），'
+                  '封诰逆行（应从寅宫起子时顺数到生时）。辛年出生约占一成，封诰只有子时、午时出生原来恰好对。已改正，重跑后全部辅星一致。'}]
 
 
 def gz(index: int) -> str:
@@ -327,6 +336,37 @@ def _xuanshu_values(birth: datetime, gender: str, rollover: bool = False) -> dic
             'transformations': dict(sorted((t['star'], t['type'][1]) for t in chart['birth_year_transformations']))}
 
 
+IZTRO_NODE_MODULES = ROOT / 'docs' / 'evals' / 'node_modules'
+MAIN_STARS = {name for name, _ in ZIWEI_STARS + TIANFU_STARS}
+IZTRO_ALIASES = {'解神': '月解'}  # iztro's 解神 is the month-based 月解; its 年解 is separate
+CYCLE_KEYS = (('changsheng', 'changsheng'), ('boshi', 'boshi'), ('natal_suiqian', 'suiqian'), ('natal_jiangqian', 'jiangqian'))
+
+
+def iztro_js(queries: list[dict]) -> list[dict]:
+    """Charts from iztro (JavaScript) for a batch of queries; see scripts/iztro_reference.cjs."""
+    run = subprocess.run(['node', str(ROOT / 'scripts' / 'iztro_reference.cjs')], input='\n'.join(map(json.dumps, queries)),
+                         capture_output=True, text=True, check=True, env=dict(os.environ, NODE_PATH=str(IZTRO_NODE_MODULES)))
+    return [json.loads(line) for line in run.stdout.splitlines()]
+
+
+def _iztro_query(birth: datetime, gender: str) -> dict:
+    return {'date': f'{birth.year}-{birth.month}-{birth.day}', 'hour': 12 if birth.hour == 23 else (birth.hour + 1) // 2,
+            'gender': '男' if gender == 'male' else '女'}
+
+
+def _iztro_js_values(row: dict, names) -> dict:
+    """Branch of each named star, and the four twelve-god cycles per branch, from one iztro (JavaScript) chart."""
+    where = {IZTRO_ALIASES.get(star, star): palace['branch'] for palace in row['palaces'] for star in palace['stars']}
+    return {'other_stars': {name: where.get(name) for name in names},
+            'cycles': {palace['branch']: [palace[key] for _, key in CYCLE_KEYS] for palace in row['palaces']}}
+
+
+def _xuanshu_other_values(birth: datetime, gender: str) -> dict:
+    chart = calculate_ziwei(BirthInput(birth_datetime=birth.isoformat(timespec='minutes'), timezone='Asia/Shanghai', gender=gender))
+    return {'other_stars': {name: branch for name, branch in chart['star_positions'].items() if name not in MAIN_STARS},
+            'cycles': {p['branch']: [p['natal_cycles'].get(key) for key, _ in CYCLE_KEYS] for p in chart['palaces']}}
+
+
 def _sample_births(count: int, seed: int, late: bool) -> list[tuple[datetime, str]]:
     rng = random.Random(seed)
     births = []
@@ -361,6 +401,21 @@ def compare_ziwei(count: int, late_count: int) -> dict:
             for key in keys:
                 tally.check(key, ours[key], theirs[key], example)
         return tally.report()
+    def run_other(births) -> tuple[dict, dict]:
+        # Every other star and the four twelve-god cycles, against iztro itself (iztro-py lacks some of them).
+        tally, stars = Tally(), Counter()
+        for (birth, gender), row in zip(births, iztro_js([_iztro_query(*item) for item in births])):
+            ours = _xuanshu_other_values(birth, gender)
+            theirs = _iztro_js_values(row, ours['other_stars'])
+            example = {'birth': birth.isoformat(timespec='minutes'), 'gender': gender}
+            for key in ('other_stars', 'cycles'):
+                # Only the entries that differ go into the examples.
+                differ = [k for k in ours[key] if ours[key][k] != theirs[key][k]]
+                tally.check(key, {k: ours[key][k] for k in differ}, {k: theirs[key][k] for k in differ}, example)
+            stars.update(name for name, branch in ours['other_stars'].items() if theirs['other_stars'][name] != branch)
+        return tally.report(), {'star_count': len(ours['other_stars']), 'mismatching_stars': dict(stars.most_common())}
+    main = _sample_births(count, 20261011, late=False)
+    other, other_detail = run_other(main)
     late = _sample_births(late_count, 1123, late=True)
     kept = [item for item in late if _iztro_keeps_month(item[0])]
     # iztro reports the birth day's lunar date while placing stars by the next day, so the date is not compared.
@@ -368,7 +423,8 @@ def compare_ziwei(count: int, late_count: int) -> dict:
     return {
         'sample': {'births': count, 'years': '1930–2049', 'hours': '00:00–22:59', 'seed': 20261011,
                    'rules': 'clock time; second half of a leap month as the next month'},
-        'results': run(_sample_births(count, 20261011, late=False)),
+        'results': {**run(main), **other},
+        'other_stars': other_detail,
         'late_zi': {'births': late_count,
                     'note': "By default XuanShu keeps the same lunar day for 23:00-23:59 (iztro's early-Zi index 0); "
                             "with late_zi_day_rollover it takes the next day's whole lunar date. iztro's late-Zi "
@@ -394,20 +450,34 @@ def _one_palace_shift(value, reference) -> bool:
             and (BRANCHES.index(value[0]) - BRANCHES.index(reference[0])) % 12 in (1, 11))
 
 
+FLOW_LAYERS = ('decade', 'year', 'month', 'day', 'hour')
+
+
+def _iztro_flow(item: dict) -> dict:
+    """Period stars of one iztro layer by name, and the year's twelve gods by branch; palace index 0 is 寅."""
+    stars = {star: BRANCHES[(i + 2) % 12] for i, names in enumerate(item['stars'] or []) for star in names}
+    twelve = item['twelve'] and {BRANCHES[(i + 2) % 12]: [item['twelve']['suiqian12'][i], item['twelve']['jiangqian12'][i]]
+                                 for i in range(12)}
+    return {'stars': stars, 'twelve': twelve}
+
+
 def compare_horoscope(count: int) -> dict:
-    """Period layers (decade to hour) for random birth and target pairs: Life palace, stem and the four stars."""
+    """Period layers (decade to hour) for random birth and target pairs: Life palace, stem, the four stars and the period stars."""
     rng = random.Random(20261012)
     tally, explained = Tally(), Counter()
-    pairs = 0
-    while pairs < count:
+    samples = []
+    while len(samples) < count:
         day = date(1930, 1, 1) + timedelta(days=rng.randrange((date(2049, 12, 31) - date(1930, 1, 1)).days))
         birth = datetime(day.year, day.month, day.day, rng.randrange(23), rng.randrange(60))
         gender = rng.choice(('male', 'female'))
         target = day + timedelta(days=rng.randrange(1, 100 * 365))
         hour = rng.randrange(23)
-        if target.year > 2099:
-            continue
-        pairs += 1
+        if target.year <= 2099:
+            samples.append((birth, gender, target, hour))
+    # Period stars come from iztro itself: iztro-py 0.5.0 leaves them out.
+    flows = iztro_js([{**_iztro_query(birth, gender), 'target': f'{target.year}-{target.month}-{target.day}',
+                       'target_hour': (hour + 1) // 2} for birth, gender, target, hour in samples])
+    for (birth, gender, target, hour), flow in zip(samples, flows):
         chart = astro.by_solar(f'{birth.year}-{birth.month}-{birth.day}', (birth.hour + 1) // 2, '男' if gender == 'male' else '女',
                                True, 'zh-CN')
         theirs = chart.horoscope(f'{target.year}-{target.month}-{target.day}', (hour + 1) // 2).model_dump(mode='json')
@@ -429,6 +499,13 @@ def compare_horoscope(count: int) -> dict:
             tally.check(key, value, reference, example)
             if key in ('day', 'hour') and calendar_differs and _one_palace_shift(value, reference):
                 explained[key] += 1
+            if key in FLOW_LAYERS and layer['available'] and reference is not None:
+                theirs_flow = _iztro_flow(flow['horoscope'][name])
+                ours_flow = {star['name']: star['branch'] for star in layer['stars']}
+                tally.check('flow_' + key, ours_flow, theirs_flow['stars'], example)
+                if key == 'year':
+                    tally.check('year_twelve', {p['branch']: [p['suiqian'], p['jiangqian']] for p in layer['palaces']},
+                                theirs_flow['twelve'], example)
     return {'sample': {'pairs': count, 'birth_years': '1930–2049', 'targets': 'up to 100 years after birth, through 2099',
                        'hours': '00:00–22:59', 'seed': 20261012},
             'results': tally.report(), 'lunar_python_calendar_differs': dict(explained)}
@@ -439,10 +516,14 @@ def compare_horoscope(count: int) -> dict:
 def references() -> dict:
     names = {'sxtwl': 'sxtwl', 'lunar_python': 'lunar_python', 'lunardate': 'lunardate', 'ephem': 'ephem',
              'iztro_py': 'iztro-py', 'pyswisseph': 'pyswisseph'}
-    return {key: version(dist) for key, dist in names.items()}
+    found = {key: version(dist) for key, dist in names.items()}
+    found['iztro'] = json.loads((IZTRO_NODE_MODULES / 'iztro' / 'package.json').read_text(encoding='utf-8'))['version']
+    return found
 
 
 HOROSCOPE_LABELS = {'decade': '大限', 'small_limit': '小限', 'year': '流年', 'month': '流月（斗君）', 'day': '流日', 'hour': '流时'}
+FLOW_LABELS = {'flow_decade': '大限流曜（运魁至运喜）', 'flow_year': '流年流曜（流魁至流喜、年解）', 'flow_month': '流月流曜',
+               'flow_day': '流日流曜', 'flow_hour': '流时流曜', 'year_twelve': '流年岁前、将前十二神'}
 
 
 def horoscope_note(horoscope: dict) -> str:
@@ -494,7 +575,8 @@ def write_markdown(result: dict, path: Path) -> None:
         '',
         '参考库：' + '，'.join(f'{k} {v}' for k, v in result['references'].items()) + '。'
         '玄枢自己用 Swiss Ephemeris（Moshier 星历）计算天象，sxtwl 和 lunar_python 源自许剑伟的寿星天文历，'
-        'PyEphem 基于 libastro，lunardate 是查表实现，iztro-py 是 iztro 的 Python 移植。',
+        'PyEphem 基于 libastro，lunardate 是查表实现，iztro-py 是 iztro 的 Python 移植；iztro-py 没有的辅星、杂曜、十二神和流曜'
+        '直接对照 iztro 原版（JavaScript，经 Node.js 运行 `scripts/iztro_reference.cjs`）。',
         '',
         '这只核验“算得对不对”，不评价命理解读是否应验；玄枢不对吉凶、预测准确率做任何声明。',
         '',
@@ -541,7 +623,7 @@ def write_markdown(result: dict, path: Path) -> None:
         f"；朔离编历所用午夜不到 {moons['near_midnight_minutes']} 分钟的有 {len(moons['new_moons_near_china_midnight'])} 个，"
         '这些月份的初一在不同软件里容易差一天，清单见 JSON。',
         '',
-        '## 紫微斗数对照 iztro-py',
+        '## 紫微斗数对照 iztro',
         '',
         f"随机抽取 {ziwei['sample']['births']:,} 个出生时刻（{ziwei['sample']['years']}，{ziwei['sample']['hours']}，"
         f"种子 {ziwei['sample']['seed']}），默认规则（钟表时间，闰月后半月按下月；iztro 设 fix_leap=True）。",
@@ -554,6 +636,12 @@ def write_markdown(result: dict, path: Path) -> None:
         row('五行局', total(zr, 'bureau')),
         row('十四主星落宫', total(zr, 'stars')),
         row('生年四化', total(zr, 'transformations')),
+        row(f"其余 {ziwei['other_stars']['star_count']} 颗辅星、杂曜落宫（iztro）", total(zr, 'other_stars')),
+        row('长生、博士、岁前、将前十二神（iztro）', total(zr, 'cycles')),
+        '',
+        '前六项对照 iztro-py；辅星、杂曜与十二神对照 iztro 原版，每个出生的全部星曜或全部十二神都相同才算一致'
+        + ('。' if not ziwei['other_stars']['mismatching_stars'] else
+           '；不一致的星：' + '、'.join(f'{k} {v}' for k, v in ziwei['other_stars']['mismatching_stars'].items()) + '。'),
         '',
         f"23:00–23:59 出生另抽 {ziwei['late_zi']['births']} 个。玄枢默认 23:00 不换日，用当天的农历日，"
         f"与 iztro 的“早子时”（时辰序号 0）对照，十四主星一致 {agree(ziwei['late_zi']['default_vs_iztro_same_day_zi'], 'stars')}；"
@@ -563,15 +651,17 @@ def write_markdown(result: dict, path: Path) -> None:
         f"这些出生里命宫不同的有 {ziwei['late_zi']['iztro_keeps_month']['comparison']['ming']['mismatches']} 个。"
         '晚子时算当日还是次日是流派规则的不同，两种规则玄枢都支持。',
         '',
-        '## 紫微运限对照 iztro-py',
+        '## 紫微运限对照 iztro',
         '',
         f"随机抽取 {horoscope['sample']['pairs']:,} 组出生时刻与目标时刻（出生 {horoscope['sample']['birth_years']}，"
         f"目标在出生后 100 年内且不晚于 2099 年，时刻 {horoscope['sample']['hours']}，种子 {horoscope['sample']['seed']}），"
-        '逐层比较运限命宫所在地支、运限天干和四化星。样本都选了性别（大限、小限的顺逆取决于性别）；未到第一个大限的童限两边都不列。',
+        '逐层比较运限命宫所在地支、运限天干和四化星（对照 iztro-py），以及各层的流曜和流年十二神（对照 iztro 原版，iztro-py 没有流曜）。'
+        '样本都选了性别（大限、小限的顺逆取决于性别）；未到第一个大限的童限两边都不列，所以大限流曜的核对数少一些。',
         '',
         '| 运限层 | 核对数 | 不一致 | 一致率 |',
         '| --- | ---: | ---: | ---: |',
     ] + [row(label, total(horoscope['results'], key)) for key, label in HOROSCOPE_LABELS.items()] + [
+        row(label, total(horoscope['results'], key)) for key, label in FLOW_LABELS.items()] + [
         '',
         horoscope_note(horoscope),
         '',
@@ -581,7 +671,7 @@ def write_markdown(result: dict, path: Path) -> None:
     lines += result['findings'] or ['- 没有发现不一致。']
     lines += ['', '## 评测带来的修正', ''] + ['- ' + fix['text'] for fix in FIXES]
     lines += ['', '## 重跑', '', '```', 'pip install -r requirements.txt -r docs/evals/requirements.txt',
-              'python scripts/eval_crosscheck.py', '```', '']
+              'npm install --prefix docs/evals', 'python scripts/eval_crosscheck.py', '```', '']
     path.write_text('\n'.join(lines), encoding='utf-8')
 
 
@@ -654,20 +744,23 @@ def summary(result: dict) -> dict:
         'instants': instants('solar_terms', 'sxtwl') + instants('solar_terms', 'ephem') + instants('moon_phases', 'ephem'),
         'ziwei': {'births': ziwei['sample']['births'],
                   'rows': [{'field': key, 'reference': 'iztro_py', **counts(ziwei['results'][key])}
-                           for key in ('lunar', 'ming', 'shen', 'bureau', 'stars', 'transformations')],
+                           for key in ('lunar', 'ming', 'shen', 'bureau', 'stars', 'transformations')]
+                  + [{'field': key, 'reference': 'iztro', **counts(ziwei['results'][key])} for key in ('other_stars', 'cycles')],
+                  'other_star_count': ziwei['other_stars']['star_count'],
                   'late_zi_births': late['births'],
                   'late_zi_same_day': counts(late['default_vs_iztro_same_day_zi']['stars']),
                   'late_zi_next_day': counts(late['rollover_vs_iztro_late_zi']['stars']),
                   'late_zi_month_kept': late['iztro_keeps_month']['births']},
         'horoscope': {'pairs': result['horoscope']['sample']['pairs'],
                       'rows': [{'field': key, **counts(result['horoscope']['results'][key])} for key in HOROSCOPE_LAYERS],
+                      'flow_rows': [{'field': key, **counts(result['horoscope']['results'][key])} for key in FLOW_LABELS],
                       'calendar_differs': sum(result['horoscope']['lunar_python_calendar_differs'].values()),
                       'unexplained': sum(item['mismatches'] for item in result['horoscope']['results'].values())
                       - sum(result['horoscope']['lunar_python_calendar_differs'].values())},
         'differences': [{'first': run['first'], 'last': run['last'], 'references': run['references'],
                          'minutes_from_midnight': run['minutes_from_midnight'], 'cause': _cause(run)}
                         for run in days['lunar_month_differences']],
-        'fixes': [{'months': fix['months'], 'cause': fix['cause']} for fix in FIXES],
+        'fixes': [{'months': fix.get('months', []), 'cause': fix['cause']} for fix in FIXES],
     }
 
 

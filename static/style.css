@@ -740,3 +740,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
 .layer-stack-row>b{min-width:2.5em;color:var(--gold2)}
 .layer-stack-row.active>b{text-decoration:underline;text-underline-offset:3px}
 .layer-stack-hua{display:inline-flex;flex-wrap:wrap;gap:2px 8px;align-items:center}
+/* 运限流曜: outlined in the layer colour, 禄 and 羊陀 picked out */
+.star-flow{display:flex;flex-wrap:wrap;gap:2px 4px;margin-top:4px}
+.flow-star{font-size:11px;line-height:1.2;padding:1px 3px;border:1px dashed var(--gold);border-radius:3px;color:var(--gold2);white-space:nowrap}
+.flow-star.flow-lu{border-color:var(--lu);color:var(--lu)}
+.flow-star.flow-sha{border-color:var(--ji);color:var(--ji)}
+.palace-cycles .layer-cycle{color:var(--gold2);text-decoration:underline dashed;text-underline-offset:2px}

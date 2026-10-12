@@ -1,6 +1,6 @@
 {
  "system": "xuanshu-crosscheck",
- "generated": "2026-10-11",
+ "generated": "2026-10-12",
  "quick": false,
  "years": [
   1901,
@@ -12,7 +12,8 @@
   "lunardate": "0.3.0",
   "ephem": "4.2.1",
   "iztro_py": "0.5.0",
-  "pyswisseph": "2.10.3.2"
+  "pyswisseph": "2.10.3.2",
+  "iztro": "2.6.1"
  },
  "delta_t_seconds": {
   "1901": -0.1,
@@ -1575,7 +1576,21 @@
     "checked": 3000,
     "mismatches": 0,
     "examples": []
+   },
+   "cycles": {
+    "checked": 3000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "other_stars": {
+    "checked": 3000,
+    "mismatches": 0,
+    "examples": []
    }
+  },
+  "other_stars": {
+   "star_count": 44,
+   "mismatching_stars": {}
   },
   "late_zi": {
    "births": 300,
@@ -3356,6 +3371,31 @@
     "mismatches": 0,
     "examples": []
    },
+   "flow_day": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "flow_decade": {
+    "checked": 970,
+    "mismatches": 0,
+    "examples": []
+   },
+   "flow_hour": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "flow_month": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "flow_year": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   },
    "hour": {
     "checked": 1000,
     "mismatches": 1,
@@ -3398,6 +3438,11 @@
     "examples": []
    },
    "year": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "year_twelve": {
     "checked": 1000,
     "mismatches": 0,
     "examples": []

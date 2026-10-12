@@ -469,6 +469,10 @@ function renderPalacePanel(parent, palace, layer) {
   if (layer) {
     append(block, 'p', 'layer-line', `${layer.label}：本宫为${LAYER_NAMES[layer.mode]}${layer.layerName(currentPalaceIndex(palace))}`);
     append(block, 'p', 'layer-line', `${LAYER_NAMES[layer.mode]}四化（${layer.stem}干）：` + layer.hua.map(t => `${t.star}${t.type}→${t.target_palace}`).join('；'));
+    const index = currentPalaceIndex(palace);
+    const flow = (layer.flow || []).filter(f => f.index === index).map(f => f.name);
+    if (layer.flow) append(block, 'p', 'layer-line', `${LAYER_NAMES[layer.mode]}流曜：` + (flow.join('、') || '—'));
+    if (layer.twelve) append(block, 'p', 'layer-line', `流年岁前：${layer.twelve[index][0]}；流年将前：${layer.twelve[index][1]}`);
   }
   append(block, 'p', null, '主星：' + (palace.main_stars.join('、') || '空宫（未安十四主星）'));
   append(block, 'p', null, '辅星：' + (palace.auxiliary_stars.join('、') || '—'));
@@ -539,6 +543,27 @@ function defaultLunarYear() {
 // Everything a layer needs comes from the natal chart itself: palace i sits on
 // branch i, every heavenly stem owns at least one palace (五虎遁), and that
 // palace's flying transformations are the stem's 四化 with their positions.
+// 流曜 of the decade and year layers from the layer's stem and branch, with the tables app/ziwei_horoscope.py uses
+// (the browser smoke test compares the two); the month and day layers take theirs from the server.
+const FLOW_NAMES = {decade: ['运魁', '运钺', '运昌', '运曲', '运禄', '运羊', '运陀', '运马', '运鸾', '运喜'],
+  year: ['流魁', '流钺', '流昌', '流曲', '流禄', '流羊', '流陀', '流马', '流鸾', '流喜']};
+function flowStars(stem, branch, mode) {
+  const s = STEM_ORDER.indexOf(stem), b = BRANCH_ORDER.indexOf(branch);
+  const lu = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0][s], luan = (15 - b) % 12;
+  const kuiYue = [[1, 7], [0, 8], [11, 9], [11, 9], [1, 7], [0, 8], [1, 7], [6, 2], [3, 5], [3, 5]][s];
+  const changQu = [[5, 9], [6, 8], [8, 6], [9, 5], [8, 6], [9, 5], [11, 3], [0, 2], [2, 0], [3, 11]][s];
+  const places = [...kuiYue, ...changQu, lu, (lu + 1) % 12, (lu + 11) % 12, [2, 11, 8, 5][b % 4], luan, (luan + 6) % 12];
+  const stars = FLOW_NAMES[mode].map((name, i) => ({name, index: places[i]}));
+  if (mode === 'year') stars.push({name: '年解', index: (22 - b) % 12});
+  return stars;
+}
+// 流年岁前 from the year branch and 将前 from its triad's 将星, as [岁前, 将前] per branch.
+const SUIQIAN_NAMES = ['岁建', '晦气', '丧门', '贯索', '官符', '小耗', '大耗', '龙德', '白虎', '天德', '吊客', '病符'];
+const JIANGQIAN_NAMES = ['将星', '攀鞍', '岁驿', '息神', '华盖', '劫煞', '灾煞', '天煞', '指背', '咸池', '月煞', '亡神'];
+function yearTwelve(branch) {
+  const b = BRANCH_ORDER.indexOf(branch), star = [0, 9, 6, 3][b % 4];
+  return Array.from({length: 12}, (_, i) => [SUIQIAN_NAMES[(i - b + 12) % 12], JIANGQIAN_NAMES[(i - star + 12) % 12]]);
+}
 function ziweiLayerInfo(z) {
   const mode = ziweiLayer.mode;
   if (mode === 'natal') return null;
@@ -550,7 +575,7 @@ function ziweiLayerInfo(z) {
   const decades = z.palaces.filter(p => p.decade).sort((a, b) => a.decade.start_age - b.decade.start_age);
   const currentDecade = age ? decades.find(p => age >= p.decade.start_age && age <= p.decade.end_age) || null : null;
   const smallLimit = age ? z.palaces.find(p => (p.small_limit_nominal_ages || []).includes(age)) || null : null;
-  let anchor, stem, label;
+  let anchor, stem, label, flow, twelve = null;
   if (mode === 'month' || mode === 'day') {
     if (currentHourUnknown) return {mode, unavailable: '流月、流日按出生时辰定斗君；时辰不详时无法确定。'};
     const h = ziweiHoroscope();
@@ -563,22 +588,23 @@ function ziweiLayerInfo(z) {
     const marks = ['decade', 'year'].concat(mode === 'day' ? ['month'] : []).filter(key => h.layers[key].available)
       .map(key => ({index: BRANCH_ORDER.indexOf(h.layers[key].ming_branch), text: LAYER_NAMES[key]}));
     return {mode, anchor: at, stem: item.stem, label: item.label, horoscope: h, marks, age: h.nominal_age,
+      flow: item.stars.map(f => ({name: f.name, index: BRANCH_ORDER.indexOf(f.branch)})),
       hua: stemOwner ? stemOwner.palace_flying_transformations : [], layerName: index => names[(at - index + 12) % 12]};
   }
   if (mode === 'decade') {
     if (!decades.length) return {mode, unavailable: '大限需要性别来定顺行或逆行，请在出生资料里选择性别后重新生成命盘。'};
     const start = ziweiLayer.decade !== null ? ziweiLayer.decade : (currentDecade || decades[0]).decade.start_age;
     const palace = decades.find(p => p.decade.start_age === start) || decades[0];
-    anchor = z.palaces.indexOf(palace); stem = palace.stem;
+    anchor = z.palaces.indexOf(palace); stem = palace.stem; flow = flowStars(palace.stem, palace.branch, 'decade');
     label = `大限 ${palace.decade.start_age}–${palace.decade.end_age} 岁 · ${palace.stem}${palace.branch}`;
   } else {
     stem = STEM_ORDER[((year - 4) % 10 + 10) % 10];
     const branch = BRANCH_ORDER[((year - 4) % 12 + 12) % 12];
-    anchor = BRANCH_ORDER.indexOf(branch);
+    anchor = BRANCH_ORDER.indexOf(branch); flow = flowStars(stem, branch, 'year'); twelve = yearTwelve(branch);
     label = `${year} ${stem}${branch}年` + (age && age > 0 ? ` · 虚岁 ${age}` : '');
   }
   const stemPalace = z.palaces.find(p => p.stem === stem);
-  return {mode, anchor, stem, label, year, age, decades, currentDecade, smallLimit,
+  return {mode, anchor, stem, label, year, age, decades, currentDecade, smallLimit, flow, twelve,
     hua: stemPalace ? stemPalace.palace_flying_transformations : [],
     layerName: index => names[(anchor - index + 12) % 12]};
 }
@@ -732,8 +758,19 @@ function renderZiwei(z) {
       p.birth_year_transformations.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type));
       layerHua(star);
     });
+    // The layer's own 流曜, outlined like its 四化: 禄 and the 羊陀 pair get their own colours.
+    const flow = live && live.flow ? live.flow.filter(f => f.index === index) : [];
+    if (flow.length) {
+      const line = append(node, 'div', 'star-flow');
+      flow.forEach(f => append(line, 'span', 'flow-star' + (/[禄]$/.test(f.name) ? ' flow-lu' : /[羊陀]$/.test(f.name) ? ' flow-sha' : ''), f.name));
+    }
     const cycles = p.natal_cycles || {};
-    if (cycles.changsheng || cycles.boshi) append(node, 'div', 'palace-cycles', [cycles.changsheng, cycles.boshi, cycles.natal_suiqian].filter(Boolean).join(' · '));
+    // On the 流年 layer that year's 岁前 takes the place of the natal one.
+    const suiqian = live && live.twelve ? live.twelve[index][0] : cycles.natal_suiqian;
+    if (cycles.changsheng || cycles.boshi) {
+      const line = append(node, 'div', 'palace-cycles', [cycles.changsheng, cycles.boshi].filter(Boolean).join(' · '));
+      if (suiqian) {line.append(' · '); append(line, 'span', live && live.twelve ? 'layer-cycle' : null, suiqian);}
+    }
     const foot = append(node, 'div', 'palace-foot');
     const marks = append(foot, 'span');
     if (p.is_ming) append(marks, 'span', 'palace-mark', '命');
@@ -759,8 +796,8 @@ function renderZiwei(z) {
   const tri = append(legend, 'span', 'legend-lines', '虚线：所选宫位的三方；实线：对宫');
   tri.style.marginLeft = 'auto';
   renderPalacePanel(result, selected, live);
-  if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。不安流曜，也不预测具体事件。');
-  note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）及经度时制选择；不含全流派与完整流年。所有展示均不等于命运预测。`);
+  if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。');
+  note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。`);
 }
 function renderTransform(z) {
   title(result, '生年四化 / 宫干飞化', '《全书》系公开十干四化表 · 流派差异需核对');
@@ -2838,13 +2875,17 @@ $('#share-card').addEventListener('click', openShareCard);
 // Calculation cross-check: the summary that scripts/eval_crosscheck.py writes.
 const CROSSCHECK_FIELDS = {lunar: '农历日期', day: '日柱', year: '年柱', month: '月柱', hour: '时柱',
   jie_month: '交节前后月柱', jie_year: '立春前后年柱', solar_terms: '节气时刻', moon_phases: '月相时刻',
-  ming: '命宫', shen: '身宫', bureau: '五行局', stars: '十四主星落宫', transformations: '生年四化'};
+  ming: '命宫', shen: '身宫', bureau: '五行局', stars: '十四主星落宫', transformations: '生年四化',
+  other_stars: '其余辅星、杂曜落宫', cycles: '长生、博士、岁前、将前十二神'};
+const CROSSCHECK_FLOW_FIELDS = {flow_decade: '大限流曜', flow_year: '流年流曜（含年解）', flow_month: '流月流曜',
+  flow_day: '流日流曜', flow_hour: '流时流曜', year_twelve: '流年岁前、将前十二神'};
 const CROSSCHECK_CAUSES = {
   forecast: '朔离午夜太近，取决于 ΔT 预报，现在无法确定哪边对。',
   old_almanac: '只有 lunardate 不同；旧历书的算法容易把这样的朔算到午夜另一侧。',
   table: '只有 lunardate 不同；这份表的月份长度与天象不符。',
   unexplained: '尚未解释。'};
-const CROSSCHECK_FIXES = {beijing_meridian: '1914、1916、1920 年各有一个月，初一原来比三家参考晚一天：民国初年按北京地方平时（东经 116°25′）编历，已改正。'};
+const CROSSCHECK_FIXES = {beijing_meridian: '1914、1916、1920 年各有一个月，初一原来比三家参考晚一天：民国初年按北京地方平时（东经 116°25′）编历，已改正。',
+  ziwei_star_tables: '紫微辅星对照 iztro 时查出两张安星表有误：辛年天魁、天钺互换，封诰逆行。已按所引规则改正（辛年天魁在午、天钺在寅；封诰从寅宫起子时顺行），重跑后全部辅星一致。'};
 const CROSSCHECK_REPORT = 'https://github.com/Kukutx/XuanShu/blob/master/docs/evals/README.md';
 let crosscheckData = null;
 function crosscheckTable(parent, columns, rows, cells) {
@@ -2887,6 +2928,7 @@ function renderCrosscheck(dialog) {
     append(dialog, 'h4', null, '紫微运限对照');
     texts(append(dialog, 'p', 'field-help'), '随机出生与目标时刻', ' ' + d.horoscope.pairs.toLocaleString('en-US'));
     countRows(dialog, d.horoscope.rows.map(row => ({...row, reference: 'iztro_py'})), {...LAYER_NAMES, month: '流月（斗君）', hour: '流时'});
+    if (d.horoscope.flow_rows) countRows(dialog, d.horoscope.flow_rows.map(row => ({...row, reference: 'iztro'})), CROSSCHECK_FLOW_FIELDS);
     if (d.horoscope.calendar_differs && !d.horoscope.unexplained) append(dialog, 'p', 'field-help', '流日、流时的少数差异都落在玄枢与 lunar_python 农历日期不同的月份（iztro 的农历取自 lunar_python），日数差一天，宫位就差一宫。');
     if (d.horoscope.unexplained) texts(append(dialog, 'p', 'field-help'), '另有', ' ' + d.horoscope.unexplained + ' ', '处运限差异尚未解释，清单见完整报告。');
   }
