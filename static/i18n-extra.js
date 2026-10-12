@@ -598,6 +598,10 @@ const UI_EXTRA = {
 "X-WR-CALNAME:24 Solar Terms",
 "X-WR-CALNAME:二十四節気"
 ],
+"XuanShu · 开源 · 确定性计算，可复现": [
+"XuanShu · open source · deterministic, reproducible",
+"XuanShu · オープンソース · 決定論的計算、再現可能"
+],
 "Zero-based Jie month since 立春; exact term instant belongs to new month.": [
 "Zero-based Jie month since Start of Spring (Lichun); the exact term instant belongs to the new month.",
 "立春から数える0始まりの節月。節入りの正確な瞬間は新しい月に属します。"
@@ -665,6 +669,14 @@ const UI_EXTRA = {
 "」后首位：": [
 "\", first after: ",
 "」の後の最初："
+],
+"【四柱八字】": [
+"[BaZi four pillars]",
+"【四柱推命】"
+],
+"【紫微斗数】": [
+"[Zi Wei Dou Shu]",
+"【紫微斗数】"
 ],
 "一二三四五六日": [
 "Mon Tue Wed Thu Fri Sat Sun",
@@ -809,6 +821,10 @@ const UI_EXTRA = {
 "下载 PNG": [
 "Download PNG",
 "PNG をダウンロード"
+],
+"下载 TXT": [
+"Download TXT",
+"TXT をダウンロード"
 ],
 "下载失败：": [
 "Download failed: ",
@@ -1097,6 +1113,10 @@ const UI_EXTRA = {
 "乾宫": [
 "Qian Palace",
 "乾宮"
+],
+"乾造": [
+"Male chart (乾造)",
+"乾造（男命）"
 ],
 "事业": [
 "career",
@@ -2170,9 +2190,21 @@ const UI_EXTRA = {
 "Birth to solar term",
 "出生から節まで"
 ],
+"分享到…": [
+"Share…",
+"共有…"
+],
 "分享卡片": [
 "Share card",
 "共有カード"
+],
+"分享失败，请下载 PNG": [
+"Sharing failed; download the PNG instead",
+"共有できませんでした。PNG をダウンロードしてください"
+],
+"分享格式": [
+"Share format",
+"共有形式"
 ],
 "分数来源": [
 "Score source",
@@ -2425,6 +2457,10 @@ const UI_EXTRA = {
 "十月": [
 "Month 10",
 "十月"
+],
+"十神": [
+"Ten Gods",
+"十神"
 ],
 "十神与六冲、六合、同支只是传统标签，不代表现实中的好坏；出生资料只用于本次计算，服务器不保存。": [
 "Ten gods and the six clashes, six harmonies and same-branch marks are traditional labels, not good or bad outcomes. Birth data is used only for this calculation and the server keeps nothing.",
@@ -2962,6 +2998,10 @@ const UI_EXTRA = {
 "Pillar search done: ",
 "四柱逆引き完了："
 ],
+"四柱地支不落日空、年空": [
+"No pillar branch falls in the day or year void",
+"四柱の地支は日空・年空に入りません"
+],
 "四柱地支两两比较：同支、六合、六冲、六害、相刑": [
 "Branches of all four pillars compared pairwise: same branch, six harmony, six clash, six harm, punishment",
 "四柱の地支を総当たりで比較：同支・六合・六冲・六害・相刑"
@@ -2993,6 +3033,10 @@ const UI_EXTRA = {
 "固定出生参数，仅切换时制": [
 "Birth parameters fixed; only the time standard changes",
 "出生パラメータを固定し時制のみ切り替え"
+],
+"图片卡片": [
+"Image card",
+"画像カード"
 ],
 "土": [
 "Earth",
@@ -3050,6 +3094,10 @@ const UI_EXTRA = {
 "Earthly branch relation markers",
 "地支関係のマーカー"
 ],
+"地支关系：": [
+"Branch relations: ",
+"地支の関係："
+],
 "地支藏干、十神与未加权计数": [
 "Hidden stems, Ten Gods and unweighted counts",
 "地支の蔵干、十神と重み付けなしの計数"
@@ -3085,6 +3133,10 @@ const UI_EXTRA = {
 "坤宫": [
 "Kun Palace",
 "坤宮"
+],
+"坤造": [
+"Female chart (坤造)",
+"坤造（女命）"
 ],
 "城头土": [
 "City Wall Earth",
@@ -3181,6 +3233,10 @@ const UI_EXTRA = {
 "复制失败，请使用旁边的下载功能": [
 "Copy failed; please use the download option next to it",
 "コピー失敗。横のダウンロード機能を使用してください"
+],
+"复制文字盘": [
+"Copy text chart",
+"テキスト命盤をコピー"
 ],
 "夏至": [
 "Summer Solstice (Xiazhi)",
@@ -3389,6 +3445,10 @@ const UI_EXTRA = {
 "天干关系": [
 "Stem relations",
 "天干の関係"
+],
+"天干关系：": [
+"Stem relations: ",
+"天干の関係："
 ],
 "天干十神": [
 "Stem ten god",
@@ -3966,6 +4026,10 @@ const UI_EXTRA = {
 "Report copied",
 "レポートをコピーしました"
 ],
+"已复制文字盘": [
+"Text chart copied",
+"テキスト命盤をコピーしました"
+],
 "已复制，记得替换项目实际路径": [
 "Copied; remember to replace with your actual project path",
 "コピーしました。実際のプロジェクトパスへの置き換えを忘れずに"
@@ -4026,6 +4090,10 @@ const UI_EXTRA = {
 "Selected ",
 "選択 "
 ],
+"已选中文字，请按 Ctrl+C 复制": [
+"Text selected; press Ctrl+C to copy",
+"テキストを選択しました。Ctrl+C でコピーしてください"
+],
 "巳午未": [
 "Si–Wu–Wei",
 "巳午未"
@@ -4065,6 +4133,10 @@ const UI_EXTRA = {
 "干四化": [
 " stem four transformations",
 "干四化"
+],
+"干支": [
+"Stem-branch",
+"干支"
 ],
 "干支年界与传统农历年的不同语义": [
 "Different semantics of the stem-branch year boundary vs. the traditional lunar year",
@@ -4718,6 +4790,10 @@ const UI_EXTRA = {
 "Chart confidence (birth time error ±",
 "作盤の確度（出生時刻誤差 ±"
 ],
+"排盘规则：": [
+"Chart rules: ",
+"作盤ルール："
+],
 "排盘输入与边界审计": [
 "Chart input and boundary audit",
 "命盤入力と境界の監査"
@@ -4789,6 +4865,18 @@ const UI_EXTRA = {
 "文化规则说明": [
 "Cultural rule notes",
 "文化的規則の説明"
+],
+"文字盘": [
+"Text chart",
+"テキスト命盤"
+],
+"文字盘用通行的命盘写法，可以贴到笔记、聊天或其他排盘软件，也能粘回「外部命盘导入核对」逐项比对。大限年龄会透露性别，只在勾选乾造 / 坤造时列出。": [
+"The text chart uses the notation chart software commonly prints (in Chinese), so it can go into notes, chats or other chart software, or be pasted back into \"Check a chart from other software\" for a field-by-field comparison. Decade ages reveal gender, so they are listed only when 乾造 / 坤造 is ticked.",
+"テキスト命盤は一般的な命盤の書式（中国語）で、メモやチャット、他の作盤ソフトに貼り付けられ、「外部命盤の照合」に貼り戻して項目ごとに比較することもできます。大限の年齢から性別がわかるため、乾造／坤造にチェックしたときだけ記載します。"
+],
+"文字盘预览": [
+"Text chart preview",
+"テキスト命盤のプレビュー"
 ],
 "文昌": [
 "Wen Chang",
@@ -5341,6 +5429,10 @@ const UI_EXTRA = {
 "是 · 日内可能变化": [
 "Yes · may change within the day",
 "はい · 日内で変化の可能性"
+],
+"显示乾造 / 坤造": [
+"Show 乾造 / 坤造 (gender)",
+"乾造／坤造（性別）を表示"
 ],
 "显示出生日期": [
 "Show birth date",
@@ -6010,6 +6102,10 @@ const UI_EXTRA = {
 "This interface provides only lunar dates, day stem-branches, and solar-term dates; it does not provide almanac do/avoid lists or auspicious/inauspicious date-selection conclusions.",
 "このインターフェースは旧暦、日干支、節気の日付のみを提供します。暦注の宜忌や吉凶の択日結論は提供しません。"
 ],
+"此浏览器不能分享图片，请下载 PNG": [
+"This browser cannot share images; download the PNG instead",
+"このブラウザーは画像を共有できません。PNG をダウンロードしてください"
+],
 "此结果由用户选择安装的独立 iztro-py 引擎生成，与 XuanShu 原生子集分开输出。": [
 "This result was generated by the independent iztro-py engine that the user chose to install, and is output separately from the XuanShu native subset.",
 "この結果はユーザーがインストールを選択した独立した iztro-py エンジンにより生成され、XuanShu のネイティブサブセットとは別に出力されます。"
@@ -6474,6 +6570,14 @@ const UI_EXTRA = {
 "XuanShu · answering",
 "玄枢 · 回答中"
 ],
+"玄枢命盘": [
+"XuanShu chart",
+"玄枢の命盤"
+],
+"玄枢命盘 · 本地确定性计算": [
+"XuanShu chart · local deterministic calculation",
+"玄枢の命盤 · ローカルの決定論的計算"
+],
 "玄枢把农历、四柱、节气、月相和紫微排盘与独立的开源库逐项对照。脚本、固定版本的参考库和原始数据都在仓库里，任何人都能重跑。": [
 "XuanShu compares its lunar dates, four pillars, solar terms, moon phases and Zi Wei charts item by item with independent open-source libraries. The script, pinned reference versions and raw data are in the repository, so anyone can rerun it.",
 "玄枢は旧暦日・四柱・二十四節気・月相・紫微命盤を、独立したオープンソースのライブラリと項目ごとに照合しています。スクリプト、固定バージョンの参照ライブラリ、生データはリポジトリにあり、誰でも再実行できます。"
@@ -6818,6 +6922,10 @@ const UI_EXTRA = {
 "Void (Kong Wang) branches",
 "空亡の地支"
 ],
+"空亡：": [
+"Void: ",
+"空亡："
+],
 "空宫": [
 "Empty palace",
 "空宮"
@@ -6962,6 +7070,10 @@ const UI_EXTRA = {
 "Zi Wei Dou Shu comparison",
 "紫微斗数の照合"
 ],
+"紫微斗数需要出生时辰，时辰不详时不列出。": [
+"Zi Wei Dou Shu needs the birth hour, so it is left out when the hour is unknown.",
+"紫微斗数には出生時刻が必要なため、時刻不明のときは記載しません。"
+],
 "紫微新增选定杂曜、四组十二神与虚岁小限；运限层（大限到流时，含流曜与流年十二神）见 ziwei_horoscope；全部星曜已与 iztro 交叉核验，其他流派尚未逐宫核对": [
 "Zi Wei adds selected minor stars, four twelve-spirit series and nominal-age small limits; period layers (decade to hour, with period stars and the annual twelve spirits) are in ziwei_horoscope; every star is cross-checked against iztro, other schools are not yet checked palace by palace",
 "紫微に選定の雑曜、四組の十二神、数え年の小限を追加。運限層（大限から流時、流曜と流年十二神を含む）は ziwei_horoscope。全星曜を iztro と照合済み、他流派の宮ごとの照合はまだです"
@@ -7005,6 +7117,10 @@ const UI_EXTRA = {
 "约 ": [
 "approx. ",
 "約 "
+],
+"纳音": [
+"Na Yin",
+"納音"
 ],
 "纳音：": [
 "Na Yin: ",
@@ -7801,6 +7917,10 @@ const UI_EXTRA = {
 "身宫 ": [
 "Body Palace ",
 "身宮 "
+],
+"身宫在": [
+"Body Palace in",
+"身宮は"
 ],
 "身宫地支": [
 "Body palace branch",
