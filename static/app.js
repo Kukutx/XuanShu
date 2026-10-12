@@ -863,7 +863,9 @@ function renderZiwei(z) {
       if (next === null) return;
       event.preventDefault();
       selectedPalace = z.palaces[next].name; render();
-      const target = document.getElementById('palace-' + next); if (target) target.focus({preventScroll: true});
+      // On a narrow screen the board scrolls sideways: bring the new palace into view without jumping the page.
+      const target = document.getElementById('palace-' + next);
+      if (target) {target.focus({preventScroll: true}); target.scrollIntoView({block: 'nearest', inline: 'nearest'});}
     });
   });
   ziweiLines(board, z, selected, live);

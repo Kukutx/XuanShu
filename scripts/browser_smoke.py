@@ -614,6 +614,15 @@ def main() -> None:
             page.screenshot(path=str(screenshot_dir / '08-mobile-bazi.png'), full_page=True)
             page.locator('[data-tab="ziwei"]').click()
             page.screenshot(path=str(screenshot_dir / '09-mobile-ziwei.png'), full_page=True)
+            # The board scrolls sideways on a phone; arrow keys bring the newly selected palace into view.
+            in_view = '''() => {const el = document.activeElement, r = el.getBoundingClientRect(), wrap = el.closest('.ziwei-wrap').getBoundingClientRect();
+              return el.classList.contains('palace') && r.left >= wrap.left - 1 && r.right <= wrap.right + 1;}'''
+            page.locator('#ziwei-board .palace[tabindex="0"]').focus()
+            for key in ('ArrowRight', 'ArrowLeft'):
+                for _ in range(3):
+                    page.keyboard.press(key)
+                assert page.evaluate(in_view), key
+            page.locator('#ziwei-board .palace[aria-label*="命宫"]').click()
             page.locator('[data-tab="deep"]').click()
             assert page.locator('#deep-run').is_visible()
             page.screenshot(path=str(screenshot_dir / '25-deep-evidence-mobile.png'), full_page=True)
