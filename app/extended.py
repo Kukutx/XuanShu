@@ -70,7 +70,7 @@ def lunar_to_gregorian(request: LunarToGregorianRequest) -> dict:
         'lunar_date': reverse,
         'timezone': 'Asia/Shanghai',
         'method': reverse['method'],
-        'limitations': 'Uses the 120°E meridian (UTC+8) since 1929 and the Beijing meridian 116°25\'E for 1912–1928; the Qing calendar before 1912 and regional almanacs may differ.',
+        'limitations': '1929 年起按东经 120° 子午线（UTC+8），1912–1928 年按北京子午线（东经 116°25′）；1912 年以前的清代历书和地方历书可能不同。',
     }
 
 
@@ -127,8 +127,8 @@ def birth_window(request: BirthWindowRequest) -> dict:
         'variants': list(groups.values()),
         'samples': sample_trace,
         'limitations': [
-            'Only sampled instants were compared. Changes between samples can be missed; this is not an exhaustive boundary proof.',
-            'A change in traditional chart labels is not evidence of a real-world prediction.',
-            'Historical timezones and geographic solar-time correction depend on input accuracy.',
+            '只比较了采样点：两个采样点之间的切换可能漏掉，这不是完整的边界检查；精确的切换时刻用 birth_boundaries。',
+            '传统命盘标签的变化不代表任何现实预测。',
+            '历史时区和地理太阳时校正取决于输入是否准确。',
         ],
     }
