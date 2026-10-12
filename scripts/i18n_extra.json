@@ -691,6 +691,10 @@
   "‹ 5 years earlier",
   "‹ 5年前へ"
  ],
+ "← 前一天": [
+  "← Previous day",
+  "← 前日"
+ ],
  "← 左右滑动查看完整十二宫 →": [
   "← Swipe sideways to see all twelve palaces →",
   "← 左右にスワイプして十二宮すべてを表示 →"
@@ -3295,13 +3299,13 @@
   "Comparison of two explicit input/time-basis conventions for the same chart",
   "同一命盤における二つの明示的な入力・時制基準の比較"
  ],
+ "同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍（出生时间所在的时辰用出生时间本身），看粘贴的命盘和哪个时辰对得上。格子里的数字是仍不一致的项数，星曜亮度不计。": [
+  "The same day under the current rules, recomputed at the middle of each double hour (the birth hour itself uses the birth time), to see which hour the pasted chart fits. Each cell counts the fields that still differ; star brightness is not counted.",
+  "同じ日・現在の規則のまま、各時辰の中ほどで計算し直し（出生時刻のある時辰は出生時刻そのものを使います）、貼り付けた命盤がどの時辰に合うかを見ます。各マスの数字はなお一致しない項目の数で、星の明るさは数えません。"
+ ],
  "同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。": [
   "Same day, current rules: the birth time is moved to the middle of each double hour and recomputed, to see which hour the pasted chart fits.",
   "同じ日・現在の規則のまま、出生時刻を各時辰の中央に移して計算し直し、貼り付けた命盤がどの時辰と合うかを見ます。"
- ],
- "同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。格子里的数字是仍不一致的项数，星曜亮度不计。": [
-  "The same day under the current rules, recomputed at the middle of each double hour, to see which hour the pasted chart fits. Each cell counts the fields that still differ; star brightness is not counted.",
-  "同じ日・現在の規則のまま、各時辰の中ほどで計算し直し、貼り付けた命盤がどの時辰に合うかを見ます。各マスの数字はなお一致しない項目の数で、星の明るさは数えません。"
  ],
  "同一年的流年对每个人相同，所以成员之间只比较各自的大运：天干五合与地支同支、六合、六冲、六害、相刑。": [
   "The annual pillar is the same for everyone in a year, so members are compared by their luck pillars only: stem five combinations and the branch labels same branch, six harmony, six clash, six harm and punishment.",
@@ -3350,6 +3354,10 @@
  "后一天": [
   "Next day",
   "翌日"
+ ],
+ "后一天 →": [
+  "Next day →",
+  "翌日 →"
  ],
  "后辈、教养与创造性表达": [
   "Juniors, upbringing and creative expression",
@@ -4651,6 +4659,18 @@
   " bureau, Zhi Fu ",
   "局 値符"
  ],
+ "局数、时柱与值符、值使；点时辰起该时辰的盘": [
+  "Bureau, hour pillar, duty star and duty door; click an hour to cast it",
+  "局数・時柱と値符・値使。時辰をクリックするとその時辰の盤を出します"
+ ],
+ "局数与上一时辰不同": [
+  "Bureau differs from the previous hour",
+  "局数が前の時辰と異なる"
+ ],
+ "局数加粗：与上一时辰不同。": [
+  "A bold bureau differs from the previous hour.",
+  "局数が太字の時辰は、前の時辰と局が異なります。"
+ ],
  "局限：": [
   "Limitations:",
   "制限："
@@ -5203,6 +5223,14 @@
   "That day",
   "当日"
  ],
+ "当日十二时辰": [
+  "Hours of the day",
+  "当日の十二時辰"
+ ],
+ "当日各时辰": [
+  "Each hour of the day",
+  "当日の各時辰"
+ ],
  "彩色曲线：所选宫位的宫干四化飞入哪一宫": [
   "Coloured curves: which palace each stem transformation of the selected palace flies into",
   "色付きの曲線：選んだ宮の宮干四化がどの宮へ飛ぶか"
@@ -5554,6 +5582,10 @@
  "按日期排列": [
   "Sorted by date",
   "日付順"
+ ],
+ "按时区 ": [
+  "Cast with the time zone ",
+  "タイムゾーン "
  ],
  "按本机时区 ": [
   "Cast with this device's time zone ",
@@ -5938,6 +5970,10 @@
  "日期与时间": [
   "Date and time",
   "日付と時刻"
+ ],
+ "日期须在 1901-01-01 至 2099-12-31 之间": [
+  "The date must be between 1901-01-01 and 2099-12-31",
+  "日付は 1901-01-01 から 2099-12-31 の間で指定してください"
  ],
  "日本語": [
   "日本語",
@@ -6839,6 +6875,10 @@
   "Traditional order of main qi, middle qi, and residual qi; hidden-stem weights not included",
   "本気・中気・余気の伝統的な順序。蔵干の重みは含みません"
  ],
+ "本盘": [
+  "This chart",
+  "この盤"
+ ],
  "本页面不调用大模型预测，只展示八字、部分紫微的可计算结构与规则差异。方法参考链接不能代表对这张盘的外部验算。": [
   "This page does not call a large language model to make predictions; it only shows the computable structures and rule differences of BaZi and part of Zi Wei. Method reference links do not represent external verification of this chart.",
   "本ページは大規模言語モデルによる予測を行わず、八字と紫微の一部の計算可能な構造とルール差異のみを表示します。手法の参考リンクはこの盤の外部検算を意味しません。"
@@ -7410,6 +7450,14 @@
  "没有需要补齐的必需输入": [
   "No required inputs need to be filled in",
   "補う必要のある必須入力はありません"
+ ],
+ "沿用出生资料的平太阳时起局，时区": [
+  "Cast in the birth details' mean solar time, time zone",
+  "出生情報の平均太陽時で局を立てます。タイムゾーン"
+ ],
+ "沿用出生资料的真太阳时起局，时区": [
+  "Cast in the birth details' true solar time, time zone",
+  "出生情報の真太陽時で局を立てます。タイムゾーン"
  ],
  "沿用出生资料里的时区、真太阳时和换日规则。": [
   "Uses the time zone, solar-time and day-change rules from the birth details.",
@@ -9511,6 +9559,14 @@
   "No memory yet. Content suggested by the AI or background you add manually will appear here and be sent to the model with each question.",
   "まだ記憶はありません。AI が提案した内容や手動で追加した背景がここに表示され、質問のたびにモデルへ送信されます。"
  ],
+ "这一天没有可用的钟表时间": [
+  "No usable clock time on this day",
+  "この日には使える時計の時刻がありません"
+ ],
+ "这一天的夏令时切换使所选时辰没有能唯一确定的钟表时间，改起最近的时辰：": [
+  "A daylight-saving switch leaves the chosen hour without an unambiguous clock time on this day, so the nearest hour is cast instead:",
+  "この日は夏時間の切り替えで選んだ時辰に一意の時計時刻がないため、最も近い時辰で局を立てました："
+ ],
  "这一天的运限": [
   "Periods in force on this day",
   "この日の運限"
@@ -9562,6 +9618,10 @@
  "这天的夏令时切换跳过或重复了一段钟表时间，没有能唯一确定的出生时间落在这些时辰里，未列出：": [
   "A daylight-saving switch skipped or repeated clock time on this day, so no unambiguous birth time falls in these hours, which are not listed: ",
   "この日は夏時間の切り替えで時計の時刻が飛んだり重なったりしたため、一意に決まる出生時刻がこれらの時辰に入らず、表示していません："
+ ],
+ "这天的夏令时切换跳过或重复了一段钟表时间，没有能唯一确定的时刻落在这些时辰里，未列出：": [
+  "A daylight-saving switch skips or repeats part of the clock on this day, so no unambiguous moment falls in these hours, which are not listed:",
+  "この日は夏時間の切り替えで時計の一部が飛ぶか重なるため、これらの時辰には一意に決まる時刻がなく、表示していません："
  ],
  "这是一份确定性多工具计算报告，未运行外部大语言模型，不是自主推理结果。": [
   "This is a deterministic multi-tool calculation report; no external large language model was run, and it is not the result of autonomous reasoning.",

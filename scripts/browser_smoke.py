@@ -677,6 +677,42 @@ def main() -> None:
             page.locator('#qimen-run').click()
             page.locator('.qimen-cell').first.wait_for(timeout=30000)
             assert '芒种' in page.locator('#result').inner_text()
+            # The day of the chart, once per double hour: its own hour shows its own moment; a click casts another
+            # hour (as a custom moment in the same zone) and keeps focus there; the arrows move a day at that hour.
+            assert page.locator('#qimen-hours .qh-hour').count() == 13
+            own = page.locator('#qimen-hours .qh-hour.is-current')
+            assert own.get_attribute('id') == 'qimen-hour-7' and '14:30' in own.inner_text() and own.get_attribute('aria-current') == 'true'
+            assert page.locator('.qimen-cell .q-stem [class^="el-"]').count() == 27  # heaven, dark and earth stems coloured by element
+            page.locator('#qimen-hour-10').click()
+            page.wait_for_function("() => document.querySelector('#qimen-hour-10.is-current') !== null", timeout=30000)
+            assert page.locator('#qimen-moment').input_value() == 'custom' and page.locator('#qimen-when').input_value() == '2024-06-15T20:00'
+            assert page.evaluate('document.activeElement.id') == 'qimen-hour-10' and '时 丙戌' in page.locator('.meta-tags').first.inner_text()
+            assert page.locator('#qimen-hour-10 .qh-tag').inner_text() == '本盘' and page.locator('.qh-date').inner_text() == '2024-06-15'
+            page.locator('#qimen-next-day').click()
+            page.wait_for_function("() => document.getElementById('qimen-when').value === '2024-06-16T20:00' && document.querySelector('#qimen-hour-10.is-current')", timeout=30000)
+            # The arrows keep their place, and the strip names its day.
+            assert page.evaluate('document.activeElement.id') == 'qimen-next-day' and page.locator('.qh-date').inner_text() == '2024-06-16'
+            # Cast from the birth moment in true solar time, an hour of the strip keeps that zone and solar time, its
+            # clock times are said to be clock times, and changing the birth data sends the page back to the birth moment.
+            page.locator('#qimen-moment').select_option('birth')
+            page.evaluate('''() => {
+              document.querySelector('#time_mode').value = 'apparent_solar'; document.querySelector('#longitude').value = '87.6';
+              document.querySelector('#longitude').dispatchEvent(new Event('input', {bubbles: true}));
+            }''')
+            page.locator('#qimen-run').click()
+            page.locator('#qimen-hours').wait_for(timeout=30000)
+            assert '钟表时间，按所选太阳时换算' in page.locator('.qh-help').inner_text()
+            page.locator('#qimen-hour-6').click()
+            page.wait_for_function("() => document.querySelector('#qimen-hour-6.is-current') !== null && qimenMoment.mode === 'custom'", timeout=30000)
+            assert '沿用出生资料的真太阳时起局，时区 Asia/Shanghai' in page.locator('#result').inner_text()
+            assert page.evaluate('qimenInput.time_mode') == 'apparent_solar' and page.evaluate('qimenInput.longitude') == 87.6
+            page.evaluate('''() => {
+              document.querySelector('#time_mode').value = 'clock'; document.querySelector('#longitude').value = '';
+              document.querySelector('#longitude').dispatchEvent(new Event('input', {bubbles: true}));
+            }''')
+            page.locator('[data-tab="ziwei"]').click()
+            page.locator('[data-tab="qimen"]').click()
+            assert page.locator('#qimen-moment').input_value() == 'birth' and page.locator('.qimen-cell').count() == 0
             # A chart cast for another moment is discarded when the moment changes.
             page.locator('#qimen-moment').select_option('now')
             assert page.locator('.qimen-cell').count() == 0, 'Qimen chart survived a change of moment'

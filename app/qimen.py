@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import timedelta, timezone
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from .astronomy import TERMS, from_jd, solar_term_jd
 from .engines import (BirthInput, BRANCHES, STEMS, _sexagenary_by_pair,
@@ -47,6 +47,8 @@ class QimenRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     moment: BirthInput
     system: Literal['hour-qimen-chabu-rotating'] = 'hour-qimen-chabu-rotating'
+    include_day_hours: bool = Field(default=False, description='Also summarize the same day once per double hour (early and late Zi apart)')
+    step_days: int = Field(default=0, ge=-7, le=7, description='Cast the same double hour this many days away instead (same time zone and time basis; days counted on the day the chart uses)')
 
 
 def _term_at(instant):
@@ -93,6 +95,11 @@ def _dark_stems(hour_stem: str, xun_instrument: str, raw_door_palace: int,
 
 def qimen_chart(req: QimenRequest) -> dict:
     """Hour-based decomposed 3-yuan rotating plate with explicit uncertainty."""
+    stepped = None
+    if req.step_days:
+        from .hours import same_hour_on_day
+        moment, stepped = same_hour_on_day(req.moment, calculate_bazi(req.moment)['time_basis'], req.step_days)
+        req = QimenRequest(moment=moment, include_day_hours=req.include_day_hours)
     instant = normalized_dt(req.moment)
     bazi = calculate_bazi(req.moment)
     day = bazi['pillars']['day']; hour = bazi['pillars']['hour']
@@ -154,7 +161,7 @@ def qimen_chart(req: QimenRequest) -> dict:
                         'star':stars[index], 'door':doors.get(index),
                         'deity':gods.get(index),'void':index in void_palaces,
                         'center_lodged_here':index==2 and (original_raw==5 or destination_raw==5 or door_raw==5)})
-    return {
+    chart = {
         'system':'hour-qimen-chabu-rotating', 'method':'时家拆补 · 转盘外环 · 中五寄二',
         'instant':instant.isoformat(), 'time_basis':bazi['time_basis'],
         'solar_term':term, 'solar_term_instant':term_time.isoformat(),
@@ -175,3 +182,25 @@ def qimen_chart(req: QimenRequest) -> dict:
             '九宫和星门神只是传统文化标签，没有经过科学证实的预测力，不提供吉凶或现实择时建议。',
         ],
     }
+    if req.include_day_hours:
+        chart['day_hours'], chart['missing_hours'] = _day_hours(req.moment, bazi['time_basis'])
+        chart['day_hours_date'] = bazi['time_basis']['effective_local_reading'][:10]
+    if stepped:
+        chart['stepped'] = stepped
+    return chart
+
+
+def _day_hours(moment: BirthInput, time_basis: dict) -> tuple[list[dict], list[str]]:
+    """The bureau, hour pillar, Zhi Fu star and Zhi Shi door of each double hour of the same day, and the hours left out."""
+    from .hours import day_hours
+    out = []
+    hours, missing = day_hours(moment, time_basis)
+    for h in hours:
+        c = qimen_chart(QimenRequest(moment=h['input']))
+        out.append({'index': h['index'], 'label': h['label'], 'branch': h['branch'], 'current': h['current'], 'moment': h['input'].birth_datetime,
+                    'effective_reading': h['bazi']['time_basis']['effective_local_reading'][:16],
+                    'hour_pillar': c['hour_pillar'], 'day_pillar': c['day_pillar'], 'solar_term': c['solar_term'],
+                    'dun': c['dun'], 'bureau': c['bureau'], 'yuan': c['yuan'],
+                    'zhi_fu_star': c['zhi_fu_star'], 'zhi_fu_palace': c['zhi_fu_palace'],
+                    'zhi_shi_door': c['zhi_shi_door'], 'zhi_shi_palace': c['zhi_shi_palace']})
+    return out, missing

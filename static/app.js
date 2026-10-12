@@ -88,11 +88,14 @@ let consultAdvancedOpen = false;
 let consultDraft = {question:'',intent:'auto', useBirth:false, usePartner:false, partnerDate:'', lunarYear:'', candidateDates:'', facts:'', includeReport:false};
 let qimenResult = null;
 let qimenFingerprint = null;
+let qimenInput = null, qimenFocus = null, qimenTicket = 0;  // the moment the chart shown was cast for; the control to focus once it draws; the latest cast
 let currentHourUnknown = false;  // the chart was generated with "不知道出生时辰" ticked
 let hourCandidates = null;       // {key, rows}: the same birth day cast at each of the twelve double hours
 // Qimen is cast for the moment of a question or event, which is usually now, not the birth time.
-// zone: set when a date-scan chart is opened here; that chart then also keeps the scan's 00:00 day boundary.
-let qimenMoment = {mode: 'now', custom: '', zone: ''};
+// zone: set when a date-scan chart is opened here (scan: true) or a chart steps to another hour; basis: the birth's
+// time basis kept when stepping from the birth moment; lateZi: the day boundary those charts keep (null follows the
+// birth panel), so a scan card opens as the same chart and a step keeps the rule of the chart shown.
+let qimenMoment = {mode: 'now', custom: '', zone: '', basis: null, lateZi: null, scan: false, birthKey: null};
 let professionalResult = null;
 let referenceAuditResult = null;
 const localToday = () => {
@@ -245,12 +248,16 @@ function qimenMomentInput() {
   const base = readInput();
   if (qimenMoment.mode === 'birth') return base;
   const when = qimenMoment.mode === 'custom' && qimenMoment.custom ? qimenMoment.custom : localMinute();
-  const scan = qimenMoment.mode === 'custom' && qimenMoment.zone;
-  return {...base, birth_datetime: when, timezone: scan || browserZone() || base.timezone, time_mode: 'clock', longitude: null,
-    ...(scan ? {late_zi_day_rollover: false} : {})};
+  const basis = qimenMoment.mode === 'custom' && qimenMoment.basis || {time_mode: 'clock', longitude: null};
+  const lateZi = qimenMoment.mode === 'custom' && typeof qimenMoment.lateZi === 'boolean' ? {late_zi_day_rollover: qimenMoment.lateZi} : {};
+  return {...base, birth_datetime: when, timezone: (qimenMoment.mode === 'custom' && qimenMoment.zone) || browserZone() || base.timezone, ...basis, ...lateZi};
 }
 function renderQimen() {
   if (qimenResult && qimenFingerprint && qimenFingerprint !== JSON.stringify(readInput())) qimenResult = null;
+  // An hour stepped to from the birth moment keeps the birth zone and solar time only while the birth data stays the same.
+  if (qimenMoment.birthKey && qimenMoment.birthKey !== JSON.stringify(readInput())) {
+    qimenMoment = {mode: 'birth', custom: '', zone: '', basis: null, lateZi: null, scan: false, birthKey: null}; qimenResult = null; qimenFingerprint = null;
+  }
   title(result, '奇门遁甲 · 时家拆补转盘', '九宫 · 三元局数 · 地盘 / 天盘 / 暗干 / 门 / 星 / 神');
   append(result, 'p', 'info-inline', '奇门按事情发生或提问的时刻起局，默认取此刻。不是出生预测；本模块仅实现一套明确的时家拆补转盘配置。');
   const row = append(result, 'div', 'inline-control');
@@ -258,31 +265,30 @@ function renderQimen() {
   const mode = append(modeLabel, 'select'); mode.id = 'qimen-moment';
   [['now', '此刻'], ['custom', '指定时间'], ['birth', '出生时间']].forEach(([value, text]) => {const op = append(mode, 'option', null, text); op.value = value;});
   mode.value = qimenMoment.mode;
-  mode.addEventListener('change', () => {qimenMoment = {...qimenMoment, mode: mode.value, zone: ''}; qimenResult = null; qimenFingerprint = null; render();});
+  mode.addEventListener('change', () => {qimenMoment = {...qimenMoment, mode: mode.value, zone: '', basis: null, lateZi: null, scan: false, birthKey: null}; qimenResult = null; qimenFingerprint = null; qimenTicket++; render();});
   if (qimenMoment.mode === 'custom') {
     const whenLabel = append(row, 'label', null, '日期与时间');
     const when = append(whenLabel, 'input'); when.type = 'datetime-local'; when.id = 'qimen-when';
     when.value = qimenMoment.custom || localMinute();
-    when.addEventListener('change', () => {qimenMoment.custom = when.value; if (qimenResult) {qimenResult = null; render();}});
+    when.addEventListener('change', () => {qimenMoment.custom = when.value; qimenTicket++; if (qimenResult) {qimenResult = null; render();}});
   }
   const run = append(row, 'button', null, '排布九宫'); run.id='qimen-run'; run.type='button';
-  const scanZone = qimenMoment.mode === 'custom' && qimenMoment.zone;
-  append(result, 'small', 'field-help', qimenMoment.mode === 'birth' ? '沿用出生资料里的时区、真太阳时和换日规则。'
-    : (scanZone ? '按择日扫描所用时区 ' + scanZone : '按本机时区 ' + (browserZone() || readInput().timezone)) + ' 的钟表时间起局。');
-  if (scanZone) append(result, 'small', 'field-help', '与择日扫描一致，按 00:00 换日。');
+  const zone = qimenMoment.mode === 'custom' && qimenMoment.zone, scan = zone && qimenMoment.scan;
+  const basis = qimenMoment.mode === 'custom' && qimenMoment.basis;
+  if (basis) texts(append(result, 'small', 'field-help'), {mean_solar: '沿用出生资料的平太阳时起局，时区', apparent_solar: '沿用出生资料的真太阳时起局，时区'}[basis.time_mode], ' ', zone);
+  else append(result, 'small', 'field-help', qimenMoment.mode === 'birth' ? '沿用出生资料里的时区、真太阳时和换日规则。'
+    : (zone ? (scan ? '按择日扫描所用时区 ' : '按时区 ') + zone : '按本机时区 ' + (browserZone() || readInput().timezone)) + ' 的钟表时间起局。');
+  if (scan) append(result, 'small', 'field-help', '与择日扫描一致，按 00:00 换日。');
   if (qimenMoment.mode === 'birth' && $('#hour_unknown').checked) append(result, 'p', 'inline-msg', '出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。');
-  const message = append(result, 'p', 'inline-msg');
-  run.addEventListener('click', async () => {
-    run.disabled=true; message.className = 'inline-msg progress'; message.textContent='正在起局…';
-    try { const input = qimenMomentInput();
-      const chart = await postJSON('/api/qimen', {moment:input});
-      qimenResult=chart; qimenFingerprint = qimenMoment.mode === 'birth' ? JSON.stringify(input) : null; render(); }
-    catch(e) { message.className = 'inline-msg'; message.textContent='奇门排盘失败：'+e.message; }
-    finally { run.disabled=false; }
+  const message = append(result, 'p', 'inline-msg'); message.id = 'qimen-message';
+  run.addEventListener('click', () => {
+    const input = qimenMomentInput(), birth = qimenMoment.mode === 'birth';
+    castQimen(input, {}, () => {qimenFingerprint = birth ? JSON.stringify(input) : null;}, null);
   });
   if (!qimenResult) return;
   const q=qimenResult;
   meta(result,[(q.instant || '').replace('T', ' ').slice(0, 16), q.solar_term, q.dun + q.bureau + '局', q.yuan, '日 ' + q.day_pillar, '时 ' + q.hour_pillar].filter(Boolean));
+  if (q.day_hours && q.day_hours.length) renderQimenDay(q);
   rules(result,[
     {label:'旬首 / 六仪', value:q.xun_head + ' · ' + q.xun_instrument},
     {label:'值符星及宫位', value:q.zhi_fu_star, detail:'宫 ' + q.zhi_fu_palace},
@@ -300,7 +306,7 @@ function renderQimen() {
     const grid=append(cell,'div','qimen-grid');
     const pair=(label,name,stemLabel,stem)=>{
       const left=append(grid,'div','q-name'); append(left,'span','q-label',label); left.append(name || '—');
-      const right=append(grid,'div','q-stem'); if(stemLabel){append(right,'span','q-label',stemLabel); right.append(stem);}
+      const right=append(grid,'div','q-stem'); if(stemLabel){append(right,'span','q-label',stemLabel); append(right,'span',stemClass(stem),stem).dataset.noI18n='';}
     };
     pair('八神',p.deity,'天干',p.heaven_stem);
     pair('九星',p.star,'暗干',p.dark_stem);
@@ -312,6 +318,79 @@ function renderQimen() {
     if(p.center_lodged_here) append(tags,'small','qimen-tag','中宫寄宫');
   });
   q.limitations.forEach(x=>note(result,x));
+}
+// One cast at a time: the run button, an hour of the day strip and the day arrows all draw through here, and a
+// cast overtaken by a later one is dropped. ``done`` records how the chart came about once it has arrived.
+async function castQimen(input, extra, done, focusId) {
+  const ticket = ++qimenTicket, run = $('#qimen-run');
+  if (run) run.disabled = true;
+  const box = $('#qimen-message'); if (box) {box.className = 'inline-msg progress'; box.textContent = '正在起局…';}
+  try {
+    const chart = await postJSON('/api/qimen', {moment: input, include_day_hours: true, ...extra});
+    if (ticket !== qimenTicket) return;
+    const used = chart.stepped ? {...input, birth_datetime: chart.stepped.moment} : input;
+    qimenResult = chart; qimenInput = used; done(used); qimenFocus = focusId; render();
+  } catch (e) {
+    if (ticket !== qimenTicket) return;
+    const msg = $('#qimen-message'); if (msg) {msg.className = 'inline-msg'; msg.textContent = '奇门排盘失败：' + e.message;}
+    const b = $('#qimen-run'); if (b) b.disabled = false;
+  }
+}
+// The day of the chart shown, once per double hour: a click casts that hour, the arrows move a day at the same hour.
+function renderQimenDay(q) {
+  const hours = q.day_hours, day = q.day_hours_date || hours[0].moment.slice(0, 10);
+  const solar = !!qimenInput && (qimenInput.time_mode === 'mean_solar' || qimenInput.time_mode === 'apparent_solar');
+  const head = append(result, 'div', 'qh-head');
+  append(head, 'h4', 'subheading', '当日十二时辰');
+  append(head, 'b', 'qh-date', day);
+  append(head, 'small', 'muted', '局数、时柱与值符、值使；点时辰起该时辰的盘');
+  const nav = append(head, 'div', 'qh-nav');
+  [['← 前一天', -1, 'qimen-prev-day', day <= '1901-01-01'], ['后一天 →', 1, 'qimen-next-day', day >= '2099-12-31']].forEach(([label, days, id, edge]) => {
+    const b = append(nav, 'button', 'tiny-button', label); b.type = 'button'; b.id = id; b.disabled = edge;
+    b.addEventListener('click', () => castQimen(qimenInput, {step_days: days}, follow, id));
+  });
+  if (q.stepped && !q.stepped.hour_kept) {
+    const moved = append(result, 'p', 'field-help ic-missing');
+    texts(moved, '这一天的夏令时切换使所选时辰没有能唯一确定的钟表时间，改起最近的时辰：'); append(moved, 'span', null, hourSlotName({label: q.stepped.hour}));
+  }
+  const strip = append(result, 'div', 'qh-hours'); strip.id = 'qimen-hours';
+  strip.setAttribute('role', 'group'); strip.setAttribute('aria-label', '当日各时辰');
+  hours.forEach((h, i) => {
+    const prev = hours[i - 1], changed = prev && (prev.dun !== h.dun || prev.bureau !== h.bureau);
+    const cell = append(strip, 'button', 'qh-hour' + (h.current ? ' is-current' : ''));
+    cell.type = 'button'; cell.id = 'qimen-hour-' + h.index;
+    if (h.current) cell.setAttribute('aria-current', 'true');
+    append(cell, 'span', 'qh-name', hourSlotName(h));
+    const gz = append(cell, 'b', 'qh-gz'); gz.dataset.noI18n = '';
+    append(gz, 'span', stemClass(h.hour_pillar[0]), h.hour_pillar[0]); append(gz, 'span', branchClass(h.hour_pillar[1]), h.hour_pillar[1]);
+    // A clock time on another calendar day (solar time, or late Zi past midnight) carries its date.
+    append(cell, 'small', 'qh-clock', (h.moment.slice(0, 10) === day ? '' : h.moment.slice(5, 10).replace('-', '/') + ' ') + h.moment.slice(11, 16));
+    append(cell, 'small', 'qh-bureau' + (changed ? ' is-new' : ''), h.dun + h.bureau + '局');
+    if (changed) append(cell, 'span', 'visually-hidden', '局数与上一时辰不同');
+    texts(append(cell, 'small', 'qh-duty'), h.zhi_fu_star, ' · ', h.zhi_shi_door);
+    if (h.current) append(cell, 'small', 'qh-tag', '本盘');
+    cell.addEventListener('click', () => castQimen({...qimenInput, birth_datetime: h.moment}, {}, follow, cell.id));
+  });
+  const help = append(result, 'p', 'field-help qh-help', '局数加粗：与上一时辰不同。');
+  if (solar) help.append(' ', '格子里写的是钟表时间，按所选太阳时换算后落在该时辰里。');
+  if (q.missing_hours && q.missing_hours.length) {
+    const gone = append(result, 'p', 'field-help ic-missing');
+    texts(gone, '这天的夏令时切换跳过或重复了一段钟表时间，没有能唯一确定的时刻落在这些时辰里，未列出：');
+    enumList(gone, q.missing_hours.map(label => hourSlotName({label})));
+  }
+  if (qimenFocus) {
+    const target = document.getElementById(qimenFocus); qimenFocus = null;
+    (target && !target.disabled ? target : strip.querySelector('.is-current') || strip).focus();
+  }
+  // A cast from here keeps the zone and time basis of the chart shown, so a birth-moment chart steps in its own solar
+  // time; only a chart opened from a date scan keeps its own day-change rule, the rest follow the birth panel.
+  function follow(used) {
+    const scan = qimenMoment.mode === 'custom' && qimenMoment.scan;
+    qimenMoment = {mode: 'custom', custom: used.birth_datetime, zone: used.timezone, lateZi: scan ? !!used.late_zi_day_rollover : null, scan,
+      basis: used.time_mode === 'clock' ? null : {time_mode: used.time_mode, longitude: used.longitude},
+      birthKey: qimenMoment.birthKey || (qimenMoment.mode === 'birth' ? qimenFingerprint : null)};
+    qimenFingerprint = null;
+  }
 }
 function renderProfessionalZiwei() {
   title(result, '专业紫微 · iztro-py（可选）', '本命全盘与运限 · 第三方独立引擎，不替换原生子集');
@@ -2236,7 +2315,7 @@ function renderDateScanDetail(c, r, lunarText, clashText, chartLine) {
     texts(append(card, 'p'), '空亡', ' ', h.void_branches.join('、'));
     const open = append(card, 'button', 'tiny-button', '在奇门页打开'); open.type = 'button'; open.id = 'scan-qimen-' + i;
     open.addEventListener('click', () => {
-      qimenMoment = {mode: 'custom', custom: c.date + 'T' + h.local_time, zone: r.criteria.timezone}; qimenResult = null; qimenFingerprint = null;
+      qimenMoment = {mode: 'custom', custom: c.date + 'T' + h.local_time, zone: r.criteria.timezone, basis: null, lateZi: false, scan: true}; qimenResult = null; qimenFingerprint = null;
       const tab = tabs.find(t => t.dataset.tab === 'qimen');
       activateTab(tab); tab.focus();
       const run = $('#qimen-run'); if (run) run.click();
@@ -3823,13 +3902,14 @@ function renderImportCheck() {
   r.limitations.forEach(x => note(result, x));
 }
 // The same day recomputed once per double hour: a row of hours with how many recognized fields still differ.
-const IMPORT_HOUR_LABELS = ['早子', ...'丑寅卯辰巳午未申酉戌亥', '晚子'];  // the server's labels, in the order of LUNAR_HOURS
+const HOUR_SLOT_LABELS = ['早子', ...'丑寅卯辰巳午未申酉戌亥', '晚子'];  // the server's day-hour labels, in the order of LUNAR_HOURS
+const hourSlotName = h => {const i = HOUR_SLOT_LABELS.indexOf(h.label); return i < 0 ? h.label : LUNAR_HOURS[i + 1][1].split(' ')[0];};
 function renderImportHours(r) {
   const hours = r.hour_alternatives, best = Math.min(...hours.map(h => h.mismatched));
-  const nameOf = h => {const i = IMPORT_HOUR_LABELS.indexOf(h.label); return i < 0 ? h.label : LUNAR_HOURS[i + 1][1].split(' ')[0];};
+  const nameOf = hourSlotName;
   const mode = importBirth ? importBirth.time_mode : 'clock', solar = mode === 'mean_solar' || mode === 'apparent_solar';
   append(result, 'h4', 'subheading', '换个时辰对照');
-  const help = append(result, 'p', 'field-help', '同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。格子里的数字是仍不一致的项数，星曜亮度不计。');
+  const help = append(result, 'p', 'field-help', '同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍（出生时间所在的时辰用出生时间本身），看粘贴的命盘和哪个时辰对得上。格子里的数字是仍不一致的项数，星曜亮度不计。');
   if (solar) help.append(' ', '格子里写的是钟表时间，按所选太阳时换算后落在该时辰里。');
   const matching = hours.filter(h => !h.mismatched), closest = matching.length ? [] : hours.filter(h => h.mismatched === best);
   const verdict = append(result, 'p', 'ic-verdict' + (matching.length ? ' is-ok' : ''));
@@ -5132,7 +5212,7 @@ form.addEventListener('submit', async event => {
     // A pasted-chart check belongs to the chart it ran on, unless this cast is the one its rule or hour asked for.
     if (!importRecheck) {importResult = null; importBirth = null; importHourPick = null; importFocusAfter = false;}
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; timeRun = null; timeLongitude = ''; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
-    dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
+    dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;qimenTicket++;professionalResult=null;referenceAuditResult=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
     // A group reply still on its way belongs to the previous chart.
     ++groupYearTicket; groupYearPending = false; groupYearError = ''; groupRun = null; groupRunError = ''; luckYearTyped = {};
