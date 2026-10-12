@@ -119,12 +119,13 @@ let deepDraft = {focus_palace: '命宫', lunar_year: '', question: ''};
 let windowResult = null;
 let lunarInverseResult = null;
 let qualityResult = null;
-let officerResult = null;
+let officerResult = null, officerPending = false, officerError = '';
 let timelineResult = null;
 let decisionResult = null;
 let dayunResult = null;
 let boundaryResult = null;
 let dayunDraft = {periods: 10, direction_override: ''};
+let dayunKey = null, dayunPending = false, dayunError = '';  // the request the shown periods belong to
 let boundaryDraft = {uncertainty_minutes: 60};
 let qualityMinutesDraft = 15;
 let reportDraft = {lunar_year: null, include_time_audit: false, include_deep_evidence:true,
@@ -132,9 +133,9 @@ let reportDraft = {lunar_year: null, include_time_audit: false, include_deep_evi
 let windowDraft = {radius: 30, spacing: 10};
 let lunarInverseDraft = null;  // filled with this lunar year's first day when the calendar first shows it
 let lunarInverseError = '';
-let annualDraft = 2026;
+let annualDraft = null;  // today's lunar year, until another one is asked for
 let officerDraft = {start_date:localToday(),days:30,officer:''};
-let timelineDraft = {start_lunar_year:2024,years:10,focus_palace:''};
+let timelineDraft = {start_lunar_year:null,years:10,focus_palace:''};  // null: today's lunar year
 let decisionDraft = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
 let pairDraft = {birth_datetime: '2001-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified', year: new Date().getFullYear()};
 // The year of the pair's luck and year-pillar view; a newer request makes older replies stale, as on the group page.
@@ -184,6 +185,7 @@ function rules(parent, items) {
     append(box, 'strong', null, x.value);
     if (x.detail) append(box, 'em', null, x.detail);
   });
+  return container;
 }
 function readInput() {
   return {
@@ -1030,7 +1032,8 @@ function ensureTodayLunarYear() {
   todayLunarPending = true;
   postJSON('/api/calendar', {start_date: localToday(), days: 1}).then(data => {
     todayLunarYear = data.days[0].lunar.year;
-    if ((active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) || (active === 'calendar' && lunarInverseDraft && lunarInverseDraft.guessed)) render();
+    if ((active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) || (active === 'calendar' && lunarInverseDraft && lunarInverseDraft.guessed)
+      || (active === 'annual' && annualDraft === null) || (active === 'timeline' && timelineDraft.start_lunar_year === null)) render();
   }).catch(() => { /* keep the estimate below */ }).finally(() => {todayLunarPending = false;});
 }
 function defaultLunarYear() {
@@ -1721,16 +1724,25 @@ function renderDayOfficers() {
   for(const value of ['','建','除','满','平','定','执','破','危','成','收','开','闭']){
     const op=append(select,'option',null,value||'全部');op.value=value;
   } select.value=officerDraft.officer;
-  const run=append(row,'button',null,'查询值日');run.id='officer-run';run.type='button';
-  const msg=append(result,'p','inline-msg');
-  run.addEventListener('click',async()=>{
+  keepTyped(start,count,select);
+  const query=()=>{
+    const draft=officerDraft;
+    officerPending=true;officerError='';
+    postJSON('/api/day-officers',{start_date:draft.start_date,days:draft.days,filter_officers:draft.officer?[draft.officer]:[]})
+      .then(data=>{if(officerDraft===draft)officerResult=data;}).catch(e=>{if(officerDraft===draft)officerError='查询失败：'+e.message;})
+      .finally(()=>{if(officerDraft===draft){officerPending=false;if(active==='officers')render();}});
+  };
+  // Nothing here depends on the chart, so the coming days are listed as soon as the tool opens.
+  if(!officerResult&&!officerPending&&!officerError)query();
+  const run=append(row,'button',null,'查询值日');run.id='officer-run';run.type='button';run.disabled=officerPending;
+  append(result,'p','inline-msg',officerError);
+  run.addEventListener('click',()=>{
     officerDraft={start_date:start.value,days:Number(count.value),officer:select.value};
-    run.disabled=true;msg.textContent='';
-    try{officerResult=await postJSON('/api/day-officers',{start_date:officerDraft.start_date,days:officerDraft.days,filter_officers:officerDraft.officer?[officerDraft.officer]:[]});render();}
-    catch(e){msg.textContent='查询失败：'+e.message;}
-    finally{run.disabled=false;}
+    query();render();
   });
-  if(!officerResult){append(result,'p','info-inline','查询按北京时间正午取值；跨交节的日期会显式标记。');return;}
+  append(result,'p','field-help','查询按北京时间正午取值；跨交节的日期会显式标记。');
+  if(officerPending)append(result,'p','field-help','正在查询…');
+  if(!officerResult)return;
   meta(result,[`范围 ${officerResult.range_start}`,`已返回 ${officerResult.days.length} 日`,'不对日期好坏打分']);
   const table=append(append(result,'div','table-wrap'),'table','data-table');
   const hr=append(append(table,'thead'),'tr');
@@ -1769,10 +1781,14 @@ function renderDateScan() {
   };
   const inc=pick('只保留这些值日（不选=不限）','include','scan-include');
   const exc=pick('排除这些值日','exclude','scan-exclude');
+  // One officer cannot be both kept and excluded: ticking it on one side clears it on the other.
+  [[inc,exc],[exc,inc]].forEach(([from,to])=>from.addEventListener('change',event=>{
+    if(event.target.checked){const other=to.querySelector(`input[value="${event.target.value}"]`);if(other)other.checked=false;}
+  }));
   const opts=append(result,'div','consult-shortcuts');
   const jl=append(opts,'label','check-line');const jie=append(jl,'input');jie.type='checkbox';jie.id='scan-skip-jie';jie.checked=dateScanDraft.skipJie;jl.append(' 排除交节当天');
   const nl=append(opts,'label','check-line');const natal=append(nl,'input');natal.type='checkbox';natal.id='scan-natal';natal.checked=dateScanDraft.natal;nl.append(' 排除与本命年支、日支相冲的日子');
-  const run=append(opts,'button',null,'扫描候选日');run.id='scan-run';run.type='button';
+  const run=append(opts,'button','scan-run','扫描候选日');run.id='scan-run';run.type='button';
   const msg=append(result,'p','inline-msg');
   run.addEventListener('click',async()=>{
     const checked=box=>[...box.querySelectorAll('input:checked')].map(x=>x.value);
@@ -1808,18 +1824,20 @@ function renderTimeline() {
   title(result,'连续农历年四化对照','本命盘固定，叠加多个命名农历年的天干四化标签');
   if(!current){append(result,'p','info-inline','请先生成命盘。');return;}
   const row=append(result,'div','inline-control');
-  const start=createInput('起始农历年','number',String(timelineDraft.start_lunar_year),row);start.id='timeline-start';start.min='1901';start.max='2099';
+  ensureTodayLunarYear();
+  const start=createInput('起始农历年','number',String(timelineDraft.start_lunar_year ?? defaultLunarYear()),row);start.id='timeline-start';start.min='1901';start.max='2099';
   const years=append(append(row,'label',null,'对照年数'),'select');years.id='timeline-years';
   [3,5,10,20,30].forEach(x=>{const op=append(years,'option',null,x+' 年');op.value=String(x);});years.value=String(timelineDraft.years);
   const focus=append(append(row,'label',null,'关注宫位'),'select');focus.id='timeline-focus';
   const all=append(focus,'option',null,'全部十二宫');all.value='';
   current.ziwei.palaces.forEach(p=>{const op=append(focus,'option',null,p.name);op.value=p.name;});focus.value=timelineDraft.focus_palace;
+  keepTyped(start,years,focus);
   const run=append(row,'button',null,'生成年度轨迹');run.id='timeline-run';run.type='button';
   const msg=append(result,'p','inline-msg');
   run.addEventListener('click',async()=>{
     timelineDraft={start_lunar_year:Number(start.value),years:Number(years.value),focus_palace:focus.value};
     run.disabled=true;msg.textContent='';
-    try{timelineResult=await postJSON('/api/annual-timeline',{birth:readInput(),start_lunar_year:timelineDraft.start_lunar_year,years:timelineDraft.years,focus_palace:timelineDraft.focus_palace||null});render();}
+    try{const data=await postForChart('/api/annual-timeline',{birth:readInput(),start_lunar_year:timelineDraft.start_lunar_year,years:timelineDraft.years,focus_palace:timelineDraft.focus_palace||null});if(data!==STALE){timelineResult=data;render();}}
     catch(e){msg.textContent='查询失败：'+e.message;}
     finally{run.disabled=false;}
   });
@@ -3500,14 +3518,15 @@ function renderAnnual() {
   title(result, '指定农历年干四化', '与本命四化分开显示 · 仅为星曜位置叠加');
   if (!current) {append(result, 'p', 'info-inline', '请先生成出生盘。'); return;}
   const row = append(result, 'div', 'inline-control');
-  const year = createInput('目标农历纪年（1901–2099）', 'number', String(annualDraft), row);
-  year.min='1901'; year.max='2099'; year.id='annual-year';
+  ensureTodayLunarYear();
+  const year = createInput('目标农历纪年（1901–2099）', 'number', String(annualDraft ?? defaultLunarYear()), row);
+  year.min='1901'; year.max='2099'; year.id='annual-year'; keepTyped(year);
   const button = append(row, 'button', null, '查询年干四化'); button.type='button'; button.id='annual-run';
   const error = append(result, 'p', 'inline-msg');
   button.addEventListener('click', async () => {
     annualDraft = Number(year.value);
     button.disabled=true;
-    try {annualResult=await postJSON('/api/annual',{birth:readInput(),lunar_year:annualDraft}); render();}
+    try {const data=await postForChart('/api/annual',{birth:readInput(),lunar_year:annualDraft}); if (data!==STALE) {annualResult=data; render();}}
     catch(e) {error.textContent='查询失败：'+e.message;}
     finally {button.disabled=false;}
   });
@@ -3561,7 +3580,7 @@ function renderTimeAudit() {
   run.addEventListener('click',async()=>{
     if(readInput().longitude===null){error.textContent='请先在出生资料里填写出生地经度。';return;}
     run.disabled=true;
-    try{timeResult=await postJSON('/api/time-audit',{birth:readInput()});render();}
+    try{const data=await postForChart('/api/time-audit',{birth:readInput()});if(data!==STALE){timeResult=data;render();}}
     catch(e){error.textContent='计算失败：'+e.message;}
     finally{run.disabled=false;}
   });
@@ -3602,7 +3621,7 @@ function renderQualityAudit() {
   append(result, 'p', 'info-inline', '本工具只标记数据与计算边界，不替代权威历书或完整紫微流派审查。');
   const control = append(result, 'div', 'inline-control');
   const minutes = createInput('边界敏感窗口（分钟）', 'number', '15', control);
-  minutes.min = '1'; minutes.max = '1440'; minutes.id = 'quality-minutes'; minutes.value = String(qualityMinutesDraft);
+  minutes.min = '1'; minutes.max = '1440'; minutes.id = 'quality-minutes'; minutes.value = String(qualityMinutesDraft); keepTyped(minutes);
   const run = append(control, 'button', null, '核验输入与边界'); run.type = 'button'; run.id = 'quality-run';
   const msg = append(result, 'p', 'inline-msg');
   run.addEventListener('click', async () => {
@@ -3610,8 +3629,8 @@ function renderQualityAudit() {
     try {
       const value = Number(minutes.value);
       qualityMinutesDraft = value;
-      qualityResult = await postJSON('/api/quality-audit', {birth:readInput(), boundary_window_minutes:value});
-      render();
+      const data = await postForChart('/api/quality-audit', {birth:readInput(), boundary_window_minutes:value});
+      if (data !== STALE) {qualityResult = data; render();}
     } catch(e) {msg.textContent = '核验失败：' + e.message;}
     finally {run.disabled = false;}
   });
@@ -3656,6 +3675,7 @@ function renderDeep() {
   });palace.value=deepDraft.focus_palace;
   const year=createInput('可选农历年份','number',deepDraft.lunar_year,bar);year.id='deep-year';year.min='1901';year.max='2099';
   const question=createInput('研究问题（可选，最多 200 字）','text',deepDraft.question,bar);question.id='deep-question';question.maxLength=200;
+  keepTyped(palace,year,question);
   const run=append(bar,'button',null,'执行证据分析');run.type='button';run.id='deep-run';
   const msg=append(result,'p','inline-msg');
   run.addEventListener('click',async()=>{
@@ -3664,9 +3684,9 @@ function renderDeep() {
     deepDraft={focus_palace:palace.value,lunar_year:y,question:question.value.trim()};
     run.disabled=true;msg.textContent='';
     try{
-      deepResult=await postJSON('/api/deep-review',{birth:readInput(),focus_palace:deepDraft.focus_palace,
+      const data=await postForChart('/api/deep-review',{birth:readInput(),focus_palace:deepDraft.focus_palace,
         lunar_year:y?Number(y):null, question:deepDraft.question||null,include_quality:true});
-      render();
+      if(data!==STALE){deepResult=data;render();}
     }catch(e){msg.textContent='分析失败：'+e.message;}
     finally{run.disabled=false;}
   });
@@ -3760,6 +3780,17 @@ function renderDayun() {
   title(result, '八字大运十年干支', '年干阴阳 + 性别或手动顺逆 · 十二节令 · 三日折一岁');
   append(result, 'p', 'info-inline', '只计算传统干支和名义起运年龄，公历时间为均值年近似，绝非对人生事件的预测。');
   if (!current) {append(result, 'p', 'info-inline', '请先生成出生盘。'); return;}
+  // With a gender (or a direction picked) the periods of the chart shown are worked out on opening, and again
+  // whenever another chart is cast; the button applies a changed count or direction.
+  const request = () => ({birth: currentInput, periods: dayunDraft.periods, direction_override: dayunDraft.direction_override || null, hour_unknown: currentHourUnknown});
+  const ready = currentInput.gender !== 'unspecified' || !!dayunDraft.direction_override;
+  if (ready && dayunKey !== JSON.stringify(request()) && !dayunPending) {
+    const body = request(), key = JSON.stringify(body);
+    dayunPending = true; dayunError = '';
+    postJSON('/api/dayun', body).then(data => {dayunResult = data; dayunKey = key;})
+      .catch(err => {dayunResult = null; dayunError = '计算失败：' + err.message; dayunKey = key;})
+      .finally(() => {dayunPending = false; if (active === 'dayun') render();});
+  }
   const row=append(result,'div','inline-control');
   const periods=createInput('显示运柱数量（1–12）','number',String(dayunDraft.periods),row);
   periods.id='dayun-periods';periods.min='1';periods.max='12';
@@ -3767,28 +3798,38 @@ function renderDayun() {
   const direction=append(label,'select');direction.id='dayun-direction';
   [['','按传统规则自动'],['forward','手动顺排'],['reverse','手动逆排']].forEach(([key,val])=>{const op=append(direction,'option',null,val);op.value=key;});
   direction.value=dayunDraft.direction_override;
+  keepTyped(periods,direction);
   const run=append(row,'button',null,'计算大运');run.id='dayun-run';run.type='button';
-  const error=append(result,'p','inline-msg');
-  run.addEventListener('click', async()=>{
+  run.disabled = dayunPending;
+  const error=append(result,'p','inline-msg', dayunError);
+  run.addEventListener('click', ()=>{
     const count=Number(periods.value);if(!Number.isInteger(count)||count<1||count>12){error.textContent='显示数量必须是1–12的整数';return;}
+    if(currentInput.gender==='unspecified' && !direction.value){error.textContent='性别未指定时需要手动选择顺逆。';return;}
     dayunDraft={periods:count,direction_override:direction.value};
-    if(readInput().gender==='unspecified' && !direction.value){error.textContent='性别未指定时需要手动选择顺逆。';return;}
-    run.disabled=true;error.textContent='';
-    try{dayunResult=await postJSON('/api/dayun',{birth:readInput(),periods:count,direction_override:direction.value||null});render();}
-    catch(e){error.textContent='计算失败：'+e.message;}finally{run.disabled=false;}
+    dayunKey=null; render();
   });
-  if(!dayunResult)return;
+  if (!ready) {append(result, 'p', 'field-help', '命盘没有填性别：选好顺排或逆排后点「计算大运」。'); return;}
+  if (dayunPending) append(result, 'p', 'field-help', '正在按当前命盘计算大运…');
+  if(!dayunResult || dayunKey !== JSON.stringify(request()))return;
   const d=dayunResult;
   meta(result,[`年柱 ${d.natal_year_pillar}`,`月柱 ${d.natal_month_pillar}`,`方向 ${d.direction==='forward'?'顺排':'逆排'}`,`起运约 ${d.start_age_traditional_parts.years}岁 ${d.start_age_traditional_parts.months}月`]);
   rules(result,[
-    {label:'所选节令',value:d.nearest_jie_used.name,detail:d.nearest_jie_used.instant},
-    {label:'出生距节',value:d.birth_to_jie_days+' 日'},
+    // To the second, with the zone offset it was given in (a daylight-saving year shows +09:00 in China).
+    {label:'所选节令',value:d.nearest_jie_used.name,detail:d.nearest_jie_used.instant.replace('T',' ').replace(/\.\d+/,'')},
+    {label:'出生距节',value:d.birth_to_jie_days.toFixed(2)+' 日'},
     {label:'投影起始时间',value:d.approx_first_start_local.replace('T',' ')},
   ]);
-  const table=append(append(result,'div','table-wrap'),'table','data-table');
+  const table=append(append(result,'div','table-wrap'),'table','data-table dayun-table'); table.id='dayun-table';
   const head=append(append(table,'thead'),'tr');['次序','十年干支','名义起始年龄','近似起始公历','神煞'].forEach(x=>append(head,'th',null,x));
   const body=append(table,'tbody');
-  d.periods.forEach(x=>{const tr=append(body,'tr');append(tr,'td',null,x.sequence);append(tr,'td',null,x.pillar);append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td',null,x.approx_start_local.replace('T',' '));append(tr,'td',null,(x.natal_interactions.shensha||[]).map(s=>s.name).join('、')||'—');});
+  // The period the device date falls in, by the projected dates. Those are an average-year approximation, so the
+  // table gives them to the day; the first start above keeps the projected minute.
+  const now=localToday(), live=d.periods.findIndex(x=>x.approx_start_local.slice(0,10)<=now&&now<x.approx_end_local_exclusive.slice(0,10));
+  d.periods.forEach((x,i)=>{
+    const tr=append(body,'tr',i===live?'is-current':null);append(tr,'td',null,x.sequence);
+    const cell=append(tr,'td'),pillar=append(cell,'span','pillar-cell');append(pillar,'span',stemClass(x.pillar[0]),x.pillar[0]);append(pillar,'span',branchClass(x.pillar[1]),x.pillar[1]);
+    if(i===live)append(cell,'span','dayun-now','约当前');
+    append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td','nowrap',x.approx_start_local.slice(0,10));append(tr,'td',null,(x.natal_interactions.shensha||[]).map(s=>s.name).join('、')||'—');});
   d.limitations.forEach(x=>note(result,x));
 }
 function renderBirthBoundaries(){
@@ -3797,13 +3838,13 @@ function renderBirthBoundaries(){
   if(!current){append(result,'p','info-inline','请先生成出生盘。');return;}
   const row=append(result,'div','inline-control');
   const radius=createInput('出生时间前后误差（分钟）','number',String(boundaryDraft.uncertainty_minutes),row);
-  radius.id='boundary-radius';radius.min='1';radius.max='120';
+  radius.id='boundary-radius';radius.min='1';radius.max='120';keepTyped(radius);
   const run=append(row,'button',null,'定位临界时刻');run.id='boundary-run';run.type='button';
   const error=append(result,'p','inline-msg');
   run.addEventListener('click', async()=>{
     const value=Number(radius.value);if(!Number.isInteger(value)||value<1||value>120){error.textContent='误差范围必须是1–120的整数';return;}
     boundaryDraft={uncertainty_minutes:value};run.disabled=true;error.textContent='';
-    try{boundaryResult=await postJSON('/api/birth-boundaries',{birth:readInput(),uncertainty_minutes:value});render();}
+    try{const data=await postForChart('/api/birth-boundaries',{birth:readInput(),uncertainty_minutes:value});if(data!==STALE){boundaryResult=data;render();}}
     catch(e){error.textContent='查询失败：'+e.message;}finally{run.disabled=false;}
   });
   if(!boundaryResult)return;
@@ -3819,15 +3860,30 @@ function renderBirthBoundaries(){
   d.segments.forEach(x=>{const tr=append(body,'tr');append(tr,'td',null,x.start_utc_inclusive.replace('T',' '));append(tr,'td',null,x.sample_local.replace('T',' '));append(tr,'td',null,Object.values(x.bazi_pillars).join(' / '));append(tr,'td',null,x.ziwei_ming_palace+'/'+x.ziwei_shen_palace);});
   d.limitations.forEach(x=>note(result,x));
 }
+// The counts on the integration page come from the running server, so they never fall behind a new tool.
+let capabilities = null, capabilitiesPending = false, capabilitiesError = '', capabilitiesToken = '';
 function renderIntegration() {
   title(result,'Agent 接入中心','统一 MCP 服务 / 计算 Tool / 方法资源');
   append(result,'p','info-inline','本项目兼容 MCP 2026-07-28 和旧版 2025 协议的 stdio / Streamable HTTP；本地 Web 运行不等于已上线公网或已登记到 ChatGPT/Claude。');
-  rules(result,[
-    {label:'MCP 工具',value:'25 Tools',detail:'八字 / 紫微 / 历法 / 双盘 / 时间审计 / 年干四化'},
-    {label:'规则资源',value:'17 Resources',detail:'方法规则、隐私和限制说明'},
-    {label:'Agent Skills',value:'18 Skills',detail:'放在源码 skills/ 目录'},
-    {label:'提示模板',value:'15 Prompts',detail:'可复用计算工作流'},
+  const token = $('#api_token').value;
+  // A failed lookup is tried again once another access token is entered.
+  if ((capabilities === null || (capabilitiesError && token !== capabilitiesToken)) && !capabilitiesPending) {
+    capabilitiesPending = true; capabilitiesToken = token; capabilities = null;
+    fetch('/api/capabilities', {headers: token ? {'Authorization': 'Bearer ' + token} : {}})
+      .then(reply => reply.ok ? reply.json() : Promise.reject(new Error('HTTP ' + reply.status)))
+      .then(data => {capabilities = data; capabilitiesError = '';}).catch(err => {capabilities = {}; capabilitiesError = err.message;})
+      .finally(() => {capabilitiesPending = false; if (active === 'integration') render();});
+  }
+  const counts = (capabilities && capabilities.counts) || {};
+  const count = (key, unit) => typeof counts[key] === 'number' ? counts[key] + ' ' + unit : capabilities === null ? '…' : '—';
+  const box = rules(result,[
+    {label:'MCP 工具',value:count('mcp_tools', 'Tools'),detail:'八字 / 紫微 / 奇门 / 历法 / 关系 / 运限 / 审计'},
+    {label:'规则资源',value:count('mcp_resources', 'Resources'),detail:'方法规则、隐私和限制说明'},
+    {label:'Agent Skills',value:count('agent_skills', 'Skills'),detail:'放在源码 skills/ 目录'},
+    {label:'提示模板',value:count('mcp_prompts', 'Prompts'),detail:'可复用计算工作流'},
   ]);
+  if (box) box.id = 'integration-counts';
+  if (capabilitiesError) append(result, 'p', 'inline-msg', '读取服务能力失败：' + capabilitiesError + (capabilitiesError === 'HTTP 401' ? '，请检查 API 访问令牌。' : '。')).id = 'integration-error';
   append(result,'h4','subheading','本地 HTTP 端点');
   const origin = location.origin==='null' ? 'http://127.0.0.1:8000' : location.origin;
   append(result,'pre','json-code','POST '+origin+'/mcp\nGET  '+origin+'/docs\nGET  '+origin+'/api/capabilities');
@@ -3981,6 +4037,46 @@ function render() {
       if (caret && again.setSelectionRange) try {again.setSelectionRange(caret[0], caret[1]);} catch (_) { /* not a text field */ }
     }
   }
+  autoOpen();
+}
+// A reply that comes back after another chart was cast belongs to the old chart, so it is dropped (STALE).
+const STALE = Symbol('stale');
+async function postForChart(url, body) {const chart = currentInput, data = await postJSON(url, body); return currentInput === chart ? data : STALE;}
+// Tools that need nothing but the chart shown and their settings show their result as soon as they open, once per
+// chart, by pressing their own button; a changed setting still waits for that button. Nothing runs while the birth
+// form holds edits not yet cast, since the buttons read the form rather than the chart shown.
+const AUTO_OPEN = {
+  annual: ['annual-run', () => annualResult, () => annualDraft !== null || !todayLunarPending],
+  timeline: ['timeline-run', () => timelineResult, () => timelineDraft.start_lunar_year !== null || !todayLunarPending],
+  boundaries: ['boundary-run', () => boundaryResult],
+  quality: ['quality-run', () => qualityResult],
+  time: ['time-run', () => timeResult, () => readInput().longitude !== null],
+  deep: ['deep-run', () => deepResult],
+};
+let autoOpened = new Set();
+function autoOpen() {
+  const [button, shown, possible = () => true] = AUTO_OPEN[active] || [];
+  if (!button || !current) return;
+  if (currentHourUnknown) {
+    // A chart cast without the hour stands on a 12:00 placeholder, so nothing hour-bound runs on it by itself.
+    const intro = result.querySelector('.result-intro');
+    if (intro) intro.after(elt('p', 'field-help', '命盘时辰不详：本页按 12:00 占位时辰计算，时柱、宫位和时辰交界都不可靠，所以打开时不自动计算。'));
+    return;
+  }
+  if (shown() || autoOpened.has(active) || !possible()) return;
+  if (JSON.stringify(readInput()) !== JSON.stringify(currentInput)) return;
+  autoOpened.add(active);
+  const tab = active;
+  setTimeout(() => {const run = document.getElementById(button); if (active === tab && run && !run.disabled) run.click();});
+}
+// What was typed into a tool's settings but not yet applied survives a redraw, such as the one an automatic
+// result brings while the field is being edited.
+const typedValues = {};
+function keepTyped(...fields) {
+  fields.forEach(field => {
+    if (typedValues[field.id] !== undefined) field.value = typedValues[field.id];
+    field.addEventListener(field.tagName === 'SELECT' ? 'change' : 'input', () => {typedValues[field.id] = field.value;});
+  });
 }
 function renderView() {
   clear();
@@ -4088,6 +4184,7 @@ function updateStaleBirthNotice() {
 for (const type of ['input','change']) {
   form.addEventListener(type, event => {
     if (event.target.id !== 'api_token') updateStaleBirthNotice();
+    else if (type === 'change' && active === 'integration' && capabilitiesError) render();
   });
 }
 form.addEventListener('submit', async event => {
@@ -4102,7 +4199,7 @@ form.addEventListener('submit', async event => {
     current = {...chart, reading}; currentInput = data;
     consultResult=null;consultCursor=null;
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
-    dayunResult=null;boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
+    dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
     // A group reply still on its way belongs to the previous chart.
     ++groupYearTicket; groupYearPending = false; groupYearError = ''; groupRun = null; groupRunError = ''; luckYearTyped = {};

@@ -215,6 +215,26 @@ a{color:inherit;text-decoration:none}
 #result .check-line input[type=checkbox]{width:16px;height:16px;min-width:0;min-height:0;margin:0;padding:0;accent-color:var(--gold)}
 .check-line{display:inline-flex;align-items:center;gap:6px}
 .inline-control>label.check-line{flex-direction:row;align-items:center;min-height:38px;font-size:13px;color:var(--text2)}
+/* A checkbox written inside a plain form label (the report and consultation forms) sits before its words, at
+   the size of the other checkboxes, instead of stretching to the height of a text field. */
+.inline-control>label:not(.check-line):has(>input[type=checkbox]){flex-direction:row-reverse;justify-content:flex-end;align-items:center;gap:8px;min-height:38px;font-size:13px;color:var(--text2)}
+#result .inline-control>label>input[type=checkbox]{width:16px;height:16px;min-width:0;min-height:0;margin:0;padding:0;flex:none;accent-color:var(--gold)}
+/* The consultation's free-text fields dress like the other fields rather than as bare browser boxes. */
+#consult-question,.inline-control textarea{border:1px solid var(--border-strong);border-radius:6px;background:var(--panel2);color:var(--text);padding:8px 10px;line-height:1.6;resize:vertical}
+#consult-question{display:block;width:100%;min-height:86px;margin-top:6px}
+.inline-control textarea{width:min(100%,340px);min-height:60px}
+/* 择日的十二值日：可点的标签，选中的着色；排除一栏用红色。 */
+#scan-include,#scan-exclude{align-items:center}
+#scan-include .check-line,#scan-exclude .check-line{border:1px solid var(--border);border-radius:999px;padding:3px 11px 3px 8px;background:var(--panel2);color:var(--text2);font-size:13px;cursor:pointer}
+#scan-include .check-line:has(input:checked){border-color:var(--gold);background:var(--accent-soft);color:var(--gold2)}
+#scan-exclude .check-line:has(input:checked){border-color:var(--red);color:var(--red)}
+#scan-exclude .check-line input{accent-color:var(--red)}
+.consult-shortcuts>button.scan-run{color:var(--on-gold);background:var(--gold);border:0;border-radius:5px;padding:9px 16px;font-weight:600}
+.consult-shortcuts>button.scan-run:disabled{opacity:.6}
+.dayun-table tr.is-current td{background:var(--accent-soft)}
+.dayun-now{margin-left:8px;padding:1px 7px;border:1px solid var(--gold);border-radius:999px;font-size:12px;line-height:1.5;white-space:nowrap;color:var(--gold2)}
+.dayun-table td.nowrap{white-space:nowrap}
+.dayun-table td:last-child{min-width:6.5em}
 .consult-shortcuts{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:8px 0 16px}
 .consult-shortcuts .small-text{font-size:12px;color:var(--muted);width:100%}
 .consult-shortcuts button{white-space:normal;text-align:left}
@@ -915,6 +935,8 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .void-mark{position:static;display:block;width:max-content;margin:2px auto 0}
   .pillar-link-label{font-size:11px}
   .pillar{padding:12px 3px 10px}
+  .dayun-now{display:block;width:max-content;margin:3px 0 0}
+  .dayun-table{font-size:12px}.dayun-table th,.dayun-table td{padding-left:5px;padding-right:5px}.dayun-table td:last-child{min-width:5.5em}
   .pillar-badge{display:none}  /* the bracket ticks above land where it would sit; the god line and the gold frame still mark 日主 */
   .pillar-stem,.pillar-branch{font-size:30px}
   .hidden-stem{font-size:11px}

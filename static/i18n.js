@@ -218,7 +218,10 @@ function translateText(source) {
   if (!uiPhraseRe) return source;
   // Numeric dates read as 2026-10-11 / 10/11 in English; Japanese writes them the same way as Chinese.
   if (uiLang === 'en') source = source.replace(/(\d{4})年(\d{1,2})月(\d{1,2})日/g, (_, y, m, d) => `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`)
-    .replace(/(\d{1,2})月(\d{1,2})日/g, '$1/$2');
+    .replace(/(\d{1,2})月(\d{1,2})日/g, '$1/$2')
+    // Counted days and ages: 19.97 日 reads 19.97 days, 6岁 7月 reads 6 yr 7 mo.
+    .replace(/(\d+)岁 ?(\d+)个?月/g, '$1 yr $2 mo').replace(/(\d+)岁(?![㐀-鿿（(])/g, '$1 yr')
+    .replace(/(\d+(?:\.\d+)?) ?日(?![㐀-鿿])/g, (_, n) => n + (n === '1' ? ' day' : ' days'));
   const gap = uiLang === 'en' ? ' ' : '';
   // Composed text: replace each known phrase; English gets spaces between replaced words and Chinese.
   const out = source.replace(uiPhraseRe, (hit, offset, whole) => {
