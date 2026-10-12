@@ -358,13 +358,15 @@ def _iztro_js_values(row: dict, names) -> dict:
     """Branch of each named star, and the four twelve-god cycles per branch, from one iztro (JavaScript) chart."""
     where = {IZTRO_ALIASES.get(star, star): palace['branch'] for palace in row['palaces'] for star in palace['stars']}
     return {'other_stars': {name: where.get(name) for name in names},
-            'cycles': {palace['branch']: [palace[key] for _, key in CYCLE_KEYS] for palace in row['palaces']}}
+            'cycles': {palace['branch']: [palace[key] for _, key in CYCLE_KEYS] for palace in row['palaces']},
+            'brightness': {star: level for palace in row['palaces'] for star, level in palace['brightness'].items()}}
 
 
 def _xuanshu_other_values(birth: datetime, gender: str) -> dict:
     chart = calculate_ziwei(BirthInput(birth_datetime=birth.isoformat(timespec='minutes'), timezone='Asia/Shanghai', gender=gender))
     return {'other_stars': {name: branch for name, branch in chart['star_positions'].items() if name not in MAIN_STARS},
-            'cycles': {p['branch']: [p['natal_cycles'].get(key) for key, _ in CYCLE_KEYS] for p in chart['palaces']}}
+            'cycles': {p['branch']: [p['natal_cycles'].get(key) for key, _ in CYCLE_KEYS] for p in chart['palaces']},
+            'brightness': {star: level for p in chart['palaces'] for star, level in p['star_brightness'].items()}}
 
 
 def _sample_births(count: int, seed: int, late: bool) -> list[tuple[datetime, str]]:
@@ -408,10 +410,11 @@ def compare_ziwei(count: int, late_count: int) -> dict:
             ours = _xuanshu_other_values(birth, gender)
             theirs = _iztro_js_values(row, ours['other_stars'])
             example = {'birth': birth.isoformat(timespec='minutes'), 'gender': gender}
-            for key in ('other_stars', 'cycles'):
+            for key in ('other_stars', 'cycles', 'brightness'):
                 # Only the entries that differ go into the examples.
-                differ = [k for k in ours[key] if ours[key][k] != theirs[key][k]]
-                tally.check(key, {k: ours[key][k] for k in differ}, {k: theirs[key][k] for k in differ}, example)
+                differ = sorted(set(ours[key]) | set(theirs[key]), key=str)
+                differ = [k for k in differ if ours[key].get(k) != theirs[key].get(k)]
+                tally.check(key, {k: ours[key].get(k) for k in differ}, {k: theirs[key].get(k) for k in differ}, example)
             stars.update(name for name, branch in ours['other_stars'].items() if theirs['other_stars'][name] != branch)
         return tally.report(), {'star_count': len(ours['other_stars']), 'mismatching_stars': dict(stars.most_common())}
     main = _sample_births(count, 20261011, late=False)
@@ -638,8 +641,9 @@ def write_markdown(result: dict, path: Path) -> None:
         row('生年四化', total(zr, 'transformations')),
         row(f"其余 {ziwei['other_stars']['star_count']} 颗辅星、杂曜落宫（iztro）", total(zr, 'other_stars')),
         row('长生、博士、岁前、将前十二神（iztro）', total(zr, 'cycles')),
+        row('主星与昌曲、火铃、羊陀庙旺利陷（iztro）', total(zr, 'brightness')),
         '',
-        '前六项对照 iztro-py；辅星、杂曜与十二神对照 iztro 原版，每个出生的全部星曜或全部十二神都相同才算一致'
+        '前六项对照 iztro-py；辅星、杂曜、十二神与亮度对照 iztro 原版，每个出生的全部星曜、全部十二神或全部亮度都相同才算一致'
         + ('。' if not ziwei['other_stars']['mismatching_stars'] else
            '；不一致的星：' + '、'.join(f'{k} {v}' for k, v in ziwei['other_stars']['mismatching_stars'].items()) + '。'),
         '',
@@ -745,7 +749,7 @@ def summary(result: dict) -> dict:
         'ziwei': {'births': ziwei['sample']['births'],
                   'rows': [{'field': key, 'reference': 'iztro_py', **counts(ziwei['results'][key])}
                            for key in ('lunar', 'ming', 'shen', 'bureau', 'stars', 'transformations')]
-                  + [{'field': key, 'reference': 'iztro', **counts(ziwei['results'][key])} for key in ('other_stars', 'cycles')],
+                  + [{'field': key, 'reference': 'iztro', **counts(ziwei['results'][key])} for key in ('other_stars', 'cycles', 'brightness')],
                   'other_star_count': ziwei['other_stars']['star_count'],
                   'late_zi_births': late['births'],
                   'late_zi_same_day': counts(late['default_vs_iztro_same_day_zi']['stars']),

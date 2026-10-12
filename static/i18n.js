@@ -221,13 +221,15 @@ function translateText(source) {
     .replace(/(\d{1,2})月(\d{1,2})日/g, '$1/$2');
   const gap = uiLang === 'en' ? ' ' : '';
   // Composed text: replace each known phrase; English gets spaces between replaced words and Chinese.
-  return source.replace(uiPhraseRe, (hit, offset, whole) => {
+  const out = source.replace(uiPhraseRe, (hit, offset, whole) => {
     const target = uiPhraseMap[hit][uiLang].trim();
     const before = offset > 0 && /[^\s(（·:：,，、/]/.test(whole[offset - 1]) ? gap : '';
     const next = whole[offset + hit.length];
     const after = next && /[^\s)）·:：,，、。/]/.test(next) ? gap : '';
     return before + target + after;
   });
+  // English lists read "A, B; C" rather than keeping the Chinese enumeration comma and semicolon.
+  return uiLang === 'en' ? out.replace(/\s*、\s*/g, ', ').replace(/\s*；\s*/g, '; ') : out;
 }
 function skipNode(el) {
   return !el || el.closest('script,style,textarea,code,pre,.chat-text,.user-text,[data-no-i18n]') !== null;

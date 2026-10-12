@@ -271,6 +271,10 @@
             "铃星",
             "八座"
           ],
+          "star_brightness": {
+            "贪狼": "旺",
+            "铃星": "陷"
+          },
           "auxiliary_star_groups": {
             "original_selected": [],
             "additional_named": [
@@ -365,6 +369,10 @@
             "破碎",
             "天使"
           ],
+          "star_brightness": {
+            "天同": "不",
+            "巨门": "不"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "地劫",
@@ -473,6 +481,10 @@
             "三台",
             "天厨"
           ],
+          "star_brightness": {
+            "武曲": "得",
+            "天相": "庙"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "天马"
@@ -577,6 +589,10 @@
           "auxiliary_stars": [
             "天刑"
           ],
+          "star_brightness": {
+            "太阳": "庙",
+            "天梁": "庙"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "天刑"
@@ -675,6 +691,10 @@
             "封诰",
             "华盖"
           ],
+          "star_brightness": {
+            "七杀": "庙",
+            "火星": "陷"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "右弼"
@@ -769,6 +789,9 @@
             "天空",
             "孤辰"
           ],
+          "star_brightness": {
+            "天机": "平"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "天喜"
@@ -862,6 +885,10 @@
             "凤阁",
             "蜚廉"
           ],
+          "star_brightness": {
+            "紫微": "庙",
+            "文曲": "陷"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "文曲",
@@ -953,6 +980,9 @@
             "天钺",
             "天姚"
           ],
+          "star_brightness": {
+            "陀罗": "庙"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "陀罗",
@@ -1046,6 +1076,10 @@
             "龙池",
             "台辅"
           ],
+          "star_brightness": {
+            "破军": "得",
+            "文昌": "得"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "文昌",
@@ -1139,6 +1173,9 @@
             "咸池",
             "天贵"
           ],
+          "star_brightness": {
+            "擎羊": "陷"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "地空",
@@ -1234,6 +1271,10 @@
             "天虚",
             "天才"
           ],
+          "star_brightness": {
+            "廉贞": "利",
+            "天府": "庙"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "左辅"
@@ -1328,6 +1369,9 @@
             "恩光",
             "天伤"
           ],
+          "star_brightness": {
+            "太阴": "庙"
+          },
           "auxiliary_star_groups": {
             "original_selected": [
               "红鸾"
@@ -1518,7 +1562,8 @@
         "year_boundary": "农历正月初一",
         "late_zi_day_rollover_in_ziwei": false,
         "leap_month_second_half_as_next": true,
-        "star_coverage": "14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派与流曜",
+        "star_coverage": "14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派",
+        "brightness_table": "庙旺得利平不陷，十四主星与文昌、文曲、火星、铃星、擎羊、陀罗；用 iztro 公开的亮度表，其他流派的得、利、平可能不同",
         "additional_star_rules": "iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导",
         "ming_master_basis": "本命命宫地支（与公开示例相符）；其他流派可能用生年地支",
         "shen_master_basis": "出生年地支",

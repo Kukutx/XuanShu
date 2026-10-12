@@ -19,7 +19,7 @@ from .astronomy import chinese_lunar_date, from_jd, solar_term_jd, solar_month_o
 
 from .reference import (HIDDEN_STEMS, NAYIN_NAMES, FOUR_TRANSFORMATIONS, FOUR_TYPES, TRANSFORMATION_SCHOOL, BRANCH_HARMONY, BRANCH_CLASH, BRANCH_HARM, BRANCH_PUNISH)
 from .timebasis import time_basis
-from .ziwei_extensions import (adjunct_stars, cycle_positions, nominal_small_limit_ages,
+from .ziwei_extensions import (BRIGHTNESS, adjunct_stars, cycle_positions, nominal_small_limit_ages,
                                LIFEMASTER_BY_BRANCH, BODYMASTER_BY_YEAR_BRANCH)
 
 STEMS = tuple('甲乙丙丁戊己庚辛壬癸')
@@ -337,6 +337,8 @@ def calculate_ziwei(inp: BirthInput) -> dict:
             'is_shen': branch == shen,
             'main_stars': [name for name, idx in stars.items() if idx == branch and name in dict(ZIWEI_STARS + TIANFU_STARS)],
             'auxiliary_stars': [name for name, idx in stars.items() if idx == branch and name not in dict(ZIWEI_STARS + TIANFU_STARS)],
+            'star_brightness': {name: BRIGHTNESS[name][branch] for name, idx in stars.items()
+                                if idx == branch and name in BRIGHTNESS and BRIGHTNESS[name][branch]},
             'auxiliary_star_groups': {
                 'original_selected': [name for name in legacy_auxiliary if stars[name] == branch],
                 'additional_named': [name for name in adjectives if stars[name] == branch],
@@ -374,7 +376,8 @@ def calculate_ziwei(inp: BirthInput) -> dict:
             'year_boundary': '农历正月初一',
             'late_zi_day_rollover_in_ziwei': inp.late_zi_day_rollover,
             'leap_month_second_half_as_next': inp.leap_month_second_half_as_next,
-            'star_coverage': '14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派与流曜',
+            'star_coverage': '14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派',
+            'brightness_table': '庙旺得利平不陷，十四主星与文昌、文曲、火星、铃星、擎羊、陀罗；用 iztro 公开的亮度表，其他流派的得、利、平可能不同',
             'additional_star_rules': 'iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导',
             'ming_master_basis': '本命命宫地支（与公开示例相符）；其他流派可能用生年地支',
             'shen_master_basis': '出生年地支',

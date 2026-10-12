@@ -11,6 +11,7 @@ Usage: python scripts/browser_smoke.py [--chromium /usr/bin/chromium]
 from __future__ import annotations
 
 import argparse
+import json
 import re
 from pathlib import Path
 import sys
@@ -274,6 +275,12 @@ def main() -> None:
             # Zi Wei time layers relabel the board; focus stays on the control that was used.
             page.locator('[data-tab="ziwei"]').click()
             assert page.locator('.palace-layer').count() == 0
+            # Star brightness: one mark per star the engine grades, 紫微 庙 in 午, and the palace panel repeats it.
+            bright = page.evaluate('''() => ({
+              shown: [...document.querySelectorAll('#ziwei-board .bright')].map(el => el.parentElement.firstChild.data + el.dataset.level + '@' + el.closest('.palace').id).sort(),
+              api: current.ziwei.palaces.flatMap((p, i) => Object.entries(p.star_brightness).map(([star, level]) => star + level + '@palace-' + i)).sort()})''')
+            assert bright['shown'] == bright['api'] and len(bright['api']) >= 14, bright
+            assert '紫微庙@palace-6' in bright['shown'] and '主星：紫微（庙）' in page.locator('.palace-panel').inner_text()
             page.locator('#ziwei-layer-decade').click()
             assert page.locator('.palace-layer').count() == 12
             assert page.locator('.palace.layer-anchor').count() == 1
@@ -343,7 +350,7 @@ def main() -> None:
             # Calculation cross-check: the committed evaluation summary in a dialog.
             page.locator('#crosscheck-open').click()
             page.locator('#crosscheck-differences li').first.wait_for(timeout=30000)
-            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 36
+            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 37
             assert '100.000%' in page.locator('#crosscheck-dialog').inner_text()
             page.locator('#crosscheck-dialog').screenshot(path=str(screenshot_dir / '38-crosscheck.png'))
             page.locator('#crosscheck-close').click()
@@ -570,6 +577,27 @@ def main() -> None:
             page.locator('#ui-language').select_option('zh-CN')
             assert page.locator('[data-tab="calendar"]').inner_text() == '历法日历'
             assert page.get_by_text('紫微宫位叠盘', exact=True).count() == 1
+            # Each language draws its own short brightness form; the tooltip explains it.
+            page.locator('[data-tab="ziwei"]').click()
+            page.locator('#ziwei-board .bright').first.wait_for(timeout=30000)
+            level = "[...document.querySelectorAll('#ziwei-board .bright')].map(el => el.dataset.level + getComputedStyle(el, '::after').content).join(' ')"
+            english = {'庙': 'Peak', '旺': 'High', '得': 'Good', '利': 'Fair', '平': 'Even', '不': 'Low', '陷': 'Fall'}
+            marks = page.evaluate(level).split(' ')
+            assert all(mark[1:] == f'"{mark[0]}"' for mark in marks), marks
+            page.locator('#ui-language').select_option('en')
+            expected = ' '.join(f'{mark[0]}"{english[mark[0]]}"' for mark in marks)
+            page.wait_for_function(f"() => {level} === {json.dumps(expected)}", timeout=10000)
+            first = page.locator('#ziwei-board .bright').first
+            assert first.get_attribute('title').startswith('Brightness: ' + english[first.get_attribute('data-level')])
+            panel = page.locator('.palace-panel').inner_text()
+            selected_levels = page.evaluate("() => {const p = findPalace(current.ziwei, selectedPalace); return p.main_stars.map(s => p.star_brightness[s]);}")
+            assert all(f'({english[x]})' in panel for x in selected_levels) and not re.search('（[庙旺得利平不陷]）', panel), panel[:300]
+            assert '、' not in panel and '；' not in panel, panel[:300]
+            page.screenshot(path=str(screenshot_dir / '41-ziwei-brightness-english.png'), full_page=True)
+            page.locator('#ui-language').select_option('ja')
+            page.wait_for_function(f"() => {level} === {json.dumps(' '.join(m[0] + (chr(34) + '廟' + chr(34) if m[0] == '庙' else chr(34) + '陥' + chr(34) if m[0] == '陷' else m[1:]) for m in marks))}", timeout=10000)
+            page.locator('#ui-language').select_option('zh-CN')
+            page.wait_for_function(f"() => {level} === {json.dumps(' '.join(marks))}", timeout=10000)
             if errors:
                 raise AssertionError(f'Chromium page errors: {errors}')
             if counts['requests'] < 15:

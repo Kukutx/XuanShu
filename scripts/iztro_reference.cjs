@@ -1,6 +1,6 @@
 // Reference charts from iztro (the original JavaScript library) for scripts/eval_crosscheck.py.
 // Reads JSON lines {date: 'YYYY-M-D', hour: 0-12, gender: '男'|'女', target?: 'YYYY-M-D', target_hour?: 0-12}
-// on stdin and writes one JSON line per query: every palace's stars and twelve gods, and, with a
+// on stdin and writes one JSON line per query: every palace's stars, their brightness and twelve gods, and, with a
 // target, each period layer's stem, branch and period stars (流耀). Install the pinned version with
 // `npm install --prefix docs/evals`; eval_crosscheck.py points NODE_PATH at docs/evals/node_modules.
 const { astro } = require('iztro');
@@ -11,6 +11,7 @@ const rows = require('fs').readFileSync(0, 'utf8').split('\n').filter(Boolean).m
   const chart = astro.bySolar(q.date, q.hour, q.gender, true, 'zh-CN');
   const row = {palaces: chart.palaces.map(p => ({
     branch: p.earthlyBranch, stars: [...p.majorStars, ...p.minorStars, ...p.adjectiveStars].map(s => s.name),
+    brightness: Object.fromEntries([...p.majorStars, ...p.minorStars].filter(s => s.brightness).map(s => [s.name, s.brightness])),
     changsheng: p.changsheng12, boshi: p.boshi12, suiqian: p.suiqian12, jiangqian: p.jiangqian12,
   }))};
   if (q.target) {

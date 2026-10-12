@@ -47,8 +47,8 @@ def test_committed_report_matches_its_data():
     assert all(item['mismatches'] == 0 for item in late['rollover_vs_iztro_late_zi'].values())
     assert late['rollover_vs_iztro_late_zi']['stars']['checked'] + late['iztro_keeps_month']['births'] == late['births']
     assert set(data['references']) == {'sxtwl', 'lunar_python', 'lunardate', 'ephem', 'iztro_py', 'pyswisseph', 'iztro'}
-    # Every other star and the four twelve-god cycles agree with iztro itself.
-    assert data['ziwei']['results']['other_stars']['mismatches'] == 0 and data['ziwei']['results']['cycles']['mismatches'] == 0
+    # Every other star, the four twelve-god cycles and every star's brightness agree with iztro itself.
+    assert all(data['ziwei']['results'][key]['mismatches'] == 0 for key in ('other_stars', 'cycles', 'brightness'))
     assert data['ziwei']['other_stars'] == {'star_count': 44, 'mismatching_stars': {}}
     # The page summary is written from the same run.
     page = json.loads((ROOT / 'static/crosscheck-summary.json').read_text(encoding='utf-8'))
@@ -59,7 +59,7 @@ def test_committed_report_matches_its_data():
     assert [d['first'] for d in page['differences']] == [d['first'] for d in days['lunar_month_differences']]
     assert all(d['cause'] in {'forecast', 'old_almanac', 'table'} for d in page['differences'])
     assert [fix['cause'] for fix in page['fixes']] == ['beijing_meridian', 'ziwei_star_tables']
-    assert len(page['daily']) + len(page['ziwei']['rows']) == 18
+    assert len(page['daily']) + len(page['ziwei']['rows']) == 19
     assert page['ziwei']['late_zi_month_kept'] == late['iztro_keeps_month']['births']
     # Period layers: every difference from iztro falls in a month where lunar_python's calendar differs.
     horoscope = data['horoscope']
@@ -75,6 +75,7 @@ def test_committed_report_matches_its_data():
     assert [(row['field'], row['mismatches']) for row in page['horoscope']['rows']] == [
         (key, horoscope['results'][key]['mismatches']) for key in ('decade', 'small_limit', 'year', 'month', 'day', 'hour')]
     assert [row['field'] for row in page['horoscope']['flow_rows']] == ['flow_decade', 'flow_year', 'flow_month', 'flow_day', 'flow_hour', 'year_twelve']
+    assert '| 主星与昌曲、火铃、羊陀庙旺利陷（iztro） | 3,000 | 0 | 100.000% |' in readme
     assert '## 紫微运限对照 iztro' in readme and '| 流年流曜（流魁至流喜、年解） | 1,000 | 0 |' in readme
     app_js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     assert "fetch('/static/crosscheck-summary.json')" in app_js and 'id="crosscheck-open"' in (ROOT / 'static/index.html').read_text(encoding='utf-8')

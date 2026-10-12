@@ -474,8 +474,8 @@ function renderPalacePanel(parent, palace, layer) {
     if (layer.flow) append(block, 'p', 'layer-line', `${LAYER_NAMES[layer.mode]}流曜：` + (flow.join('、') || '—'));
     if (layer.twelve) append(block, 'p', 'layer-line', `流年岁前：${layer.twelve[index][0]}；流年将前：${layer.twelve[index][1]}`);
   }
-  append(block, 'p', null, '主星：' + (palace.main_stars.join('、') || '空宫（未安十四主星）'));
-  append(block, 'p', null, '辅星：' + (palace.auxiliary_stars.join('、') || '—'));
+  append(block, 'p', null, '主星：' + (palace.main_stars.map(star => withBrightness(palace, star)).join('、') || '空宫（未安十四主星）'));
+  append(block, 'p', null, '辅星：' + (palace.auxiliary_stars.map(star => withBrightness(palace, star)).join('、') || '—'));
   append(block, 'p', null, '生年四化：' + (palace.birth_year_transformations.map(t => `${t.star}${t.type}`).join('、') || '此宫无生年四化标记'));
   append(block, 'p', null, '宫干飞化：' + palace.palace_flying_transformations.map(t => `${t.star}${t.type}→${t.target_palace}${t.self_transform ? '（自化）' : ''}`).join('；'));
   if (palace.three_harmonies_and_opposite) {
@@ -494,6 +494,20 @@ function huaBadge(parent, type, layer) {
   const badge = append(parent, 'span', 'hua hua-' + (HUA_CLASS[type] || 'lu') + (layer ? ' layer' : ''), prefix + type.replace('化', ''));
   badge.title = (layer ? LAYER_NAMES[layer] : '生年') + type;
   return badge;
+}
+// Star brightness 庙旺得利平不陷 after the star name. The level is drawn by CSS from data-level, so each
+// language shows its own short form (平 alone already means a day officer elsewhere in the interface).
+const BRIGHT_LEVELS = '庙旺得利平不陷';
+const BRIGHT_CLASS = Object.fromEntries([...BRIGHT_LEVELS].map((level, i) => [level, ['miao', 'wang', 'de', 'li', 'ping', 'bu', 'xian'][i]]));
+function brightMark(parent, level) {
+  if (!BRIGHT_CLASS[level]) return null;
+  const mark = append(parent, 'span', 'bright bright-' + BRIGHT_CLASS[level]);
+  mark.dataset.level = level; mark.title = '亮度：' + level;
+  return mark;
+}
+function withBrightness(palace, star) {
+  const level = (palace.star_brightness || {})[star];
+  return level ? `${star}（${level}）` : star;
 }
 // Grid cell (row, column) of each palace index on the traditional 4×4 board.
 const ZIWEI_CELLS = {5:[1,1], 6:[1,2], 7:[1,3], 8:[1,4], 4:[2,1], 9:[2,4], 3:[3,1], 10:[3,4], 2:[4,1], 1:[4,2], 0:[4,3], 11:[4,4]};
@@ -746,8 +760,10 @@ function renderZiwei(z) {
     const layerHua = star => {if (live) live.hua.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type, live.mode));};
     const stars = append(node, 'div', 'star-primary');
     if (!p.main_stars.length) append(stars, 'span', 'star', '—');
+    const bright = p.star_brightness || {};
     p.main_stars.forEach(star => {
       holders[star] = append(stars, 'span', 'star', star);
+      brightMark(holders[star], bright[star]);
       p.birth_year_transformations.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type));
       layerHua(star);
     });
@@ -755,6 +771,7 @@ function renderZiwei(z) {
     p.auxiliary_stars.forEach((star, i) => {
       if (i) aux.append(' · ');
       holders[star] = append(aux, 'span', 'star', star);
+      brightMark(holders[star], bright[star]);
       p.birth_year_transformations.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type));
       layerHua(star);
     });
@@ -795,11 +812,13 @@ function renderZiwei(z) {
   const legend = append(result, 'div', 'hua-legend');
   ['化禄', '化权', '化科', '化忌'].forEach(type => {const s = append(legend, 'span'); huaBadge(s, type); s.append(' ' + type);});
   if (live) {const s = append(legend, 'span'); huaBadge(s, '化禄', live.mode); s.append(' 描边：' + LAYER_NAMES[live.mode] + '四化');}
+  const brightLegend = append(legend, 'span', 'bright-legend');
+  brightMark(brightLegend, BRIGHT_LEVELS[0]); append(brightLegend, 'span', null, '亮度：庙旺得利平不陷，由强到弱');
   const tri = append(legend, 'span', 'legend-lines', '虚线：所选宫位的三方；实线：对宫');
   tri.style.marginLeft = 'auto';
   renderPalacePanel(result, selected, live);
   if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。');
-  note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。`);
+  note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）、主星与昌曲火铃羊陀的庙旺利陷、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。`);
 }
 function renderTransform(z) {
   title(result, '生年四化 / 宫干飞化', '《全书》系公开十干四化表 · 流派差异需核对');
@@ -2812,10 +2831,13 @@ function drawShareCard(canvas) {
   if (ziwei) {
     text(T('紫微斗数'), PAD, y + 34, 28, token('--gold2'), sans, 'left', '600');
     const ming = z.palaces.find(p => p.is_ming), shen = z.palaces.find(p => p.is_shen);
-    const stars = list => list.map(T).join(' ') || T('空宫');
+    const stars = palace => palace.main_stars.map(star => {
+      const level = (palace.star_brightness || {})[star];
+      return T(star) + (level ? T('（' + level + '）') : '');
+    }).join(' ') || T('空宫');
     const rows = [
-      [T('命宫'), ming.stem + ming.branch + '  ' + stars(ming.main_stars)],
-      [T('身宫'), shen.stem + shen.branch + '  ' + T(shen.name) + '  ' + stars(shen.main_stars)],
+      [T('命宫'), ming.stem + ming.branch + '  ' + stars(ming)],
+      [T('身宫'), shen.stem + shen.branch + '  ' + T(shen.name) + '  ' + stars(shen)],
       [T('生年四化'), z.birth_year_transformations.map(t => T(t.star) + ' ' + T(t.type))],
       [T('五行局'), T(z.five_elements_bureau) + '  ·  ' + b.day_master + ' ' + T('日主')],
     ];
@@ -2878,7 +2900,7 @@ $('#share-card').addEventListener('click', openShareCard);
 const CROSSCHECK_FIELDS = {lunar: '农历日期', day: '日柱', year: '年柱', month: '月柱', hour: '时柱',
   jie_month: '交节前后月柱', jie_year: '立春前后年柱', solar_terms: '节气时刻', moon_phases: '月相时刻',
   ming: '命宫', shen: '身宫', bureau: '五行局', stars: '十四主星落宫', transformations: '生年四化',
-  other_stars: '其余辅星、杂曜落宫', cycles: '长生、博士、岁前、将前十二神'};
+  other_stars: '其余辅星、杂曜落宫', cycles: '长生、博士、岁前、将前十二神', brightness: '主星与昌曲、火铃、羊陀庙旺利陷'};
 const CROSSCHECK_FLOW_FIELDS = {flow_decade: '大限流曜', flow_year: '流年流曜（含年解）', flow_month: '流月流曜',
   flow_day: '流日流曜', flow_hour: '流时流曜', year_twelve: '流年岁前、将前十二神'};
 const CROSSCHECK_CAUSES = {

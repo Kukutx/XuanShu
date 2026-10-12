@@ -1,6 +1,6 @@
 """Structural Zi Wei extension checks; not an external professional chart certification."""
-from app.engines import BirthInput, calculate_ziwei
-from app.ziwei_extensions import CHANGSHENG, BOSHI, JIANGQIAN, SUIQIAN, adjunct_stars
+from app.engines import LUCUN_BY_STEM, BirthInput, calculate_ziwei
+from app.ziwei_extensions import BOSHI, BRIGHTNESS, BRIGHTNESS_LEVELS, CHANGSHENG, JIANGQIAN, SUIQIAN, adjunct_stars
 
 
 def test_named_stars_and_natal_cycles_complete():
@@ -88,3 +88,34 @@ def test_star_tables_found_by_the_iztro_crosscheck():
     assert (xin['天魁'], xin['天钺']) == ('午', '寅')
     yin_hour = calculate_ziwei(BirthInput(birth_datetime='1988-02-08T04:25', gender='male'))['star_positions']
     assert yin_hour['封诰'] == '辰' and yin_hour['台辅'] == '申'
+
+
+def brightness(chart: dict) -> dict:
+    return {p['branch']: p['star_brightness'] for p in chart['palaces'] if p['star_brightness']}
+
+
+def test_star_brightness_matches_iztro_reference():
+    # iztro 2.6.1 (JavaScript): astro.bySolar('2000-8-16', 2, '女') and astro.bySolar('1981-12-18', 7, '男').
+    chart = calculate_ziwei(BirthInput(birth_datetime='2000-08-16T04:00', gender='female'))
+    assert brightness(chart) == {
+        '子': {'贪狼': '旺', '铃星': '陷'}, '丑': {'天同': '不', '巨门': '不'}, '寅': {'武曲': '得', '天相': '庙'},
+        '卯': {'太阳': '庙', '天梁': '庙'}, '辰': {'七杀': '庙', '火星': '陷'}, '巳': {'天机': '平'},
+        '午': {'紫微': '庙', '文曲': '陷'}, '未': {'陀罗': '庙'}, '申': {'破军': '得', '文昌': '得'},
+        '酉': {'擎羊': '陷'}, '戌': {'廉贞': '利', '天府': '庙'}, '亥': {'太阴': '庙'}}
+    other = calculate_ziwei(BirthInput(birth_datetime='1981-12-18T13:09', gender='male'))
+    assert brightness(other)['子'] == {'紫微': '平'} and brightness(other)['戌'] == {'七杀': '庙', '擎羊': '庙', '火星': '庙'}
+    # Every main star has a level wherever it sits; stars without a published table have none.
+    for palace in chart['palaces']:
+        assert set(palace['main_stars']) <= set(palace['star_brightness'])
+        assert set(palace['star_brightness']) <= set(BRIGHTNESS)
+    assert '左辅' not in {star for p in chart['palaces'] for star in p['star_brightness']}
+
+
+def test_brightness_table_covers_every_branch_a_star_can_take():
+    assert all(len(levels) == 12 for levels in BRIGHTNESS.values())
+    assert {level for levels in BRIGHTNESS.values() for level in levels} == set(BRIGHTNESS_LEVELS) | {None}
+    # 擎羊 and 陀罗 sit beside 禄存, which never takes 辰戌丑未, so each of them misses four branches.
+    yang = {(lucun + 1) % 12 for lucun in LUCUN_BY_STEM}
+    tuo = {(lucun - 1) % 12 for lucun in LUCUN_BY_STEM}
+    assert {b for b in range(12) if BRIGHTNESS['擎羊'][b]} == yang and {b for b in range(12) if BRIGHTNESS['陀罗'][b]} == tuo
+    assert all(None not in levels for star, levels in BRIGHTNESS.items() if star not in ('擎羊', '陀罗'))
