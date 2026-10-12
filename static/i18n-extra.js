@@ -2890,6 +2890,10 @@ const UI_EXTRA = {
 "four-transformations flying-transformation year-stem",
 "四化 飛化 年干"
 ],
+"四化叠加：": [
+"Stacked transformations:",
+"四化の重なり："
+],
 "四化是星曜的传统标识，不是新增星曜；宫干飞化仅列出四化星所在宫，尚未实施完整飞星断法。": [
 "The Four Transformations are traditional markers on stars, not additional stars; palace-stem flying transformations only list the palaces holding the transformed stars, and full flying-star interpretation is not yet implemented.",
 "四化は星曜の伝統的な標識であり、新たな星曜ではありません。宮干飛化は四化星の所在宮を列挙するのみで、完全な飛星の判断法はまだ実装していません。"
@@ -3265,6 +3269,10 @@ const UI_EXTRA = {
 "大限、流年、流月、流日、流时各按本层干支安魁钺昌曲禄羊陀马鸾喜，字头分别为运、流、月、日、时；流年另安年解与岁前、将前十二神；小限不安流曜": [
 "Decade, year, month, day and hour layers each place Kui, Yue, Chang, Qu, Lu, Yang, Tuo, Ma, Luan and Xi from the layer's stem and branch, prefixed 运, 流, 月, 日 and 时; the year adds Nian Jie and the Sui-qian and Jiang-qian twelve spirits; the small limit has no period stars",
 "大限・流年・流月・流日・流時はそれぞれの干支で魁・鉞・昌・曲・禄・羊・陀・馬・鸞・喜を配し、頭字は運・流・月・日・時；流年は年解と歳前・将前十二神も配置；小限には流曜なし"
+],
+"大限从命宫起，需要出生时辰；时辰不详时无法确定。": [
+"The decade starts from the Life palace and needs the birth hour; with the hour unknown it cannot be set.",
+"大限は命宮から起こすため出生時刻が必要です。時刻不明では決められません。"
 ],
 "大限流曜": [
 "Decade period stars",
@@ -6429,6 +6437,10 @@ const UI_EXTRA = {
 "生年": [
 "Birth-year ",
 "生年"
+],
+"生年与各层四化没有两项落在同一颗星": [
+"no star carries two of the birth-year and layer transformations",
+"生年と各層の四化が同じ星に二つ重なっていない"
 ],
 "生年四化": [
 "Birth-year transformations",

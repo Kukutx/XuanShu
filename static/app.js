@@ -463,13 +463,48 @@ function renderBazi(b) {
   note(result, '藏干顺序为传统本气、中气、余气；计数仅统计明干和地支本气，不判断喜忌、旺衰与命运。颜色只标示五行归属。');
 }
 function findPalace(z, name) {return z.palaces.find(item => item.name === name) || z.palaces.find(item => item.is_ming);}
-function renderPalacePanel(parent, palace, layer) {
+// Transformations listed in the palace panel. On the Zi Wei board each one is a button: pointing at it or focusing it
+// brings out its curve and the two palaces it joins, and a click keeps it highlighted.
+let flyPinned = null;
+function flyHighlight(focus) {
+  const board = document.getElementById('ziwei-board');
+  if (!board) return;
+  board.classList.toggle('fly-focus', Boolean(focus));
+  board.querySelectorAll('.ziwei-lines path.fly').forEach(p => p.classList.toggle('is-hot', Boolean(focus) && p.dataset.key === focus.key));
+  board.querySelectorAll('.palace').forEach(n => n.classList.toggle('fly-end', Boolean(focus) && [focus.from, focus.to].includes(n.id)));
+}
+function flyList(block, cls, label, items, interactive) {
+  const line = append(block, 'p', cls);
+  if (!interactive || !items.length) {line.textContent = label + (items.map(x => x.text).join('；') || '—'); return line;}
+  line.append(label);
+  const list = append(line, 'span', 'fly-list');
+  items.forEach(x => {
+    const focus = {key: x.key, from: 'palace-' + x.from, to: 'palace-' + x.to};
+    const item = append(list, 'button', 'fly-item fly-tone-' + (HUA_CLASS[x.type] || 'lu'), x.text); item.type = 'button';
+    item.dataset.key = x.key; item.setAttribute('aria-pressed', String(Boolean(flyPinned) && flyPinned.key === x.key));
+    item.addEventListener('pointerenter', () => flyHighlight(focus));
+    item.addEventListener('focus', () => flyHighlight(focus));
+    item.addEventListener('pointerleave', () => flyHighlight(flyPinned));
+    item.addEventListener('blur', () => flyHighlight(flyPinned));
+    item.addEventListener('click', () => {
+      flyPinned = flyPinned && flyPinned.key === x.key ? null : {...focus, palace: selectedPalace, mode: ziweiLayer.mode};
+      block.querySelectorAll('.fly-item').forEach(b => b.setAttribute('aria-pressed', String(Boolean(flyPinned) && b.dataset.key === flyPinned.key)));
+      flyHighlight(flyPinned || focus);
+    });
+  });
+  return line;
+}
+function renderPalacePanel(parent, palace, layer, interactive = false) {
   const block = append(parent, 'div', 'palace-panel');
   append(block, 'h4', null, `${palace.name} · ${palace.stem}${palace.branch}`);
+  const z = current && current.ziwei, index = currentPalaceIndex(palace);
+  const at = name => z ? z.palaces.findIndex(p => p.name === name) : -1;
   if (layer) {
     append(block, 'p', 'layer-line', `${layer.label}：本宫为${LAYER_NAMES[layer.mode]}${layer.layerName(currentPalaceIndex(palace))}`);
-    append(block, 'p', 'layer-line', `${LAYER_NAMES[layer.mode]}四化（${layer.stem}干）：` + layer.hua.map(t => `${t.star}${t.type}→${t.target_palace}`).join('；'));
-    const index = currentPalaceIndex(palace);
+    // When the layer's curves coincide with this palace's own, they are drawn once, under the palace's keys.
+    const own = z && !layerFlying(z, palace, layer) && palace.name === z.palaces[layer.anchor].name;
+    flyList(block, 'layer-line', `${LAYER_NAMES[layer.mode]}四化（${layer.stem}干）：`, layer.hua.map(t => ({text: `${t.star}${t.type}→${t.target_palace}`,
+      key: (own ? 'out|' : 'layer|') + t.star + t.type, from: layer.anchor, to: at(t.target_palace), type: t.type})), interactive);
     const flow = (layer.flow || []).filter(f => f.index === index).map(f => f.name);
     if (layer.flow) append(block, 'p', 'layer-line', `${LAYER_NAMES[layer.mode]}流曜：` + (flow.join('、') || '—'));
     if (layer.twelve) append(block, 'p', 'layer-line', `流年岁前：${layer.twelve[index][0]}；流年将前：${layer.twelve[index][1]}`);
@@ -477,11 +512,14 @@ function renderPalacePanel(parent, palace, layer) {
   append(block, 'p', null, '主星：' + (palace.main_stars.map(star => withBrightness(palace, star)).join('、') || '空宫（未安十四主星）'));
   append(block, 'p', null, '辅星：' + (palace.auxiliary_stars.map(star => withBrightness(palace, star)).join('、') || '—'));
   append(block, 'p', null, '生年四化：' + (palace.birth_year_transformations.map(t => `${t.star}${t.type}`).join('、') || '此宫无生年四化标记'));
-  append(block, 'p', null, '宫干飞化：' + palace.palace_flying_transformations.map(t => `${t.star}${t.type}→${t.target_palace}${t.self_transform ? '（自化）' : ''}`).join('；'));
+  flyList(block, 'fly-out', '宫干飞化：', palace.palace_flying_transformations.map(t => ({text: `${t.star}${t.type}→${t.target_palace}${t.self_transform ? '（自化）' : ''}`,
+    key: 'out|' + t.star + t.type, from: index, to: at(t.target_palace), type: t.type})), interactive);
   // The reverse view: which other palaces' stems transform a star sitting here.
-  const incoming = current && current.ziwei ? current.ziwei.palaces.filter(p => p.name !== palace.name).flatMap(p =>
-    p.palace_flying_transformations.filter(t => t.target_palace === palace.name).map(t => `${p.name}（${p.stem}干）${t.star}${t.type}`)) : [];
-  append(block, 'p', 'fly-in', '飞入本宫：' + (incoming.join('；') || '无其他宫位的宫干四化飞入'));
+  const incoming = z ? z.palaces.filter(p => p.name !== palace.name).flatMap(p => p.palace_flying_transformations
+    .filter(t => t.target_palace === palace.name).map(t => ({text: `${p.name}（${p.stem}干）${t.star}${t.type}`,
+      key: `in|${p.name}|${t.star}${t.type}`, from: z.palaces.indexOf(p), to: index, type: t.type}))) : [];
+  if (incoming.length) flyList(block, 'fly-in', '飞入本宫：', incoming, interactive);
+  else append(block, 'p', 'fly-in', '飞入本宫：').append('无其他宫位的宫干四化飞入');
   if (palace.three_harmonies_and_opposite) {
     const link = palace.three_harmonies_and_opposite;
     append(block, 'p', null, '三方四正：' + link.trine.map(x => `${x.palace}·${x.branch}`).join('、') + '；对宫 ' + link.opposite.palace + '·' + link.opposite.branch);
@@ -542,7 +580,8 @@ function ziweiLines(board, z, selected, live) {
   targets.filter(x => x[1] === 'opposite').forEach(x => line(from, centre(x[0]), 'opposite'));
   // Stem transformations fly to the palaces holding those stars. Each curve bows towards the middle of the
   // board, so it shows between the cells, and ends at the edge of the target cell.
-  const curve = (startName, t, i, layer) => {
+  const curve = (startName, t, i, kind) => {
+    const layer = kind === 'layer';
     const start = centre(startName), to = centre(t.target_palace);
     if (!start || !to || t.target_palace === startName) return;  // a transformation in its own palace stays a badge
     const mid = [(start[0] + to[0]) / 2, (start[1] + to[1]) / 2];
@@ -557,15 +596,43 @@ function ziweiLines(board, z, selected, live) {
     const a = edge(start, control), b = edge(to, control);
     const path = document.createElementNS(svgNS, 'path');
     path.setAttribute('d', `M${a[0]} ${a[1]} Q${control[0]} ${control[1]} ${b[0]} ${b[1]}`);
-    path.setAttribute('class', 'fly fly-' + (HUA_CLASS[t.type] || 'lu') + (layer ? ' layer' : ''));
+    path.setAttribute('class', 'fly fly-' + (HUA_CLASS[t.type] || 'lu') + (kind === 'out' ? '' : ' ' + kind));
+    path.dataset.key = kind === 'in' ? `in|${startName}|${t.star}${t.type}` : `${kind}|${t.star}${t.type}`;
     svg.append(path);
   };
   if (showFlying) {
-    selected.palace_flying_transformations.forEach((t, i) => curve(selected.name, t, i, false));
+    selected.palace_flying_transformations.forEach((t, i) => curve(selected.name, t, i, 'out'));
     // On a time layer, that layer's four transformations start from the layer's Life palace, dotted.
-    if (layerFlying(z, selected, live)) live.hua.forEach((t, i) => curve(z.palaces[live.anchor].name, t, i, true));
+    if (layerFlying(z, selected, live)) live.hua.forEach((t, i) => curve(z.palaces[live.anchor].name, t, i, 'layer'));
+    // Transformations flying in from other palaces stay hidden until their entry in the palace panel is pointed at.
+    z.palaces.filter(p => p.name !== selected.name).forEach(p => p.palace_flying_transformations
+      .filter(t => t.target_palace === selected.name).forEach((t, i) => curve(p.name, t, i, 'in')));
   }
   board.prepend(svg);
+}
+// Stars that carry more than one transformation across the birth year and the layers in force that moment: the
+// decade inside a year, and the decade, year and month above a month or a day. Only the combination is listed.
+function huaOverlaps(z, live) {
+  const stemHua = stem => (z.palaces.find(p => p.stem === stem) || {palace_flying_transformations: []}).palace_flying_transformations;
+  const sets = [['生年', z.birth_year_transformations]];
+  if (live.mode === 'decade') sets.push(['大限', live.hua]);
+  else if (live.mode === 'year') {
+    // The decade needs the birth hour; with the hour unknown it is left out, as the decade layer itself is.
+    if (live.currentDecade && !currentHourUnknown) sets.push(['大限', stemHua(live.currentDecade.stem)]);
+    sets.push(['流年', live.hua]);
+  } else if (live.horoscope && live.horoscope.layers) {
+    const order = ['decade', 'year', 'month', 'day'];
+    order.slice(0, order.indexOf(live.mode) + 1).forEach(key => {
+      const item = live.horoscope.layers[key];
+      if (item && item.available) sets.push([LAYER_NAMES[key], item.transformations]);
+    });
+  }
+  const byStar = new Map();
+  sets.forEach(([label, list]) => list.forEach(t => {
+    if (!byStar.has(t.star)) byStar.set(t.star, []);
+    byStar.get(t.star).push(label + t.type);
+  }));
+  return [...byStar].filter(([, list]) => list.length > 1).map(([star, list]) => ({star, list}));
 }
 // The layer's own curves, unless they would repeat the selected palace's: the layer Life palace with the layer stem.
 function layerFlying(z, selected, live) {
@@ -656,6 +723,7 @@ function ziweiLayerInfo(z) {
       hua: stemOwner ? stemOwner.palace_flying_transformations : [], layerName: index => names[(at - index + 12) % 12]};
   }
   if (mode === 'decade') {
+    if (currentHourUnknown) return {mode, unavailable: '大限从命宫起，需要出生时辰；时辰不详时无法确定。'};
     if (!decades.length) return {mode, unavailable: '大限需要性别来定顺行或逆行，请在出生资料里选择性别后重新生成命盘。'};
     const start = ziweiLayer.decade !== null ? ziweiLayer.decade : (currentDecade || decades[0]).decade.start_age;
     const palace = decades.find(p => p.decade.start_age === start) || decades[0];
@@ -782,6 +850,7 @@ function renderZiwei(z) {
   renderZiweiLayerBar(z, layer);
   if (layer && layer.horoscope && !layer.pending) renderHoroscopeStack(layer.horoscope);
   const live = layer && !layer.unavailable ? layer : null;
+  const stacked = new Map(live ? huaOverlaps(z, live).map(o => [o.star, o.list]) : []);
   const selected = findPalace(z, selectedPalace);
   const related = new Set();
   if (selected.three_harmonies_and_opposite) {
@@ -810,7 +879,11 @@ function renderZiwei(z) {
       append(tag, 'span', null, LAYER_NAMES[live.mode]); tag.append('·'); append(tag, 'span', null, live.layerName(index).replace('宫', ''));
     }
     const holders = {};
-    const layerHua = star => {if (live) live.hua.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type, live.mode));};
+    const layerHua = star => {
+      if (!live) return;
+      live.hua.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type, live.mode));
+      if (stacked.has(star)) {holders[star].classList.add('hua-stack'); holders[star].title = '四化叠加：' + stacked.get(star).join('、');}
+    };
     const stars = append(node, 'div', 'star-primary');
     if (!p.main_stars.length) append(stars, 'span', 'star', '—');
     const bright = p.star_brightness || {};
@@ -887,8 +960,22 @@ function renderZiwei(z) {
   fly.setAttribute('aria-pressed', String(showFlying));
   fly.title = '彩色曲线：所选宫位的宫干四化飞入哪一宫';
   if (layerFlying(z, selected, live)) append(legend, 'span', 'legend-lines', '点线：' + LAYER_NAMES[live.mode] + '四化飞入的宫位');
-  fly.addEventListener('click', () => {showFlying = !showFlying; render();});
-  renderPalacePanel(result, selected, live);
+  fly.addEventListener('click', () => {showFlying = !showFlying; if (!showFlying) flyPinned = null; render();});
+  if (live) {
+    const line = append(result, 'p', 'hua-overlap');
+    append(line, 'span', 'hua-overlap-label', '四化叠加：');
+    const overlaps = huaOverlaps(z, live);
+    if (!overlaps.length) line.append('生年与各层四化没有两项落在同一颗星');
+    overlaps.forEach(o => {
+      const item = append(line, 'span', 'hua-overlap-item');
+      append(item, 'b', null, o.star); item.append('（' + o.list.join('、') + '）');
+    });
+  }
+  // A highlight kept from a click lasts while the same palace and layer stay selected.
+  if (flyPinned && (!showFlying || flyPinned.palace !== selected.name || flyPinned.mode !== ziweiLayer.mode)) flyPinned = null;
+  renderPalacePanel(result, selected, live, showFlying);  // with the curves hidden the entries are plain text
+  if (flyPinned && !result.querySelector('.fly-item[aria-pressed="true"]')) flyPinned = null;
+  flyHighlight(flyPinned);
   if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。');
   note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）、主星与昌曲火铃羊陀的庙旺利陷、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。`);
 }
