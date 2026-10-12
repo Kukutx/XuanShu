@@ -516,6 +516,12 @@ a{color:inherit;text-decoration:none}
 .luck-pair{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:19px;line-height:1.2}
 .luck-year.now{border-color:var(--gold)}
 .luck-cell:disabled{opacity:.45;cursor:not-allowed}
+.luck-cell .luck-stage{color:var(--text2)}
+.luck-marks{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:2px;max-width:100%}
+.luck-mark{font-size:11px;line-height:1.2;padding:0 3px;border:1px solid var(--link);border-radius:3px;color:var(--link);white-space:nowrap}
+.luck-mark.link-clash{border-style:dashed}
+.link-void{--link:var(--muted)}
+.luck-natal{font-size:12px;color:var(--text2);margin:-2px 0 8px;line-height:1.7}
 
 /* 四柱反查 and 导入核对 */
 .pillar-pickers select{min-width:84px;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:15px}
@@ -806,6 +812,21 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
 .layer-stack-row>b{min-width:2.5em;color:var(--gold2)}
 .layer-stack-row.active>b{text-decoration:underline;text-underline-offset:3px}
 .layer-stack-hua{display:inline-flex;flex-wrap:wrap;gap:2px 8px;align-items:center}
+.layer-table-box{border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin:14px 0 0;background:var(--panel2)}
+.layer-table-box summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;font-size:13px}
+.layer-table-box summary b{color:var(--gold2)}
+.layer-table-box .field-help{margin:8px 0}
+.layer-table{font-size:13px;background:var(--panel)}
+.layer-table th,.layer-table td{padding:7px 9px;white-space:nowrap}
+.layer-table thead th.active{color:var(--gold2);font-weight:700}
+.layer-table td.active{background:var(--accent-soft)}
+.layer-table th[scope="row"]{position:sticky;left:0;background:var(--panel);z-index:1}
+.layer-table tr.selected th[scope="row"],.layer-table tr.selected td{box-shadow:inset 0 1px 0 var(--gold),inset 0 -1px 0 var(--gold)}
+.layer-table-pick{font:inherit;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:14px;color:var(--gold2);background:none;border:1px solid transparent;border-radius:5px;padding:2px 6px;min-height:28px;cursor:pointer}
+.layer-table-pick:hover,.layer-table-pick[aria-pressed="true"]{border-color:var(--gold)}
+.layer-table td.layer-ming .layer-table-name{font-weight:700;color:var(--gold2);border-bottom:2px solid var(--gold)}
+.layer-table-hua{display:inline-flex;align-items:center;margin-left:6px;color:var(--text2)}
+.layer-table-box .tiny-button{margin-top:8px}
 /* 运限流曜: outlined in the layer colour, 禄 and 羊陀 picked out */
 .star-flow{display:flex;flex-wrap:wrap;gap:2px 4px;margin-top:4px}
 .flow-star{font-size:11px;line-height:1.2;padding:1px 3px;border:1px dashed var(--gold);border-radius:3px;color:var(--gold2);white-space:nowrap}

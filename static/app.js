@@ -364,18 +364,38 @@ const yearPillarOf = year => {const i = ((year - 1984) % 60 + 60) % 60; return S
 const stemClass = stem => elementClass(STEM_ELEMENTS[STEM_ORDER.indexOf(stem)]);
 const branchClass = branch => elementClass(BRANCH_ELEMENTS[BRANCH_ORDER.indexOf(branch)]);
 let luckData = null, luckKey = null, luckPending = false, luckDecade = null;
+const luckKeyNow = () => JSON.stringify([currentInput, currentHourUnknown]);
 function ensureLuck() {
-  const key = JSON.stringify(currentInput);
+  const key = luckKeyNow();
   if (luckKey === key || luckPending) return;
   luckPending = true;
-  postJSON('/api/dayun', {birth: currentInput, periods: 9}).then(data => {luckData = data;}).catch(() => {luckData = null;})
+  // Without the hour, relations with the (placeholder) hour pillar are left out.
+  postJSON('/api/dayun', {birth: currentInput, periods: 9, include_years: true, hour_unknown: currentHourUnknown})
+    .then(data => {luckData = data;}).catch(() => {luckData = null;})
     .finally(() => {luckPending = false; luckKey = key; luckDecade = null; if (active === 'bazi') render();});
+}
+// A luck or year pillar against the natal chart. In the cells, short marks in chart notation (冲月: clashes the
+// month branch; 合 刑 害 likewise, 同 for the same branch; 日空 年空 for the voids); the full text in the caption and title.
+function natalMarks(parent, n) {
+  const marks = n.branch_relations.flatMap(r => r.labels.map(l => [(l === '同支' ? l.charAt(0) : l.slice(-1)) + nameMap[r.pillar].charAt(0), LINK_CLASS[l] || 'same']))
+    .concat(n.void_of.map(v => [v === 'day' ? '日空' : '年空', 'void']));
+  if (!marks.length) return;
+  const line = append(parent, 'span', 'luck-marks'); line.setAttribute('data-no-i18n', '');
+  marks.forEach(([text, kind]) => append(line, 'span', 'luck-mark link-' + kind, text));
+}
+function natalText(n) {
+  const parts = ['星运 ' + n.growth_stage, '自坐 ' + n.self_stage, '纳音 ' + n.na_yin];
+  n.void_of.forEach(v => parts.push(v === 'day' ? '落日空' : '落年空'));
+  n.stem_relations.forEach(r => parts.push(nameMap[r.pillar] + r.stem + '：' + r.labels.map(l => l === '相冲' ? n.pillar[0] + r.stem + l : l).join('·')));
+  n.branch_relations.forEach(r => parts.push(nameMap[r.pillar] + r.branch + '：' + n.pillar[1] + r.branch + r.labels.join('·')));
+  n.branch_groups.forEach(g => parts.push(g.branches + (g.kind === '三合' ? '三合局' : '三会方') + '（' + g.element + '）'));
+  return parts.join(' · ');
 }
 function renderLuckStrip(parent, b) {
   const box = append(parent, 'section', 'luck');
   append(box, 'h4', 'subheading', '大运与流年');
   if (currentInput.gender === 'unspecified') {append(box, 'p', 'field-help', '在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。'); return;}
-  if (luckKey !== JSON.stringify(currentInput)) {ensureLuck(); append(box, 'p', 'field-help', '正在排大运…'); return;}
+  if (luckKey !== luckKeyNow()) {ensureLuck(); append(box, 'p', 'field-help', '正在排大运…'); return;}
   if (!luckData) {append(box, 'p', 'inline-msg', '大运暂时排不出来，可以在「大运干支」里单独计算。'); return;}
   // 虚龄 counts from the lunar birth year, which is the previous civil year for births before the new year.
   const birthYear = b.lunar_date.year, thisYear = new Date().getFullYear();
@@ -389,15 +409,19 @@ function renderLuckStrip(parent, b) {
     append(btn, 'small', 'luck-god', tenGodOf(b.day_master, d.pillar[0]));
     append(btn, 'b', 'luck-char ' + stemClass(d.pillar[0]), d.pillar[0]);
     append(btn, 'b', 'luck-char ' + branchClass(d.pillar[1]), d.pillar[1]);
+    if (d.natal_interactions) append(btn, 'small', 'luck-stage', d.natal_interactions.growth_stage);
     append(btn, 'small', null, d.from + '–' + (d.to - 1));
     const age = append(btn, 'small', 'luck-age'); age.append('起运'); age.append(' ' + Math.round(d.approx_start_age_years));
+    if (d.natal_interactions) {natalMarks(btn, d.natal_interactions); btn.title = natalText(d.natal_interactions);}
     btn.addEventListener('click', () => {luckDecade = i; render();});
   });
   const d = decades[luckDecade];
   append(box, 'p', 'luck-caption', `${d.pillar} 大运 · ${d.from}–${d.to - 1}`);
+  if (d.natal_interactions) append(box, 'p', 'luck-natal', natalText(d.natal_interactions));
   const years = append(box, 'div', 'luck-years');
+  const yearInfo = new Map((d.years || []).map(x => [x.year, x]));
   for (let y = d.from; y < d.to; y++) {
-    const pillar = yearPillarOf(y);
+    const pillar = yearPillarOf(y), info = yearInfo.get(y);
     const btn = append(years, 'button', 'luck-cell luck-year' + (y === thisYear ? ' now' : ''));
     btn.type = 'button'; btn.id = 'luck-year-' + y;
     const supported = y >= 1901 && y <= 2099;
@@ -407,6 +431,7 @@ function renderLuckStrip(parent, b) {
     append(chars, 'b', stemClass(pillar[0]), pillar[0]); append(chars, 'b', branchClass(pillar[1]), pillar[1]);
     append(btn, 'small', 'luck-god', tenGodOf(b.day_master, pillar[0]));
     const age = append(btn, 'small', 'luck-age'); age.append('虚龄'); age.append(' ' + (y - birthYear + 1));
+    if (info) {append(btn, 'small', 'luck-stage', info.growth_stage); natalMarks(btn, info); btn.title = y + ' ' + pillar + ' · ' + natalText(info) + ' · ' + btn.title;}
     if (!supported) {btn.disabled = true; continue;}
     btn.addEventListener('click', () => {
       ziweiLayer = {mode: 'year', decade: null, year: y, date: null};
@@ -414,7 +439,7 @@ function renderLuckStrip(parent, b) {
       announce('紫微盘已切到 ' + y + ' 年流年层');
     });
   }
-  append(box, 'p', 'field-help', '十神按日主看天干。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。');
+  append(box, 'p', 'field-help', '十神按日主看天干，下面的小字是日主在该支的星运。格子底部是与原局地支的关系：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空。所选大运的天干关系、三合三会写在上方一行，流年的写在悬停说明里。只列关系，不判断吉凶。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。');
 }
 // Relations between the four pillars as brackets from the centre of one pillar to the centre of another, stems above
 // the pillars and branches below; the shortest brackets sit next to the pillars. Every bracket carries its label.
@@ -831,6 +856,76 @@ function renderHoroscopeStack(h) {
     item.transformations.forEach(t => {const s = append(hua, 'span'); s.append(t.star); huaBadge(s, t.type, key);});
   });
 }
+// Every layer in force, side by side: what each layer calls each palace and which of its 四化 land there.
+// Month and day layers come from the horoscope engine; the decade and year layers from the chart itself.
+function layerColumns(z, live) {
+  const ming = z.palaces.findIndex(p => p.is_ming);
+  const names = Array.from({length: 12}, (_, k) => z.palaces[(ming - k + 12) % 12].name);
+  const hua = stem => {
+    const owner = z.palaces.find(p => p.stem === stem);  // a stem's 四化 do not depend on which palace carries it
+    return owner ? owner.palace_flying_transformations.map(t => ({type: t.type, star: t.star, index: BRANCH_ORDER.indexOf(t.target_branch)})) : [];
+  };
+  const layer = (key, anchor, stem) => ({key, label: LAYER_NAMES[key], anchor, name: index => names[(anchor - index + 12) % 12], hua: hua(stem)});
+  const columns = [{key: 'natal', label: '本命', anchor: ming, name: index => z.palaces[index].name,
+    hua: z.palaces.flatMap((p, index) => p.birth_year_transformations.map(t => ({type: t.type, star: t.star, index})))}];
+  if (live.horoscope) {
+    ['decade', 'small_limit', 'year', 'month', 'day'].forEach(key => {
+      const item = live.horoscope.layers[key];
+      if (item && item.available) columns.push(layer(key, BRANCH_ORDER.indexOf(item.ming_branch), item.stem));
+    });
+  } else if (live.mode === 'decade') {
+    columns.push(layer('decade', live.anchor, live.stem));
+  } else {
+    if (live.currentDecade) columns.push(layer('decade', z.palaces.indexOf(live.currentDecade), live.currentDecade.stem));
+    if (live.smallLimit) columns.push(layer('small_limit', z.palaces.indexOf(live.smallLimit), live.smallLimit.stem));
+    columns.push(layer('year', live.anchor, live.stem));
+  }
+  return columns;
+}
+function renderLayerTable(z, live) {
+  // Palace names and star positions move with the hour, so the table needs a known birth hour.
+  if (currentHourUnknown) {append(result, 'p', 'field-help', '时辰不详时，各宫名称和星曜位置会随时辰变化，不列各层宫位对照表。'); return;}
+  const columns = layerColumns(z, live);
+  const ming = z.palaces.findIndex(p => p.is_ming);
+  const rows = Array.from({length: 12}, (_, k) => (ming - k + 12) % 12);  // natal order from 命宫
+  const box = append(result, 'details', 'layer-table-box'); box.id = 'ziwei-layer-table';
+  const summary = append(box, 'summary');
+  append(summary, 'b', null, '各层宫位对照表'); append(summary, 'span', 'muted', live.label);
+  append(box, 'p', 'field-help', '每一行是盘上的同一个宫位：各列写它在这一层叫什么宫，以及这一层的四化有哪几颗落在这里；高亮的格子是各层的命宫。点行首的干支，盘上就选中那一宫。');
+  const table = append(append(box, 'div', 'table-wrap'), 'table', 'data-table layer-table');
+  const head = append(append(table, 'thead'), 'tr');
+  append(head, 'th', null, '宫干支').scope = 'col';
+  columns.forEach(c => {append(head, 'th', c.key === live.mode ? 'active' : null, c.label).scope = 'col';});
+  const body = append(table, 'tbody');
+  const cellHua = (c, index) => c.hua.filter(t => t.index === index);
+  rows.forEach(index => {
+    const p = z.palaces[index], chosen = p.name === selectedPalace;
+    const tr = append(body, 'tr', chosen ? 'selected' : null);
+    const th = append(tr, 'th'); th.scope = 'row';
+    const pick = append(th, 'button', 'layer-table-pick', p.stem + p.branch); pick.type = 'button'; pick.id = 'layer-table-pick-' + index;
+    pick.setAttribute('aria-pressed', String(chosen)); pick.title = p.name;
+    pick.addEventListener('click', () => {selectedPalace = p.name; render();});
+    columns.forEach(c => {
+      const td = append(tr, 'td', [c.anchor === index ? 'layer-ming' : '', c.key === live.mode ? 'active' : ''].join(' ').trim() || null);
+      append(td, 'span', 'layer-table-name', c.name(index).replace(/宫$/, ''));
+      cellHua(c, index).forEach(t => {
+        const item = append(td, 'span', 'layer-table-hua'); item.append(t.star);
+        const badge = append(item, 'span', 'hua hua-' + (HUA_CLASS[t.type] || 'lu') + (c.key === 'natal' ? '' : ' layer'), t.type.replace('化', ''));
+        badge.title = (c.key === 'natal' ? '生年' : c.label) + t.type;
+      });
+    });
+  });
+  // Tab-separated, so it pastes into a spreadsheet as a table, in the interface language.
+  const copy = append(box, 'button', 'tiny-button', '复制表格'); copy.type = 'button'; copy.id = 'ziwei-layer-table-copy';
+  copy.addEventListener('click', async () => {
+    const T = text => typeof translateText === 'function' ? translateText(text) : text;
+    const lines = [['宫干支'].concat(columns.map(c => c.label))].concat(rows.map(index => [z.palaces[index].stem + z.palaces[index].branch]
+      .concat(columns.map(c => [c.name(index)].concat(cellHua(c, index).map(t => t.star + t.type)).join(' ')))));
+    const tsv = lines.map(cells => cells.map(T).join('\t')).join('\n');
+    try {await navigator.clipboard.writeText(tsv); copy.textContent = '已复制表格';}
+    catch (_) {copy.textContent = '复制失败，请手动选中表格';}
+  });
+}
 function setZiweiLayer(z, change) {
   Object.assign(ziweiLayer, change);
   const info = ziweiLayerInfo(z);
@@ -1032,6 +1127,7 @@ function renderZiwei(z) {
   renderPalacePanel(result, selected, live, showFlying);  // with the curves hidden the entries are plain text
   if (flyPinned && !result.querySelector('.fly-item[aria-pressed="true"]')) flyPinned = null;
   flyHighlight(flyPinned);
+  if (live) renderLayerTable(z, live);
   if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。');
   note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）、主星与昌曲火铃羊陀的庙旺利陷、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。`);
 }
