@@ -27,6 +27,38 @@ from app.main import app
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def check_relation_card(page, kind: str, screenshot: Path) -> None:
+    """Open a relation card, check what it draws and what it saves, and close it."""
+    page.evaluate("""() => {
+      window.__drawn = []; window.__saved = []; window.__fillText = CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText = function (text, ...rest) { window.__drawn.push(String(text)); return window.__fillText.call(this, text, ...rest); };
+      window.__downloadBlob = downloadBlob; downloadBlob = (blob, name) => { window.__saved.push([name, blob.type, blob.size]); };
+    }""")
+    page.locator(f'#{kind}-card').click()
+    page.locator('#relation-card-dialog[open]').wait_for(timeout=10000)
+    assert page.evaluate("document.querySelector('#relation-card-canvas').width") == 1080
+    data = page.evaluate(f"(() => {{ const d = relationCardData('{kind}'); return {{labels: d.people.map(p => p.label), year: d.year_view.year}}; }})()")
+    # The luck timeline would give away each person's gender: it is drawn only once ticked.
+    assert '大运时间轴' not in ''.join(page.evaluate('window.__drawn'))
+    page.evaluate('window.__drawn = []')
+    page.locator('#relation-card-luck').check()
+    drawn = page.evaluate('window.__drawn')
+    labels = data['labels']
+    assert labels and all(label in ''.join(drawn) for label in labels), (labels, drawn)
+    assert f"大运时间轴 · {data['year']}" in ''.join(drawn), drawn
+    # Pairs name the direction of each ten god; group members are numbered so cut names stay apart.
+    assert ('①→②' if kind == 'group' else 'A→B') in ''.join(drawn), drawn
+    joined = '\n'.join(drawn)
+    assert not re.search(r'\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}|备注', joined) and '一起做项目' not in joined and '表姐' not in joined, drawn
+    page.locator('#relation-card-canvas').screenshot(path=str(screenshot))
+    page.locator('#relation-card-download').click()
+    page.wait_for_function('() => window.__saved.length === 1', timeout=10000)
+    assert page.evaluate('window.__saved[0]')[:2] == [f'xuanshu-{kind}.png', 'image/png'] and page.evaluate('window.__saved[0][2]') > 10000
+    page.evaluate("() => { CanvasRenderingContext2D.prototype.fillText = window.__fillText; downloadBlob = window.__downloadBlob; }")
+    page.locator('#relation-card-close').click()
+    assert page.locator('#relation-card-dialog[open]').count() == 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--chromium', type=Path, default=Path('/usr/bin/chromium'))
@@ -419,6 +451,8 @@ def main() -> None:
             page.screenshot(path=str(screenshot_dir / '39-group-to-chat.png'), full_page=True)
             page.evaluate("() => { chatStatus.enabled = false; chatDraft = ''; }")
             page.locator('[data-tab="group"]').click()
+            # The relation card is drawn on this device: names, pillars and labels, never notes, birth dates or times.
+            check_relation_card(page, 'group', screenshot_dir / '44-group-card.png')
             page.locator('#group-note-clear-legacy-1').click()
             page.wait_for_function("() => loadProfiles().find(x => x.id === 'legacy-1').note === undefined && !document.getElementById('group-note-clear-legacy-1')", timeout=10000)
 
@@ -866,6 +900,7 @@ def main() -> None:
             page.evaluate("() => { window.__post = postJSON; postJSON = async (url, body) => { await new Promise(r => setTimeout(r, 400)); return window.__post(url, body); }; }")
             page.locator('#pair-year-next').click()
             assert page.locator('#pair-ask-ai').is_disabled()
+            assert page.locator('#pair-card').is_disabled()
             page.wait_for_function("() => pairResult.year_view.year === 2028 && !pairYearPending", timeout=30000)
             page.evaluate("() => { postJSON = window.__post; }")
             page.locator('#pair-year-input').fill('2030')
@@ -879,6 +914,18 @@ def main() -> None:
             page.wait_for_function("() => !pairRunning && !pairYearPending && pairResult.year_view.members[1].gender === 'female'", timeout=30000)
             page.evaluate("() => { chatStatus.enabled = false; chatDraft = ''; chatThirdPartyBirths = []; }")
             page.locator('[data-tab="pair"]').click()
+            page.locator('#pair-year-input').fill('2026')
+            page.locator('#pair-year-input').dispatch_event('change')
+            page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
+            check_relation_card(page, 'pair', screenshot_dir / '45-pair-card.png')
+            # A year typed but not entered is loaded before the card opens, so the card shows the year the page shows;
+            # closing returns focus to the redrawn button.
+            page.locator('#pair-year-input').fill('2031')
+            page.locator('#pair-card').click()
+            page.locator('#relation-card-dialog[open]').wait_for(timeout=30000)
+            assert page.evaluate('pairResult.year_view.year') == 2031 and page.locator('#pair-year-input').input_value() == '2031'
+            page.keyboard.press('Escape')
+            page.wait_for_function("() => document.activeElement && document.activeElement.id === 'pair-card'", timeout=10000)
             page.locator('#pair-year-input').fill('2026')
             page.locator('#pair-year-input').dispatch_event('change')
             page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)

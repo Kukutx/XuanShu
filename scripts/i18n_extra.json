@@ -1095,6 +1095,10 @@
   "Southeast",
   "南東"
  ],
+ "两两关系": [
+  "Pairs",
+  "二人ずつの関係"
+ ],
  "两两明细": [
   "Pair by pair",
   "ペアごとの明細"
@@ -1855,6 +1859,10 @@
   "Dui Palace",
   "兌宮"
  ],
+ "兔": [
+  "Rabbit",
+  "兎"
+ ],
  "兔年": [
   "Year of the Rabbit",
   "卯年（うさぎ）"
@@ -2078,6 +2086,10 @@
  "关系与决策": [
   "Relationships & decisions",
   "関係と意思決定"
+ ],
+ "关系卡片预览": [
+  "Relation card preview",
+  "関係カードのプレビュー"
  ],
  "关系可能叠加，标记不带强弱权重，也不等于个人关系或事件的吉凶。": [
   "Relations may overlap; markers carry no strength weighting and do not equal the auspiciousness of personal relationships or events.",
@@ -2503,6 +2515,10 @@
   "Li Shi",
   "力士"
  ],
+ "加入大运时间轴": [
+  "Add the luck timeline",
+  "大運タイムラインを加える"
+ ],
  "加入证据溯源与跨体系规则复核": [
   "Include evidence tracing and cross-system rule review",
   "根拠の追跡と体系横断のルール再確認を追加"
@@ -2715,6 +2731,10 @@
   "The card is made on this device and never uploaded. Note: the four pillars alone roughly reveal the birth date and hour (they repeat about every 60 years); keep only the Zi Wei part if that matters to you.",
   "カードはこの端末で作成され、アップロードされません。注意：四柱だけでも出生日と時辰をおおよそ逆算できます（約 60 年周期）。気になる場合は紫微の部分だけを残してください。"
  ],
+ "卡片只在这台设备上生成，不上传。画上的是称呼、四柱和传统标签，不画出生日期、时间和备注；但四柱本身大致能反推出生日期。": [
+  "The card is made on this device and is not uploaded. It shows the names, the four pillars and the traditional labels, never birth dates, times or notes; the four pillars themselves still roughly reveal a birth date.",
+  "カードはこの端末で作成され、アップロードされません。描くのは呼び名、四柱、伝統的なラベルだけで、生年月日・時刻・メモは描きません。ただし四柱から生年月日はおおよそ逆算できます。"
+ ],
  "卯时 05–07": [
   "Mao hour 05–07",
   "卯の刻 05–07"
@@ -2786,6 +2806,10 @@
  "双人四柱对照": [
   "Two-person Four Pillars comparison",
   "二人の四柱対照"
+ ],
+ "双人对照卡片": [
+  "Two-person card",
+  "二人の比較カード"
  ],
  "双人盘文化对照": [
   "Two-person chart cultural comparison",
@@ -2866,6 +2890,10 @@
  "只有 lunardate 不同；这份表的月份长度与天象不符。": [
   "Only lunardate differs; its table gives month lengths that do not match the sky.",
   "lunardate のみ異なります。この表の月の長さが天象と合いません。"
+ ],
+ "只标传统标签，不打分、不排名": [
+  "Traditional labels only: no scores, no ranking",
+  "伝統的なラベルのみ。点数も順位も付けません"
  ],
  "只标传统标签，不评价好坏，也不预测这一年会发生什么。": [
   "Traditional labels only: no judgement of good or bad, and no forecast of what this year will bring.",
@@ -3511,6 +3539,10 @@
   "group family household team friends relationship three-harmony zodiac",
   "複数人 家族 家庭 チーム 友人 関係 三合 干支 family team group"
  ],
+ "多人关系卡片": [
+  "Group relations card",
+  "複数人の関係カード"
+ ],
  "多人关系对照": [
   "Group relations",
   "複数人の関係対照"
@@ -3622,6 +3654,10 @@
  "大运流年的神煞按原局日干、年干、年支、日支、月支查，只列名称与查法出处，不断吉凶。": [
   "Shen Sha on luck and year pillars are read from the natal day stem, year stem, year branch, day branch and month branch; only names, rules and sources are given, with no good-or-bad reading.",
   "大運・流年の神煞は原局の日干・年干・年支・日支・月支から求め、名称と求め方・出典だけを示し、吉凶は判断しません。"
+ ],
+ "大运顺排还是逆排由性别决定，所以时间轴会透露每个人的性别；不勾选就不画。": [
+  "Whether the luck periods run forward or backward depends on gender, so the timeline reveals each person's gender; it is drawn only when ticked.",
+  "大運の順行・逆行は性別で決まるため、タイムラインから各人の性別が分かります。チェックしない限り描きません。"
  ],
  "大运：": [
   "Luck pillar: ",
@@ -6155,6 +6191,10 @@
   "No Six Harmonies or Six Clashes marked",
   "六合・六冲の印なし"
  ],
+ "未画出的两两关系（见文字版）：": [
+  "Pairs not drawn (see the text version): ",
+  "描いていない組（テキスト版を参照）："
+ ],
  "未起运": [
   "Luck not started",
   "未起運"
@@ -6210,6 +6250,10 @@
  "本地 HTTP 端点": [
   "Local HTTP endpoint",
   "ローカル HTTP エンドポイント"
+ ],
+ "本地确定性计算": [
+  "computed locally and deterministically",
+  "ローカルで確定的に計算"
  ],
  "本工具只标记数据与计算边界，不替代权威历书或完整紫微流派审查。": [
   "This tool only flags data and calculation boundaries; it does not replace an authoritative almanac or a full Zi Wei school review.",
@@ -7067,6 +7111,10 @@
   "Version: v.",
   "バージョン：v."
  ],
+ "牛": [
+  "Ox",
+  "牛"
+ ],
  "牛年": [
   "Year of the Ox",
   "丑年（うし）"
@@ -7074,6 +7122,10 @@
  "状态 ": [
   "Status ",
   "状態 "
+ ],
+ "狗": [
+  "Dog",
+  "犬"
  ],
  "狗年": [
   "Year of the Dog",
@@ -7091,9 +7143,17 @@
   "Independently verify the answer (one more model call)",
   "回答を独立検証（モデル呼び出しが一回増えます）"
  ],
+ "猪": [
+  "Pig",
+  "猪"
+ ],
  "猪年": [
   "Year of the Pig",
   "亥年（いのしし）"
+ ],
+ "猴": [
+  "Monkey",
+  "猿"
  ],
  "猴年": [
   "Year of the Monkey",
@@ -7202,6 +7262,10 @@
  "生成命盘后，这里会列出今天四柱对日主的十神，以及与本命四支的六冲、六合、同支。": [
   "After you generate a chart, this lists the ten god of each of today's pillars against the Day Master, and their six clashes, six harmonies and same branches with the natal branches.",
   "命盤を作成すると、今日の四柱の日主に対する十神と、本命の四支との六冲・六合・同支をここに表示します。"
+ ],
+ "生成图片卡片": [
+  "Make image card",
+  "画像カードを作る"
  ],
  "生成失败：": [
   "Generation failed: ",
@@ -7851,6 +7915,10 @@
   "Confidence measures only whether birth-time error could change this chart result, not whether the traditional interpretation is correct.",
   "信頼度は出生時刻の誤差によってこの命盤結果が変わり得るかのみを測るもので、伝統的解釈が正しいかどうかは測りません。"
  ],
+ "羊": [
+  "Goat",
+  "羊"
+ ],
  "羊刃": [
   "Yang Ren",
   "羊刃"
@@ -8043,6 +8111,10 @@
   "Hidden stems: ",
   "蔵干："
  ],
+ "虎": [
+  "Tiger",
+  "虎"
+ ],
  "虎年": [
   "Year of the Tiger",
   "寅年（とら）"
@@ -8058,6 +8130,10 @@
  "虚龄": [
   "age",
   "数え"
+ ],
+ "蛇": [
+  "Snake",
+  "蛇"
  ],
  "蛇年": [
   "Year of the Snake",
@@ -9159,6 +9235,10 @@
   "Hong Kong Observatory gives ",
   "香港天文台は "
  ],
+ "马": [
+  "Horse",
+  "馬"
+ ],
  "马年": [
   "Year of the Horse",
   "午年（うま）"
@@ -9187,6 +9267,10 @@
   "Kui Gang",
   "魁罡"
  ],
+ "鸡": [
+  "Rooster",
+  "鶏"
+ ],
  "鸡年": [
   "Year of the Rooster",
   "酉年（とり）"
@@ -9195,6 +9279,10 @@
   "By default the day does not change at 23:00, matching iztro's \"early Zi\"",
   "既定では 23:00 に日を替えず、iztro の「早子時」と一致"
  ],
+ "鼠": [
+  "Rat",
+  "鼠"
+ ],
  "鼠年": [
   "Year of the Rat",
   "子年（ねずみ）"
@@ -9202,6 +9290,10 @@
  "鼠牛虎兔龙蛇马羊猴鸡狗猪": [
   "Rat Ox Tiger Rabbit Dragon Snake Horse Goat Monkey Rooster Dog Pig",
   "鼠牛虎兎龍蛇馬羊猿鶏犬猪"
+ ],
+ "龙": [
+  "Dragon",
+  "龍"
  ],
  "龙年": [
   "Year of the Dragon",

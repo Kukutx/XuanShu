@@ -1949,18 +1949,28 @@ function sendDraftToChat(draft, others, block) {
   const box = $('#chat-input'); if (box) {box.focus(); box.setSelectionRange(box.value.length, box.value.length);}
   return draft;
 }
-// A year typed but not entered when 带进 AI 对话 is clicked: that year is loaded first and the draft follows it.
+// A year typed but not entered when 带进 AI 对话 or 生成图片卡片 is clicked: that year is loaded first and the
+// button pressed runs again once it is shown.
 let askAfterYear = null;
-function askWithTypedYear(prefix, shown, change) {
+function askWithTypedYear(prefix, shown, change, button = prefix + '-ask-ai') {
   const typed = takeTypedYear(prefix);
   if (typed === null || typed === shown) return false;
-  askAfterYear = prefix; change(typed);
+  askAfterYear = {prefix, button}; change(typed);
   return true;
 }
 function askAfterYearLoaded(prefix, ok) {
-  if (askAfterYear !== prefix) return;
+  if (!askAfterYear || askAfterYear.prefix !== prefix) return;
+  const id = askAfterYear.button;
   askAfterYear = null;
-  if (ok && active === prefix) {const button = $('#' + prefix + '-ask-ai'); if (button && !button.disabled) button.click();}
+  if (ok && active === prefix) {const button = $('#' + id); if (button && !button.disabled) {button.focus(); button.click();}}
+}
+// 生成图片卡片 next to 带进 AI 对话: the result as a PNG for sharing. Like that button it waits while another year
+// or a new comparison loads, and a typed year is loaded first, so the card never shows a year the page has left.
+function relationCardButton(after, kind, busy, typedYear) {
+  const button = elt('button', 'tiny-button', '生成图片卡片'); button.type = 'button'; button.id = kind + '-card';
+  button.disabled = busy;
+  after.after(button);
+  button.addEventListener('click', () => {if (!typedYear()) openRelationCard(kind);});
 }
 // The 带进 AI 对话 button with its hint; it is off until the chat service is configured, and while another year or
 // a new comparison is loading (the draft would carry the year still shown).
@@ -1982,6 +1992,8 @@ function renderGroupResult(g) {
     const {text: draft, others} = groupChatDraft(g, JSON.parse(groupKey || '[]'));
     groupChatBlock = sendDraftToChat(draft, others, groupChatBlock);
   });
+  relationCardButton(askButton, 'group', groupYearPending || Boolean(groupRun),
+    () => askWithTypedYear('group', g.year_view && g.year_view.year, groupYear, 'group-card'));
   textExport(result, 'group-text', () => groupText(g), 'xuanshu-group.txt');
   const cards = append(result, 'div', 'group-members');
   g.members.forEach((m, i) => {
@@ -2058,7 +2070,7 @@ function renderGroupResult(g) {
     append(back, 'span', 'user-text', p.b_label); back.append(' → ');
     append(back, 'span', 'user-text', p.a_label); texts(back, '：', p.day_stems.b_sees_a || '?');
     const zodiac = append(facts, 'span');
-    texts(zodiac, '生肖', ' ' + (p.zodiac.a || '?') + ' / ' + (p.zodiac.b || '?'));
+    texts(zodiac, '生肖', ' ', p.zodiac.a || '?', ' / ', p.zodiac.b || '?');
     p.zodiac.labels.forEach(x => zodiac.append(' · ', x));
     branchLinkTable(item, p.a_label, p.b_label, p.branch_links);
   });
@@ -2169,6 +2181,11 @@ function luckWindowFor(prefix, year) {
     luckTimelineStart[prefix] = luckWindow(year, luckTimelineStart[prefix]); luckTimelineYear[prefix] = year;
   }
   return luckTimelineStart[prefix];
+}
+// The same window read without moving it, for the image card: drawing it must not change the page.
+function luckWindowShown(prefix, year) {
+  return luckTimelineYear[prefix] === year && luckTimelineStart[prefix] !== undefined ? luckTimelineStart[prefix]
+    : luckWindow(year, luckTimelineStart[prefix]);
 }
 // What one member's luck is in a year: a period, a change that depends on the unknown hour, before the first
 // period, or not yet born.
@@ -2926,7 +2943,7 @@ function renderPair() {
   texts(append(facts, 'span'), 'B → A', '：', r.day_stems.b_sees_a || '?');
   if (r.day_stems.combination) append(facts, 'span', 'relation-chip link-combine', r.day_stems.combination);
   const zodiac = append(facts, 'span');
-  texts(zodiac, '生肖', ' ' + (r.zodiac.a || '?') + ' / ' + (r.zodiac.b || '?'));
+  texts(zodiac, '生肖', ' ', r.zodiac.a || '?', ' / ', r.zodiac.b || '?');
   r.zodiac.labels.forEach(x => zodiac.append(' · ', x));
   const askButton = chatAskButton('pair-ask-ai', 'pair', '把两人的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。',
     'AI 对话尚未启用，配置语言模型后可以把两人带进对话。', pairYearPending || pairRunning);
@@ -2935,6 +2952,8 @@ function renderPair() {
     const {text: draft, others} = pairChatDraft(r, JSON.parse(pairKey || '{}'));
     pairChatBlock = sendDraftToChat(draft, others, pairChatBlock);
   });
+  relationCardButton(askButton, 'pair', pairYearPending || pairRunning,
+    () => askWithTypedYear('pair', r.year_view && r.year_view.year, pairYear, 'pair-card'));
   textExport(result, 'pair-text', pairText, 'xuanshu-pair.txt');
   const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table'); table.id = 'pair-pillars';
   const hr = append(append(table, 'thead'), 'tr');
@@ -4083,6 +4102,302 @@ function openShareCard() {
   if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
 }
 $('#share-card').addEventListener('click', openShareCard);
+
+// Relation card: the group or pair result as a PNG drawn on a local canvas. It shows the names as typed, the
+// four pillars, the labels between each pair and, with a year, the luck timeline; never birth dates, times or
+// notes. Nothing is uploaded.
+function relationCardData(kind) {
+  if (kind === 'pair') {
+    const r = pairResult;
+    return {kind, title: '双人对照卡片', file: 'xuanshu-pair.png', people: [{...r.person_a, label: 'A'}, {...r.person_b, label: 'B'}],
+      pairs: [{a: 0, b: 1, day_stems: r.day_stems, label_counts: r.label_counts}], year_view: r.year_view, tags: ['A', 'B'], named: false};
+  }
+  const g = groupResult;
+  // Only so many pairs fit: those the page is looking at (the member picked, the label filtered) come first.
+  const filter = groupDraft.filter, focus = groupDraft.focus;
+  const rank = p => (focus === null || p.a === focus || p.b === focus ? 0 : 2) + (filter === 'all' || pairHas(p, filter) ? 0 : 1);
+  const pairs = g.pairs.map((p, i) => [rank(p), i, p]).sort((x, y) => x[0] - y[0] || x[1] - y[1]).map(x => x[2]);
+  // Each member is numbered, so pairs and timeline rows stay apart even when long names are cut short.
+  return {kind, title: '多人关系卡片', file: 'xuanshu-group.png', people: g.members, pairs, year_view: g.year_view,
+    tags: g.members.map((_, i) => '①②③④⑤⑥⑦⑧'[i]), named: true};
+}
+const RELATION_CARD_PAIRS = 10;
+const LINK_TOKEN = {'六合': '--green', '六冲': '--red', '六害': '--warn', '相刑': '--quan', '同支': '--muted'};
+// Characters as the reader sees them, so a cut never splits an emoji or an accented letter.
+const graphemes = value => typeof Intl === 'object' && Intl.Segmenter
+  ? Array.from(new Intl.Segmenter().segment(value), s => s.segment) : Array.from(value);
+function drawRelationCard(canvas, data, withLuck) {
+  const T = text => typeof translateText === 'function' ? translateText(text) : text;
+  const css = getComputedStyle(document.documentElement), token = name => css.getPropertyValue(name).trim();
+  const sans = "'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", serif = "'Noto Serif SC','Songti SC','STSong',serif";
+  const W = 1080, PAD = 64, inner = W - PAD * 2, CHIPS_X = PAD + 316;
+  const people = data.people, v = data.year_view, tags = data.tags;
+  const shownPairs = data.pairs.slice(0, RELATION_CARD_PAIRS);
+  const rows = v && withLuck ? v.luck_timeline || [] : [];
+  canvas.width = W; canvas.height = 1;
+  const g = canvas.getContext('2d');
+  // Cuts a value to max pixels in the current font, keeping its start and its end (a "(2)" suffix survives).
+  const fitMiddle = (value, max) => {
+    if (g.measureText(value).width <= max) return value;
+    const chars = graphemes(value);
+    let head = Math.ceil(chars.length / 2), tail = chars.length - head;
+    const joined = () => chars.slice(0, head).join('') + '…' + chars.slice(chars.length - tail).join('');
+    while (head + tail > 1 && g.measureText(joined()).width > max) {if (head >= tail) head--; else tail--;}
+    return joined();
+  };
+  const named = i => data.named ? tags[i] + ' ' + people[i].label : people[i].label;
+  // Each pair's labels as chips, laid out before the height is known: they wrap onto more lines in long languages.
+  const chipsOf = pair => [...(pair.day_stems.combination ? [[T(pair.day_stems.combination), '--green']] : []),
+    ...LINK_TYPES_ORDER.filter(type => pair.label_counts[type]).map(type => [T(type) + ' ' + pair.label_counts[type], LINK_TOKEN[type]])];
+  const layoutChips = chips => {
+    g.font = `400 18px ${sans}`;
+    let x = CHIPS_X, line = 0;
+    return chips.map(([label, color]) => {
+      const width = Math.min(g.measureText(label).width + 20, W - PAD - CHIPS_X);
+      if (x > CHIPS_X && x + width > W - PAD) {x = CHIPS_X; line += 1;}
+      const placed = {label, color, x, line, width}; x += width + 8;
+      return placed;
+    });
+  };
+  // The day-stem ten god each way with its direction (① → ②, ② → ①); on two lines when both do not fit on one.
+  const tenGodLines = pair => {
+    const [a, b] = [tags[pair.a], tags[pair.b]];
+    const one = `${a}→${b} ${pair.day_stems.a_sees_b ? T(pair.day_stems.a_sees_b) : '？'}`;
+    const two = `${b}→${a} ${pair.day_stems.b_sees_a ? T(pair.day_stems.b_sees_a) : '？'}`;
+    g.font = `400 17px ${sans}`;
+    return g.measureText(one + ' · ' + two).width > CHIPS_X - PAD - 16 ? [one, two] : [one + ' · ' + two];
+  };
+  const pairLayouts = shownPairs.map(pair => {
+    const chips = layoutChips(chipsOf(pair)), gods = tenGodLines(pair);
+    const lines = chips.length ? chips[chips.length - 1].line + 1 : 1;
+    return {pair, chips, gods, height: data.named ? Math.max(78 + gods.length * 22, 60 + lines * 42) : Math.max(74 + (gods.length - 1) * 22, 26 + lines * 42)};
+  });
+  // The closing note may need two lines.
+  const footNote = T('传统文化符号，未经科学预测效力验证，不作医疗、投资、法律等决策依据。');
+  g.font = `400 22px ${sans}`;
+  const footLines = g.measureText(footNote).width > inner ? splitLine(footNote) : [footNote];
+  const pillarsH = 104 + people.length * 72;
+  const pairsH = 76 + pairLayouts.reduce((sum, x) => sum + x.height, 0) + (data.pairs.length > shownPairs.length ? 40 : 0);
+  const luckH = rows.length ? 118 + rows.length * 56 : 0;
+  const footH = 120 + footLines.length * 34;
+  const H = 200 + pillarsH + pairsH + luckH + footH;
+  canvas.height = H;
+  g.fillStyle = token('--panel'); g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W * .85, 0, 0, W * .85, 0, W * .9);
+  glow.addColorStop(0, token('--accent-soft')); glow.addColorStop(1, 'transparent');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  g.strokeStyle = token('--accent-line'); g.lineWidth = 2; g.strokeRect(24, 24, W - 48, H - 48);
+  // Shrinks a long value down to three quarters of its size, then cuts it with an ellipsis (names in the middle).
+  const text = (value, x, y, size, color, {font = sans, align = 'left', weight = '400', max = W - PAD - x, middle = false} = {}) => {
+    value = String(value);
+    const floor = Math.max(12, Math.round(size * .75));
+    g.font = `${weight} ${size}px ${font}`;
+    while (size > floor && g.measureText(value).width > max) {size -= 1; g.font = `${weight} ${size}px ${font}`;}
+    if (g.measureText(value).width > max) {
+      if (middle) value = fitMiddle(value, max);
+      else {
+        const chars = graphemes(value);
+        while (chars.length > 1 && g.measureText(chars.join('') + '…').width > max) chars.pop();
+        value = chars.join('') + '…';
+      }
+    }
+    g.fillStyle = color; g.textAlign = align; g.fillText(value, x, y);
+    return g.measureText(value).width;
+  };
+  const stemColor = stem => token('--' + (ELEMENT_CLASS[STEM_ELEMENTS[STEM_ORDER.indexOf(stem)]] || 'faint'));
+  const branchColor = branch => token('--' + (ELEMENT_CLASS[BRANCH_ELEMENTS[BRANCH_ORDER.indexOf(branch)]] || 'faint'));
+  const rule = y => {g.strokeStyle = token('--border'); g.lineWidth = 1; g.beginPath(); g.moveTo(PAD, y); g.lineTo(W - PAD, y); g.stroke();};
+  text('玄枢', PAD, 120, 52, token('--gold'), {font: serif, weight: '600'});
+  text('XUANSHU', PAD + 120, 116, 22, token('--gold'), {weight: '600'});
+  text(T(data.title) + ' · ' + T('本地确定性计算'), W - PAD, 116, 24, token('--muted'), {align: 'right', max: inner - 330});
+  text(T('只标传统标签，不打分、不排名'), PAD, 168, 22, token('--text2'));
+  let y = 200;
+  // Four pillars: a row per person.
+  text(T('四柱'), PAD, y + 34, 28, token('--gold2'), {weight: '600'});
+  const nameW = 220, colW = 132, masterX = PAD + nameW + colW * 4, zodiacX = masterX + 118;
+  ['年柱', '月柱', '日柱', '时柱'].forEach((label, i) => text(T(label), PAD + nameW + colW * i + colW / 2, y + 80, 18, token('--muted'), {align: 'center', max: colW - 8}));
+  text(T('日主'), masterX + 50, y + 80, 18, token('--muted'), {align: 'center', max: 110});
+  text(T('生肖'), zodiacX + 44, y + 80, 18, token('--muted'), {align: 'center', max: 92});
+  y += 104;
+  people.forEach((person, i) => {
+    rule(y - 4);
+    text(named(i), PAD, y + 44, 28, token('--text'), {weight: '600', max: nameW - 16, middle: true});
+    PILLAR_KEYS.forEach((key, j) => {
+      const pillar = person.pillars[key], cx = PAD + nameW + colW * j + colW / 2;
+      if (!pillar) {text('？', cx, y + 48, 36, token('--faint'), {font: serif, align: 'center'}); return;}
+      text(pillar[0], cx - 22, y + 48, 40, stemColor(pillar[0]), {font: serif, align: 'center', weight: '600', max: 48});
+      text(pillar[1], cx + 22, y + 48, 40, branchColor(pillar[1]), {font: serif, align: 'center', weight: '600', max: 48});
+    });
+    if (person.day_master) {
+      text(person.day_master, masterX + 34, y + 48, 36, stemColor(person.day_master), {font: serif, align: 'center', weight: '600', max: 44});
+      text(T(person.day_master_element), masterX + 72, y + 46, 20, token('--muted'), {max: 44});
+    } else text('？', masterX + 50, y + 48, 36, token('--faint'), {font: serif, align: 'center'});
+    text(person.zodiac ? T(person.zodiac) : '？', zodiacX + 44, y + 46, 24, token('--text2'), {align: 'center', max: 92});
+    y += 72;
+  });
+  y += 20;
+  // Each pair: the day-stem ten god both ways and the labels between their pillars.
+  text(T('两两关系'), PAD, y + 34, 28, token('--gold2'), {weight: '600'});
+  y += 76;
+  // On the group card the two names get a line of their own across the card, each cut in the middle when both do
+  // not fit; the ten gods and the chips go beneath. The pair card names its two people A and B.
+  pairLayouts.forEach(({pair, chips, gods, height}) => {
+    rule(y - 30);
+    let below = y + 2;
+    if (data.named) {
+      g.font = `600 22px ${sans}`;
+      const arrow = '  ↔  ', arrowW = g.measureText(arrow).width, room = inner - arrowW;
+      const [left, right] = [named(pair.a), named(pair.b)], [lw, rw] = [left, right].map(x => g.measureText(x).width);
+      const leftMax = lw + rw <= room ? lw : rw < room / 2 ? room - rw : Math.max(room / 2, room - rw);
+      const drawn = text(left, PAD, y + 2, 22, token('--text'), {weight: '600', max: leftMax, middle: true});
+      const arrowEnd = PAD + drawn + text(arrow, PAD + drawn, y + 2, 22, token('--muted'), {weight: '600'});
+      text(right, arrowEnd, y + 2, 22, token('--text'), {weight: '600', max: W - PAD - arrowEnd, middle: true});
+      below = y + 36;
+    } else text('A ↔ B', PAD, y + 2, 24, token('--text'), {weight: '600'});
+    const godsTop = data.named ? below : y + 32;
+    gods.forEach((line, n) => text(line, PAD, godsTop + n * 22, 17, token('--text2'), {max: CHIPS_X - PAD - 16}));
+    const chipsTop = data.named ? below - 22 : y - 20;
+    if (!chips.length) text(T('无标记'), CHIPS_X, chipsTop + 22, 20, token('--muted'));
+    chips.forEach(({label, color, x, line, width}) => {
+      const top = chipsTop + line * 42;
+      g.strokeStyle = token(color); g.lineWidth = 1.5;
+      g.beginPath(); (g.roundRect ? g.roundRect.bind(g) : g.rect.bind(g))(x, top, width, 32, 16); g.stroke();
+      text(label, x + 10, top + 22, 18, token(color), {max: width - 16});
+    });
+    y += height;
+  });
+  if (data.pairs.length > shownPairs.length) {
+    text(T('未画出的两两关系（见文字版）：') + (data.pairs.length - shownPairs.length), PAD, y - 10, 20, token('--muted'));
+    y += 40;
+  }
+  // The luck timeline of the year shown: fifteen years, a colour per luck period.
+  if (rows.length) {
+    y += 10;
+    text(T('大运时间轴') + ' · ' + v.year + ' ' + v.year_pillar, PAD, y + 34, 28, token('--gold2'), {weight: '600'});
+    const start = luckWindowShown(data.kind, v.year), years = Array.from({length: LUCK_SPAN}, (_, k) => start + k);  // as on the page
+    const left = PAD + 160, cell = (W - PAD - left) / LUCK_SPAN, k0 = years.indexOf(v.year);
+    years.forEach((year, k) => text(String(year).slice(2), left + cell * k + cell / 2, y + 80, 16, year === v.year ? token('--text') : token('--muted'),
+      {align: 'center', weight: year === v.year ? '700' : '400', max: cell}));
+    y += 96;
+    // Years with no luck period are named as on the page when the run is wide enough for the words.
+    const EMPTY = {unborn: '尚未出生', not_started: '未起运', beyond: '已排完'};
+    rows.forEach((row, r) => {
+      text(named(r), PAD, y + 30, 22, token('--text'), {weight: '600', max: 150, middle: true});
+      if (row.status !== 'ok') {
+        text(T(row.status === 'needs_gender' ? '未填性别，不排大运' : '时辰不详且当天交节，大运无法确定'), left + 8, y + 30, 18, token('--muted'), {max: W - PAD - left - 16});
+        y += 56; return;
+      }
+      // The year shown is outlined in each row that has periods (a note row is left uncrossed), beneath the
+      // labels so that a long ten-god name running over it stays readable.
+      if (k0 >= 0) {g.strokeStyle = token('--gold'); g.lineWidth = 2; g.strokeRect(left + cell * k0, y - 2, cell, 50);}
+      years.forEach((year, k) => {
+        const at = luckAt(row, year), x = left + cell * k + 1.5;
+        if (EMPTY[at.kind]) {
+          if (k > 0 && luckAt(row, year - 1).kind === at.kind) return;
+          let run = 1;
+          while (k + run < years.length && luckAt(row, years[k + run]).kind === at.kind) run++;
+          if (run > 1) text(T(EMPTY[at.kind]), x + 6, y + 29, 15, token('--faint'), {max: run * cell - 15});
+          return;
+        }
+        g.globalAlpha = at.kind === 'maybe' ? .12 : .28;
+        g.fillStyle = at.kind === 'maybe' ? token('--gold') : stemColor(at.period.pillar[0]);
+        g.fillRect(x, y, cell - 3, 46);
+        g.globalAlpha = 1;
+        if (at.kind === 'maybe') {text('?', x + (cell - 3) / 2, y + 30, 18, token('--muted'), {align: 'center'}); return;}
+        if (at.first) {g.fillStyle = token('--gold'); g.fillRect(x, y, 3, 46);}
+        if (at.first || k === 0 || luckAt(row, year - 1).kind !== 'period') {
+          let run = 1;
+          while (k + run < years.length && luckAt(row, years[k + run]).period === at.period) run++;
+          g.save(); g.beginPath(); g.rect(x, y, run * cell - 3, 46); g.clip();
+          // A period seen for a single year is written smaller so that both characters fit in the cell.
+          const p = at.period, size = run > 1 ? 24 : 19, inset = run > 1 ? 8 : 4;
+          const w = text(p.pillar[0], x + inset, y + 31, size, stemColor(p.pillar[0]), {font: serif, weight: '600', max: 30});
+          text(p.pillar[1], x + inset + w, y + 31, size, branchColor(p.pillar[1]), {font: serif, weight: '600', max: 30});
+          if (p.ten_god && run > 1) text(T(p.ten_god), x + inset + w * 2 + 8, y + 30, 16, token('--text2'), {max: run * cell - w * 2 - 24});
+          g.restore();
+        }
+      });
+      y += 56;
+    });
+  }
+  rule(H - footH + 10);
+  footLines.forEach((line, n) => text(line, PAD, H - footH + 56 + n * 34, 22, token('--muted'), {max: inner}));
+  text('XuanShu · open source · deterministic, reproducible', PAD, H - 58, 22, token('--gold'));
+}
+// A long line split in two near its middle: after the punctuation mark closest to it, else at a space (English),
+// else between characters.
+function splitLine(line) {
+  const middle = Math.floor(line.length / 2);
+  let at = -1;
+  for (let i = 0; i < line.length; i++) {
+    if ('。；，、;,'.includes(line[i]) && Math.abs(i + 1 - middle) <= 14 && (at < 0 || Math.abs(i + 1 - middle) < Math.abs(at - middle))) at = i + 1;
+  }
+  if (at < 0) {const space = line.lastIndexOf(' ', middle + 12); at = space > middle - 20 ? space : middle;}
+  return [line.slice(0, at).trim(), line.slice(at).trim()];
+}
+const LINK_TYPES_ORDER = ['同支', '六合', '六冲', '六害', '相刑'];
+let relationCardRefresh = null;
+document.addEventListener('xuanshu-language', () => {const dialog = $('#relation-card-dialog'); if (dialog && dialog.open && relationCardRefresh) relationCardRefresh();});
+function openRelationCard(kind) {
+  let dialog = $('#relation-card-dialog');
+  if (!dialog) {
+    dialog = elt('dialog', 'share-dialog'); dialog.id = 'relation-card-dialog';
+    dialog.setAttribute('aria-labelledby', 'relation-card-title');
+    document.body.append(dialog);
+  }
+  dialog.replaceChildren();
+  const data = relationCardData(kind);
+  // Focus goes back to the button that opened the card; if the page was redrawn meanwhile, to its new button.
+  const opener = document.activeElement;
+  dialog.onclose = () => {
+    if (opener && opener !== document.body && opener.isConnected) return;
+    const button = $('#' + kind + '-card'); if (button) button.focus();
+  };
+  const head = append(dialog, 'div', 'share-head');
+  append(head, 'h3', null, data.title).id = 'relation-card-title';
+  const close = append(head, 'button', 'tiny-button', '关闭'); close.type = 'button'; close.id = 'relation-card-close';
+  close.addEventListener('click', () => dialog.close());
+  const canvas = append(dialog, 'canvas', 'share-canvas'); canvas.id = 'relation-card-canvas';
+  canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', '关系卡片预览');
+  // The luck timeline gives away each person's gender (the direction of the luck periods follows it), so like the
+  // luck ages on the chart card it is drawn only when ticked.
+  let withLuck = false;
+  if (data.year_view && (data.year_view.luck_timeline || []).length) {
+    const label = append(append(dialog, 'div', 'share-options'), 'label', 'check-line');
+    const box = append(label, 'input'); box.type = 'checkbox'; box.id = 'relation-card-luck';
+    label.append(' 加入大运时间轴');
+    append(dialog, 'p', 'field-help', '大运顺排还是逆排由性别决定，所以时间轴会透露每个人的性别；不勾选就不画。');
+    box.addEventListener('change', () => {withLuck = box.checked; refresh();});
+  }
+  append(dialog, 'p', 'field-help', '卡片只在这台设备上生成，不上传。画上的是称呼、四柱和传统标签，不画出生日期、时间和备注；但四柱本身大致能反推出生日期。');
+  const actions = append(dialog, 'div', 'profile-actions share-actions');
+  const save = append(actions, 'button', 'primary-btn', '下载 PNG'); save.type = 'button'; save.id = 'relation-card-download';
+  save.addEventListener('click', () => canvas.toBlob(blob => {if (blob) downloadBlob(blob, data.file);}, 'image/png'));
+  // As on the chart card, the PNG is prepared before the click so the share sheet still counts as a user gesture.
+  let cardFile = null, version = 0;
+  const share = typeof navigator.share === 'function' && typeof navigator.canShare === 'function' ? append(actions, 'button', 'tiny-button', '分享到…') : null;
+  if (share) {
+    share.type = 'button'; share.id = 'relation-card-share';
+    share.addEventListener('click', async () => {
+      const file = cardFile;
+      if (!file || !navigator.canShare({files: [file]})) {share.textContent = '此浏览器不能分享图片，请下载 PNG'; return;}
+      try {await navigator.share({files: [file], title: '玄枢'});}
+      catch (e) {if (e.name !== 'AbortError') share.textContent = '分享失败，请下载 PNG';}
+    });
+  }
+  const refresh = () => {
+    drawRelationCard(canvas, data, withLuck);
+    if (!share) return;
+    const mine = ++version; cardFile = null; share.disabled = true; share.textContent = '分享到…';
+    canvas.toBlob(blob => {
+      if (!blob || mine !== version) return;
+      cardFile = new File([blob], data.file, {type: 'image/png'}); share.disabled = false;
+    }, 'image/png');
+  };
+  relationCardRefresh = refresh;
+  refresh();
+  if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
+}
 
 // Calculation cross-check: the summary that scripts/eval_crosscheck.py writes.
 const CROSSCHECK_FIELDS = {lunar: '农历日期', day: '日柱', year: '年柱', month: '月柱', hour: '时柱',
