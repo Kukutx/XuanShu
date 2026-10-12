@@ -35,6 +35,12 @@ class PairInput(BaseModel):
     person_b_hour_unknown: bool = Field(default=False, description="Person B's birth hour is unknown: the hour pillar is left out, and the Zi Wei overlay is refused")
 
 
+class PairComparisonInput(PairInput):
+    year: int | None = Field(default=None, ge=1901, le=2099, description=(
+        'Optional civil year: adds year_view, the year pillar read against both charts, each person luck pillar in '
+        'that year (needs gender) and the labels between the two luck pillars'))
+
+
 class PalaceRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     birth: BirthInput
@@ -89,10 +95,13 @@ def _branch_relation(left: str, right: str) -> str:
 
 
 def compare_charts(request: PairInput) -> dict:
-    # The group reading of two people: ten gods both ways, the day-stem combination and every branch link.
-    from .group import GroupMember, _member, _pair
-    a, b = (_member(GroupMember(label=label, birth=birth, hour_unknown=unknown)) for label, birth, unknown in
-            (('A', request.person_a, request.person_a_hour_unknown), ('B', request.person_b, request.person_b_hour_unknown)))
+    # The group reading of two people: ten gods both ways, the day-stem combination and every branch link,
+    # and with a year the same luck and year-pillar view as a group of two.
+    from .group import GroupMember, GroupRequest, _member, _pair, _year_view
+    people = [GroupMember(label=label, birth=birth, hour_unknown=unknown) for label, birth, unknown in
+              (('A', request.person_a, request.person_a_hour_unknown), ('B', request.person_b, request.person_b_hour_unknown))]
+    a, b = (_member(m) for m in people)
+    year = getattr(request, 'year', None)
     relation = _pair(0, 1, a, b)
     parallels = []
     for key, label in (('year', '年柱'), ('month', '月柱'), ('day', '日柱'), ('hour', '时柱')):
@@ -130,6 +139,7 @@ def compare_charts(request: PairInput) -> dict:
                   'stem_combination': '甲己、乙庚、丙辛、丁壬、戊癸五合',
                   'branch_links': '四柱地支两两比较：同支、六合、六冲、六害、相刑', 'compatibility_score': None},
         'notes': notes,
+        'year_view': _year_view(GroupRequest(members=people, year=year), [a, b]) if year is not None else None,
     }
 
 

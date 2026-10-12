@@ -538,6 +538,10 @@ const UI_EXTRA = {
 "Asia/Tokyo · Tokyo",
 "Asia/Tokyo · 東京"
 ],
+"B · 性别（排大运用）": [
+"B · Gender (for luck pillars)",
+"B · 性別（大運用）"
+],
 "B 不知道出生时辰": [
 "B's birth hour unknown",
 "B の出生時刻が不明"
@@ -6961,6 +6965,10 @@ const UI_EXTRA = {
 "点「对照关系」重新计算后可以看这一部分。": [
 "Click Compare again to see this part.",
 "「関係を対照」をもう一度押すとこの部分が表示されます。"
+],
+"点「比较两人命盘」重新计算后可以看这一部分。": [
+"Click Compare both charts again to see this part.",
+"「二人の命盤を比較」をもう一度押すとこの部分が表示されます。"
 ],
 "点击「查询日历」查看农历、日柱与当日节气时间。此功能不提供吉凶宜忌。": [
 "Click 'Look up calendar' to see the lunar date, day pillar and that day's solar term time. This feature does not provide auspicious/inauspicious or do/avoid guidance.",

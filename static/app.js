@@ -135,7 +135,12 @@ let calendarDraft = {start_date: localToday(), days: 14};
 let officerDraft = {start_date:localToday(),days:30,officer:''};
 let timelineDraft = {start_lunar_year:2024,years:10,focus_palace:''};
 let decisionDraft = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
-let pairDraft = {birth_datetime: '2001-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified'};
+let pairDraft = {birth_datetime: '2001-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified', year: new Date().getFullYear()};
+// The year of the pair's luck and year-pillar view; a newer request makes older replies stale, as on the group page.
+// While 比较两人命盘 runs, a year switch only changes the year asked for: the run's reply then fetches that year.
+let pairYearTicket = 0, pairYearPending = false, pairYearError = '', pairRunning = false, pairRunError = '';
+// A year typed in a year field but not yet entered, by page, so it survives a re-render.
+let luckYearTyped = {};
 const nameMap = {year: '年柱', month: '月柱', day: '日柱', hour: '时柱'};
 function elt(tag, cls, text) {
   const node = document.createElement(tag);
@@ -1543,8 +1548,8 @@ function renderRuleMatrix() {
 let groupResult = null, groupKey = null, groupResultKeys = [], groupChatBlock = null;
 // The year of the luck and year-pillar view. A newer request (another year, or 对照关系) makes older replies stale.
 // A 对照关系 run waiting for its reply keeps its members here: switching the year meanwhile asks for those
-// members, not the ones of the result shown. A year typed but not yet entered survives a re-render.
-let groupYearTicket = 0, groupYearPending = false, groupYearError = '', groupRun = null, groupRunError = '', groupYearTyped = null;
+// members, not the ones of the result shown.
+let groupYearTicket = 0, groupYearPending = false, groupYearError = '', groupRun = null, groupRunError = '';
 // Member notes stay on this page: the current chart's and temporary members' are never stored, a saved
 // profile's only after 「保存到档案」. Notes never go to the server; only the chat draft the user sends carries them.
 let groupDraft = {useCurrent: true, currentLabel: '我', currentNote: {key: '', text: ''}, profiles: [], profileNotes: {}, extras: [], filter: 'all', focus: null,
@@ -2081,35 +2086,41 @@ function luckLine(parent, l, prefix) {
 }
 function groupYearSection(g) {
   const v = g.year_view;
-  const box = append(result, 'section', 'group-year'); box.id = 'group-year';
+  luckYearSection(v, {prefix: 'group', year: groupYearPending || groupRun || !v ? groupDraft.year : v.year, pending: groupYearPending, error: groupYearError,
+    people: g.members, change: groupYear, rerun: '点「对照关系」重新计算后可以看这一部分。'});
+}
+// Each person's luck pillar and the year pillar of one year, with a year switcher; shared by the group and pair pages.
+// people[i] carries the day master of v.members[i] for the card's colour dot.
+// shownYear is the year the controls count from: the one asked for while a request runs, else the one shown.
+function luckYearSection(v, {prefix, year: shownYear, pending, error, people, change, rerun}) {
+  const box = append(result, 'section', 'group-year'); box.id = prefix + '-year';
   append(box, 'h4', 'subheading', '大运流年对照');
   const nav = append(box, 'div', 'inline-control group-year-nav');
-  // While a request runs, the controls count from the year asked for, not the one still shown.
-  const year = groupYearPending || groupRun || !v ? groupDraft.year : v.year;
-  const prev = append(nav, 'button', 'tiny-button', '‹ 上一年'); prev.type = 'button'; prev.id = 'group-year-prev';
+  const year = shownYear;
+  const prev = append(nav, 'button', 'tiny-button', '‹ 上一年'); prev.type = 'button'; prev.id = prefix + '-year-prev';
   const label = append(nav, 'label', 'group-year-label', '公历年');
-  const input = append(label, 'input'); input.type = 'number'; input.id = 'group-year-input';
-  input.min = '1901'; input.max = '2099'; input.step = '1'; input.value = groupYearTyped ?? String(year); input.inputMode = 'numeric';
-  const next = append(nav, 'button', 'tiny-button', '下一年 ›'); next.type = 'button'; next.id = 'group-year-next';
-  const today = append(nav, 'button', 'tiny-button', '今年'); today.type = 'button'; today.id = 'group-year-today';
+  const input = append(label, 'input'); input.type = 'number'; input.id = prefix + '-year-input';
+  input.min = '1901'; input.max = '2099'; input.step = '1'; input.value = luckYearTyped[prefix] ?? String(year); input.inputMode = 'numeric';
+  const next = append(nav, 'button', 'tiny-button', '下一年 ›'); next.type = 'button'; next.id = prefix + '-year-next';
+  const today = append(nav, 'button', 'tiny-button', '今年'); today.type = 'button'; today.id = prefix + '-year-today';
   prev.disabled = year <= 1901; next.disabled = year >= 2099;
   // A step that reaches 1901 or 2099 disables the button it was made with; keyboard focus moves to the year field.
-  prev.dataset.focusFallback = next.dataset.focusFallback = 'group-year-input';
-  prev.addEventListener('click', () => groupYear(year - 1));
-  next.addEventListener('click', () => groupYear(year + 1));
-  today.addEventListener('click', () => groupYear(new Date().getFullYear()));
+  prev.dataset.focusFallback = next.dataset.focusFallback = prefix + '-year-input';
+  prev.addEventListener('click', () => change(year - 1));
+  next.addEventListener('click', () => change(year + 1));
+  today.addEventListener('click', () => change(new Date().getFullYear()));
   // Rendering removes this field, and a removed field that still holds a typed value fires another change as it
   // loses focus; running the request after the event keeps that second render from starting inside the first.
   // A field removed by that render (or by a reply arriving while the user types) is not a request.
-  input.addEventListener('input', () => {groupYearTyped = input.value;});
+  input.addEventListener('input', () => {luckYearTyped[prefix] = input.value;});
   input.addEventListener('change', () => {
     const value = Number(input.value);
-    setTimeout(() => {if (input.isConnected) {groupYearTyped = null; groupYear(value);}});
+    setTimeout(() => {if (input.isConnected) {luckYearTyped[prefix] = null; change(value);}});
   });
   const status = append(nav, 'span', 'group-year-status muted'); status.setAttribute('role', 'status');
-  if (groupYearPending) status.textContent = '正在换年…';
-  if (groupYearError) append(box, 'p', 'inline-msg', groupYearError);
-  if (!v) {append(box, 'p', 'field-help', '点「对照关系」重新计算后可以看这一部分。'); return;}
+  if (pending) status.textContent = '正在换年…';
+  if (error) append(box, 'p', 'inline-msg', error);
+  if (!v) {append(box, 'p', 'field-help', rerun); return;}
   const head = append(box, 'p', 'group-year-title');
   texts(head, String(v.year) + ' ', '流年', ' ');
   append(head, 'b', stemClass(v.year_pillar[0]), v.year_pillar[0]); append(head, 'b', branchClass(v.year_pillar[1]), v.year_pillar[1]);
@@ -2117,8 +2128,8 @@ function groupYearSection(g) {
   append(box, 'p', 'field-help', '每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。');
   const cards = append(box, 'div', 'group-year-cards');
   v.members.forEach((m, i) => {
-    const card = append(cards, 'article', 'group-year-card'); card.id = 'group-year-card-' + i;
-    const member = g.members[i];
+    const card = append(cards, 'article', 'group-year-card'); card.id = prefix + '-year-card-' + i;
+    const member = people[i];
     const top = append(card, 'div', 'group-member-head');
     append(top, 'span', 'group-dot ' + (member.day_master ? 'bg-' + ELEMENT_CLASS[member.day_master_element] : 'dot-unknown'));
     append(top, 'strong', 'user-text', m.label);
@@ -2155,7 +2166,7 @@ function groupYearSection(g) {
   });
   append(box, 'h4', 'subheading', '大运之间');
   const marked = v.luck_pairs.filter(p => p.branch_labels.length || p.stem_combination);
-  const list = append(box, 'div', 'group-year-links'); list.id = 'group-year-links';
+  const list = append(box, 'div', 'group-year-links'); list.id = prefix + '-year-links';
   marked.forEach(p => {
     const row = append(list, 'div', 'group-year-link');
     [[p.a_label, p.a_pillar], [p.b_label, p.b_pillar]].forEach(([who, pillar], k) => {
@@ -2658,6 +2669,7 @@ function pairText() {
     [['A → B', z.transformations_a_into_b], ['B → A', z.transformations_b_into_a]].forEach(([label, rows]) => lines.push('　' + `${label}（${rows[0].source_year_stem}年干）` + '：'
       + rows.map(t => t.star + t.type + ' ' + (t.target_palace ? t.target_palace + '（' + t.target_branch + '）' : '对方盘未安此星')).join('；')));
   } else lines.push('', PAIR_ZIWEI_NEEDS_HOURS);
+  if (r.year_view) lines.push('', ...groupYearText(r.year_view));
   lines.push('', ...r.notes, ...(z ? z.limitations : []), ...TEXT_FOOTER);
   return finishText(lines);
 }
@@ -2665,7 +2677,7 @@ const PAIR_ZIWEI_NEEDS_HOURS = '紫微宫位叠盘需要两人的出生时辰，
 // A placeholder noon is not a birth hour: the hour pillar is left out, and Zi Wei needs both hours.
 function pairBody() {
   const b = pairDraft.hour_unknown && pairDraft.birth_datetime ? pairDraft.birth_datetime.slice(0, 10) + 'T12:00' : pairDraft.birth_datetime;
-  return {person_a: readInput(), person_b: {birth_datetime: b, timezone: pairDraft.timezone, gender: 'unspecified'},
+  return {person_a: readInput(), person_b: {birth_datetime: b, timezone: pairDraft.timezone, gender: pairDraft.gender || 'unspecified'},
     person_a_hour_unknown: $('#hour_unknown').checked, person_b_hour_unknown: !!pairDraft.hour_unknown};
 }
 function renderPair() {
@@ -2678,30 +2690,45 @@ function renderPair() {
   const zone = append(label, 'select'); zone.id = 'pair_timezone';
   [...$('#timezone').options].forEach(opt => {const option = append(zone, 'option', null, opt.textContent); option.value = opt.value;});
   zone.value = pairDraft.timezone;
+  const genderLabel = append(row, 'label', null, 'B · 性别（排大运用）');
+  const gender = append(genderLabel, 'select'); gender.id = 'pair_gender';
+  [['unspecified', '未填'], ['male', '男'], ['female', '女']].forEach(([value, text]) => {append(gender, 'option', null, text).value = value;});
+  gender.value = pairDraft.gender || 'unspecified';
   const unknownRow = append(row, 'label', 'check-line');
   const unknown = append(unknownRow, 'input'); unknown.type = 'checkbox'; unknown.id = 'pair_hour_unknown'; unknown.checked = !!pairDraft.hour_unknown;
   unknownRow.append('B 不知道出生时辰');
   // B's details survive a visit to another tab, like the other drafts on the page.
   date.addEventListener('input', () => {pairDraft.birth_datetime = date.value;});
   zone.addEventListener('change', () => {pairDraft.timezone = zone.value;});
+  gender.addEventListener('change', () => {pairDraft.gender = gender.value;});
   unknown.addEventListener('change', () => {
     pairDraft.hour_unknown = unknown.checked;
     if (unknown.checked && date.value) pairDraft.birth_datetime = date.value = date.value.slice(0, 10) + 'T12:00';
   });
   const run = append(row, 'button', null, '比较两人命盘'); run.type = 'button'; run.id = 'pair-run';
-  const error = append(result, 'p', 'inline-msg');
+  run.disabled = pairRunning;
+  const error = append(result, 'p', 'inline-msg', pairRunError);
   run.addEventListener('click', async () => {
-    pairDraft = {birth_datetime: date.value, timezone: zone.value, gender: 'unspecified', hour_unknown: unknown.checked};
+    pairDraft = {birth_datetime: date.value, timezone: zone.value, gender: gender.value, hour_unknown: unknown.checked, year: pairDraft.year};
     if (!pairDraft.birth_datetime) {error.textContent = '请填写 B 的出生时间'; return;}
-    run.disabled = true; error.textContent = '';
+    run.disabled = true; error.textContent = ''; pairRunError = '';
+    const ticket = ++pairYearTicket;
+    pairRunning = true;
     try {
       const body = pairBody(), key = JSON.stringify(body);
       const skipZiwei = body.person_a_hour_unknown || body.person_b_hour_unknown;
-      [pairResult, pairZiweiResult] = await Promise.all([postJSON('/api/pair', body), skipZiwei ? null : postJSON('/api/ziwei-pair', body)]);
-      pairKey = key;
-      render();
-    } catch (err) {error.textContent = '比较失败：' + err.message;}
-    finally {run.disabled = false;}
+      // Only the BaZi comparison takes the year; the Zi Wei overlay has no year view.
+      const [reply, ziwei] = await Promise.all([postJSON('/api/pair', {...body, year: pairDraft.year}), skipZiwei ? null : postJSON('/api/ziwei-pair', body)]);
+      if (ticket !== pairYearTicket) return;
+      pairResult = reply; pairZiweiResult = ziwei; pairKey = key; pairRunning = false; pairYearError = '';
+      // The year was switched while this ran: fetch that year for the new pair.
+      if (reply.year_view && reply.year_view.year !== pairDraft.year) {pairYearPending = false; pairYear(pairDraft.year); return;}
+      pairYearPending = false;
+    } catch (err) {
+      if (ticket !== pairYearTicket) return;
+      pairRunning = false; pairYearPending = false; pairRunError = '比较失败：' + err.message;
+    }
+    if (active === 'pair') render();
   });
   if (!pairResult) return;
   if (pairKey !== JSON.stringify(pairBody())) append(result, 'p', 'feature-note', 'A 或 B 的资料已改变，下面仍是上一次的结果；点「比较两人命盘」更新。');
@@ -2734,9 +2761,35 @@ function renderPair() {
   Object.entries(r.label_counts).forEach(([type, n]) => {if (n) texts(append(counts, 'span', 'relation-chip link-' + LINK_CLASS[type]), type, ' ', String(n));});
   if (!branchLinkTable(result, 'A', 'B', r.branch_links)) append(counts, 'span', 'muted', '无标记');
   else append(result, 'p', 'field-help', '每一行是 A 的一柱地支与 B 的一柱地支，包括不同位置的柱：同支、六合、六冲、六害、相刑。');
+  luckYearSection(r.year_view, {prefix: 'pair', year: pairYearPending || pairRunning || !r.year_view ? pairDraft.year : r.year_view.year,
+    pending: pairYearPending, error: pairYearError,
+    people: [r.person_a, r.person_b], change: pairYear, rerun: '点「比较两人命盘」重新计算后可以看这一部分。'});
   r.notes.forEach(x => note(result, x));
   if (pairZiweiResult) renderZiweiPair(pairZiweiResult);
   else append(result, 'p', 'feature-note', PAIR_ZIWEI_NEEDS_HOURS);
+}
+// Another year for the same two people: the request of the result shown, not the form being edited. While
+// 比较两人命盘 runs, only the year asked for changes; that run's reply fetches it for the new pair.
+async function pairYear(year) {
+  if (!pairKey && !pairRunning) return;
+  if (!pairRunning && pairResult && pairResult.year_view && pairResult.year_view.year === year && !pairYearPending) {
+    if (pairYearError) {pairYearError = ''; render();}
+    return;
+  }
+  if (!(Number.isInteger(year) && year >= 1901 && year <= 2099)) {pairYearError = '年份要在 1901 到 2099 之间'; render(); return;}
+  if (pairRunning) {pairDraft.year = year; pairYearPending = true; pairYearError = ''; render(); return;}
+  const ticket = ++pairYearTicket;
+  pairDraft.year = year; pairYearPending = true; pairYearError = ''; render();
+  try {
+    const reply = await postJSON('/api/pair', {...JSON.parse(pairKey), year});
+    if (ticket !== pairYearTicket) return;
+    pairResult = reply;
+  } catch (err) {
+    if (ticket !== pairYearTicket) return;
+    pairYearError = '换年失败：' + err.message;
+  }
+  pairYearPending = false;
+  if (active === 'pair') render();
 }
 function renderZiweiPair(z) {
   append(result, 'h4', 'subheading', '紫微宫位叠盘');
@@ -3373,7 +3426,8 @@ form.addEventListener('submit', async event => {
     dayunResult=null;boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
     // A group reply still on its way belongs to the previous chart.
-    ++groupYearTicket; groupYearPending = false; groupYearError = ''; groupRun = null; groupRunError = ''; groupYearTyped = null;
+    ++groupYearTicket; groupYearPending = false; groupYearError = ''; groupRun = null; groupRunError = ''; luckYearTyped = {};
+    ++pairYearTicket; pairYearPending = false; pairYearError = ''; pairRunning = false; pairRunError = '';
     horoscopeResult = null; horoscopeKey = null; horoscopeError = ''; horoscopeResultKey = null;
     selectedPalace = '命宫'; ziweiLayer.decade = null; currentHourUnknown = $('#hour_unknown').checked;
     $('#result-subtitle').textContent = data.birth_datetime.replace('T',' ') + ' · ' + data.timezone;
