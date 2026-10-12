@@ -669,7 +669,17 @@ def main() -> None:
             pair_text = page.locator('#pair-text-text').text_content()
             assert '\n紫微宫位叠盘需要两人的出生时辰，有一方时辰不详时不列出。\n' in pair_text and '【紫微宫位叠盘】' not in pair_text, pair_text
             assert page.evaluate("pairResult.branch_links.every(l => l.b_pillar !== 'hour')")
+            # Ticking it puts B on a noon placeholder; a draft that no longer matches the result is flagged after a tab visit.
+            assert page.locator('#pair_datetime').input_value().endswith('T12:00')
+            assert page.get_attribute('#pair-text-text', 'aria-labelledby') == 'pair-text-summary'
             page.locator('#pair_hour_unknown').uncheck()
+            page.locator('[data-tab="bazi"]').click()
+            page.locator('[data-tab="pair"]').click()
+            assert page.locator('#pair_hour_unknown').is_checked() is False
+            assert page.locator('.feature-note', has_text='A 或 B 的资料已改变').count() == 1
+            page.locator('#pair-run').click()
+            page.locator('#ziwei-pair-grid').wait_for(timeout=30000)
+            assert page.locator('.feature-note', has_text='A 或 B 的资料已改变').count() == 0
 
             # 开发阶段 decade cycles and exact modeled birth-time boundaries.
             page.locator('[data-tab="dayun"]').click()

@@ -471,6 +471,10 @@
   "A palace",
   "A 宮位"
  ],
+ "A 或 B 的资料已改变，下面仍是上一次的结果；点「比较两人命盘」更新。": [
+  "A's or B's details have changed; the results below are still from the last run. Click \"Compare both charts\" to update.",
+  "A または B の情報が変わりました。下は前回の結果のままです。「二人の命盤を比較」を押すと更新されます。"
+ ],
  "A 日主 ": [
   "A Day Master ",
   "A 日主 "
@@ -614,6 +618,10 @@
  "\\n关注点：": [
   "\\nFocus: ",
   "\\n注目点："
+ ],
+ "group_relations 里这位成员的 hour_unknown，pair_comparison 里对应一方的 person_a_hour_unknown 或 person_b_hour_unknown。": [
+  "this member's hour_unknown in group_relations, and person_a_hour_unknown or person_b_hour_unknown for that person in pair_comparison.",
+  "group_relations ではこのメンバーの hour_unknown、pair_comparison では該当する側の person_a_hour_unknown または person_b_hour_unknown。"
  ],
  "iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导": [
   "iztro public star-placement formulas; derived from birth year, natal palace position, lunar month/day and double-hour",
@@ -4066,6 +4074,10 @@
  "工作台功能查找": [
   "Find workbench features",
   "ワークベンチ機能を検索"
+ ],
+ "工具有时辰不详开关时要打开：bazi_dayun、ziwei_horoscope、rule_sensitivity_matrix 的 hour_unknown，": [
+  "Turn on a tool's unknown-hour switch when it has one: hour_unknown in bazi_dayun, ziwei_horoscope and rule_sensitivity_matrix,",
+  "ツールに出生時刻不明のスイッチがあればオンにすること：bazi_dayun、ziwei_horoscope、rule_sensitivity_matrix の hour_unknown、"
  ],
  "工具调用轮次已达上限，请把问题拆小后再问。": [
   "The tool-call round limit has been reached. Please break the question into smaller parts and ask again.",

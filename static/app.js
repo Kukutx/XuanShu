@@ -109,6 +109,7 @@ let horoscopeResult = null, horoscopeKey = null, horoscopeError = '', horoscopeR
 let calendarResult = null;
 let pairResult = null;
 let pairZiweiResult = null;
+let pairKey = null;  // the request the pair result belongs to
 let annualResult = null;
 let timeResult = null;
 let reportResult = null;
@@ -1610,8 +1611,9 @@ function textExport(parent, id, makeText, fileName) {
   const save = append(actions, 'button', 'tiny-button', '下载 TXT'); save.type = 'button'; save.id = id + '-download';
   append(actions, 'small', 'muted', '通行的中文命盘写法，不含出生日期、时间和备注');
   const fold = append(box, 'details', 'text-export-preview');
-  append(fold, 'summary', null, '预览文字');
-  const pre = append(fold, 'pre', 'share-text'); pre.id = id + '-text'; pre.tabIndex = 0; pre.setAttribute('aria-label', '文字预览');
+  append(fold, 'summary', null, '预览文字').id = id + '-summary';
+  // Named by the (translated) summary: the translator leaves pre elements and their attributes alone.
+  const pre = append(fold, 'pre', 'share-text'); pre.id = id + '-text'; pre.tabIndex = 0; pre.setAttribute('aria-labelledby', id + '-summary');
   box.xsFill = () => {pre.textContent = makeText(); copy.textContent = '复制成文字';};
   box.xsFill();
   copy.addEventListener('click', () => {box.xsFill(); copyPre(pre, copy, '已复制');});
@@ -2414,6 +2416,12 @@ function pairText() {
   return finishText(lines);
 }
 const PAIR_ZIWEI_NEEDS_HOURS = '紫微宫位叠盘需要两人的出生时辰，有一方时辰不详时不列出。';
+// A placeholder noon is not a birth hour: the hour pillar is left out, and Zi Wei needs both hours.
+function pairBody() {
+  const b = pairDraft.hour_unknown && pairDraft.birth_datetime ? pairDraft.birth_datetime.slice(0, 10) + 'T12:00' : pairDraft.birth_datetime;
+  return {person_a: readInput(), person_b: {birth_datetime: b, timezone: pairDraft.timezone, gender: 'unspecified'},
+    person_a_hour_unknown: $('#hour_unknown').checked, person_b_hour_unknown: !!pairDraft.hour_unknown};
+}
 function renderPair() {
   title(result, '双人合盘对照', '八字四柱对照 + 紫微宫位叠盘 · 只做结构对照，不评分关系好坏');
   append(result, 'p', 'info-inline', 'A 使用出生资料里的信息；B 在下方单独填写。对照数据不会自动保存。');
@@ -2430,7 +2438,10 @@ function renderPair() {
   // B's details survive a visit to another tab, like the other drafts on the page.
   date.addEventListener('input', () => {pairDraft.birth_datetime = date.value;});
   zone.addEventListener('change', () => {pairDraft.timezone = zone.value;});
-  unknown.addEventListener('change', () => {pairDraft.hour_unknown = unknown.checked;});
+  unknown.addEventListener('change', () => {
+    pairDraft.hour_unknown = unknown.checked;
+    if (unknown.checked && date.value) pairDraft.birth_datetime = date.value = date.value.slice(0, 10) + 'T12:00';
+  });
   const run = append(row, 'button', null, '比较两人命盘'); run.type = 'button'; run.id = 'pair-run';
   const error = append(result, 'p', 'inline-msg');
   run.addEventListener('click', async () => {
@@ -2438,16 +2449,16 @@ function renderPair() {
     if (!pairDraft.birth_datetime) {error.textContent = '请填写 B 的出生时间'; return;}
     run.disabled = true; error.textContent = '';
     try {
-      // A placeholder noon is not a birth hour: the hour pillar is left out, and Zi Wei needs both hours.
-      const aUnknown = $('#hour_unknown').checked, bUnknown = pairDraft.hour_unknown;
-      const body = {person_a: readInput(), person_b: {birth_datetime: pairDraft.birth_datetime, timezone: pairDraft.timezone, gender: 'unspecified'},
-        person_a_hour_unknown: aUnknown, person_b_hour_unknown: bUnknown};
-      [pairResult, pairZiweiResult] = await Promise.all([postJSON('/api/pair', body), aUnknown || bUnknown ? null : postJSON('/api/ziwei-pair', body)]);
+      const body = pairBody(), key = JSON.stringify(body);
+      const skipZiwei = body.person_a_hour_unknown || body.person_b_hour_unknown;
+      [pairResult, pairZiweiResult] = await Promise.all([postJSON('/api/pair', body), skipZiwei ? null : postJSON('/api/ziwei-pair', body)]);
+      pairKey = key;
       render();
     } catch (err) {error.textContent = '比较失败：' + err.message;}
     finally {run.disabled = false;}
   });
   if (!pairResult) return;
+  if (pairKey !== JSON.stringify(pairBody())) append(result, 'p', 'feature-note', 'A 或 B 的资料已改变，下面仍是上一次的结果；点「比较两人命盘」更新。');
   const r = pairResult;
   meta(result, [`A 日主 ${r.person_a.day_master || '?'}`, `B 日主 ${r.person_b.day_master || '?'}`, '不提供匹配分数']);
   // The day-stem ten god both ways, the five combination and the zodiac pair, as on the group page.
@@ -3502,7 +3513,7 @@ function openShareCard() {
   const canvas = append(dialog, 'canvas', 'share-canvas'); canvas.id = 'share-canvas';
   canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', '命盘卡片预览');
   const textBox = append(dialog, 'pre', 'share-text'); textBox.id = 'share-text'; textBox.tabIndex = 0;
-  textBox.setAttribute('aria-label', '文字盘预览');
+  textBox.setAttribute('aria-labelledby', 'share-view-text');
   const gendered = Boolean(GENDER_CHART[currentInput.gender]);
   [['date', '显示出生日期'], ['time', '显示出生时间与时区'], ['gender', '显示乾造 / 坤造'], ['bazi', '四柱八字'], ['ziwei', '紫微命盘']].forEach(([key, label]) => {
     const line = append(options, 'label', 'check-line');
