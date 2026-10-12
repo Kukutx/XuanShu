@@ -2887,6 +2887,10 @@
   "four-transformations flying-transformation year-stem",
   "四化 飛化 年干"
  ],
+ "四化叠加：": [
+  "Stacked transformations:",
+  "四化の重なり："
+ ],
  "四化是星曜的传统标识，不是新增星曜；宫干飞化仅列出四化星所在宫，尚未实施完整飞星断法。": [
   "The Four Transformations are traditional markers on stars, not additional stars; palace-stem flying transformations only list the palaces holding the transformed stars, and full flying-star interpretation is not yet implemented.",
   "四化は星曜の伝統的な標識であり、新たな星曜ではありません。宮干飛化は四化星の所在宮を列挙するのみで、完全な飛星の判断法はまだ実装していません。"
@@ -6426,6 +6430,10 @@
  "生年": [
   "Birth-year ",
   "生年"
+ ],
+ "生年与各层四化没有两项落在同一颗星": [
+  "no star carries two of the birth-year and layer transformations",
+  "生年と各層の四化が同じ星に二つ重なっていない"
  ],
  "生年四化": [
   "Birth-year transformations",

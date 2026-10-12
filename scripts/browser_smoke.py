@@ -327,19 +327,38 @@ def main() -> None:
             assert '紫微庙@palace-6' in bright['shown'] and '主星：紫微（庙）' in page.locator('.palace-panel').inner_text()
             # Flying transformations of the selected Life palace (午, 壬 stem): 天梁 禄 to 卯, 紫微 权 stays (自化),
             # 左辅 科 to 戌, 武曲 忌 to 寅. One curve per palace it flies into, one badge in each palace.
-            assert page.locator('#ziwei-board path.fly').count() == 3
+            assert page.locator('#ziwei-board path.fly:not(.in)').count() == 3
             assert page.locator('#palace-3 .fly-mark.fly-lu').inner_text() == '禄入' and page.locator('#palace-6 .fly-mark').inner_text() == '自化权'
             assert page.locator('#palace-10 .fly-mark.fly-ke').count() == 1 and page.locator('#palace-2 .fly-mark.fly-ji').count() == 1
             page.locator('#ziwei-fly-toggle').click()
             assert page.locator('#ziwei-board path.fly').count() == 0 and page.locator('.fly-mark').count() == 0
             assert page.locator('#ziwei-fly-toggle').get_attribute('aria-pressed') == 'false'
             page.locator('#ziwei-fly-toggle').click()
-            assert page.locator('#ziwei-board path.fly').count() == 3
+            assert page.locator('#ziwei-board path.fly:not(.in)').count() == 3
             # The panel lists the reverse direction too: 紫微 and 文曲 sit in 午, so 乙 (酉) sends 紫微化科,
             # 辛 (巳) sends 文曲化科 and both 己 palaces send 文曲化忌; 午's own 壬 紫微化权 is a self-transformation.
             fly_in = page.locator('.palace-panel .fly-in').inner_text()
-            assert fly_in.startswith('飞入本宫：') and fly_in.count('；') == 3, fly_in
+            assert fly_in.startswith('飞入本宫：') and page.locator('.palace-panel .fly-in .fly-item').count() == 4, fly_in
             assert all(item in fly_in for item in ('田宅宫（乙干）紫微化科', '兄弟宫（辛干）文曲化科', '疾厄宫（己干）文曲化忌', '子女宫（己干）文曲化忌')), fly_in
+            # Each entry brings out its own curve: the incoming ones are hidden until pointed at, a click keeps one lit.
+            assert page.locator('#ziwei-board path.fly.in').count() == 4 and not page.locator('#ziwei-board path.fly.in').first.is_visible()
+            page.locator('.fly-in .fly-item', has_text='田宅宫').hover()
+            hot = '#ziwei-board path.fly.is-hot[data-key="in|田宅宫|紫微化科"]'
+            assert page.locator(hot).is_visible() and page.locator('#ziwei-board.fly-focus').count() == 1
+            assert page.locator('.palace.fly-end').evaluate_all('els => els.map(el => el.id).sort()') == ['palace-6', 'palace-9']
+            page.mouse.move(5, 5)
+            assert page.locator('#ziwei-board.fly-focus').count() == 0 and not page.locator('#ziwei-board path.fly.in').first.is_visible()
+            page.locator('.fly-in .fly-item', has_text='田宅宫').click()
+            page.mouse.move(5, 5)
+            assert page.locator(hot).is_visible() and page.locator('.fly-in .fly-item[aria-pressed="true"]').count() == 1
+            page.locator('#ziwei-board').screenshot(path=str(screenshot_dir / '43-ziwei-fly-highlight.png'))
+            page.locator('.palace-panel').screenshot(path=str(screenshot_dir / '44-ziwei-panel-fly.png'))
+            page.locator('.fly-in .fly-item', has_text='田宅宫').click()
+            page.locator('#palace-6').focus()
+            assert page.locator('#ziwei-board.fly-focus').count() == 0 and page.locator('.fly-item[aria-pressed="true"]').count() == 0
+            page.locator('.fly-out .fly-item', has_text='天梁化禄').focus()
+            assert page.locator('#ziwei-board path.fly.is-hot[data-key="out|天梁化禄"]').count() == 1
+            page.locator('#palace-6').focus()
             # Arrow keys move between palaces in board order and jump the empty middle; the board is one tab stop.
             assert page.locator('#ziwei-board .palace[tabindex="0"]').count() == 1 and page.locator('#palace-6').get_attribute('tabindex') == '0'
             page.locator('#palace-6').focus()
@@ -360,7 +379,7 @@ def main() -> None:
             layer_curves = page.evaluate('''() => {const z = current.ziwei, info = ziweiLayerInfo(z);
               return info.anchor === 6 ? -1 : info.hua.filter(t => t.target_palace !== z.palaces[info.anchor].name).length;}''')
             assert layer_curves >= 1 and page.locator('#ziwei-board path.fly.layer').count() == layer_curves, layer_curves
-            assert page.locator('#ziwei-board path.fly:not(.layer)').count() == 3
+            assert page.locator('#ziwei-board path.fly:not(.layer):not(.in)').count() == 3
             assert '点线：大限四化飞入的宫位' in page.locator('.hua-legend').inner_text(), page.locator('.hua-legend').inner_text()
             page.locator('#ziwei-board').screenshot(path=str(screenshot_dir / '42-ziwei-layer-flying.png'))
             # The decade and year layers draw their 流曜 in the browser; they must match the engine's.
@@ -386,6 +405,10 @@ def main() -> None:
             assert '流年四化' in page.locator('.palace-panel').inner_text() and '流年流曜' in page.locator('.palace-panel').inner_text()
             assert page.locator('#ziwei-board .flow-star').count() == 11 and page.locator('#ziwei-board .layer-cycle').count() == 12
             assert page.evaluate(flow_check, 'year') == ''
+            # 2016 丙 inside the 辛 decade of a 庚 birth year: three stars carry two transformations each.
+            overlap = page.locator('.hua-overlap-item').all_inner_texts()
+            assert overlap == ['太阳（生年化禄、大限化权）', '天同（生年化忌、流年化禄）', '文昌（大限化忌、流年化科）'], overlap
+            assert page.locator('#ziwei-board .star.hua-stack').count() == 3
             page.screenshot(path=str(screenshot_dir / '31-ziwei-annual-layer.png'), full_page=True)
             # Month and day layers come from the engine for any date; the stack lists every layer in force that day.
             page.locator('#ziwei-layer-month').click()
@@ -394,6 +417,10 @@ def main() -> None:
             assert page.locator('#palace-10.layer-anchor').count() == 1 and page.locator('#ziwei-layer-stack .layer-stack-row').count() == 5
             assert page.locator('#ziwei-board .hua.layer').count() == 4 and '流月四化（戊干）' in page.locator('.palace-panel').inner_text()
             assert page.locator('#ziwei-board .flow-star', has_text='月禄').count() == 1 and page.locator('#palace-5 .flow-star', has_text='月禄').count() == 1
+            # The month stacks on the 庚 decade, the 丙 year and the 庚 birth year.
+            overlap = page.locator('.hua-overlap-item').all_inner_texts()
+            assert overlap == ['太阳（生年化禄、大限化禄）', '武曲（生年化权、大限化权）', '太阴（生年化科、大限化科、流月化权）',
+                               '天同（生年化忌、大限化忌、流年化禄）', '天机（流年化权、流月化忌）'], overlap
             page.locator('#ziwei-layer-next').click()
             page.locator('.layer-label', has_text='十月').wait_for(timeout=30000)
             assert page.evaluate('document.activeElement.id') == 'ziwei-layer-next'
