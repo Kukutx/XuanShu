@@ -2726,10 +2726,10 @@ function ruleShift(parent, row, base) {
   shift.append(minutes < 0 ? '−' : '+'); durationText(shift, Math.abs(minutes));
   shift.title = calT(minutes < 0 ? '比当前设置早' : '比当前设置晚');
 }
-function ruleApply(parent, row, i) {
+function ruleApply(parent, row, id) {
   if (row.is_baseline || !row.differs.length) return;
   if (!row.applicable) {append(parent, 'small', 'muted', '需手动改时间'); return;}
-  const apply = append(parent, 'button', 'tiny-button', '套用'); apply.type = 'button'; apply.id = 'rule-apply-' + i;
+  const apply = append(parent, 'button', 'tiny-button', '套用'); apply.type = 'button'; apply.id = id;
   apply.setAttribute('aria-label', calT('套用') + ' ' + row.label.split(' + ').map(calT).join(' + '));
   apply.addEventListener('click', () => {setInput(row.settings); form.requestSubmit(); setFeedback('已套用：' + row.label);});
 }
@@ -2769,6 +2769,12 @@ function renderRuleMatrix() {
     const chip = texts(append(movingChips, 'a', 'relation-chip rel-clash'), f.label, ' ', String(f.changed_by.length));
     chip.href = '#rm-field-' + f.field.replace('.', '-');
     chip.title = f.changed_by.join('\n');
+    // The link keeps #tool=rule-matrix in the address, so it scrolls itself and moves focus to the field card.
+    chip.addEventListener('click', event => {
+      event.preventDefault(); const target = $('#rm-field-' + f.field.replace('.', '-')); if (!target) return;
+      target.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start'});
+      target.focus({preventScroll: true});
+    });
   });
   m.hints.forEach(text => append(result, 'div', 'feature-note', text));
   // One rule at a time: what each common choice alone does to the reading and to the chart.
@@ -2779,42 +2785,48 @@ function renderRuleMatrix() {
     singles.forEach(([row, i]) => {
       const card = append(grid, 'div', 'rm-single' + (row.differs.length ? ' has-diff' : ''));
       append(card, 'b', 'rm-rule', row.label);
-      ruleShift(append(card, 'p', 'rm-when'), row, base);
+      if (m.hour_unknown) append(card, 'p', 'rm-when', '时辰不详，不列换算后的时刻');
+      else ruleShift(append(card, 'p', 'rm-when'), row, base);
       const changes = append(card, 'div', 'rm-changes');
-      if (!row.differs.length) append(changes, 'span', 'rm-same', '结果不变');
+      if (!row.differs.length && m.hour_unknown) texts(append(changes, 'span', 'rm-same'), '参与对照的字段不变', '（', m.fields.map(f => calT(f.label)).join('、'), '）');
+      else if (!row.differs.length) append(changes, 'span', 'rm-same', '结果不变');
       row.differs.forEach(k => {
         const chip = append(changes, 'span', 'rm-change');
         append(chip, 'span', null, fieldLabel[k]);
         const arrow = append(chip, 'span', 'rm-arrow');
         ganzhiValue(append(arrow, 'del'), base.values[k]); arrow.append(' → '); ganzhiValue(append(arrow, 'ins'), row.values[k]);
       });
-      ruleApply(card, row, i);
+      ruleApply(card, row, 'rule-single-apply-' + i);
     });
   }
   // Each field that moves: every value it takes and which rule choices give it.
   if (s.sensitive_fields.length) {
     append(result, 'h3', 'subheading', '会变的字段有几种结果');
-    append(result, 'p', 'field-help', '点一个结果，下方表格只突出得出它的规则组合。');
+    append(result, 'p', 'field-help rm-fields-hint', '点一个结果，下方表格只突出得出它的规则组合；数字是得出它的方案数，含当前设置。');
     const fields = append(result, 'div', 'rm-fields'); fields.id = 'rule-fields';
     s.sensitive_fields.forEach(f => {
-      const card = append(fields, 'section', 'rm-field'); card.id = 'rm-field-' + f.field.replace('.', '-');
-      append(card, 'h4', null, f.label);
+      const card = append(fields, 'section', 'rm-field'); card.id = 'rm-field-' + f.field.replace('.', '-'); card.tabIndex = -1;
+      const heading = append(card, 'h4', null, f.label); heading.id = card.id + '-title';
       const groups = new Map();
       m.rows.forEach(row => {const v = row.values[f.field]; if (!groups.has(v)) groups.set(v, []); groups.get(v).push(row);});
-      const list = append(card, 'ul', 'rm-values');
+      const list = append(card, 'ul', 'rm-values'); list.setAttribute('aria-labelledby', heading.id);
+      let index = 0;
       groups.forEach((rows, value) => {
         const item = append(list, 'li');
         const on = ruleMatrixFocus && ruleMatrixFocus.field === f.field && ruleMatrixFocus.value === value;
         const button = append(item, 'button', 'rm-value' + (on ? ' is-on' : '') + (rows.includes(base) ? ' is-base' : '')); button.type = 'button';
+        button.id = card.id + '-value-' + index++;
         button.setAttribute('aria-pressed', on ? 'true' : 'false');
         ganzhiValue(append(button, 'b', 'rm-val'), value);
         if (rows.includes(base)) append(button, 'span', 'rm-tag', '当前');
-        texts(append(button, 'small', 'rm-count'), rows.length, ' ', '种');
+        if (rows.length === 1) append(button, 'small', 'rm-count', '1 种');
+        else texts(append(button, 'small', 'rm-count'), rows.length, ' ', '种');
+        // The redraw keeps the button's id, so focus comes back to the value just pressed.
         button.addEventListener('click', () => {
-          ruleMatrixFocus = on ? null : {field: f.field, value};
+          ruleMatrixFocus = on ? null : {field: f.field, value, button: button.id};
           render();
-          const again = $('#rm-field-' + f.field.replace('.', '-') + ' .rm-value[aria-pressed="' + (on ? 'false' : 'true') + '"]');
-          if (again) again.focus(); else {const first = $('#rm-field-' + f.field.replace('.', '-') + ' .rm-value'); if (first) first.focus();}
+          const again = document.getElementById(button.id); if (again) again.focus();
+          if (!on) announce([calT('突出'), calT(f.label), value].join(' ') + ' · ' + (rows.length === 1 ? calT('1 种组合') : rows.length + ' ' + calT('种组合')));
         });
         // Named by the single rules that give it (or the current settings); combinations are only counted.
         const rules = append(item, 'div', 'rm-rules');
@@ -2824,7 +2836,9 @@ function renderRuleMatrix() {
           const chip = append(rules, 'span', 'rm-combo' + (row.is_baseline ? ' is-base' : ''));
           row.label.split(' + ').forEach((part, k) => {if (k) append(chip, 'span', 'rm-plus', '+'); append(chip, 'span', null, part);});
         });
-        if (rows.length > shown.length) texts(append(rules, 'span', 'rm-more'), named.length ? '及另' : '', ' ', rows.length - shown.length, ' ', '种组合');
+        const more = rows.length - shown.length;
+        if (more === 1) append(rules, 'span', 'rm-more', '及另 1 种组合');
+        else if (more) texts(append(rules, 'span', 'rm-more'), '及另', ' ', more, ' ', '种组合');
       });
     });
   }
@@ -2839,7 +2853,11 @@ function renderRuleMatrix() {
     texts(line, '突出', ' ', fieldLabel[ruleMatrixFocus.field], ' ');
     ganzhiValue(append(line, 'b'), ruleMatrixFocus.value);
     const clear = append(line, 'button', 'tiny-button', '取消突出'); clear.type = 'button'; clear.id = 'rule-focus-clear';
-    clear.addEventListener('click', () => {ruleMatrixFocus = null; render();});
+    // Clearing removes this button, so focus goes back to the value that was pressed.
+    clear.addEventListener('click', () => {
+      const pressed = ruleMatrixFocus.button; ruleMatrixFocus = null; render();
+      const back = document.getElementById(pressed) || $('#rule-only-diff'); if (back) back.focus();
+    });
   }
   const wrap = append(result, 'div', 'table-wrap');
   const table = append(wrap, 'table', 'data-table rule-matrix'); table.id = 'rule-matrix';
@@ -2857,14 +2875,15 @@ function renderRuleMatrix() {
     if (row.is_baseline) name.append(row.label);
     else row.label.split(' + ').forEach((part, k) => {if (k) append(name, 'span', 'rm-plus', '+'); append(name, 'span', 'rm-part', part);});
     const time = append(tr, 'td', 'rule-time');
-    if (row.is_baseline) time.append(row.effective_reading.replace('T', ' '));
+    if (m.hour_unknown) append(time, 'span', 'muted', '时辰不详');
+    else if (row.is_baseline) time.append(row.effective_reading.replace('T', ' '));
     else ruleShift(time, row, base);
     m.fields.forEach(f => {
       const changed = row.differs.includes(f.key);
       if (row.is_baseline || changed) ganzhiValue(append(tr, 'td', changed ? 'cell-diff' : null), row.values[f.key]);
       else append(append(tr, 'td'), 'span', 'muted', '＝');
     });
-    ruleApply(append(tr, 'td'), row, i);
+    ruleApply(append(tr, 'td'), row, 'rule-apply-' + i);
   });
   append(result, 'p', 'field-help', '“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。扣除夏令时改的是出生时间本身的读法，不能直接套用；确认出生记录用的是夏令时后，请手动改出生时间。');
   m.notes.forEach(text => note(result, text));

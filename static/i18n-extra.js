@@ -446,6 +446,14 @@ const UI_EXTRA = {
 "1 hour",
 "1 時間"
 ],
+"1 种": [
+"1 way",
+"1 通り"
+],
+"1 种组合": [
+"1 combination",
+"1 通りの組み合わせ"
+],
 "14主星+44颗选定辅助/杂曜（其中新增26颗）；非所有流派与流曜": [
 "14 main stars + 44 selected auxiliary/minor stars (26 newly added); not all schools or annual stars",
 "14主星＋選定した補助星・雑曜44個（うち新規26個）。全流派・流曜ではない"
@@ -3030,6 +3038,10 @@ const UI_EXTRA = {
 "Leader without it",
 "外したときの首位"
 ],
+"参与对照的字段不变": [
+"The compared fields are unchanged",
+"比較した項目は同じ"
+],
 "参数校验失败：": [
 "Parameter validation failed:",
 "パラメータ検証に失敗："
@@ -3055,8 +3067,12 @@ const UI_EXTRA = {
 "参考出典はユーザーが提供したものであり、ツールはその出典の権威性を自動的に認証しません。"
 ],
 "及另": [
-"and",
+"and another",
 "ほか"
+],
+"及另 1 种组合": [
+"and 1 more combination",
+"ほか 1 通りの組み合わせ"
 ],
 "双人关系": [
 "Two-person relationship",
@@ -6318,6 +6334,10 @@ const UI_EXTRA = {
 "For a member with an unknown hour, luck is computed for the first and the last minute of the birth day; when they differ both are listed, and the annual pillar is not compared with the hour pillar.",
 "時刻不明のメンバーは誕生日の最も早い時刻と遅い時刻でそれぞれ大運を出し、異なる場合は両方を並べます。流年も時柱とは比べません。"
 ],
+"时辰不详，不列换算后的时刻": [
+"Hour unknown, so no converted time is listed",
+"時辰不明のため、換算後の時刻は示しません"
+],
 "时辰不详，交运年随时辰而定": [
 "hour unknown, the year this period begins depends on the hour",
 "時刻不明のため、交運年は時刻次第"
@@ -7826,9 +7846,9 @@ const UI_EXTRA = {
 "Click Compare both charts again to see this part.",
 "「二人の命盤を比較」をもう一度押すとこの部分が表示されます。"
 ],
-"点一个结果，下方表格只突出得出它的规则组合。": [
-"Pick a result to highlight, in the table below, only the rule combinations that give it.",
-"結果を選ぶと、下の表でその結果になる規則の組み合わせだけを強調します。"
+"点一个结果，下方表格只突出得出它的规则组合；数字是得出它的方案数，含当前设置。": [
+"Pick a result to highlight, in the table below, only the rule combinations that give it; the number counts the settings that give it, the current settings included.",
+"結果を選ぶと、下の表でその結果になる規則の組み合わせだけを強調します。数字はその結果になる設定の数で、現在の設定を含みます。"
 ],
 "点击「查询日历」查看农历、日柱与当日节气时间。此功能不提供吉凶宜忌。": [
 "Click 'Look up calendar' to see the lunar date, day pillar and that day's solar term time. This feature does not provide auspicious/inauspicious or do/avoid guidance.",
