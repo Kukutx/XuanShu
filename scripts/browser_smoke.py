@@ -837,6 +837,12 @@ def main() -> None:
             assert '命盘时辰不详：本页按 12:00 占位时辰计算' in page.locator('#result').inner_text()
             page.wait_for_timeout(400)
             assert page.locator('.transform-card').count() == 0
+            # Run by hand, the year grid names the palaces only: their stem and branch would come from the placeholder.
+            page.locator('[data-tab="timeline"]').click()
+            page.locator('#timeline-run').click()
+            page.locator('#timeline-matrix').wait_for(timeout=30000)
+            assert page.locator('#timeline-matrix .yt-palace').count() == 12 and page.locator('#timeline-matrix .yt-branch').count() == 0
+            assert '时辰不详：宫位按 12:00 占位时辰排出，落宫会随时辰变化。' in page.locator('#result').inner_text()
             page.locator('[data-tab="bazi"]').click()
             # 2000-02-04 has 立春 at 20:40: with the hour unknown the year and month pillars, and so the stars, are open.
             page.locator('#birth_datetime').fill('2000-02-04T12:00')
@@ -1243,6 +1249,24 @@ def main() -> None:
             assert page.locator('#timeline-matrix tbody tr').count() == 12 and page.locator('#timeline-matrix .hua').count() == 40
             assert page.locator('#timeline-matrix tr.is-focus th').inner_text().startswith('官禄宫')
             assert page.locator('#timeline-matrix thead .is-now').count() == 1
+            # This lunar year is named, not only tinted, and is the column marked as the current date.
+            now_year = page.locator('#timeline-matrix thead [aria-current="date"]')
+            assert now_year.count() == 1 and now_year.locator('.yt-now').inner_text() == '今年'
+            assert page.locator('#timeline-matrix .yt-branch').count() == 12 and page.locator('#timeline-matrix .hua.layer').count() == 40
+            # A year reached by the keyboard is scrolled out from under the sticky palace column.
+            gap = page.evaluate("""() => {
+                const wrap = document.querySelector('.yt-wrap'); wrap.style.maxWidth = '320px'; wrap.scrollLeft = wrap.scrollWidth;
+                const year = document.querySelector('#timeline-matrix thead .yt-year'); year.focus();
+                const gap = year.getBoundingClientRect().left - document.querySelector('#timeline-matrix .yt-corner').getBoundingClientRect().right;
+                wrap.style.maxWidth = ''; return wrap.scrollWidth > 320 ? gap : null;
+            }""")
+            assert gap is not None and gap >= -1, gap
+            # Print leaves the grid out (it cannot fit a page) and carries every year as the list.
+            page.emulate_media(media='print')
+            assert not page.locator('#timeline-matrix').is_visible() and page.locator('.yt-print-list tbody tr').count() == 10
+            assert page.locator('.yt-print-list tbody tr[aria-current="date"]').count() == 1
+            page.emulate_media(media='screen')
+            assert not page.locator('.yt-print-list').is_visible()
             hua_total = sum(int(t[1:]) for t in page.locator('#timeline-matrix .yt-count').all_inner_texts())
             assert hua_total == 40, hua_total
             # The list by year keeps the selected palace's column; a year opens the Zi Wei year layer.

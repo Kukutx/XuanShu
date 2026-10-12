@@ -822,10 +822,6 @@ const UI_EXTRA = {
 "One column per lunar year: each cell shows which of that year's stem transformation stars fall in the natal palace, and the × under a palace name counts how often they do across these years. Click a year to open that year's annual layer on the Zi Wei chart.",
 "1 列が 1 つの旧暦年で、マスにはその年の天干の四化星が本命のどの宮に入るかを示します。宮名の下の「×」はこれらの年にその宮に入った回数です。年をクリックすると紫微盤でその年の流年層を開きます。"
 ],
-"一列一个农历年，格子里是该年天干的四化星落在本命哪一宫，宫名下的「×」是这些年里落入该宫的次数；点年份在紫微盘打开该年的流年层。所选宫位整行加框。": [
-"One column per lunar year: each cell shows which of that year's stem transformation stars fall in the natal palace, and the × under a palace name counts how often they do across these years. Click a year to open that year's annual layer on the Zi Wei chart. The selected palace's row is outlined.",
-"1 列が 1 つの旧暦年で、マスにはその年の天干の四化星が本命のどの宮に入るかを示します。宮名の下の「×」はこれらの年にその宮に入った回数です。年をクリックすると紫微盤でその年の流年層を開きます。選択した宮位の行は枠で囲みます。"
-],
 "一至三十一日 · 以中国标准时间计算": [
 "1 to 31 days · computed in China Standard Time",
 "1〜31日 · 中国標準時で計算"
