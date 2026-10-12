@@ -395,27 +395,327 @@ function renderQimenDay(q) {
     qimenFingerprint = null;
   }
 }
-function renderProfessionalZiwei() {
-  title(result, '专业紫微 · iztro-py（可选）', '本命全盘与运限 · 第三方独立引擎，不替换原生子集');
-  note(result, '仅本机显式安装 xuanshu[professional] 后可使用。第三方引擎的流派、星曜与当前子集可能不同，不会隐式混合数据。');
-  const row=append(result,'div','inline-control');
-  const label=append(row,'label',null,'目标日期（流年 / 流月 / 流日）');
-  const date=append(label,'input'); date.type='date'; date.id='professional-target';date.value=professionalTargetDraft;
-  const run=append(row,'button',null,'计算专业盘');run.id='professional-run';run.type='button';
-  const message=append(result,'p','inline-msg');
-  run.addEventListener('click', async()=>{
-    run.disabled=true;
-    try {
-      professionalTargetDraft=date.value;
-      professionalResult=await postJSON('/api/ziwei-professional', {birth:readInput(),target_date:professionalTargetDraft || null});
-      render();
-    } catch(e){message.textContent='专业引擎暂不可用：'+e.message;}
-    finally{run.disabled=false;}
+// The optional iztro-py page: whether the engine is installed (with install steps when it is not), the request
+// form, and the result drawn as a board, an item-by-item comparison with XuanShu's own chart, the period layers
+// and the provider's raw output. Field names are read in snake_case or camelCase; whatever is not recognised
+// stays in the raw output, and branch or stem keys such as "ziEarthly" are shown as their characters.
+let professionalSent = null, professionalError = '', professionalPending = false, professionalOnlyDiff = true, professionalRecheck = false;
+let professionalHourDraft = 12;
+const PF_BRANCH = {zi: '子', chou: '丑', yin: '寅', mao: '卯', chen: '辰', si: '巳', wu: '午', wei: '未', shen: '申', you: '酉', xu: '戌', hai: '亥'};
+const PF_STEM = {jia: '甲', yi: '乙', bing: '丙', ding: '丁', wu: '戊', ji: '己', geng: '庚', xin: '辛', ren: '壬', gui: '癸'};
+const PF_INSTALL = 'python -m pip install "iztro-py>=0.1,<1"', PF_INSTALL_SOURCE = 'python -m pip install ".[professional]"';
+const PF_LAYERS = [['decadal', '大限'], ['age', '小限'], ['yearly', '流年'], ['monthly', '流月'], ['daily', '流日'], ['hourly', '流时']];
+// 禄权科忌 as single characters; they stay characters in every language, like the transformation badges.
+const PF_HUA = ['化禄', '化权', '化科', '化忌'].map(t => t.slice(1)), PF_HUA_CLASS = ['lu', 'quan', 'ke', 'ji'];
+const pfGet = (o, ...keys) => {if (!o || typeof o !== 'object') return undefined; for (const k of keys) if (o[k] !== undefined && o[k] !== null) return o[k]; return undefined;};
+const pfText = v => typeof v === 'string' ? v : typeof v === 'number' ? String(v) : '';
+const pfBranch = v => {const s = pfText(v); return BRANCH_ORDER.includes(s) && s.length === 1 ? s : PF_BRANCH[s.replace(/Earthly$/, '')] || '';};
+const pfStem = v => {const s = pfText(v); return STEM_ORDER.includes(s) && s.length === 1 ? s : PF_STEM[s.replace(/Heavenly$/, '')] || '';};
+const pfCjk = s => /[一-鿿]/.test(pfText(s));
+const pfPalaceName = s => pfText(s).replace(/宫$/, '');
+// iztro's time index: 0 early Zi (00:00–00:59), 1 丑 … 11 亥, 12 late Zi (23:00–23:59), as the server maps clock hours.
+const PF_HOURS = ['早子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时', '晚子时'];
+const pfHourLabel = h => String(h).padStart(2, '0') + ':00 · ' + calT(PF_HOURS[h === 23 ? 12 : Math.floor((h + 1) / 2)]);
+const pfStars = (palace, ...keys) => {const list = pfGet(palace, ...keys); return Array.isArray(list) ? list.filter(s => s && typeof s === 'object' && pfText(s.name)) : [];};
+// The four transformations as written on a star: 禄, 化禄 or lu.
+const pfHua = v => {const s = pfText(v).replace(/^化/, ''); return PF_HUA.includes(s) ? s : PF_HUA[PF_HUA_CLASS.indexOf(s)] || s;};
+
+// The provider's palaces by branch, or null when they cannot be placed.
+function pfPalaces(natal) {
+  const list = pfGet(natal, 'palaces');
+  if (!Array.isArray(list)) return null;
+  const byBranch = {};
+  list.forEach(p => {const b = pfBranch(pfGet(p, 'earthly_branch', 'earthlyBranch')); if (b && !byBranch[b]) byBranch[b] = p;});
+  return Object.keys(byBranch).length === 12 ? byBranch : null;
+}
+// Item-by-item comparison with the native chart: palace names and stems, the major stars and their brightness,
+// the birth-year transformations and where each star both engines place lands. Stars only one engine places are
+// counted, not marked as differences.
+function pfCompare(byBranch, z) {
+  const rows = [], extra = new Set(), missing = new Set();
+  const add = (kind, where, native, provider) => rows.push({kind, where: [].concat(where), native, provider, same: native === provider});
+  const located = {};
+  Object.entries(byBranch).forEach(([b, p]) => ['major_stars', 'majorStars', 'minor_stars', 'minorStars', 'adjective_stars', 'adjectiveStars']
+    .forEach(k => (Array.isArray(p[k]) ? p[k] : []).forEach(s => {if (s && pfText(s.name) && !located[s.name]) located[s.name] = {branch: b, star: s};})));
+  z.palaces.forEach(np => {
+    const p = byBranch[np.branch], where = [np.branch, np.name];
+    if (pfCjk(pfGet(p, 'name'))) add('宫名', where, pfPalaceName(np.name), pfPalaceName(pfGet(p, 'name')));
+    const stem = pfStem(pfGet(p, 'heavenly_stem', 'heavenlyStem'));
+    if (stem) add('宫干', where, np.stem, stem);
+    const major = pfStars(p, 'major_stars', 'majorStars');
+    add('主星', where, [...np.main_stars].sort().join('、') || '—', major.map(s => s.name).sort().join('、') || '—');
+    major.forEach(s => {
+      const theirs = pfText(s.brightness), ours = (np.star_brightness || {})[s.name];
+      if (theirs && ours && np.main_stars.includes(s.name)) add('亮度', [...where, s.name], ours, theirs);
+    });
   });
-  if(!professionalResult)return;
-  meta(result,[professionalResult.provider,professionalResult.effective_calendar_date, '时辰序号 '+professionalResult.time_index]);
-  append(result,'pre','json-code',JSON.stringify(professionalResult,null,2));
-  professionalResult.notes.forEach(x=>note(result,x));
+  // Birth-year transformations: the star each of 禄权科忌 falls on.
+  const ours = Object.fromEntries((z.birth_year_transformations || []).map(t => [t.type.replace(/^化/, ''), t.star]));
+  const theirs = {};
+  Object.values(located).forEach(({star}) => {const h = pfHua(star.mutagen); if (PF_HUA.includes(h)) theirs[h] = star.name;});
+  if (Object.keys(theirs).length) PF_HUA.forEach(h => add('生年四化', '化' + h, ours[h] || '—', theirs[h] || '—'));
+  Object.entries(z.star_positions || {}).forEach(([name, branch]) => {
+    if (z.palaces.some(np => np.main_stars.includes(name))) return;  // the major stars are compared above
+    if (located[name]) add('辅星落宫', name, branch, located[name].branch); else missing.add(name);
+  });
+  Object.keys(located).forEach(name => {if (!(name in (z.star_positions || {}))) extra.add(name);});
+  return {rows, extra: [...extra], missing: [...missing]};
+}
+// Pieces joined by a separator: a lone branch in its element colour, the rest translated one by one.
+function pfPieces(parent, pieces, separator) {
+  pieces.forEach((piece, k) => {if (k) parent.append(separator); ganzhiValue(parent, piece);});
+  return parent;
+}
+function pfCopyCommand(parent, command, id) {
+  const line = append(parent, 'div', 'pf-command');
+  const code = append(line, 'code', null, command); code.dataset.noI18n = '';
+  const copy = append(line, 'button', 'tiny-button', '复制'); copy.type = 'button'; copy.id = id;
+  copy.addEventListener('click', () => navigator.clipboard.writeText(command)
+    .then(() => {copy.textContent = calT('已复制');}).catch(() => {copy.textContent = calT('复制失败');}));
+}
+// Server replies are in English; the common ones are said in plain words.
+function pfErrorText(message) {
+  if (/Optional local provider unavailable/.test(message)) return '本机没有安装 iztro-py，没有生成任何近似盘。';
+  if (/requires gender/.test(message)) return '专业引擎按性别定大限顺逆，请先在出生信息里选择男或女。';
+  if (/target_date must be between/.test(message)) return '目标日期要在 1901 到 2099 年之间。';
+  const failed = /Professional Zi Wei provider calculation failed: (.*)/.exec(message);
+  if (failed) return calT('专业引擎计算失败，提供方的原话：') + failed[1];
+  return calT('专业引擎暂不可用：') + message;
+}
+function renderProfessionalZiwei() {
+  title(result, '专业紫微 · iztro-py（可选）', '第二套独立引擎的完整星盘与运限 · 与玄枢原生盘逐项对照 · 不混入原生数据');
+  ensureCapabilities();
+  const ready = capabilities && !capabilitiesError ? capabilities.professional_ziwei_provider_available === true : null;
+  const status = append(result, 'section', 'pf-status'); status.id = 'professional-status'; status.tabIndex = -1;
+  const head = append(status, 'div', 'pf-status-head');
+  const recheck = () => {const b = append(head, 'button', 'tiny-button', '重新检测'); b.type = 'button'; b.id = 'professional-recheck';
+    b.disabled = capabilitiesPending; b.addEventListener('click', () => {capabilities = null; professionalRecheck = true; ensureCapabilities(); render(); $('#professional-status').focus();});};
+  if (capabilities === null) {status.classList.add('is-wait'); append(head, 'b', null, '正在检测本机是否装有 iztro-py…');}
+  else if (capabilitiesError) {
+    status.classList.add('is-fail');
+    append(head, 'b', null, '无法确认本机是否装有 iztro-py');
+    recheck();
+    append(status, 'p', 'field-help', calT('读取服务能力失败：') + capabilitiesError + (capabilitiesError === 'HTTP 401' ? calT('，请检查 API 访问令牌。') : '。'));
+  } else if (ready) {
+    status.classList.add('is-ok');
+    append(head, 'b', null, '本机已装有 iztro-py');
+    append(head, 'span', 'pf-status-meta', 'MIT 许可证 · 独立于玄枢原生引擎 · 结果单独输出');
+  } else {
+    status.classList.add('is-missing');
+    append(head, 'b', null, '本机还没有安装可选的 iztro-py 引擎');
+    recheck();
+    append(status, 'p', null, '这一页用第二套独立实现的紫微引擎重排一次，用来逐项核对玄枢的原生盘；不装它，原生功能照常可用。');
+    const have = append(status, 'div', 'pf-have');
+    append(have, 'b', null, '不装也已经有：');
+    const list = append(have, 'ul', 'pf-have-list');
+    ['十二宫、十四主星与 44 颗辅星杂曜，主星和六颗辅星的亮度', '生年四化、宫干飞化、四组十二神与虚岁小限', '大限、流年、流月、流日、流时与流曜（紫微页上方切换）'].forEach(t => append(list, 'li', null, t));
+    const open = append(have, 'button', 'tiny-button', '打开原生紫微盘'); open.type = 'button'; open.id = 'professional-open-ziwei';
+    open.addEventListener('click', () => {const tab = tabs.find(t => t.dataset.tab === 'ziwei'); activateTab(tab); tab.focus({preventScroll: true});});
+    const steps = append(status, 'ol', 'pf-steps');
+    const one = append(steps, 'li');
+    append(one, 'span', null, '在运行玄枢的同一个 Python 环境里安装：');
+    pfCopyCommand(one, PF_INSTALL, 'professional-copy-install');
+    append(one, 'span', 'field-help', '在源码目录里也可以：');
+    pfCopyCommand(one, PF_INSTALL_SOURCE, 'professional-copy-source');
+    append(steps, 'li', null, '装好后点「重新检测」；仍显示未安装时，重启玄枢服务再检测。');
+    append(status, 'p', 'field-help', '安装需要联网下载这个包；排盘计算在本机进行，不会把出生资料发给第三方。');
+  }
+  if (professionalRecheck && capabilities !== null) {professionalRecheck = false; announce(calT(head.querySelector('b').textContent));}
+
+  const input = readInput(), hourUnknown = $('#hour_unknown') && $('#hour_unknown').checked;
+  const genderOk = input.gender === 'male' || input.gender === 'female';
+  const form = append(result, 'div', 'pf-form');
+  const row = append(form, 'div', 'inline-control pf-row');
+  const label = append(row, 'label', null, '目标日期（流年 / 流月 / 流日）');
+  const date = append(label, 'input'); date.type = 'date'; date.id = 'professional-target'; date.value = professionalTargetDraft; date.min = '1901-01-01'; date.max = '2099-12-31';
+  const hourLabel = append(row, 'label', null, '目标时刻（流时）');
+  const hour = append(hourLabel, 'select'); hour.id = 'professional-hour';
+  for (let h = 0; h < 24; h++) {const o = append(hour, 'option', null, pfHourLabel(h)); o.value = String(h); o.selected = h === professionalHourDraft;}
+  hour.disabled = !professionalTargetDraft;
+  const quick = append(row, 'div', 'pf-quick');
+  const today = append(quick, 'button', 'tiny-button', '今天'); today.type = 'button'; today.id = 'professional-today';
+  const natalOnly = append(quick, 'button', 'tiny-button', '只看本命'); natalOnly.type = 'button'; natalOnly.id = 'professional-natal-only';
+  natalOnly.disabled = !professionalTargetDraft;
+  date.addEventListener('input', () => {professionalTargetDraft = date.value; hour.disabled = natalOnly.disabled = !date.value;});
+  hour.addEventListener('change', () => {professionalHourDraft = Number(hour.value);});
+  today.addEventListener('click', () => {professionalTargetDraft = date.value = localToday(); hour.disabled = natalOnly.disabled = false; date.focus();});
+  natalOnly.addEventListener('click', () => {professionalTargetDraft = date.value = ''; hour.disabled = natalOnly.disabled = true; date.focus();});
+  const run = append(row, 'button', null, professionalPending ? '正在计算…' : '计算专业盘'); run.id = 'professional-run'; run.type = 'button';
+  run.disabled = professionalPending || ready === false || !genderOk || hourUnknown;
+  if (!genderOk) {
+    const guard = append(form, 'p', 'inline-msg pf-guard', '专业引擎按性别定大限顺逆，请先在出生信息里选择男或女。'); guard.id = 'professional-gender';
+    const go = append(guard, 'button', 'tiny-button', '去选择性别'); go.type = 'button'; go.id = 'professional-go-gender';
+    go.addEventListener('click', () => {const g = $('#gender'); g.scrollIntoView({block: 'center'}); g.focus();});
+  } else if (hourUnknown) {
+    append(form, 'p', 'inline-msg pf-guard', '出生时辰不详：命宫和十二宫都由时辰决定，按占位时辰排出的专业盘没有意义，请填写出生时辰后再算。').id = 'professional-hour-unknown';
+  } else if (ready === false) append(form, 'p', 'field-help', '装好 iztro-py 并重新检测后才能计算。');
+  if (professionalError) append(form, 'p', 'inline-msg', professionalError).id = 'professional-error';
+  run.addEventListener('click', async () => {
+    professionalPending = true; professionalError = ''; render();
+    const sent = readInput(), target = professionalTargetDraft || null;
+    try {
+      professionalResult = await postJSON('/api/ziwei-professional', {birth: sent, target_date: target, target_hour: professionalHourDraft});
+      professionalSent = sent;
+    } catch (e) {
+      professionalError = pfErrorText(e.message);
+      // A reply saying the engine is missing means the status shown is out of date.
+      if (/Optional local provider unavailable/.test(e.message)) capabilities = null;
+    } finally {
+      professionalPending = false;
+      if (active === 'professional') {render(); const back = $('#professional-run'); if (back && !back.disabled) back.focus();}
+      announce(calT(professionalError ? '专业盘计算失败' : '专业盘已算好'));
+    }
+  });
+  if (!professionalResult) return;
+  renderProfessionalResult(professionalResult);
+}
+function renderProfessionalResult(r) {
+  const natal = r.natal || {}, horoscope = r.horoscope;
+  const sameChart = !!current && JSON.stringify(professionalSent) === JSON.stringify(currentInput);
+  const stale = JSON.stringify(professionalSent) !== JSON.stringify(readInput());
+  const head = append(result, 'section', 'pf-result'); head.id = 'professional-result';
+  append(head, 'h3', 'subheading', '专业盘结果');
+  if (stale) append(head, 'p', 'info-inline', '出生资料改过了，下面是按改之前的资料算的；点「计算专业盘」重算。').id = 'professional-stale';
+  const timeIndex = Number(r.time_index);
+  meta(head, [r.provider + ' · ' + r.license, calT('排盘日期') + ' ' + r.effective_calendar_date,
+    calT('时辰序号') + ' ' + r.time_index + (Number.isInteger(timeIndex) && PF_HOURS[timeIndex] ? ' · ' + calT(PF_HOURS[timeIndex]) : ''),
+    r.target_date ? calT('运限目标') + ' ' + r.target_date : calT('只算本命')]);
+  // Basic facts the provider gives, in its own words.
+  const facts = [['阳历', 'solar_date', 'solarDate'], ['农历', 'lunar_date', 'lunarDate'], ['四柱', 'chinese_date', 'chineseDate'],
+    ['时辰', 'time', 'time'], ['五行局', 'five_elements_class', 'fiveElementsClass'], ['命主', 'soul', 'soul'], ['身主', 'body', 'body'],
+    ['命宫地支', 'earthly_branch_of_soul_palace', 'earthlyBranchOfSoulPalace'], ['身宫地支', 'earthly_branch_of_body_palace', 'earthlyBranchOfBodyPalace'],
+    ['生肖', 'zodiac', 'zodiac'], ['星座', 'sign', 'sign']]
+    .map(([name, a, b]) => [name, pfText(pfGet(natal, a, b))]).filter(([, v]) => v);
+  const byBranch = pfPalaces(natal);
+  const majorNames = byBranch ? Object.values(byBranch).flatMap(p => pfStars(p, 'major_stars', 'majorStars').map(s => s.name)) : [];
+  const comparable = !!byBranch && majorNames.some(pfCjk) && sameChart && !!current.ziwei;
+  const c = comparable ? pfCompare(byBranch, current.ziwei) : null, diff = c ? c.rows.filter(x => !x.same) : [];
+  const diffBranches = new Set(diff.flatMap(x => [x.where[0], x.kind === '辅星落宫' ? x.native : null, x.kind === '辅星落宫' ? x.provider : null]).filter(b => BRANCH_ORDER.includes(b || '-')));
+  const boardWrap = byBranch ? append(head, 'div', 'pf-board-wrap') : null;
+  if (boardWrap) append(boardWrap, 'p', 'ziwei-scroll-hint', '← 左右滑动查看完整十二宫 →');
+  const board = boardWrap ? append(boardWrap, 'div', 'pf-board') : null;
+  const factBox = append(board || head, 'dl', 'pf-facts'); factBox.id = 'professional-facts';
+  if (board) {factBox.style.gridRow = '2 / 4'; factBox.style.gridColumn = '2 / 4';}
+  facts.forEach(([name, value]) => {append(factBox, 'dt', null, name); const dd = append(factBox, 'dd', null, pfBranch(value) || value); if (!pfCjk(dd.textContent)) dd.dataset.noI18n = '';});
+  if (!facts.length) append(factBox, 'dd', 'muted', '提供方没有给出基本信息字段。');
+  if (board) {
+    board.id = 'professional-board';
+    BRANCH_ORDER.split('').forEach((b, index) => {
+      const p = byBranch[b];
+      const cell = append(board, 'div', 'pf-palace' + (pfGet(p, 'is_body_palace', 'isBodyPalace') ? ' is-shen' : '') + (pfBranch(pfGet(natal, 'earthly_branch_of_soul_palace', 'earthlyBranchOfSoulPalace')) === b ? ' is-ming' : ''));
+      cell.id = 'professional-palace-' + b;
+      if (diffBranches.has(b)) cell.classList.add('has-diff');
+      cell.style.gridRow = String(ZIWEI_CELLS[index][0]); cell.style.gridColumn = String(ZIWEI_CELLS[index][1]);
+      const top = append(cell, 'div', 'pf-palace-head');
+      const name = append(top, 'b', 'pf-palace-name', pfText(pfGet(p, 'name'))); if (!pfCjk(name.textContent)) name.dataset.noI18n = '';
+      if (pfGet(p, 'is_body_palace', 'isBodyPalace')) append(top, 'span', 'pf-tag', '身');
+      const gz = append(top, 'span', 'pf-gz'); gz.dataset.noI18n = '';
+      const stem = pfStem(pfGet(p, 'heavenly_stem', 'heavenlyStem'));
+      if (stem) append(gz, 'span', stemClass(stem), stem);
+      append(gz, 'span', branchClass(b), b);
+      if (diffBranches.has(b)) {const mark = append(top, 'span', 'pf-diff-mark', '≠'); mark.title = calT('这一宫有与原生盘不同的项目'); mark.setAttribute('aria-label', mark.title);}
+      const stars = append(cell, 'div', 'pf-stars');
+      const star = (s, cls) => {
+        const el = append(stars, 'span', cls); const n = append(el, 'span', null, s.name); if (!pfCjk(s.name)) n.dataset.noI18n = '';
+        const level = pfText(s.brightness); if (level && !brightMark(el, level)) append(el, 'small', 'pf-bright', level);
+        const h = pfHua(s.mutagen); if (PF_HUA.includes(h)) append(el, 'span', 'hua hua-' + PF_HUA_CLASS[PF_HUA.indexOf(h)], h).dataset.noI18n = '';
+      };
+      pfStars(p, 'major_stars', 'majorStars').forEach(s => star(s, 'pf-major'));
+      pfStars(p, 'minor_stars', 'minorStars').forEach(s => star(s, 'pf-minor'));
+      const adjectives = pfStars(p, 'adjective_stars', 'adjectiveStars');
+      if (adjectives.length) {const adj = append(cell, 'div', 'pf-adj'); adjectives.forEach((s, k) => {if (k) adj.append(' '); const n = append(adj, 'span', null, s.name); if (!pfCjk(s.name)) n.dataset.noI18n = '';});}
+      const decadal = pfGet(p, 'decadal'), range = pfGet(decadal, 'range');
+      if (Array.isArray(range) && range.length === 2) texts(append(cell, 'div', 'pf-decadal'), '大限', ' ' + range[0] + '–' + range[1]);
+    });
+  } else if (Array.isArray(natal.palaces)) append(head, 'p', 'field-help', '提供方的宫位没有可识别的地支字段，无法排成十二宫图；完整内容见下方原始数据。');
+
+  // Item-by-item comparison with XuanShu's own chart.
+  const compare = append(result, 'section', 'pf-compare'); compare.id = 'professional-compare';
+  append(compare, 'h3', 'subheading', '与玄枢原生盘逐项对照');
+  if (!byBranch) append(compare, 'p', 'field-help', '宫位排不出来，无法逐项对照。');
+  else if (!majorNames.some(pfCjk)) append(compare, 'p', 'field-help', '提供方输出的星名不是中文（像内部键名），无法与原生盘逐项对照；完整内容见下方原始数据。');
+  else if (!sameChart || !current.ziwei) append(compare, 'p', 'field-help', '原生对照要用同一份出生资料：请先用这份资料点「生成命盘」，再计算专业盘。');
+  else {
+    const sum = append(compare, 'p', 'pf-compare-sum' + (diff.length ? ' has-diff' : ' is-same')); sum.id = 'professional-compare-summary';
+    texts(sum, '逐项对照', ' ' + c.rows.length + ' ', '项', ' · ', '一致', ' ' + (c.rows.length - diff.length), ' · ', '不同', ' ' + diff.length);
+    if (diff.length) append(compare, 'p', 'field-help', '上方十二宫图里标 ≠ 的宫位有不同的项目。');
+    const counts = append(compare, 'p', 'field-help');
+    texts(counts, 'iztro-py 独有的星：', String(c.extra.length), ' · ', '原生独有的星：', String(c.missing.length), ' · ', '只有一方安的星不算不同。');
+    if (c.extra.length || c.missing.length) {
+      const more = append(compare, 'details', 'pf-only'); more.id = 'professional-only-stars';
+      append(more, 'summary', null, '只有一方安的星');
+      if (c.extra.length) {const p = append(more, 'p'); append(p, 'b', null, 'iztro-py 独有：'); append(p, 'span', null, c.extra.join('、')).dataset.noI18n = '';}
+      if (c.missing.length) {const p = append(more, 'p'); append(p, 'b', null, '原生独有：'); append(p, 'span', null, c.missing.join('、')).dataset.noI18n = '';}
+    }
+    const control = append(compare, 'label', 'check-line');
+    const only = append(control, 'input'); only.type = 'checkbox'; only.id = 'professional-only-diff'; only.checked = professionalOnlyDiff;
+    control.append(calT('只看不同的项目'));
+    only.addEventListener('change', () => {professionalOnlyDiff = only.checked; render(); const back = $('#professional-only-diff'); if (back) back.focus();});
+    const shown = professionalOnlyDiff ? diff : c.rows;
+    if (!shown.length) append(compare, 'p', 'pf-all-same', '全部一致：两套引擎在这些项目上的结果相同。').id = 'professional-all-same';
+    else {
+      const wrap = append(compare, 'div', 'table-wrap');
+      const table = append(wrap, 'table', 'data-table pf-table'); table.id = 'professional-compare-table';
+      const tr = append(append(table, 'thead'), 'tr');
+      ['项目', '位置', '玄枢原生', 'iztro-py', ''].forEach(h => append(tr, 'th', null, h));
+      const body = append(table, 'tbody');
+      shown.forEach(x => {
+        const row = append(body, 'tr', x.same ? 'is-same' : 'is-diff');
+        append(row, 'th', null, x.kind);
+        pfPieces(append(row, 'td'), x.where, ' · ');
+        [x.native, x.provider].forEach(value => {
+          const td = append(row, 'td', 'pf-value');
+          if (x.kind === '亮度' && brightMark(td, value)) return;
+          pfPieces(td, value.split('、'), '、');
+        });
+        append(row, 'td', x.same ? 'pf-ok' : 'pf-bad', x.same ? '一致' : '不同');
+      });
+    }
+    append(compare, 'p', 'field-help', '两套引擎的流派表不同时结果也会不同（亮度的得、利、平尤其常见）；不同不代表哪一方错了，请对照所学流派的原书判断。');
+  }
+
+  // Period layers from the provider's horoscope.
+  if (horoscope && typeof horoscope === 'object') {
+    const sec = append(result, 'section', 'pf-horoscope'); sec.id = 'professional-horoscope';
+    append(sec, 'h3', 'subheading', '运限叠加');
+    texts(append(sec, 'p', 'field-help'), '运限目标', ' ' + r.target_date + ' ', pfHourLabel(Number(r.target_hour ?? professionalHourDraft)));
+    const palaceList = Array.isArray(natal.palaces) ? natal.palaces : [];
+    const wrap = append(sec, 'div', 'table-wrap');
+    const table = append(wrap, 'table', 'data-table pf-table'); table.id = 'professional-horoscope-table';
+    const tr = append(append(table, 'thead'), 'tr');
+    ['运限', '干支', '命宫落在本命'].forEach(h => append(tr, 'th', null, h));
+    PF_HUA.forEach(h => {append(tr, 'th', null, h).dataset.noI18n = '';});
+    const body = append(table, 'tbody');
+    let rows = 0;
+    PF_LAYERS.forEach(([key, name]) => {
+      const item = horoscope[key];
+      if (!item || typeof item !== 'object') return;
+      rows++;
+      const row = append(body, 'tr');
+      append(row, 'th', null, name);
+      const stem = pfStem(pfGet(item, 'heavenly_stem', 'heavenlyStem')), branch = pfBranch(pfGet(item, 'earthly_branch', 'earthlyBranch'));
+      ganzhiValue(append(row, 'td'), stem && branch ? stem + branch : branch || pfText(pfGet(item, 'name')) || '—');
+      const index = pfGet(item, 'index'), home = Number.isInteger(index) ? palaceList[index] : null;
+      const at = append(row, 'td');
+      if (home) pfPieces(at, [pfBranch(pfGet(home, 'earthly_branch', 'earthlyBranch')), pfText(pfGet(home, 'name'))].filter(Boolean), ' · ');
+      else append(at, 'span', 'muted', '—');
+      const mutagen = pfGet(item, 'mutagen');
+      for (let k = 0; k < 4; k++) {const name = Array.isArray(mutagen) ? pfText(mutagen[k]) : ''; const td = append(row, 'td', null, name || '—'); if (name && !pfCjk(name)) td.dataset.noI18n = '';}
+    });
+    if (!rows) {table.remove(); append(sec, 'p', 'field-help', '提供方的运限没有可识别的层级字段；完整内容见下方原始数据。');}
+  }
+
+  const raw = append(result, 'details', 'pf-raw'); raw.id = 'professional-raw';
+  append(raw, 'summary', null, '原始数据（iztro-py 原样输出）');
+  const tools = append(raw, 'div', 'pf-raw-tools');
+  const copy = append(tools, 'button', 'tiny-button', '复制 JSON'); copy.type = 'button'; copy.id = 'professional-copy-json';
+  copy.addEventListener('click', () => navigator.clipboard.writeText(JSON.stringify(r, null, 2))
+    .then(() => {copy.textContent = calT('已复制');}).catch(() => {copy.textContent = calT('复制失败');}));
+  const save = append(tools, 'button', 'tiny-button', '下载 JSON ↓'); save.type = 'button'; save.id = 'professional-download-json';
+  save.addEventListener('click', () => jvSave('xuanshu-ziwei-professional.json', r));
+  const tree = append(raw, 'div', 'jv-tree'); tree.dataset.noI18n = '';
+  raw.addEventListener('toggle', () => {if (raw.open && !tree.childNodes.length) jvNode(tree, null, r, '$', 0, null, null);});
+  (r.notes || []).forEach(x => note(result, x));
 }
 // The reference chart is entered the way it looks: the root fields, then the nine palaces in board order with a select
 // per field. Only filled fields are sent and compared; JSON stays available for pasting. The result lays XuanShu's own
@@ -2127,7 +2427,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report', 'integration'].includes(active)) render();});
+document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report', 'integration', 'professional'].includes(active)) render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -6335,18 +6635,23 @@ function agDocView(doc, uri) {
   if (window.XuanShuMarkdown) window.XuanShuMarkdown.render(got.text, doc2); else {doc2.textContent = got.text; doc2.style.whiteSpace = 'pre-wrap';}
   agCopyButton(body, '复制全文', () => got.text);
 }
-function renderIntegration() {
-  title(result, 'Agent 接入中心', 'MCP 连接自检 · 工具目录 · 客户端配置');
-  append(result, 'p', 'info-inline', '本项目兼容 MCP 2026-07-28 和旧版 2025 协议的 stdio / Streamable HTTP；本地 Web 运行不等于已上线公网或已登记到 ChatGPT/Claude。');
+// The service's capabilities, read once for the Agent page and the professional page. A failed lookup is tried
+// again once another access token is entered.
+function ensureCapabilities() {
   const token = $('#api_token').value;
-  // A failed lookup is tried again once another access token is entered.
   if ((capabilities === null || (capabilitiesError && token !== capabilitiesToken)) && !capabilitiesPending) {
     capabilitiesPending = true; capabilitiesToken = token; capabilities = null;
     fetch('/api/capabilities', {headers: token ? {'Authorization': 'Bearer ' + token} : {}})
       .then(reply => reply.ok ? reply.json() : Promise.reject(new Error('HTTP ' + reply.status)))
       .then(data => {capabilities = data; capabilitiesError = '';}).catch(err => {capabilities = {}; capabilitiesError = err.message;})
-      .finally(() => {capabilitiesPending = false; if (active === 'integration') render();});
+      .finally(() => {capabilitiesPending = false; if (active === 'integration' || active === 'professional') render();});
   }
+}
+function renderIntegration() {
+  title(result, 'Agent 接入中心', 'MCP 连接自检 · 工具目录 · 客户端配置');
+  append(result, 'p', 'info-inline', '本项目兼容 MCP 2026-07-28 和旧版 2025 协议的 stdio / Streamable HTTP；本地 Web 运行不等于已上线公网或已登记到 ChatGPT/Claude。');
+  const token = $('#api_token').value;
+  ensureCapabilities();
   if ((agentCatalog === null || (agentCatalog.failed && token !== agentCatalog.token)) && !agentPending) loadAgentCatalog();
   const catalog = agentCatalog;
   const counts = (capabilities && capabilities.counts) || {};
@@ -7231,6 +7536,9 @@ for (const type of ['input','change']) {
   form.addEventListener(type, event => {
     if (event.target.id !== 'api_token') updateStaleBirthNotice();
     else if (type === 'change' && active === 'integration' && (capabilitiesError || (agentCatalog && agentCatalog.failed))) render();
+    else if (type === 'change' && active === 'professional' && capabilitiesError) render();
+    // The professional page's guards follow the gender and hour-unknown fields as they change.
+    if (type === 'change' && active === 'professional' && ['gender', 'hour_unknown', 'birth_datetime'].includes(event.target.id)) render();
   });
 }
 form.addEventListener('submit', async event => {
@@ -7247,7 +7555,7 @@ form.addEventListener('submit', async event => {
     // A pasted-chart check belongs to the chart it ran on, unless this cast is the one its rule or hour asked for.
     if (!importRecheck) {importResult = null; importBirth = null; importHourPick = null; importFocusAfter = false;}
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; timeRun = null; timeLongitude = ''; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
-    dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;qimenTicket++;professionalResult=null;if (!referenceAuditResult || referenceAuditResult.xsMode !== 'custom') {referenceAuditResult=null;referenceAuditChart=null;referenceAuditSent=null;}
+    dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;qimenTicket++;professionalResult=null;professionalSent=null;professionalError='';if (!referenceAuditResult || referenceAuditResult.xsMode !== 'custom') {referenceAuditResult=null;referenceAuditChart=null;referenceAuditSent=null;}
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
     // A group reply still on its way belongs to the previous chart.
     ++groupYearTicket; groupYearPending = false; groupYearError = ''; groupRun = null; groupRunError = ''; luckYearTyped = {};

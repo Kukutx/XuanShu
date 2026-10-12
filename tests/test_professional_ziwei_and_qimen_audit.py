@@ -27,6 +27,8 @@ def test_missing_professional_package_fails_explicitly():
     with TestClient(app) as client:
         r=client.post('/api/ziwei-professional',json={'birth':BIRTH})
     assert r.status_code == 422 and 'install' in r.text
+    # The advice names the provider package; the project itself is not on PyPI.
+    assert 'iztro-py>=0.1,<1' in r.text and 'xuanshu[professional]' not in r.text
 
 
 def test_vendor_adaptor_maps_time_and_preserves_dynamic_output(monkeypatch):
@@ -48,6 +50,7 @@ def test_vendor_adaptor_maps_time_and_preserves_dynamic_output(monkeypatch):
     assert calls[1] == ('horoscope','2024-2-10',12)
     assert result['natal']['palaces'][0]['name']=='命宫'
     assert result['horoscope']['yearly']['name']=='甲辰'
+    assert result['target_date']=='2024-02-10' and result['target_hour']==23
     assert result['provider']=='iztro-py'
     with TestClient(app) as client:
         body={'birth':BIRTH,'target_date':'2024-02-10','target_hour':23}

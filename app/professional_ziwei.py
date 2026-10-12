@@ -52,7 +52,11 @@ def professional_ziwei_chart(req: ProfessionalZiweiRequest) -> dict:
     try:
         astro = import_module('iztro_py').astro
     except ImportError as exc:
-        raise ValueError('Optional local provider unavailable: install `pip install "xuanshu[professional]"`. No approximate chart was substituted.') from exc
+        # The project is not published on PyPI, so the advice names the provider package itself (or the
+        # project's own extra from a source checkout), never a `xuanshu[...]` download someone else could own.
+        raise ValueError('Optional local provider unavailable: install it into the Python environment that runs XuanShu with '
+                         '`python -m pip install "iztro-py>=0.1,<1"` (or `python -m pip install ".[professional]"` in the source folder). '
+                         'No approximate chart was substituted.') from exc
     normalized = normalized_dt(req.birth)
     effective, time_basis_meta = time_basis(normalized, req.birth.time_mode, req.birth.longitude)
     # iztro uses 0=early Rat (00-00:59), 1=Ox (01-02:59), ...
@@ -80,6 +84,7 @@ def professional_ziwei_chart(req: ProfessionalZiweiRequest) -> dict:
         'time_index': hour_index, 'time_basis': time_basis_meta,
         'natal': natal, 'horoscope': horoscope,
         'target_date': req.target_date.isoformat() if req.target_date else None,
+        'target_hour': req.target_hour if req.target_date else None,
         'notes': [
             '此结果由用户选择安装的独立 iztro-py 引擎生成，与 XuanShu 原生子集分开输出。',
             '流派版本、闰月习惯和动态盘字段以实际安装的提供方为准；未通过逐星独立认证。',

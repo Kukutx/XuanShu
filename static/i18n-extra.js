@@ -718,6 +718,10 @@ const UI_EXTRA = {
 "MCP connection check passed",
 "MCP 接続チェックに合格しました"
 ],
+"MIT 许可证 · 独立于玄枢原生引擎 · 结果单独输出": [
+"MIT licence · independent of XuanShu's own engine · results kept separate",
+"MIT ライセンス · 玄枢のネイティブエンジンとは独立 · 結果は別に出力"
+],
 "Optional focus, e.g. 藏干 / 节气": [
 "Optional focus, e.g. 藏干 / 节气",
 "任意の注目点（例：蔵干／節気）"
@@ -753,6 +757,14 @@ const UI_EXTRA = {
 "group_relations 里这位成员的 hour_unknown，pair_comparison 里对应一方的 person_a_hour_unknown 或 person_b_hour_unknown。": [
 "this member's hour_unknown in group_relations, and person_a_hour_unknown or person_b_hour_unknown for that person in pair_comparison.",
 "group_relations ではこのメンバーの hour_unknown、pair_comparison では該当する側の person_a_hour_unknown または person_b_hour_unknown。"
+],
+"iztro-py 独有的星：": [
+"Stars only iztro-py places: ",
+"iztro-py だけが配置する星："
+],
+"iztro-py 独有：": [
+"Only iztro-py: ",
+"iztro-py のみ："
 ],
 "iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导": [
 "iztro public star-placement formulas; derived from birth year, natal palace position, lunar month/day and double-hour",
@@ -1094,6 +1106,10 @@ const UI_EXTRA = {
 "First quarter",
 "上弦の月"
 ],
+"上方十二宫图里标 ≠ 的宫位有不同的项目。": [
+"Palaces marked ≠ on the board above have items that differ.",
+"上の十二宮図で ≠ の付いた宮に相違があります。"
+],
 "上海": [
 "Shanghai",
 "上海"
@@ -1141,6 +1157,10 @@ const UI_EXTRA = {
 "下次满月": [
 "Next full moon",
 "次の満月"
+],
+"下载 JSON ↓": [
+"Download JSON ↓",
+"JSON をダウンロード ↓"
 ],
 "下载 Markdown 报告 ↓": [
 "Download Markdown report ↓",
@@ -1254,6 +1274,10 @@ const UI_EXTRA = {
 "Not void",
 "空亡でない"
 ],
+"不装也已经有：": [
+"Already available without it:",
+"インストールしなくても使えるもの："
+],
 "不认识的字段": [
 "Unknown field",
 "不明なフィールド"
@@ -1314,6 +1338,10 @@ const UI_EXTRA = {
 "Clashes with the natal chart",
 "本命と冲"
 ],
+"与玄枢原生盘逐项对照": [
+"Item-by-item comparison with XuanShu's own chart",
+"玄枢ネイティブ盤との項目別対照"
+],
 "与钟表时间不同": [
 "Differs from clock time",
 "時計時刻と異なる"
@@ -1330,13 +1358,37 @@ const UI_EXTRA = {
 "Chou hour 01–03",
 "丑の刻 01–03"
 ],
+"专业引擎按性别定大限顺逆，请先在出生信息里选择男或女。": [
+"The professional engine uses gender to set the direction of the major limits; choose male or female in the birth details first.",
+"専門エンジンは性別で大限の順逆を決めます。先に出生情報で男性か女性を選んでください。"
+],
 "专业引擎暂不可用：": [
 "Professional engine temporarily unavailable: ",
 "専門エンジンは現在利用不可："
 ],
+"专业引擎计算失败，提供方的原话：": [
+"The professional engine failed; the provider said: ",
+"専門エンジンの計算に失敗しました。提供元のメッセージ："
+],
+"专业盘已算好": [
+"Professional chart ready",
+"専門盤を計算しました"
+],
+"专业盘结果": [
+"Professional chart",
+"専門盤の結果"
+],
+"专业盘计算失败": [
+"Professional chart failed",
+"専門盤の計算に失敗しました"
+],
 "专业紫微": [
 "Professional Zi Wei",
 "専門紫微"
+],
+"专业紫微 · iztro-py（可选）": [
+"Professional Zi Wei · iztro-py (optional)",
+"専門紫微 · iztro-py（オプション）"
 ],
 "丙辛合水": [
 "Bing–Xin combine (Water)",
@@ -1397,6 +1449,10 @@ const UI_EXTRA = {
 "两套年柱口径差异核对": [
 "Check of differences between two year-pillar conventions",
 "二つの年柱基準の差異照合"
+],
+"两套引擎的流派表不同时结果也会不同（亮度的得、利、平尤其常见）；不同不代表哪一方错了，请对照所学流派的原书判断。": [
+"Where the two engines follow different school tables the results differ too (brightness grades such as 得, 利 and 平 most often); a difference does not mean either side is wrong. Check against the source texts of the school you follow.",
+"二つのエンジンの流派表が違えば結果も違います（明るさの得・利・平で特に多い）。相違はどちらかが誤りという意味ではありません。学んでいる流派の原典で確かめてください。"
 ],
 "两套排盘规则对照": [
 "Comparison of two charting rule sets",
@@ -1721,6 +1777,10 @@ const UI_EXTRA = {
 "亥时 21–23": [
 "Hai hour 21–23",
 "亥の刻 21–23"
+],
+"亮度": [
+"Brightness",
+"明るさ"
 ],
 "亮度：": [
 "Brightness: ",
@@ -2318,6 +2378,10 @@ const UI_EXTRA = {
 "All match",
 "すべて一致"
 ],
+"全部一致：两套引擎在这些项目上的结果相同。": [
+"All match: both engines give the same result for these items.",
+"すべて一致：二つのエンジンはこれらの項目で同じ結果です。"
+],
 "全部十二宫": [
 "All twelve palaces",
 "全十二宮"
@@ -2878,6 +2942,10 @@ const UI_EXTRA = {
 "Birth hour unknown: 12:00 is only a placeholder, so a Qimen chart cast from it means nothing.",
 "出生時刻不明：12:00 は仮の値なので、これで立てた奇門盤には意味がありません。"
 ],
+"出生时辰不详：命宫和十二宫都由时辰决定，按占位时辰排出的专业盘没有意义，请填写出生时辰后再算。": [
+"Birth hour unknown: the Life Palace and all twelve palaces depend on the hour, so a professional chart on a placeholder hour means nothing. Enter the birth hour first.",
+"出生時刻が不明です。命宮と十二宮は時辰で決まるため、仮の時辰で出した専門盤には意味がありません。出生時刻を入力してから計算してください。"
+],
 "出生时辰不详：填写的时间只是占位，时柱、命宫、身宫、五行局和命宫主星不参与对照。": [
 "Birth hour unknown: the time entered is only a placeholder, so the hour pillar, Life and Body palaces, five-element bureau and Life-palace major stars are left out.",
 "出生時刻不明：入力した時刻は仮の値のため、時柱・命宮・身宮・五行局・命宮主星は比較しません。"
@@ -2945,6 +3013,10 @@ const UI_EXTRA = {
 "出生资料已修改：下面仍是上一张命盘的数据。": [
 "The birth details have changed: the data below is still from the previous chart.",
 "出生情報が変更されました。以下はまだ前の命盤のデータです。"
+],
+"出生资料改过了，下面是按改之前的资料算的；点「计算专业盘」重算。": [
+"The birth details have changed; the results below use the earlier details. Click 'Compute professional chart' to recompute.",
+"出生情報が変更されました。下の結果は変更前の情報によるものです。「専門盤を計算」で再計算してください。"
 ],
 "出生资料每次都要重新勾选，服务器不保存；关键词明确时按新问题重新识别场景。": [
 "Tick the birth details again each time; the server keeps nothing. A question with clear keywords is classified afresh.",
@@ -3202,6 +3274,10 @@ const UI_EXTRA = {
 "The twelve day officers are traditional calendar labels and do not constitute auspiciousness scores, almanac suitable/unsuitable lists or date-selection guarantees.",
 "十二値日は伝統暦法のラベルであり、吉凶の採点、暦の宜忌、択日の保証にはなりません。"
 ],
+"十二宫、十四主星与 44 颗辅星杂曜，主星和六颗辅星的亮度": [
+"Twelve palaces, the 14 major stars and 44 auxiliary and minor stars, with brightness for the major stars and six auxiliaries",
+"十二宮、十四主星と 44 の補助星・雑曜、主星と六つの補助星の明るさ"
+],
 "十二宫、命身宫和星曜定位": [
 "Twelve palaces, Life/Body Palace and star positions",
 "十二宮、命宮・身宮と星曜の配置"
@@ -3398,6 +3474,10 @@ const UI_EXTRA = {
 "Calendar calculation and explanation of traditional divination symbols (not scientific prediction)",
 "暦法計算と伝統術数の記号の説明（科学的予測ではない）"
 ],
+"原始数据（iztro-py 原样输出）": [
+"Raw data (iztro-py output as returned)",
+"生データ（iztro-py の出力そのまま）"
+],
 "原始文本": [
 "Raw text",
 "生テキスト"
@@ -3414,6 +3494,18 @@ const UI_EXTRA = {
 "Natal chart has an uncertain pillar; not compared",
 "原局に未確定の柱があるため比べない"
 ],
+"原生对照要用同一份出生资料：请先用这份资料点「生成命盘」，再计算专业盘。": [
+"The comparison needs the same birth details: generate the chart with these details first, then compute the professional chart.",
+"対照には同じ出生情報が必要です。先にこの情報で「命盤を生成」してから専門盤を計算してください。"
+],
+"原生独有的星：": [
+"Stars only XuanShu places: ",
+"玄枢だけが配置する星："
+],
+"原生独有：": [
+"Only XuanShu: ",
+"玄枢のみ："
+],
 "厦门": [
 "Xiamen",
 "アモイ"
@@ -3429,6 +3521,10 @@ const UI_EXTRA = {
 "去规则差异对照页": [
 "Open the rule comparison page",
 "規則差異比較ページを開く"
+],
+"去选择性别": [
+"Choose gender",
+"性別を選ぶ"
 ],
 "参与对照的字段不变": [
 "The compared fields are unchanged",
@@ -3630,6 +3726,14 @@ const UI_EXTRA = {
 "With a single criterion, its weight cannot change the order.",
 "指標が一つだけのときは、重みで順位は変わりません。"
 ],
+"只有一方安的星": [
+"Stars only one engine places",
+"一方だけが配置する星"
+],
+"只有一方安的星不算不同。": [
+"Stars only one engine places do not count as differences.",
+"一方だけが配置する星は相違に数えません。"
+],
 "只标传统标签，不打分、不排名": [
 "Traditional labels only: no scores, no ranking",
 "伝統的なラベルのみ。点数も順位も付けません"
@@ -3654,6 +3758,14 @@ const UI_EXTRA = {
 "Only the fields you provide are compared; missing fields never count as a match",
 "入力した項目だけを比較し、欠けている項目は一致に数えません"
 ],
+"只看不同的项目": [
+"Show only items that differ",
+"相違のある項目だけ表示"
+],
+"只看本命": [
+"Natal only",
+"本命だけ"
+],
 "只看结果不同的方案": [
 "Only rules that change the result",
 "結果が変わるルールだけ表示"
@@ -3661,6 +3773,10 @@ const UI_EXTRA = {
 "只知道农历生日": [
 "I only know the lunar birthday",
 "旧暦の誕生日しか分からない"
+],
+"只算本命": [
+"Natal only",
+"本命のみ"
 ],
 "只给出符合四柱的时间，不据此判断吉凶或推断人物身份。": [
 "Lists only times that produce the pillars; it judges no fortune and identifies no person.",
@@ -3918,6 +4034,10 @@ const UI_EXTRA = {
 "Life palace branch",
 "命宮の地支"
 ],
+"命宫落在本命": [
+"Life Palace on the natal chart",
+"命宮の本命での位置"
+],
 "命理缺乏可靠的科学验证，不应作为人生、医疗或财务决策依据。": [
 "Fate calculation lacks reliable scientific validation and should not be used as a basis for life, medical or financial decisions.",
 "命理には信頼できる科学的検証がなく、人生・医療・財務の意思決定の根拠にすべきではありません。"
@@ -4174,6 +4294,10 @@ const UI_EXTRA = {
 "Show in the month calendar",
 "月暦で見る"
 ],
+"在源码目录里也可以：": [
+"Or, in the source folder:",
+"ソースフォルダでは次でも可："
+],
 "在紫微盘上看飞化线": [
 "Show flying lines on the Zi Wei chart",
 "紫微盤で飛化線を見る"
@@ -4189,6 +4313,10 @@ const UI_EXTRA = {
 "在终端运行这条命令；加 --scope project 会写进项目的 .mcp.json，便于团队共享。": [
 "Run this command in a terminal; add --scope project to write it to the project's .mcp.json for sharing with a team.",
 "ターミナルでこのコマンドを実行します。--scope project を付けるとプロジェクトの .mcp.json に書き込まれ、チームで共有できます。"
+],
+"在运行玄枢的同一个 Python 环境里安装：": [
+"Install it in the same Python environment that runs XuanShu:",
+"玄枢を動かしている同じ Python 環境にインストール："
 ],
 "地劫": [
 "Di Jie",
@@ -4610,6 +4738,10 @@ const UI_EXTRA = {
 "Major limit ",
 "大限 "
 ],
+"大限、流年、流月、流日、流时与流曜（紫微页上方切换）": [
+"Major limits, annual, monthly, daily and hourly layers with period stars (switch at the top of the Zi Wei page)",
+"大限・流年・流月・流日・流時と流曜（紫微ページ上部で切替）"
+],
 "大限、流年、流月、流日、流时各按本层干支安魁钺昌曲禄羊陀马鸾喜，字头分别为运、流、月、日、时；流年另安年解与岁前、将前十二神；小限不安流曜": [
 "Decade, year, month, day and hour layers each place Kui, Yue, Chang, Qu, Lu, Yang, Tuo, Ma, Luan and Xi from the layer's stem and branch, prefixed 运, 流, 月, 日 and 时; the year adds Nian Jie and the Sui-qian and Jiang-qian twelve spirits; the small limit has no period stars",
 "大限・流年・流月・流日・流時はそれぞれの干支で魁・鉞・昌・曲・禄・羊・陀・馬・鸞・喜を配し、頭字は運・流・月・日・時；流年は年解と歳前・将前十二神も配置；小限には流曜なし"
@@ -4970,6 +5102,10 @@ const UI_EXTRA = {
 "Study, career and public roles",
 "学習、職業と公的な役割"
 ],
+"安装需要联网下载这个包；排盘计算在本机进行，不会把出生资料发给第三方。": [
+"Installing downloads this package from the internet; the chart itself is computed on this machine and no birth details go to third parties.",
+"インストールにはこのパッケージのダウンロードが必要です。計算はこの端末で行い、出生情報を第三者に送りません。"
+],
 "完成 · ": [
 "done · ",
 "完了 · "
@@ -5034,6 +5170,10 @@ const UI_EXTRA = {
 "The palace overlay only aligns the two charts by the twelve earthly branches as a structural comparison; it does not evaluate whether the relationship is good or bad and provides no compatibility score.",
 "宮の重ね合わせは二つの命盤を十二地支で揃えた構造的な対照にすぎず、関係の良し悪しは評価せず、相性スコアも提供しません。"
 ],
+"宫位排不出来，无法逐项对照。": [
+"The palaces could not be placed, so there is no item-by-item comparison.",
+"宮を配置できないため、項目別の対照はできません。"
+],
 "宫位矩阵": [
 "Palace grid",
 "宮位マトリクス"
@@ -5049,6 +5189,14 @@ const UI_EXTRA = {
 "宫内主星、辅星与四化分别按照哪些计算规则安置？": [
 "Which calculation rules place the main stars, auxiliary stars and Four Transformations in each palace?",
 "宮内の主星、補助星、四化はそれぞれどの計算規則で配置されているか？"
+],
+"宫名": [
+"Palace name",
+"宮名"
+],
+"宫干": [
+"Palace stem",
+"宮干"
 ],
 "宫干 → 落宫": [
 "Stem palace → landing palace",
@@ -6146,6 +6294,10 @@ const UI_EXTRA = {
 "Open today's calendar",
 "今日の暦を開く"
 ],
+"打开原生紫微盘": [
+"Open XuanShu's Zi Wei chart",
+"ネイティブの紫微盤を開く"
+],
 "打开参考来源 ↗": [
 "Open reference ↗",
 "参考出典を開く ↗"
@@ -6450,6 +6602,10 @@ const UI_EXTRA = {
 "Chart data quality and day-boundary check",
 "命盤データの品質と日境界の検証"
 ],
+"排盘日期": [
+"Chart date",
+"排盤日"
+],
 "排盘置信度（出生时间误差 ±": [
 "Chart confidence (birth time error ±",
 "作盤の確度（出生時刻誤差 ±"
@@ -6493,6 +6649,22 @@ const UI_EXTRA = {
 "提供了方案评分": [
 "Option ratings given",
 "方案の評価あり"
+],
+"提供方没有给出基本信息字段。": [
+"The provider returned no basic fields.",
+"提供元は基本情報の項目を返しませんでした。"
+],
+"提供方的宫位没有可识别的地支字段，无法排成十二宫图；完整内容见下方原始数据。": [
+"The provider's palaces have no recognisable branch field, so no board can be drawn; see the raw data below for everything.",
+"提供元の宮に認識できる地支の項目がないため十二宮図にできません。全内容は下の生データを参照してください。"
+],
+"提供方的运限没有可识别的层级字段；完整内容见下方原始数据。": [
+"The provider's period data has no recognisable layer fields; see the raw data below for everything.",
+"提供元の運限に認識できる層の項目がありません。全内容は下の生データを参照してください。"
+],
+"提供方输出的星名不是中文（像内部键名），无法与原生盘逐项对照；完整内容见下方原始数据。": [
+"The provider's star names are not Chinese (they look like internal keys), so they cannot be compared item by item with XuanShu's chart; see the raw data below for everything.",
+"提供元の星名が中国語ではない（内部キーのよう）ため、ネイティブ盤と項目別に対照できません。全内容は下の生データを参照してください。"
 ],
 "提示模板": [
 "Prompt templates",
@@ -6701,6 +6873,10 @@ const UI_EXTRA = {
 "无法填入：": [
 "Could not fill: ",
 "入力できません："
+],
+"无法确认本机是否装有 iztro-py": [
+"Could not confirm whether iztro-py is installed here",
+"iztro-py がインストールされているか確認できません"
 ],
 "无法自动复制，请手动选中": [
 "Could not copy automatically; select it by hand",
@@ -7190,6 +7366,10 @@ const UI_EXTRA = {
 "The hour comparison changes only the birth hour and keeps the current rules; an hour that matches does not prove the birth was in that hour.",
 "時辰の照合は出生時辰だけを変え、現在の規則のままです。ある時辰が一致しても、出生がその時辰だった証明にはなりません。"
 ],
+"时辰序号": [
+"Hour index",
+"時辰番号"
+],
 "时辰序号 ": [
 "Double-hour index ",
 "時辰番号 "
@@ -7253,6 +7433,10 @@ const UI_EXTRA = {
 "明年的四化和今年比有什么变化？": [
 "How do next year's transformations differ from this year's?",
 "来年の四化は今年と比べてどう変わりますか？"
+],
+"星座": [
+"Western sign",
+"星座"
 ],
 "星曜": [
 "Stars",
@@ -7770,13 +7954,25 @@ const UI_EXTRA = {
 "Local stdio",
 "ローカル stdio"
 ],
+"本机已装有 iztro-py": [
+"iztro-py is installed here",
+"iztro-py はインストール済み"
+],
 "本机时间 · 历法事实 · 不打吉凶分": [
 "Device clock · calendar facts · no luck scores",
 "端末の時刻 · 暦の事実 · 吉凶の点数なし"
 ],
+"本机没有安装 iztro-py，没有生成任何近似盘。": [
+"iztro-py is not installed here; no approximate chart was produced.",
+"iztro-py がインストールされていないため、近似盤は作成していません。"
+],
 "本机运行可跳过": [
 "Skip when running locally",
 "ローカル実行では省略可"
+],
+"本机还没有安装可选的 iztro-py 引擎": [
+"The optional iztro-py engine is not installed here yet",
+"オプションの iztro-py エンジンはまだインストールされていません"
 ],
 "本模型不声称为任何特定流派的完整黄历择日法。": [
 "This model does not claim to be the complete almanac date-selection method of any particular school.",
@@ -8153,6 +8349,10 @@ const UI_EXTRA = {
 "正在核验…": [
 "Verifying…",
 "検証中…"
+],
+"正在检测本机是否装有 iztro-py…": [
+"Checking whether iztro-py is installed…",
+"iztro-py の有無を確認中…"
 ],
 "正在比对…": [
 "Comparing…",
@@ -8918,6 +9118,10 @@ const UI_EXTRA = {
 "XuanShu · answering",
 "玄枢 · 回答中"
 ],
+"玄枢原生": [
+"XuanShu",
+"玄枢ネイティブ"
+],
 "玄枢命盘": [
 "XuanShu chart",
 "玄枢の命盤"
@@ -8989,6 +9193,10 @@ const UI_EXTRA = {
 "生年四化 / 宫干飞化": [
 "Birth-year Four Transformations / palace-stem flying transformations",
 "生年四化 / 宮干飛化"
+],
+"生年四化、宫干飞化、四组十二神与虚岁小限": [
+"Birth-year transformations, palace-stem flying transformations, the four twelve-spirit cycles and minor limits by nominal age",
+"生年四化・宮干飛化・四組の十二神と数え年の小限"
 ],
 "生年四化与焦点宫飞化（分别展示）": [
 "Natal Four Transformations and focus-palace flying transformations (shown separately)",
@@ -9250,9 +9458,17 @@ const UI_EXTRA = {
 "Target lunar year (1901–2099)",
 "対象の旧暦紀年（1901–2099）"
 ],
+"目标日期要在 1901 到 2099 年之间。": [
+"The target date must be between 1901 and 2099.",
+"対象日は 1901 年から 2099 年の間にしてください。"
+],
 "目标日期（流年 / 流月 / 流日）": [
 "Target date (annual / monthly / daily)",
 "対象日（流年 / 流月 / 流日）"
+],
+"目标时刻（流时）": [
+"Target time (hourly layer)",
+"対象時刻（流時）"
 ],
 "相克": [
 "Controlling",
@@ -9505,6 +9721,10 @@ const UI_EXTRA = {
 "第二套出生时基": [
 "A second time basis",
 "二つ目の時刻基準"
+],
+"第二套独立引擎的完整星盘与运限 · 与玄枢原生盘逐项对照 · 不混入原生数据": [
+"Full chart and periods from a second, independent engine · compared item by item with XuanShu's chart · never mixed into it",
+"独立した第二のエンジンによる完全な星盤と運限 · ネイティブ盤と項目別に対照 · ネイティブのデータには混ぜない"
 ],
 "等待超时，已停止。": [
 "Timed out and stopped.",
@@ -10109,6 +10329,14 @@ const UI_EXTRA = {
 "衰": [
 "Decline (Shuai)",
 "衰"
+],
+"装好 iztro-py 并重新检测后才能计算。": [
+"Install iztro-py and check again before computing.",
+"iztro-py をインストールして再チェックすると計算できます。"
+],
+"装好后点「重新检测」；仍显示未安装时，重启玄枢服务再检测。": [
+"Then click 'Check again'; if it still shows as missing, restart the XuanShu service and check again.",
+"インストール後「再チェック」を押します。まだ未インストールと表示される場合は玄枢のサービスを再起動してから確認してください。"
 ],
 "西": [
 "West",
@@ -10758,6 +10986,10 @@ const UI_EXTRA = {
 "For earlier years, the birthplace's historical legal time may differ from later standard time; please check the actual clock records used at the time.",
 "古い年代では、出生地の歴史的な法定時刻が後の標準時と異なる場合があります。当時実際に使われていた時計の記録を確認してください。"
 ],
+"辅星落宫": [
+"Auxiliary star palace",
+"補助星の宮"
+],
 "辅星：": [
 "Auxiliary stars: ",
 "輔星："
@@ -10834,6 +11066,10 @@ const UI_EXTRA = {
 "Periods",
 "運限"
 ],
+"运限叠加": [
+"Period layers",
+"運限の重ね合わせ"
+],
 "运限层": [
 "Time layer",
 "運限の層"
@@ -10845,6 +11081,10 @@ const UI_EXTRA = {
 "运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。": [
 "Period layers follow public traditional rules: decades start from the five-element bureau and run forward for yang men and yin women, with the decade palace stem's four transformations; the annual Life palace is the palace on that year's branch, with the year stem's transformations; small limits go by nominal age; the month layer uses Dou Jun (from the annual Life palace count back to the birth month, then forward to the birth hour for the first month) and moves one palace a month, with the month stem's transformations; the day layer starts the first day at the month Life palace and moves one palace a day, with the day stem's transformations. Each layer places ten period stars (Kui, Yue, Chang, Qu, Lu, Yang, Tuo, Ma, Luan, Xi) from its own stem and branch; the year adds Nian Jie and the Sui-qian and Jiang-qian twelve spirits from that year's branch. No events are predicted.",
 "運限層は公開の伝統規則によります：大限は五行局から起運し陽男陰女は順行、四化は大限宮干；流年命宮はその年の地支の宮、四化は年干；小限は数え年；流月は斗君（流年命宮から生月まで逆に数え、生時まで順に数えた宮を正月）から毎月一宮順行、四化は月干；流日は流月命宮を初一として毎日一宮順行、四化は日干。各層はその干支で魁・鉞・昌・曲・禄・羊・陀・馬・鸞・喜の十流曜を配し（大限は運曜）、流年は年解と、その年の地支から歳前・将前十二神も配置します。具体的な出来事は予測しません。"
+],
+"运限目标": [
+"Period target",
+"運限の対象"
 ],
 "运限计算失败：": [
 "Period calculation failed: ",
@@ -10918,6 +11158,10 @@ const UI_EXTRA = {
 "Periods in force on this day",
 "この日の運限"
 ],
+"这一宫有与原生盘不同的项目": [
+"This palace has items that differ from XuanShu's chart",
+"この宮にはネイティブ盤との相違があります"
+],
 "这一年少于两位成员排出了大运，没有可比较的大运。": [
 "Fewer than two members have a luck pillar this year, so there is nothing to compare.",
 "この年に大運が出たメンバーが二人未満のため、比べる大運がありません。"
@@ -10929,6 +11173,10 @@ const UI_EXTRA = {
 "这一年成员的大运之间没有天干五合或地支冲合刑害。": [
 "This year, no stem five combination or branch clash, harmony, punishment or harm links the members' luck pillars.",
 "この年はメンバーの大運どうしに天干五合も地支の冲・合・刑・害もありません。"
+],
+"这一页用第二套独立实现的紫微引擎重排一次，用来逐项核对玄枢的原生盘；不装它，原生功能照常可用。": [
+"This page recasts the chart with a second, independently written Zi Wei engine to check XuanShu's own chart item by item; without it everything else works as usual.",
+"このページは独立して実装された第二の紫微エンジンで盤を出し直し、玄枢のネイティブ盤を項目ごとに確かめます。インストールしなくてもネイティブ機能はそのまま使えます。"
 ],
 "这个月暂时算不出来：": [
 "This month cannot be computed right now: ",
@@ -11101,6 +11349,10 @@ const UI_EXTRA = {
 "逐日对照（每天正午）": [
 "Day by day (noon each day)",
 "毎日の照合（各日正午）"
+],
+"逐项对照": [
+"Compared",
+"対照"
 ],
 "通行的中文命盘写法，不含出生日期、时间和备注": [
 "Written in the usual Chinese chart notation, without birth dates, times or notes",
@@ -11294,6 +11546,10 @@ const UI_EXTRA = {
 "Yang",
 "陽"
 ],
+"阳历": [
+"Gregorian date",
+"新暦"
+],
 "阳遁": [
 "Yang Dun",
 "陽遁"
@@ -11417,6 +11673,10 @@ const UI_EXTRA = {
 "青龙": [
 "Qing Long (Azure Dragon)",
 "青龍"
+],
+"项": [
+"items",
+"項目"
 ],
 "项目": [
 "Field",

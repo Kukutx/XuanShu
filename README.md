@@ -161,7 +161,7 @@ xuanshu deep-review --date 2024-02-07T12:00 --palace 官禄宫 --year 2026
 
 **原生引擎仍保留**，独立增加以下功能（不会悄悄替换历史命盘）：
 
-- 专业紫微 **可选提供方**：`pip install 'xuanshu[professional]'` 安装独立 MIT 许可证 [`iztro-py`](https://github.com/spyfree/iztro-py)，在 `POST /api/ziwei-professional` 或 `ziwei_professional_chart` MCP 工具输入明确出生资料及可选公历目标日期/时辰，得到提供方本命与 `horoscope` 动态叠加；`xuanshu ziwei-pro --date ... --gender female --target ...` CLI 和「专业紫微」页也已接通。**当前隔离环境无法获取该可选依赖，因此只通过模拟提供方接口进行联调；不得把它写成真实专业盘已验收。** 返回包含来源、时区假设与提供方说明。
+- 专业紫微 **可选提供方**：在运行玄枢的同一 Python 环境里 `python -m pip install "iztro-py>=0.1,<1"`（源码目录里也可以 `python -m pip install '.[professional]'`）安装独立 MIT 许可证 [`iztro-py`](https://github.com/spyfree/iztro-py)；玄枢没有发布到 PyPI，不要安装名为 `xuanshu` 的包。在 `POST /api/ziwei-professional` 或 `ziwei_professional_chart` MCP 工具输入明确出生资料及可选公历目标日期/时辰，得到提供方本命与 `horoscope` 动态叠加；`xuanshu ziwei-pro --date ... --gender female --target ...` CLI 和「专业紫微」页也已接通。**当前隔离环境无法获取该可选依赖，因此只通过模拟提供方接口进行联调；不得把它写成真实专业盘已验收。** 返回包含来源、时区假设与提供方说明。
 - **奇门参考盘逐宫校验**：`POST /api/qimen-reference-audit`、`qimen_reference_audit` MCP 工具及「奇门逐宫核验」页面（按九宫格逐项选择或粘贴 JSON，结果把玄枢同一时刻的盘与参考盘逐项对照），接受用户提供且注明出处的参考盘，最多 9 宫、逐字段核对地盘干/天盘干/暗干/门/星/神/空亡等。5 张公开 MIT 参考盘提供 6 个顶层字段和 9 个暗干，共 **75 个独立提供的比较字段**符合；其余字段和流派不自动标记一致，不能称为全门派已验收。
 - **MCP Skills 导入**：扩展 `io.modelcontextprotocol/skills`（draft SEP-2640 的 OpenAI 子集），支持分页 `skills/list`、`skills/get`、`resources/read` 的原文与 SHA-256 校验，按平台扫描上限只暴露 **5 个优先工作流**。项目本身共有 18 个 Skills，均可通过 `scripts/build_plugin.py` 打成单独的私有技能插件包。
 - **ChatGPT 私有插件**：已建立私有 `xuanshu` Skills 插件，但**尚未注册公网 MCP 连接**；使用它不会让 ChatGPT 神奇地执行本机 Python 计算。真实远程调用需要 HTTPS 部署和账户授权及客户端连接。
