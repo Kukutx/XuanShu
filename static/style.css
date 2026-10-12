@@ -643,6 +643,28 @@ a{color:inherit;text-decoration:none}
 .group-pair summary{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:9px 0;cursor:pointer}
 .group-tags{margin-left:auto;display:flex;flex-wrap:wrap;gap:2px}
 .group-triad .user-text{font-weight:600}
+.group-year{margin-top:6px}
+.group-year-nav{align-items:center;gap:8px;margin-bottom:6px}
+.inline-control>label.group-year-label{flex-direction:row;align-items:center;gap:6px;font-size:13px}
+#result .group-year-nav input[type=number]{width:96px;min-width:0}
+.group-year-status{font-size:12px}
+.group-year-title{margin:10px 0 2px;font-size:15px}
+.group-year-title b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:21px;font-weight:500}
+.group-year-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:12px 0 6px}
+.group-year-card{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;background:var(--panel2);display:flex;flex-direction:column;gap:7px;min-width:0}
+.group-year-card .group-member-head small{margin-left:auto;font-size:12px;white-space:nowrap}
+.group-year-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:13px}
+.group-year-row small{font-size:12px}
+.group-year-pillar b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:19px;line-height:1.1;font-weight:500}
+.group-year-god{font-weight:600}
+.group-year-row .luck-marks{justify-content:flex-start;margin-top:0}
+.luck-change{font-size:11px;line-height:1.5;padding:0 7px;border-radius:999px;background:var(--accent-soft);color:var(--gold);border:1px solid var(--accent-line);white-space:nowrap}
+.group-year-extra{display:flex;flex-wrap:wrap;gap:4px}
+.group-year-extra .relation-chip{margin:0;white-space:normal;border-radius:12px}
+.group-year-card .pillar-shensha{justify-content:flex-start;margin-top:0}
+.group-year-card .pillar-shensha .pillar-stage-label{flex-basis:auto}
+.group-year-links{display:flex;flex-direction:column;gap:6px}
+.group-year-link{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel2);padding:8px 12px;font-size:13px}
 .group-elements{display:grid;grid-template-columns:auto minmax(80px,1fr) auto minmax(90px,40%);gap:6px 10px;align-items:center;max-width:640px}
 .group-element{display:contents}
 .group-element>b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;font-weight:500}
@@ -733,6 +755,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .group-who{grid-column:2 / -1}
   .group-tags{margin-left:0}
   .group-members{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .group-year-cards{grid-template-columns:1fr}
   .rule-summary{grid-template-columns:1fr}
   .workspace-top{padding:16px}
   .tool-finder{padding:10px 16px;gap:8px}
