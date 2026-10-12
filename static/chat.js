@@ -18,10 +18,10 @@ let chatMode = 'single';   // 'panel': one specialist per school, then a synthes
 let chatVerify = true;     // second, independent model call that checks claims against tool results
 let chatUncertainty = 15;  // minutes the recorded birth time may be off
 let chatPartnerOK = false;  // the user's own consent tick; never set by the model
-// Lines with other people's birth data that the group page put into the draft: a message containing any of
-// them is not sent until the consent box is ticked.
-let chatThirdPartyLines = [];
-const needsPartnerConsent = text => !chatPartnerOK && chatThirdPartyLines.some(line => text.includes(line));
+// Birth dates (YYYY-MM-DD) of other people that the group or pair page put into the draft: a message containing
+// any of them is not sent until the consent box is ticked, even with the name or time around it rewritten.
+let chatThirdPartyBirths = [];
+const needsPartnerConsent = text => !chatPartnerOK && chatThirdPartyBirths.some(date => text.includes(date));
 let chatOwner = null;      // profile id the current conversation belongs to
 let chatTokenWatch = false;
 let chatController = null;  // aborts the request in flight
