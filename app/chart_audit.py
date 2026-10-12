@@ -77,6 +77,9 @@ def qimen_reference_audit(req: QimenAuditRequest) -> dict:
             'local_school':calc['method'], 'compared':len(compared),
             'matching':len(compared)-len(mismatches), 'mismatches':mismatches,
             'fields':compared,
+            # The moment and instant the plate was raised for, so a saved result says what it describes.
+            'moment':req.moment.model_dump(include={'birth_datetime','timezone','time_mode','longitude','late_zi_day_rollover'}),
+            'instant':calc.get('instant'),
             'matches':not mismatches,
             'comparison_scope': sorted({p['field'].split('.')[-1] for p in compared}),
             'notes':['只校验实际给出的字段；未提供的逐宫字段不计为一致。',

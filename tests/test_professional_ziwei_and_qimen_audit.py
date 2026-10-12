@@ -85,6 +85,9 @@ def test_qimen_comparison_every_available_palace_field():
     assert len(changed['fields'])==changed['compared'] and [f['field'] for f in changed['fields'][:2]]==['bureau','dun']
     assert [f for f in changed['fields'] if not f['match']]==changed['mismatches']
     assert {'field':'palaces.1.earth_stem','ours':generated['palaces'][0]['earth_stem'],'reference':'X','match':False} in changed['fields']
+    # The result names the moment it was raised for, so a saved copy says what it describes.
+    assert changed['moment']=={'birth_datetime':'2026-09-23T12:00','timezone':'Asia/Shanghai','time_mode':'clock','longitude':None,'late_zi_day_rollover':False}
+    assert changed['instant']==generated['instant']
     with TestClient(app) as client:
         r=client.post('/api/qimen-reference-audit',json=body)
     assert r.status_code==200 and r.json()==call_tool('qimen_reference_audit',body)

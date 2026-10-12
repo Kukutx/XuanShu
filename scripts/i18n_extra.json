@@ -623,6 +623,10 @@
   "Interface language / 界面语言",
   "Interface language / 表示言語"
  ],
+ "JSON 里的时刻按太阳时排盘；这里按该时区的钟表时间起局，请核对时刻。": [
+  "The JSON moment uses solar time; this check raises the plate at clock time in that zone, so check the moment.",
+  "JSON の時刻は太陽時です。ここではそのタイムゾーンの時計時刻で盤を立てるので、時刻を確認してください。"
+ ],
  "Keep only these 建除 officers": [
   "Keep only these 建除 officers",
   "これらの建除の値日のみ残す"
@@ -682,6 +686,22 @@
  "mcp claude chatgpt codex plugin 接入 配置": [
   "mcp claude chatgpt codex plugin integration configuration",
   "mcp claude chatgpt codex plugin 接続 設定"
+ ],
+ "moment 的时间需写成不带时区偏移的整分钟，如 2024-02-10T10:00": [
+  "moment needs a whole-minute time without a zone offset, e.g. 2024-02-10T10:00",
+  "moment の時刻はタイムゾーンのオフセットを付けず分単位で書いてください（例 2024-02-10T10:00）"
+ ],
+ "moment 需含 birth_datetime": [
+  "moment needs birth_datetime",
+  "moment には birth_datetime が必要です"
+ ],
+ "palaces 需为列表": [
+  "palaces must be a list",
+  "palaces はリストにしてください"
+ ],
+ "root_fields 需为对象": [
+  "root_fields must be an object",
+  "root_fields はオブジェクトにしてください"
  ],
  "“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。扣除夏令时改的是出生时间本身的读法，不能直接套用；确认出生记录用的是夏令时后，请手动改出生时间。": [
   "“＝” means the same as the current settings; highlighted cells are results that change under that rule. Apply writes the rule into the birth details and recalculates. Removing daylight saving time changes how the birth time itself is read, so it cannot be applied directly; once you have confirmed the record used summer time, edit the birth time by hand.",
@@ -1118,6 +1138,10 @@
  "不空": [
   "Not void",
   "空亡でない"
+ ],
+ "不认识的字段": [
+  "Unknown field",
+  "不明なフィールド"
  ],
  "不附带出生信息": [
   "Birth details not included",
@@ -2867,6 +2891,10 @@
   "Rob Wealth (Jie Cai)",
   "劫財"
  ],
+ "包含 reference_source、reference_school、root_fields 和 palaces，每个宫写 number=1…9 和要对照的字段；可选的 moment 会填入第 1 步的时刻。填入后可在上面的表单里检查。": [
+  "Include reference_source, reference_school, root_fields and palaces, each palace with number=1…9 and the fields to compare; an optional moment fills the moment in step 1. After filling, check the values in the form above.",
+  "reference_source、reference_school、root_fields と palaces を含め、各宮に number=1…9 と比較する項目を書きます。任意の moment は手順 1 の時刻に入ります。入力後は上のフォームで確認できます。"
+ ],
  "包含 reference_source、reference_school、root_fields 和 palaces，每个宫写 number=1…9 和要对照的字段；填入后可在上面的表单里检查。": [
   "Include reference_source, reference_school, root_fields and palaces; each palace has number=1…9 and the fields to compare. After filling, check the form above.",
   "reference_source、reference_school、root_fields、palaces を含め、各宮は number=1…9 と比較する項目を書きます。入力後は上のフォームで確認できます。"
@@ -3179,6 +3207,10 @@
   "Reference",
   "参照盤"
  ],
+ "参考盘 JSON": [
+  "Reference plate JSON",
+  "参照盤 JSON"
+ ],
  "参考盘的来源": [
   "Where the reference comes from",
   "参照盤の出典"
@@ -3190,6 +3222,14 @@
  "参考盘的遁局与玄枢不同：地盘干按局数排布，天盘、星、门、神也随之而定，下面各宫的差异多半由此而来。先核对参考盘的定局方法（如拆补、置闰）和所用节气时刻。": [
   "The reference has a different dun or bureau from XuanShu. The earth stems are laid out by the bureau and the heaven stems, stars, doors and deities follow from it, so most of the palace differences below likely come from this. First check the reference's bureau method (such as Chai Bu or Zhi Run) and the solar-term times it uses.",
   "参照盤の遁と局が玄枢と異なります。地盤干は局数で並び、天盤・星・門・神もそれに従うため、下の各宮の差異の多くはここから来ます。まず参照盤の局の定め方（拆補・置閏など）と使った節気時刻を確かめてください。"
+ ],
+ "参考盘自称的流派，如 时家拆补转盘、置闰法": [
+  "The school the reference names, e.g. hour plate, chaibu, rotating",
+  "参照盤が名乗る流派（例 時家拆補転盤、置閏法）"
+ ],
+ "参考盘：": [
+  "Reference: ",
+  "参照盤："
  ],
  "及另": [
   "and another",
@@ -3262,6 +3302,10 @@
  "另有来自 JSON 的字段": [
   "Also from JSON",
   "JSON からの他の項目"
+ ],
+ "另有来自 JSON 的字段：": [
+  "Also from JSON: ",
+  "JSON から読んだその他の項目："
  ],
  "只依据年柱、月柱、日柱等不随时辰变化的内容，需要时请用户补充时辰或几件确定发生过的大事。": [
   "rely only on what does not change with the hour, such as the year, month and day pillars, and when needed ask the user for the hour or a few events that certainly happened.",
@@ -4643,6 +4687,10 @@
   "Palace details",
   "宮の詳細"
  ],
+ "宫位重复": [
+  "Palace listed twice:",
+  "宮が重複しています："
+ ],
  "宫内主星、辅星与四化分别按照哪些计算规则安置？": [
   "Which calculation rules place the main stars, auxiliary stars and Four Transformations in each palace?",
   "宮内の主星、補助星、四化はそれぞれどの計算規則で配置されているか？"
@@ -4806,6 +4854,10 @@
  "将比较 ": [
   "Will compare ",
   "比較する項目 "
+ ],
+ "将比较 1 项": [
+  "Will compare 1 item",
+  "1 項目を比較します"
  ],
  "将运行": [
   "Will run",
@@ -4974,6 +5026,14 @@
  "已向用户展示，等待用户确认后才会保存。": [
   "Shown to the user; it will be saved only after the user confirms.",
   "ユーザーに表示済みです。ユーザーの確認後にのみ保存されます。"
+ ],
+ "已填入": [
+  "Filled",
+  "入力済み"
+ ],
+ "已填入 1 项": [
+  "Filled 1 item",
+  "1 項目を入力しました"
  ],
  "已填入公历 ": [
   "Filled in Gregorian ",
@@ -5986,6 +6046,10 @@
  "提议保存记忆": [
   "Suggest a memory",
   "記憶の保存を提案"
+ ],
+ "撤销清空": [
+  "Undo clear",
+  "クリアを取り消す"
  ],
  "擎羊": [
   "Qing Yang",
@@ -8243,6 +8307,10 @@
   "XuanShu compares its lunar dates, four pillars, Shen Sha, solar terms, moon phases and Zi Wei charts item by item with independent open-source libraries. The scripts, pinned reference libraries and raw data are all in the repository, so anyone can rerun them.",
   "玄枢は旧暦、四柱、神煞、節気、月相、紫微の命盤を独立したオープンソースライブラリと項目ごとに照合しています。スクリプト、固定版の参照ライブラリ、元データはすべてリポジトリにあり、誰でも再実行できます。"
  ],
+ "玄枢：": [
+  "XuanShu: ",
+  "玄枢："
+ ],
  "玄武": [
   "Xuan Wu (Black Tortoise)",
   "玄武"
@@ -9755,6 +9823,10 @@
   "Casting moment",
   "局を立てる時刻"
  ],
+ "起局时刻：": [
+  "Moment checked: ",
+  "起局時刻："
+ ],
  "起止时刻是这套规则下的计算边界，精确到秒只代表算法数值，不代表出生时刻能这样确定。": [
   "Start and end are calculated boundaries under these rules; one-second precision is numerical, not a claim that a birth time can be known that precisely.",
   "開始・終了はこの規則での計算上の境界です。秒単位の精度は数値上のもので、出生時刻をそこまで確定できるという意味ではありません。"
@@ -10019,14 +10091,6 @@
   "No memory yet. Content suggested by the AI or background you add manually will appear here and be sent to the model with each question.",
   "まだ記憶はありません。AI が提案した内容や手動で追加した背景がここに表示され、質問のたびにモデルへ送信されます。"
  ],
- "这一天没有可用的钟表时间": [
-  "No usable clock time on this day",
-  "この日には使える時計の時刻がありません"
- ],
- "这一天的夏令时切换使所选时辰没有能唯一确定的钟表时间，改起最近的时辰：": [
-  "A daylight-saving switch leaves the chosen hour without an unambiguous clock time on this day, so the nearest hour is cast instead:",
-  "この日は夏時間の切り替えで選んだ時辰に一意の時計時刻がないため、最も近い時辰で局を立てました："
- ],
  "还需填写参考来源（至少 4 个字）": [
   "Still needs a reference source (at least 4 characters)",
   "参照元の入力が必要です（4 文字以上）"
@@ -10034,6 +10098,18 @@
  "还需填写参考流派": [
   "Still needs a reference school",
   "参照流派の入力が必要です"
+ ],
+ "还需填写日期与时间": [
+  "Date and time still needed",
+  "日付と時刻が未入力です"
+ ],
+ "这一天没有可用的钟表时间": [
+  "No usable clock time on this day",
+  "この日には使える時計の時刻がありません"
+ ],
+ "这一天的夏令时切换使所选时辰没有能唯一确定的钟表时间，改起最近的时辰：": [
+  "A daylight-saving switch leaves the chosen hour without an unambiguous clock time on this day, so the nearest hour is cast instead:",
+  "この日は夏時間の切り替えで選んだ時辰に一意の時計時刻がないため、最も近い時辰で局を立てました："
  ],
  "这一天的运限": [
   "Periods in force on this day",
@@ -10426,6 +10502,18 @@
  "雨水": [
   "Rain Water (Yushui)",
   "雨水"
+ ],
+ "需为 1…9 的整数": [
+  "must be a whole number 1–9",
+  "は 1〜9 の整数にしてください"
+ ],
+ "需为 true 或 false": [
+  "must be true or false",
+  "は true か false にしてください"
+ ],
+ "需为文字": [
+  "must be text",
+  "は文字列にしてください"
  ],
  "需手动改时间": [
   "Edit the time by hand",
