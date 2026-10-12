@@ -1219,15 +1219,40 @@ def main() -> None:
 
             # All three independently implemented 开发阶段 workflows must work from visible controls.
             page.locator('[data-tab="officers"]').click()
-            # The coming 30 days are listed on opening; the button applies a new range or filter.
-            page.locator('#result tbody tr').first.wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() == 30
+            # The coming 30 days are laid out a week per row on opening; the button applies a new range.
+            page.locator('#officer-grid .of-day').first.wait_for(timeout=30000)
+            assert page.locator('#officer-grid .of-day').count() == 30
+            assert page.locator('#officer-grid tbody tr').count() * 7 == page.locator('#officer-grid td').count()
+            assert page.locator('#officer-grid .of-day.is-today').count() == 1
             page.locator('#officer-days').select_option('7')
             page.locator('#officer-run').click()
-            page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 7", timeout=30000)
+            page.wait_for_function("() => document.querySelectorAll('#officer-grid .of-day').length === 7", timeout=30000)
+            # 立冬 2026 falls at 17:52 Beijing time: the noon officer is still 闭 and 开 follows the term.
+            page.locator('#officer-date').fill('2026-11-01')
+            page.locator('#officer-days').select_option('14')
+            page.locator('#officer-run').click()
+            page.wait_for_function("() => document.querySelector('#officer-day-2026-11-14')", timeout=30000)
+            jie_day = page.locator('#officer-day-2026-11-07')
+            assert 'is-jie' in jie_day.get_attribute('class') and jie_day.locator('.of-officer').inner_text() == '闭'
+            assert '17:52' in jie_day.inner_text() and '节后' in jie_day.inner_text() and jie_day.locator('.of-jie b').inner_text() == '开'
+            assert page.locator('#officer-grid .of-day.is-jie').count() == 1
+            # The first row starts on Monday: 2026-11-01 is a Sunday, so six blank cells lead.
+            assert page.locator('#officer-grid tbody tr').first.locator('.of-blank').count() == 6
+            page.locator('#officer-mark-10').click()
+            assert page.locator('#officer-mark-10').get_attribute('aria-pressed') == 'true'
+            assert page.locator('#officer-grid .of-day.is-mark').count() == 2 and page.locator('#officer-grid .of-day.is-dim').count() == 12
+            assert 'is-mark' in jie_day.get_attribute('class') and 'is-mark' in page.locator('#officer-day-2026-11-06').get_attribute('class')
+            assert '其中交节后才轮到 1 天' in page.locator('.of-summary').inner_text()
+            page.locator('#officer-view-list').click()
+            assert page.locator('#officer-list tbody tr').count() == 14 and page.locator('#officer-list tr.is-mark').count() == 2
+            assert '立冬' in page.locator('#officer-list tr.is-mark').nth(1).inner_text()
+            page.locator('#officer-view-grid').click()
+            page.locator('#officer-mark-all').click()
+            assert page.locator('#officer-grid .of-day.is-dim').count() == 0
+            page.locator('#officer-date').fill(page.evaluate('localToday()'))
             page.locator('#officer-days').select_option('30')
             page.locator('#officer-run').click()
-            page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 30", timeout=30000)
+            page.wait_for_function("() => document.querySelectorAll('#officer-grid .of-day').length === 30", timeout=30000)
             assert '十二值日' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '14-day-officers-desktop.png'), full_page=True)
 

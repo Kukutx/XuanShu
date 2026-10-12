@@ -835,6 +835,10 @@
   "One row per person, one cell per year. The colour is the element of the luck period's stem, a thick edge marks the year a period begins, and \"?\" marks a year in which a period may begin when the hour is unknown. Click a year or a cell to open that year.",
   "1行が1人、1マスが1年。色は大運の天干の五行、太い縁は交運の年、「?」は時刻不明のとき交運があり得る年です。年やマスをクリックするとその年に切り替わります。"
  ],
+ "一行一周，从星期一开始；格子里是日期、日干支和正午的值日。交节当天另写节气、交节时刻（北京时间）和节后的值日。": [
+  "One week per row, starting on Monday; each cell shows the date, the day stem-branch and the day officer at noon. On a term-transition day the cell also gives the solar term, its time (Beijing time) and the officer after the term.",
+  "1 行が 1 週間で、月曜日から始まります。各マスには日付、日の干支、正午の十二直を示します。節入りの日は節気名、節入り時刻（北京時間）、節入り後の十二直も示します。"
+ ],
  "丁壬合木": [
   "Ding–Ren combine (Wood)",
   "丁壬合木"
@@ -1450,6 +1454,10 @@
  "交节已过": [
   "Since the transition",
   "節入りから"
+ ],
+ "交节当天节令切换前后的值日不同：本表按北京时间正午归类，交节当天另给出交节时刻和节后的值日；精确活动时间要对照交节时刻。": [
+  "On a term-transition day the officer differs before and after the change: this table classifies each day at noon Beijing time and, on such a day, also gives the transition time and the officer after it; for an exact activity time, compare it with the transition time.",
+  "節入りの日は切り替わりの前後で十二直が異なります。この表は北京時間の正午で分類し、節入りの日には節入り時刻と節入り後の十二直も示します。正確な時刻については節入り時刻と照らし合わせてください。"
  ],
  "交节约 ": [
   " is about ",
@@ -2223,6 +2231,10 @@
   "Interests, rest and spiritual experience",
   "趣味、休息と精神的な体験"
  ],
+ "其中交节后才轮到": [
+  "of these, after the term transition",
+  "うち節入り後"
+ ],
  "其他流派（例如以春节换年、23:00 换日）会得到不同的区间，可切换换日规则或时制重新反查。": [
   "Other schools (for example changing the year at Chinese New Year, or the day at 23:00) give different intervals; switch the day-boundary rule or time basis and search again.",
   "他の流派（春節で年替わり、23:00 で日替わりなど）では区間が変わります。日替わり規則や時制を切り替えて再検索できます。"
@@ -2570,6 +2582,10 @@
  "切换配色": [
   "Change colour theme",
   "配色を切り替え"
+ ],
+ "列表": [
+  "List",
+  "一覧"
  ],
  "刚才": [
   "just now",
@@ -5711,6 +5727,10 @@
   "Day Master: ",
   "日主："
  ],
+ "日历": [
+  "Calendar",
+  "カレンダー"
+ ],
  "日历概念参考；不是两套算法的交叉认证": [
   "Calendar concept reference; not a cross-certification of the two algorithms",
   "暦の概念の参考。2つのアルゴリズムの相互認証ではありません"
@@ -6730,6 +6750,10 @@
  "查询年干四化": [
   "Look up year-stem Four Transformations",
   "年干四化を照会"
+ ],
+ "查询按北京时间正午取值；交节当天另写节后的值日。": [
+  "Each day is taken at noon Beijing time; on a term-transition day the officer after the term is also shown.",
+  "各日は北京時間の正午で判定します。節入りの日は節入り後の十二直も示します。"
  ],
  "查询按北京时间正午取值；跨交节的日期会显式标记。": [
   "Values are taken at noon Beijing time; dates that cross a solar term transition are explicitly marked.",
@@ -8027,6 +8051,14 @@
   "Empty palace (none of the 14 main stars)",
   "空宮（十四主星なし）"
  ],
+ "突出显示": [
+  "Highlighting",
+  "強調表示"
+ ],
+ "突出显示值日": [
+  "Highlight a day officer",
+  "十二直を強調表示"
+ ],
  "立冬": [
   "Start of Winter (Lidong)",
   "立冬"
@@ -8070,10 +8102,6 @@
  "等待超时，已停止。": [
   "Timed out and stopped.",
   "タイムアウトしたため停止しました。"
- ],
- "筛选值日": [
-  "Filter day officers",
-  "値日で絞り込み"
  ],
  "简体中文": [
   "简体中文",
@@ -8466,6 +8494,10 @@
  "节令的天文定义；八字日界/流派另依本项目规则": [
   "Astronomical definition of solar terms; BaZi day boundary/school follows this project's own rules",
   "節気の天文学的定義。八字の日境界・流派は本プロジェクトの規則に別途従います"
+ ],
+ "节后": [
+  "after the term",
+  "節入り後"
  ],
  "节气": [
   "Solar term",

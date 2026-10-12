@@ -135,7 +135,7 @@ let windowDraft = {radius: 30, spacing: 10};
 let lunarInverseDraft = null;  // filled with this lunar year's first day when the calendar first shows it
 let lunarInverseError = '';
 let annualDraft = null;  // today's lunar year, until another one is asked for
-let officerDraft = {start_date:localToday(),days:30,officer:''};
+let officerDraft = {start_date:localToday(),days:30};
 let timelineDraft = {start_lunar_year:null,years:10,focus_palace:''};  // null: today's lunar year
 let timelineView = 'matrix';  // the palace-by-year grid, or the list by year
 let decisionDraft = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
@@ -1645,7 +1645,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (active === 'calendar' || active === 'boundaries') render();});
+document.addEventListener('xuanshu-language', () => {if (active === 'calendar' || active === 'boundaries' || active === 'officers') render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -1829,22 +1829,22 @@ function renderCalendar() {
   renderLunarInverseSection();
   note(result, data.notes.join(' '));
 }
+// 建除值日 as a calendar: a week per row, Monday first, the officer of each day large. Picking an officer marks
+// its days and dims the rest (nothing is left out), and a jie day says which officer follows the term.
+let officerMark = '', officerView = 'grid';
+const DAY_OFFICER_ORDER = [...'建除满平定执破危成收开闭'];
 function renderDayOfficers() {
   title(result,'建除十二值日','节令月支 × 日支 · 仅传统标签，不给吉凶或宜忌结论');
   const row=append(result,'div','inline-control');
   const start=createInput('查询起始日（北京时间）','date',officerDraft.start_date,row);
   start.id='officer-date';start.min='1901-01-01';start.max='2099-12-31';
   const count=append(append(row,'label',null,'查询长度'),'select');count.id='officer-days';
-  [7,14,30,60,90].forEach(x=>{const op=append(count,'option',null,`${x} 天`);op.value=String(x);});count.value=String(officerDraft.days);
-  const select=append(append(row,'label',null,'筛选值日'),'select');select.id='officer-filter';
-  for(const value of ['','建','除','满','平','定','执','破','危','成','收','开','闭']){
-    const op=append(select,'option',null,value||'全部');op.value=value;
-  } select.value=officerDraft.officer;
-  keepTyped(start,count,select);
+  [7,14,30,60,90].forEach(x=>{const op=texts(append(count,'option'),x,' 天');op.value=String(x);});count.value=String(officerDraft.days);
+  keepTyped(start,count);
   const query=()=>{
     const draft=officerDraft;
     officerPending=true;officerError='';
-    postJSON('/api/day-officers',{start_date:draft.start_date,days:draft.days,filter_officers:draft.officer?[draft.officer]:[]})
+    postJSON('/api/day-officers',{start_date:draft.start_date,days:draft.days,filter_officers:[]})
       .then(data=>{if(officerDraft===draft)officerResult=data;}).catch(e=>{if(officerDraft===draft)officerError='查询失败：'+e.message;})
       .finally(()=>{if(officerDraft===draft){officerPending=false;if(active==='officers')render();}});
   };
@@ -1853,22 +1853,88 @@ function renderDayOfficers() {
   const run=append(row,'button',null,'查询值日');run.id='officer-run';run.type='button';run.disabled=officerPending;
   append(result,'p','inline-msg',officerError);
   run.addEventListener('click',()=>{
-    officerDraft={start_date:start.value,days:Number(count.value),officer:select.value};
+    officerDraft={start_date:start.value,days:Number(count.value)};
     query();render();
   });
-  append(result,'p','field-help','查询按北京时间正午取值；跨交节的日期会显式标记。');
+  append(result,'p','field-help','查询按北京时间正午取值；交节当天另写节后的值日。');
   if(officerPending)append(result,'p','field-help','正在查询…');
   if(!officerResult)return;
-  meta(result,[`范围 ${officerResult.range_start}`,`已返回 ${officerResult.days.length} 日`,'不对日期好坏打分']);
-  const table=append(append(result,'div','table-wrap'),'table','data-table');
-  const hr=append(append(table,'thead'),'tr');
-  ['公历日','日干支','正午月建','十二值日','节令切换日'].forEach(x=>append(hr,'th',null,x));
-  const body=append(table,'tbody');
-  officerResult.days.forEach(d=>{
-    const tr=append(body,'tr');
-    [d.date,d.day_pillar,d.month_branch_at_noon,d.officer,d.jie_boundary_on_date?'是 · 日内可能变化':'—'].forEach(x=>append(tr,'td',null,x));
+  const days = officerResult.days, first = days[0], last = days[days.length - 1];
+  if (!days.length) return;
+  const tags = append(result, 'div', 'meta-tags');
+  texts(append(tags, 'span'), first.date, ' – ', last.date);
+  const branches = [...new Set(days.flatMap(d => d.jie_on_date ? [d.month_branch_at_noon, d.jie_on_date.month_branch_after] : [d.month_branch_at_noon]))];
+  texts(append(tags, 'span'), '正午月建', ' ', branches.join(' → '));
+  append(tags, 'span', null, '不对日期好坏打分');
+  // One chip per officer in cycle order with its count in the range; a chip marks its days.
+  const legend = append(result, 'div', 'of-legend'); legend.id = 'officer-legend';
+  legend.setAttribute('role', 'group'); legend.setAttribute('aria-label', '突出显示值日');
+  const counts = {}; days.forEach(d => {counts[d.officer] = (counts[d.officer] || 0) + 1;});
+  [''].concat(DAY_OFFICER_ORDER).forEach(o => {
+    const chip = append(legend, 'button', 'of-chip' + (officerMark === o ? ' active' : '')); chip.type = 'button';
+    chip.id = 'officer-mark-' + (o ? DAY_OFFICER_ORDER.indexOf(o) : 'all'); chip.setAttribute('aria-pressed', String(officerMark === o));
+    append(chip, 'b', null, o || '全部');
+    if (o) texts(append(chip, 'small'), '×', counts[o] || 0);
+    chip.addEventListener('click', () => {officerMark = o; render();});
   });
-  if(!officerResult.days.length)append(result,'p','feature-note','查询范围内未找到所筛选的标签。');
+  const marks = d => officerMark && (d.officer === officerMark || (d.jie_on_date && d.jie_on_date.officer_after === officerMark));
+  if (officerMark) {
+    const n = days.filter(marks).length, late = days.filter(d => d.officer !== officerMark && marks(d)).length;
+    const line = countText(texts(append(result, 'p', 'of-summary'), '突出显示', ' ', officerMark, ' · '), n, ' 天');
+    if (late) countText(texts(line, ' · ', '其中交节后才轮到', ' '), late, ' 天');
+  }
+  const views = append(result, 'div', 'layer-modes of-views');
+  views.setAttribute('role', 'group'); views.setAttribute('aria-label', '显示方式');
+  [['grid', '日历'], ['list', '列表']].forEach(([key, name]) => {
+    const button = append(views, 'button', 'layer-btn' + (officerView === key ? ' active' : ''), name);
+    button.type = 'button'; button.id = 'officer-view-' + key; button.setAttribute('aria-pressed', String(officerView === key));
+    button.addEventListener('click', () => {officerView = key; render();});
+  });
+  const today = localToday(), weekdayOf = date => (new Date(date + 'T00:00:00Z').getUTCDay() + 6) % 7;
+  const jieText = (parent, j) => {
+    texts(parent, termText(j.name, true), ' ', j.time_china.slice(11, 16), ' · ', '节后');
+    append(parent, 'b', null, j.officer_after);
+  };
+  if (officerView === 'grid') {
+    const wrap = append(result, 'div', 'of-wrap');
+    const table = append(wrap, 'table', 'of-grid'); table.id = 'officer-grid';
+    append(table, 'caption', 'visually-hidden', '建除十二值日');
+    const head = append(append(table, 'thead'), 'tr'), lang = calLang();
+    WEEKDAY_NAMES.forEach((full, i) => {
+      const th = append(head, 'th', i > 4 ? 'is-weekend' : null); th.scope = 'col';
+      const short = append(th, 'abbr', null, lang === 'en' ? CAL_WEEKDAYS_EN[i] : (CAL_WEEKDAYS[lang] || CAL_WEEKDAYS['zh-CN'])[i]);
+      short.dataset.noI18n = ''; short.title = calT(full);
+    });
+    const body = append(table, 'tbody');
+    let tr = null;
+    const cells = Array(weekdayOf(first.date)).fill(null).concat(days);
+    while (cells.length % 7) cells.push(null);
+    cells.forEach((d, i) => {
+      if (i % 7 === 0) tr = append(body, 'tr');
+      if (!d) {append(tr, 'td', 'of-blank'); return;}
+      const td = append(tr, 'td', 'of-day' + (d.date === today ? ' is-today' : '') + (d.jie_on_date ? ' is-jie' : '') + (officerMark ? (marks(d) ? ' is-mark' : ' is-dim') : ''));
+      td.id = 'officer-day-' + d.date;
+      const date = append(td, 'span', 'of-date');
+      const [, m, dd] = d.date.split('-').map(Number);
+      date.textContent = (i < 7 && i === weekdayOf(first.date)) || dd === 1 ? m + '/' + dd : String(dd);
+      const gz = append(td, 'b', 'of-gz'); gz.dataset.noI18n = '';
+      append(gz, 'span', stemClass(d.day_pillar[0]), d.day_pillar[0]); append(gz, 'span', branchClass(d.day_pillar[1]), d.day_pillar[1]);
+      append(td, 'span', 'of-officer', d.officer);
+      if (d.jie_on_date) jieText(append(td, 'small', 'of-jie'), d.jie_on_date);
+    });
+    append(result, 'p', 'field-help', '一行一周，从星期一开始；格子里是日期、日干支和正午的值日。交节当天另写节气、交节时刻（北京时间）和节后的值日。');
+  } else {
+    const table=append(append(result,'div','table-wrap'),'table','data-table of-list'); table.id = 'officer-list';
+    const hr=append(append(table,'thead'),'tr');
+    ['公历日','日干支','正午月建','十二值日','交节'].forEach(x=>append(hr,'th',null,x));
+    const body=append(table,'tbody');
+    days.forEach(d=>{
+      const tr=append(body,'tr', officerMark ? (marks(d) ? 'is-mark' : 'is-dim') : null);
+      [d.date,d.day_pillar,d.month_branch_at_noon,d.officer].forEach(x=>append(tr,'td',null,x));
+      const jie = append(tr, 'td');
+      if (d.jie_on_date) jieText(jie, d.jie_on_date); else jie.textContent = '—';
+    });
+  }
   officerResult.limitations.forEach(x=>note(result,x));
 }
 let dateScanResult = null;
