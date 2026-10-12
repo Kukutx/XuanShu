@@ -835,6 +835,10 @@
   "One row per person, one cell per year. The colour is the element of the luck period's stem, a thick edge marks the year a period begins, and \"?\" marks a year in which a period may begin when the hour is unknown. Click a year or a cell to open that year.",
   "1行が1人、1マスが1年。色は大運の天干の五行、太い縁は交運の年、「?」は時刻不明のとき交運があり得る年です。年やマスをクリックするとその年に切り替わります。"
  ],
+ "一行一周，从星期一开始；格子里是日期、日干支和正午的值日，今天的日期填色。交节当天另写节气和交节时刻（北京时间）：「17:52 → 开」是交节后轮到开，「成 → 04:02」是交节前为成。": [
+  "One week per row, starting on Monday; each cell shows the date, the day stem-branch and the noon officer, with today's date filled in. A jie day also shows the term and its time (Beijing time): “17:52 → Kai” means Kai follows the term, “Cheng → 04:02” means Cheng comes before it.",
+  "1 行が 1 週で月曜始まりです。マスには日付、日干支、正午の十二直があり、今日の日付は塗りつぶしで示します。節入りの日は節気と節入り時刻（北京時間）も書きます。「17:52 → 開」は節入り後が開、「成 → 04:02」は節入り前が成という意味です。"
+ ],
  "丁壬合木": [
   "Ding–Ren combine (Wood)",
   "丁壬合木"
@@ -1450,6 +1454,10 @@
  "交节已过": [
   "Since the transition",
   "節入りから"
+ ],
+ "交节当天节令切换前后的值日不同：本表按北京时间正午归类，交节当天另给出交节时刻和交节前后的值日；精确活动时间要对照交节时刻。": [
+  "On a jie day the officer differs before and after the term: this table classifies by Beijing noon and also gives the term time and the officers before and after it; check exact times against the term time.",
+  "節入りの日は節入り前後で十二直が異なります。この表は北京時間の正午で分類し、節入りの日には節入り時刻と前後の十二直も示します。正確な時刻は節入り時刻と照らし合わせてください。"
  ],
  "交节约 ": [
   " is about ",
@@ -2223,6 +2231,10 @@
   "Interests, rest and spiritual experience",
   "趣味、休息と精神的な体験"
  ],
+ "其中": [
+  "of which",
+  "うち"
+ ],
  "其他流派（例如以春节换年、23:00 换日）会得到不同的区间，可切换换日规则或时制重新反查。": [
   "Other schools (for example changing the year at Chinese New Year, or the day at 23:00) give different intervals; switch the day-boundary rule or time basis and search again.",
   "他の流派（春節で年替わり、23:00 で日替わりなど）では区間が変わります。日替わり規則や時制を切り替えて再検索できます。"
@@ -2570,6 +2582,10 @@
  "切换配色": [
   "Change colour theme",
   "配色を切り替え"
+ ],
+ "列表": [
+  "List",
+  "一覧"
  ],
  "刚才": [
   "just now",
@@ -3014,6 +3030,10 @@
  "只列历法事实，不含宜忌或吉凶。": [
   "Calendar facts only: no do-and-avoid lists, nothing auspicious or inauspicious.",
   "暦の事実のみを示し、宜忌や吉凶は含みません。"
+ ],
+ "只在交节前或交节后": [
+  "only before or after the term",
+  "は節入り前か後のみ"
  ],
  "只对照年干和本命宫位，不是完整流年盘或预测": [
   "Only compares the year stem and natal palaces; not a complete annual chart or prediction",
@@ -5711,6 +5731,10 @@
   "Day Master: ",
   "日主："
  ],
+ "日历": [
+  "Calendar",
+  "カレンダー"
+ ],
  "日历概念参考；不是两套算法的交叉认证": [
   "Calendar concept reference; not a cross-certification of the two algorithms",
   "暦の概念の参考。2つのアルゴリズムの相互認証ではありません"
@@ -6214,10 +6238,6 @@
  "春分": [
   "Spring Equinox (Chunfen)",
   "春分"
- ],
- "是 · 日内可能变化": [
-  "Yes · may change within the day",
-  "はい · 日内で変化の可能性"
  ],
  "显示乾造 / 坤造": [
   "Show 乾造 / 坤造 (gender)",
@@ -6731,17 +6751,13 @@
   "Look up year-stem Four Transformations",
   "年干四化を照会"
  ],
- "查询按北京时间正午取值；跨交节的日期会显式标记。": [
-  "Values are taken at noon Beijing time; dates that cross a solar term transition are explicitly marked.",
-  "照会は北京時間の正午で値を取り、節の切り替わりをまたぐ日付は明示的にマークされます。"
+ "查询按北京时间正午取值；交节当天另写交节时刻和另一个值日。": [
+  "Officers are taken at Beijing noon; a jie day also shows the term time and the day's other officer.",
+  "北京時間の正午で取り、節入りの日は節入り時刻ともう一つの十二直も示します。"
  ],
  "查询日历": [
   "Look up calendar",
   "カレンダーを照会"
- ],
- "查询范围内未找到所筛选的标签。": [
-  "None of the filtered labels were found in the query range.",
-  "照会範囲内に絞り込んだラベルは見つかりませんでした。"
  ],
  "查询起始日（北京时间）": [
   "Query start date (Beijing time)",
@@ -8027,6 +8043,14 @@
   "Empty palace (none of the 14 main stars)",
   "空宮（十四主星なし）"
  ],
+ "突出显示": [
+  "Highlighting",
+  "強調表示"
+ ],
+ "突出显示值日": [
+  "Highlight a day officer",
+  "十二直を強調表示"
+ ],
  "立冬": [
   "Start of Winter (Lidong)",
   "立冬"
@@ -8070,10 +8094,6 @@
  "等待超时，已停止。": [
   "Timed out and stopped.",
   "タイムアウトしたため停止しました。"
- ],
- "筛选值日": [
-  "Filter day officers",
-  "値日で絞り込み"
  ],
  "简体中文": [
   "简体中文",
@@ -8447,10 +8467,6 @@
   "Solar-term transition",
   "節気の切り替わり"
  ],
- "节令切换日": [
-  "Solar term transition day",
-  "節令の切替日"
- ],
  "节令月支 × 日支 · 仅传统标签，不给吉凶或宜忌结论": [
   "Solar-term month branch × day branch · traditional labels only, no auspicious/inauspicious or do/avoid conclusions",
   "節令月支 × 日支 · 伝統ラベルのみで吉凶・宜忌の結論は出さない"
@@ -8466,6 +8482,14 @@
  "节令的天文定义；八字日界/流派另依本项目规则": [
   "Astronomical definition of solar terms; BaZi day boundary/school follows this project's own rules",
   "節気の天文学的定義。八字の日境界・流派は本プロジェクトの規則に別途従います"
+ ],
+ "节前": [
+  "before the term",
+  "節入り前"
+ ],
+ "节后": [
+  "after the term",
+  "節入り後"
  ],
  "节气": [
   "Solar term",
@@ -8498,10 +8522,6 @@
  "芝加哥": [
   "Chicago",
   "シカゴ"
- ],
- "若 jie_boundary_on_date=true，该日节令切换前后的值日可能不同；以北京时间正午归类，精确活动时间需要单独核对节令时刻。": [
-  "If jie_boundary_on_date=true, the day officer may differ before and after that day's solar-term change; classification uses noon Beijing time, and precise activity times require checking the solar-term instant separately.",
-  "jie_boundary_on_date=true の場合、その日の節気切り替わりの前後で十二直が異なる場合があります。北京時間の正午で分類しており、正確な活動時刻については節気の時刻を別途確認する必要があります。"
  ],
  "范围 ": [
   "Range ",
