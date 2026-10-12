@@ -260,7 +260,8 @@ def _weight_thresholds(request: DecisionMatrixRequest, leaders: list[str]) -> li
             meeting = [o for w, o in found if abs(w - nearest) < 1e-9]
             # Of options meeting the leader at the same weight, the one gaining fastest leads past it.
             best = (max if side == 'upper' else min)(o.ratings[criterion.name] for o in meeting)
-            row[side] = {'raw_weight': round(nearest, 4), 'normalized_weight': round(nearest / (rest + nearest), 6),
+            # Six significant figures, so an edge close to zero is not rounded to 0 itself.
+            row[side] = {'raw_weight': float(f'{nearest:.6g}'), 'normalized_weight': float(f'{nearest / (rest + nearest):.6g}'),
                          'new_leaders': sorted(o.name for o in meeting if o.ratings[criterion.name] == best)}
         rows.append(row)
     return rows

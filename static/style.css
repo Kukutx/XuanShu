@@ -298,7 +298,7 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .dm-option{background:var(--panel2);white-space:nowrap}
 .dm-head{display:flex;align-items:center;gap:6px}
 .dm-grid input{min-height:34px;border:1px solid var(--border-strong);border-radius:6px;background:var(--panel);color:var(--text);padding:5px 8px;min-width:0}
-.dm-grid input:focus{border-color:var(--gold);outline:none}
+.dm-grid input:focus{border-color:var(--gold)}
 .dm-grid .criterion-name{width:118px;font-weight:600}
 .dm-grid .option-name{width:132px;font-weight:600;margin-right:6px}
 .dm-weight{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;font-weight:400;color:var(--muted)}
@@ -306,14 +306,14 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .dm-grid .option-rating{width:74px;text-align:center;font-variant-numeric:tabular-nums}
 .dm-grid td:has(.option-rating){text-align:center}
 .dm-grid .remove-criterion,.dm-grid .remove-option{min-height:30px;min-width:30px;padding:0 8px;font-size:15px;line-height:1}
-.dm-grid .dm-add{background:transparent;min-width:104px;vertical-align:top}
 .dm-controls{margin-bottom:8px}
 .dm-swatch{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none;margin-right:5px;vertical-align:0}
 .dm-c0{background:var(--dm-0)}.dm-c1{background:var(--dm-1)}.dm-c2{background:var(--dm-2)}.dm-c3{background:var(--dm-3)}
 .dm-c4{background:var(--dm-4)}.dm-c5{background:var(--dm-5)}.dm-c6{background:var(--dm-6)}.dm-c7{background:var(--dm-7)}
 .dm-output{transition:opacity .2s}
-.dm-output.is-stale{opacity:.55}
-.dm-stale-note{display:none;margin:0 0 8px;font-size:12px;color:var(--warn)}
+/* A result that no longer matches the grid turns grey but keeps its contrast, under a note saying so. */
+.dm-output.is-stale>:not(.dm-stale-note){filter:grayscale(1)}
+.dm-stale-note{display:none;margin:0 0 8px;padding:6px 10px;border:1px dashed var(--warn-line);border-radius:7px;background:var(--warn-soft);font-size:12px;color:var(--warn)}
 .dm-output.is-stale .dm-stale-note{display:block}
 .dm-status{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin:14px 0 4px;padding:10px 14px;border:1px solid var(--accent-line);border-radius:10px;background:var(--accent-soft);font-size:14px;color:var(--text2)}
 .dm-status b{font-size:17px;color:var(--gold2)}
@@ -1399,6 +1399,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .wuxing{grid-template-columns:minmax(0,440px);justify-content:center;grid-template-areas:'figure' 'legend' 'detail';break-inside:avoid}
   .ev-toc{display:none!important}
   .ev-card,.tb-card{break-inside:avoid}
+  .dm-wrap{display:none}.dm-option-card{break-inside:avoid}  /* the cards repeat every rating */
   a[href^="http"]::after{content:' (' attr(href) ')';font-size:10px;color:#555}
 }
 /* Calculation cross-check dialog */

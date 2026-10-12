@@ -2447,33 +2447,66 @@ function readDecisionDraft() {
 // The decision page: a grid of options by criteria. Once compared, edits recompute on their own; only the result
 // below the grid is redrawn, so typing keeps its place.
 let decisionTicket = 0, decisionTimer = null, decisionAbort = null, decisionAuto = false;
-const dmNum = (x, digits = 2) => String(Number(Number(x).toFixed(digits)));
-const dmShare = x => dmNum(100 * x, 0) + '%';
+// The request the result shown answers, and why the latest comparison failed: kept so a redraw (another tool and
+// back) still marks a result that no longer matches the grid.
+let decisionResultKey = null, decisionError = '', decisionPending = false;
+// Two decimals, but a small nonzero number keeps two significant figures instead of reading as 0.
+const dmNum = (x, digits = 2) => {
+  x = Number(x);
+  const fixed = Number(x.toFixed(digits));
+  return String(fixed === 0 && x !== 0 ? Number(x.toPrecision(2)) : fixed);
+};
+const dmShare = x => {
+  const pct = 100 * x;
+  return (pct > 0 && pct < 0.05 ? '< 0.1' : pct < 100 && pct > 99.95 ? '> 99.9' : String(Number(pct.toFixed(1)))) + '%';
+};
+// Enough decimals that scores which differ never print the same.
+function dmDigits(scores) {
+  const sorted = [...new Set(scores)].sort((a, b) => a - b);
+  for (let d = 2; d < 6; d++) if (sorted.every((x, i) => !i || x.toFixed(d) !== sorted[i - 1].toFixed(d))) return d;
+  return 6;
+}
+// Names typed by the user stay as typed; the 、 between them is its own text node and reads ", " in English.
+function dmNames(parent, names) {
+  names.forEach((name, i) => {if (i) parent.append('、'); append(parent, 'span', 'user-text', name);});
+  return parent;
+}
+const dmStale = () => !!decisionResult && (!!decisionError || decisionResultKey !== JSON.stringify(decisionRequest(decisionDraft)));
 function decisionRequest(draft) {
   return {question: draft.question, criteria: draft.criteria,
     options: draft.options.map(o => ({name: o.name, ratings: Object.fromEntries(draft.criteria.map((c, j) => [c.name, o.ratings[j]]))}))};
 }
 async function compareDecision(button) {
   clearTimeout(decisionTimer);
-  decisionDraft = readDecisionDraft();
+  // The draft follows every edit; the grid is read again only while it is on screen (a pending recompute can fire
+  // after another tool has opened).
+  if (active === 'decision' && $('#decision-grid')) decisionDraft = readDecisionDraft();
   if (decisionAbort) decisionAbort.abort();
   const ticket = ++decisionTicket, abort = decisionAbort = new AbortController();
+  const body = decisionRequest(decisionDraft), key = JSON.stringify(body);
+  decisionError = ''; decisionPending = true;
   const msg = $('#decision-msg');
   if (msg) msg.textContent = '';
   if (button) button.disabled = true;
   try {
-    const data = await postJSON('/api/decision-matrix', decisionRequest(decisionDraft), abort.signal);
+    const data = await postJSON('/api/decision-matrix', body, abort.signal);
     if (ticket !== decisionTicket) return;
-    decisionResult = data; decisionAuto = true;
+    decisionResult = data; decisionResultKey = key; decisionAuto = true;
+    const top = data.ranked_options[0];
+    announce(calT(data.joint_leaders.length > 1 ? '并列首位' : '首位') + ' ' + data.joint_leaders.join(', ') + ' ' + dmNum(top.score, dmDigits(data.ranked_options.map(o => o.score))) + ' / 5');
     if (active !== 'decision') return;
     const box = $('#decision-output');
     if (box) renderDecisionOutput(box); else render();
   } catch (e) {
     if (ticket !== decisionTicket || e.name === 'AbortError') return;
-    const m = $('#decision-msg'); if (m) m.textContent = '比较失败：' + e.message;
-    // The last result stays for reference, faded and labelled as no longer matching the grid.
+    decisionError = '比较失败：' + e.message;
+    announce(calT(decisionError));
+    if (active !== 'decision') return;
+    const m = $('#decision-msg'); if (m) m.textContent = decisionError;
+    // The last result stays for reference, labelled as no longer matching the grid.
     $('#decision-output')?.classList.add('is-stale');
   } finally {
+    if (ticket === decisionTicket) decisionPending = false;
     if (button) button.disabled = false;
   }
 }
@@ -2482,9 +2515,12 @@ function renderDecision() {
   append(result,'p','info-inline','这里的分数均为你自己输入的主观假设，不能代表客观成功率。');
   const question=createInput('你要比较什么？','text',decisionDraft.question,result);question.id='decision-question';question.maxLength=300;
   // Structural edits keep what was typed, and recompute at once when a comparison is already showing.
-  const restructure = change => {
+  // Focus moves to the field that took the removed one's place, or to the name of what was added.
+  const restructure = (change, focus) => {
     const draft = readDecisionDraft(); if (!change(draft)) return;
-    decisionDraft = draft; decisionResult = null; render();
+    decisionDraft = draft; render();
+    const target = document.getElementById(focus(draft));
+    if (target) {target.focus(); if (target.select) target.select();}
     if (decisionAuto) compareDecision();
   };
   append(result,'h4','subheading','方案 × 指标');
@@ -2498,67 +2534,84 @@ function renderDecision() {
     const th = append(head, 'th', 'criterion-edit'); th.scope = 'col';
     const top = append(th, 'div', 'dm-head');
     append(top, 'span', 'dm-swatch dm-c' + i).setAttribute('aria-hidden', 'true');
-    const name = append(top, 'input', 'criterion-name user-text'); name.type = 'text'; name.value = c.name; name.maxLength = 40;
+    const name = append(top, 'input', 'criterion-name'); name.type = 'text'; name.value = c.name; name.maxLength = 40;
     name.id = 'decision-criterion-' + i; name.setAttribute('aria-label', '指标 ' + (i + 1));
     const remove = append(top, 'button', 'tiny-button remove-criterion', '×'); remove.type = 'button';
     remove.title = '移除指标'; remove.setAttribute('aria-label', '移除指标 ' + (i + 1)); remove.disabled = decisionDraft.criteria.length <= 1;
     remove.addEventListener('click', () => restructure(d => {
       if (d.criteria.length <= 1) return false;
       d.criteria.splice(i, 1); d.options.forEach(o => o.ratings.splice(i, 1)); return true;
-    }));
-    const weight = createInput('权重', 'number', String(c.weight), th); weight.className = 'criterion-weight';
-    weight.min = '.01'; weight.max = '100'; weight.step = '.01'; weight.parentElement.className = 'dm-weight';
+    }, d => 'decision-criterion-' + Math.min(i, d.criteria.length - 1)));
+    const weightLabel = append(th, 'label', 'dm-weight');
+    const weightText = append(weightLabel, 'span', null, '权重'); weightText.id = 'decision-weight-label-' + i;
+    const weight = append(weightLabel, 'input', 'criterion-weight'); weight.type = 'number'; weight.value = String(c.weight);
+    weight.min = '.01'; weight.max = '100'; weight.step = '.01'; weight.id = 'decision-weight-' + i;
+    // Named by the criterion as typed and the word 权重, so each weight is read out as its own.
+    weight.setAttribute('aria-labelledby', 'decision-criterion-' + i + ' decision-weight-label-' + i);
   });
-  const addCell = append(head, 'th', 'dm-add'); addCell.scope = 'col';
-  const addCriterion = append(addCell, 'button', 'tiny-button', '+ 增加指标'); addCriterion.id = 'decision-add-criterion'; addCriterion.type = 'button';
-  addCriterion.disabled = decisionDraft.criteria.length >= 8;
-  addCriterion.addEventListener('click', () => restructure(d => {
-    if (d.criteria.length >= 8) return false;
-    d.criteria.push({name: '新指标' + (d.criteria.length + 1), weight: 1}); d.options.forEach(o => o.ratings.push(3)); return true;
-  }));
   const body = append(grid, 'tbody');
   decisionDraft.options.forEach((o, i) => {
     const tr = append(body, 'tr', 'option-edit');
     const th = append(tr, 'th', 'dm-option'); th.scope = 'row';
-    const name = append(th, 'input', 'option-name user-text'); name.type = 'text'; name.value = o.name; name.maxLength = 80;
+    const name = append(th, 'input', 'option-name'); name.type = 'text'; name.value = o.name; name.maxLength = 80;
     name.id = 'decision-option-' + i; name.setAttribute('aria-label', '方案 ' + (i + 1));
     const remove = append(th, 'button', 'tiny-button remove-option', '×'); remove.type = 'button';
     remove.title = '移除方案'; remove.setAttribute('aria-label', '移除方案 ' + (i + 1)); remove.disabled = decisionDraft.options.length <= 2;
     remove.addEventListener('click', () => restructure(d => {
       if (d.options.length <= 2) return false;
       d.options.splice(i, 1); return true;
-    }));
+    }, d => 'decision-option-' + Math.min(i, d.options.length - 1)));
     decisionDraft.criteria.forEach((c, j) => {
       const score = append(append(tr, 'td'), 'input', 'option-rating'); score.type = 'number';
       score.value = String(o.ratings[j] ?? 3); score.min = '0'; score.max = '5'; score.step = '.5';
       // Named by the option and the criterion as typed, so a renamed row or column is read out as it now stands.
       score.setAttribute('aria-labelledby', 'decision-option-' + i + ' decision-criterion-' + j);
     });
-    append(tr, 'td', 'dm-add');
   });
   const controls = append(result, 'div', 'inline-control dm-controls');
+  const addCriterion = append(controls, 'button', null, '+ 增加指标'); addCriterion.id = 'decision-add-criterion'; addCriterion.type = 'button';
+  addCriterion.disabled = decisionDraft.criteria.length >= 8;
+  addCriterion.addEventListener('click', () => restructure(d => {
+    if (d.criteria.length >= 8) return false;
+    d.criteria.push({name: '新指标' + (d.criteria.length + 1), weight: 1}); d.options.forEach(o => o.ratings.push(3)); return true;
+  }, d => 'decision-criterion-' + (d.criteria.length - 1)));
   const addOption = append(controls, 'button', null, '+ 增加方案'); addOption.id = 'decision-add-option'; addOption.type = 'button';
   addOption.disabled = decisionDraft.options.length >= 8;
   addOption.addEventListener('click', () => restructure(d => {
     if (d.options.length >= 8) return false;
     d.options.push({name: '新方案 ' + (d.options.length + 1), ratings: d.criteria.map(() => 3)}); return true;
-  }));
+  }, d => 'decision-option-' + (d.options.length - 1)));
   const run = append(controls, 'button', null, '比较方案'); run.id = 'decision-run'; run.type = 'button';
   run.addEventListener('click', () => compareDecision(run));
-  const msg = append(result, 'p', 'inline-msg'); msg.id = 'decision-msg';
-  const live = () => {if (!decisionAuto) return; clearTimeout(decisionTimer); decisionTimer = setTimeout(() => compareDecision(), 450);};
+  const msg = append(result, 'p', 'inline-msg', decisionError); msg.id = 'decision-msg';
+  // Every edit goes into the draft at once, so a redraw keeps what was typed.
+  const live = () => {
+    decisionDraft = readDecisionDraft();
+    if (!decisionAuto) return;
+    clearTimeout(decisionTimer); decisionTimer = setTimeout(() => compareDecision(), 450);
+  };
   grid.addEventListener('input', live); question.addEventListener('input', live);
   const out = append(result, 'div', 'dm-output'); out.id = 'decision-output';
-  if (decisionResult) renderDecisionOutput(out);
+  if (decisionResult) {
+    renderDecisionOutput(out);
+    out.classList.toggle('is-stale', dmStale() && !decisionPending);
+    // Back on the page with edits that were never compared (the recompute was cut short): compare them now.
+    if (decisionAuto && !decisionError && !decisionPending && decisionResultKey !== JSON.stringify(decisionRequest(decisionDraft))) {
+      clearTimeout(decisionTimer); decisionTimer = setTimeout(() => {if (active === 'decision') compareDecision();});
+    }
+  }
 }
 function renderDecisionOutput(out) {
   out.replaceChildren(); out.classList.remove('is-stale');
   const d = decisionResult, colour = Object.fromEntries(d.criteria.map((c, i) => [c.name, i]));
-  const leaders = d.joint_leaders, top = d.ranked_options[0].score;
-  const status = append(out, 'p', 'dm-status'); status.id = 'decision-status'; status.setAttribute('aria-live', 'polite');
+  // Joint leaders in the order the options are listed, as on the cards below.
+  const leaders = d.ranked_options.map(o => o.name).filter(name => d.joint_leaders.includes(name)), top = d.ranked_options[0].score;
+  const digits = dmDigits(d.ranked_options.map(o => o.score)), score = x => dmNum(x, digits);
+  // The new leader is announced through the page's live region; this line is redrawn with every result.
+  const status = append(out, 'p', 'dm-status'); status.id = 'decision-status';
   texts(append(status, 'span'), leaders.length > 1 ? '并列首位' : '首位');
-  texts(append(status, 'b', 'user-text'), ' ', leaders.join('、'), ' ');
-  texts(append(status, 'span', 'dm-status-score'), dmNum(top), ' / 5');
+  status.append(' '); dmNames(append(status, 'b'), leaders); status.append(' ');
+  texts(append(status, 'span', 'dm-status-score'), score(top), ' / 5');
   append(out, 'p', 'dm-stale-note', '输入改动后还没算出新结果，下面是上一次的比较。');
 
   append(out, 'h4', 'subheading', '权重占比');
@@ -2582,10 +2635,10 @@ function renderDecisionOutput(out) {
     texts(append(line, 'span', 'dm-rank'), rank);
     append(line, 'b', 'dm-name user-text', o.name);
     if (lead) append(line, 'span', 'dm-tag', leaders.length > 1 ? '并列首位' : '首位');
-    else texts(append(line, 'span', 'dm-gap muted'), '比首位低', ' ', dmNum(top - o.score));
-    append(append(line, 'span', 'dm-score', dmNum(o.score)), 'small', null, ' / 5');
+    else texts(append(line, 'span', 'dm-gap muted'), '比首位低', ' ', dmNum(top - o.score, digits));
+    append(append(line, 'span', 'dm-score', score(o.score)), 'small', null, ' / 5');
     // The bar runs on the 0–5 scale; each part is one criterion's rating times its share of the weight.
-    const track = append(li, 'div', 'dm-track'); track.setAttribute('aria-hidden', 'true');
+    const track = append(li, 'div', 'dm-track'); track.setAttribute('aria-hidden', 'true'); track.dataset.noI18n = '';  // the tooltips quote typed names
     o.contributions.forEach(c => {
       const seg = append(track, 'span', 'dm-seg dm-c' + colour[c.criterion]); seg.style.width = 100 * c.weighted_contribution / 5 + '%';
       seg.title = c.criterion + ' ' + c.rating + ' × ' + dmShare(c.normalized_weight) + ' = ' + dmNum(c.weighted_contribution);
@@ -2607,6 +2660,7 @@ function renderDecisionOutput(out) {
       ? '目前有并列首位，只列去掉各指标后的首位，不算权重临界点。'
       : '其他权重不变时，每个指标的权重在区间内变动，首位都不变；越过边界时领先的方案写在箭头后。最后一列是完全去掉该指标后的首位。');
     const table = append(append(out, 'div', 'table-wrap'), 'table', 'data-table dm-sens'); table.id = 'decision-sensitivity';
+    append(table, 'caption', 'visually-hidden', '首位有多稳');
     const hr = append(append(table, 'thead'), 'tr');
     const heads = ['当前权重', ...(leaders.length > 1 ? [] : ['首位不变的权重区间']), '去掉此项后首位'];
     ['指标', ...heads].forEach(x => append(hr, 'th', null, x));
@@ -2636,12 +2690,12 @@ function renderDecisionOutput(out) {
           [[low, '<'], [high, '>']].filter(([edge]) => edge).forEach(([edge, sign]) => {
             const row = append(box, 'div', 'dm-edge');
             texts(row, sign, ' ', dmNum(edge.raw_weight), ' (', dmShare(edge.normalized_weight), ') → ');
-            append(row, 'b', 'user-text', edge.new_leaders.join('、'));
+            dmNames(append(row, 'b'), edge.new_leaders);
           });
         }
       }
       const without = cell(tr, null, heads.length - 1);
-      append(without, 'span', 'user-text', x.leaders_without_it.join('、'));
+      dmNames(append(without, 'span'), x.leaders_without_it);
       append(without, 'span', 'dm-tag' + (x.leader_changed ? ' is-changed' : ''), x.leader_changed ? '首位改变' : '不变');
     });
   }

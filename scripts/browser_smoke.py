@@ -1473,16 +1473,22 @@ def main() -> None:
             assert page.locator('#decision-grid thead .criterion-edit').count() == 2 and page.locator('#decision-grid tbody tr').count() == 2
             page.locator('#decision-add-criterion').click()
             assert page.locator('.criterion-edit').count() == 3 and page.locator('#decision-grid tbody tr').first.locator('.option-rating').count() == 3
+            assert page.evaluate('document.activeElement.id') == 'decision-criterion-2'
             page.locator('.remove-criterion').last.click()
-            assert page.locator('.criterion-edit').count() == 2
+            # Focus moves to the criterion that is now last rather than falling back to the page.
+            assert page.locator('.criterion-edit').count() == 2 and page.evaluate('document.activeElement.id') == 'decision-criterion-1'
             page.locator('#decision-add-option').click()
-            assert page.locator('.option-edit').count() == 3
+            assert page.locator('.option-edit').count() == 3 and page.evaluate('document.activeElement.id') == 'decision-option-2'
             page.locator('.remove-option').last.click()
             assert page.locator('.option-edit').count() == 2
             assert page.locator('.remove-option').first.is_disabled()
             # Each rating is named by its option and criterion as typed.
             rating_name = "(el) => el.getAttribute('aria-labelledby').split(' ').map(id => document.getElementById(id).value).join(' ')"
             assert page.locator('#decision-grid .option-rating').nth(1).evaluate(rating_name) == '方案 A 维护成本'
+            # Each weight by its criterion as typed and the word 权重.
+            weight_name = "(el) => el.getAttribute('aria-labelledby').split(' ').map(id => {const x = document.getElementById(id); return x.value ?? x.textContent;}).join(' ')"
+            assert page.locator('#decision-grid .criterion-weight').nth(1).evaluate(weight_name) == '维护成本 权重'
+            assert page.locator('#decision-criterion-0').get_attribute('class') == 'criterion-name'  # not user-text, so its aria-label is translated
             page.locator('#decision-run').click()
             page.locator('#decision-ranks > li').first.wait_for(timeout=30000)
             # Ranked cards with weighted bars: B leads on 3×40% + 5×60% = 4.2, A follows on 2.8.
@@ -1503,11 +1509,25 @@ def main() -> None:
             page.wait_for_function("() => document.querySelector('#decision-status').textContent.includes('方案 A')", timeout=30000)
             assert page.evaluate("document.activeElement === document.querySelectorAll('#decision-grid .option-rating')[1]")
             assert page.locator('#decision-ranks .dm-score').first.inner_text().replace(' ', '') == '4.6/5'
+            # Leaving within the recompute delay keeps the grid as typed, and the result follows it.
+            score.fill('4')
+            page.locator('[data-tab="officers"]').click()
+            page.locator('[data-tab="decision"]').click()
+            assert page.locator('.criterion-edit').count() == 2 and page.locator('.option-edit').count() == 2
+            assert page.locator('#decision-question').input_value() != '' and score.input_value() == '4'
+            page.wait_for_function("() => !document.querySelector('#decision-output').classList.contains('is-stale') && document.querySelector('#decision-status').textContent.includes('方案 B')", timeout=30000)
+            score.fill('5')
+            page.wait_for_function("() => document.querySelector('#decision-status').textContent.includes('方案 A')", timeout=30000)
             # A field left blank keeps the last result, faded and labelled as out of date.
             weight = page.locator('#decision-grid .criterion-weight').first
             weight.fill('')
             page.wait_for_function("() => document.querySelector('#decision-output').classList.contains('is-stale')", timeout=30000)
             assert '比较失败' in page.locator('#decision-msg').inner_text() and page.locator('.dm-stale-note').is_visible()
+            # Another tool and back: the result is still marked out of date, with the reason.
+            page.locator('[data-tab="officers"]').click()
+            page.locator('[data-tab="decision"]').click()
+            assert page.locator('#decision-output').evaluate("el => el.classList.contains('is-stale')") and '比较失败' in page.locator('#decision-msg').inner_text()
+            assert weight.input_value() == '' and score.input_value() == '5'
             weight.fill('2')
             score.fill('2')
             page.wait_for_function("() => !document.querySelector('#decision-output').classList.contains('is-stale') && document.querySelector('#decision-status').textContent.includes('方案 B')", timeout=30000)
