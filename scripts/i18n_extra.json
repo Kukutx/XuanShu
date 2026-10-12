@@ -5331,9 +5331,9 @@
   "Natal palace on the year branch",
   "年支にある本命の宮"
  ],
- "年支所在的本命宫位只是位置对照；完整的流年命宫与流曜见 ziwei_horoscope 的流年层。": [
-  "The natal palace on the year branch is only a position for comparison; the full annual Life palace and annual stars are in the year layer of ziwei_horoscope.",
-  "年支にある本命の宮は位置の対照にすぎません。完全な流年命宮と流曜は ziwei_horoscope の流年層を参照してください。"
+ "年支所在的本命宫位只是位置对照；完整的流年命宫与流曜见紫微盘的流年层。": [
+  "The natal palace on the year branch is only a position for comparison; the full annual Life palace and annual stars are in the year layer of the Zi Wei board.",
+  "年支にある本命の宮は位置の対照にすぎません。完全な流年命宮と流曜は紫微盤の流年層を参照してください。"
  ],
  "年支（生肖）": [
   "Year branch (zodiac)",
@@ -8415,6 +8415,22 @@
   "no star carries two of the birth-year and layer transformations",
   "生年と各層の四化が同じ星に二つ重なっていない"
  ],
+ "生年化忌": [
+  "Birth-year Hua Ji",
+  "生年化忌"
+ ],
+ "生年化权": [
+  "Birth-year Hua Quan",
+  "生年化権"
+ ],
+ "生年化禄": [
+  "Birth-year Hua Lu",
+  "生年化禄"
+ ],
+ "生年化科": [
+  "Birth-year Hua Ke",
+  "生年化科"
+ ],
  "生年四化": [
   "Birth-year transformations",
   "生年四化"
@@ -9686,6 +9702,26 @@
  "该宫主星": [
   "Main stars there",
   "その宮の主星"
+ ],
+ "该年": [
+  "This year's",
+  "その年の"
+ ],
+ "该年化忌": [
+  "This year's Hua Ji",
+  "その年の化忌"
+ ],
+ "该年化权": [
+  "This year's Hua Quan",
+  "その年の化権"
+ ],
+ "该年化禄": [
+  "This year's Hua Lu",
+  "その年の化禄"
+ ],
+ "该年化科": [
+  "This year's Hua Ke",
+  "その年の化科"
  ],
  "该年四化": [
   "This year's transformations",

@@ -219,7 +219,7 @@ def annual_transformations(request: AnnualRequest) -> dict:
         'school': TRANSFORMATION_SCHOOL,
         'limitations': [
             '农历年干四化叠加至本命盘，非完整流年盘，不包含流年命宫、限运、流曜。',
-            '年支所在的本命宫位只是位置对照；完整的流年命宫与流曜见 ziwei_horoscope 的流年层。',
+            '年支所在的本命宫位只是位置对照；完整的流年命宫与流曜见紫微盘的流年层。',
             '仅展示传统规则及位置，不预测个人当年的事件或结果。',
         ],
     }

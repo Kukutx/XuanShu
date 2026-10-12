@@ -390,28 +390,32 @@
               "type": "化禄",
               "star": "天同",
               "natal_branch": "卯",
-              "natal_palace": "财帛宫"
+              "natal_palace": "财帛宫",
+              "natal_type": null
             },
             {
               "type": "化权",
               "star": "天机",
               "natal_branch": "未",
-              "natal_palace": "命宫"
+              "natal_palace": "命宫",
+              "natal_type": null
             },
             {
               "type": "化科",
               "star": "文昌",
               "natal_branch": "辰",
-              "natal_palace": "子女宫"
+              "natal_palace": "子女宫",
+              "natal_type": null
             },
             {
               "type": "化忌",
               "star": "廉贞",
               "natal_branch": "子",
-              "natal_palace": "仆役宫"
+              "natal_palace": "仆役宫",
+              "natal_type": null
             }
           ],
-          "sha256": "b81df2145a23acd612bb3134f418f3bbc4acf9857bb03b5492f81da4e4563452"
+          "sha256": "d7e1c11389e842bd3be745eb15478406f751bccab441b04cc584131981615fee"
         }
       ],
       "rule_ids": [
@@ -542,6 +546,14 @@
       "effective_traditional_time": "2024-02-07T12:00:00",
       "time_mode": "clock",
       "longitude_east_degrees": null,
+      "previous_jie": {
+        "name": "立春",
+        "instant": "2024-02-04T16:27:08+08:00"
+      },
+      "next_jie": {
+        "name": "惊蛰",
+        "instant": "2024-03-05T10:22:46+08:00"
+      },
       "minutes_since_previous_jie": 4052.867,
       "minutes_until_next_jie": 38782.767,
       "minutes_to_nearest_hour_boundary": 60.0,
@@ -556,6 +568,7 @@
         "method": "astronomical-new-moon-china-utc8"
       },
       "local_effective_gregorian_date": "2024-02-07",
+      "lunar_lookup_gregorian_date": "2024-02-07",
       "china_reference_gregorian_date": "2024-02-07",
       "china_reference_lunar_date": {
         "year": 2023,
@@ -565,7 +578,7 @@
         "month_days": 30,
         "method": "astronomical-new-moon-china-utc8"
       },
-      "lunar_date_basis": "natal effective local Gregorian date (not UTC+8 instant date)",
+      "lunar_date_basis": "natal effective local Gregorian date, the next day for 23:00-23:59 with the 23:00 day change (not UTC+8 instant date)",
       "bazi_pillars": {
         "year": "甲辰",
         "month": "丙寅",
@@ -591,35 +604,71 @@
     "lunar_year": 2026,
     "year_pillar": "丙午",
     "natal_ming_palace": "未",
+    "gregorian_span": {
+      "start": "2026-02-17",
+      "end": "2027-02-05"
+    },
+    "year_branch_palace": "兄弟宫",
     "transformations": [
       {
         "type": "化禄",
         "star": "天同",
         "natal_branch": "卯",
-        "natal_palace": "财帛宫"
+        "natal_palace": "财帛宫",
+        "natal_type": null
       },
       {
         "type": "化权",
         "star": "天机",
         "natal_branch": "未",
-        "natal_palace": "命宫"
+        "natal_palace": "命宫",
+        "natal_type": null
       },
       {
         "type": "化科",
         "star": "文昌",
         "natal_branch": "辰",
-        "natal_palace": "子女宫"
+        "natal_palace": "子女宫",
+        "natal_type": null
       },
       {
         "type": "化忌",
         "star": "廉贞",
         "natal_branch": "子",
-        "natal_palace": "仆役宫"
+        "natal_palace": "仆役宫",
+        "natal_type": null
+      }
+    ],
+    "natal_transformations": [
+      {
+        "type": "化禄",
+        "star": "破军",
+        "natal_branch": "午",
+        "natal_palace": "兄弟宫"
+      },
+      {
+        "type": "化权",
+        "star": "巨门",
+        "natal_branch": "亥",
+        "natal_palace": "官禄宫"
+      },
+      {
+        "type": "化科",
+        "star": "太阴",
+        "natal_branch": "酉",
+        "natal_palace": "福德宫"
+      },
+      {
+        "type": "化忌",
+        "star": "贪狼",
+        "natal_branch": "戌",
+        "natal_palace": "田宅宫"
       }
     ],
     "school": "全书系十干四化（iztro published table）",
     "limitations": [
       "农历年干四化叠加至本命盘，非完整流年盘，不包含流年命宫、限运、流曜。",
+      "年支所在的本命宫位只是位置对照；完整的流年命宫与流曜见紫微盘的流年层。",
       "仅展示传统规则及位置，不预测个人当年的事件或结果。"
     ]
   },
@@ -627,7 +676,7 @@
   "calculation_hashes": {
     "bazi_chart": "d7bc311d9a6f851c395a454e1aeff6d4ca45bfc4a6ec1d695bee9aacb3eefba5",
     "ziwei_chart": "1c192c42e9a46ab421f319780b34b146f26548644f178e5e0de646c2f606a560",
-    "annual_transformations": "1e794af6e55ae5a7c675cebf515ef63ca909c82fb77eb9cd81c256f6b5ded888"
+    "annual_transformations": "10cbb4610838baca5213d8ec2bfde6e94cf50941f429e16a73f52f4121fc2aba"
   },
   "limitations": [
     "参考文档只支持方法描述，不意味着 XuanShu 的逐盘算法通过独立认证。",

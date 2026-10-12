@@ -722,6 +722,8 @@ def main() -> None:
             page.locator('.transform-card').first.wait_for(timeout=30000)
             assert page.locator('.transform-card').count() == 4
             assert page.locator('#annual-year').input_value() == str(page.evaluate('todayLunarYear'))
+            # The automatic run leaves the keyboard on the tab that opened the page.
+            assert page.evaluate('document.activeElement.dataset.tab') == 'annual'
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)
             # The year sits on the natal board: twelve palaces, the birth-year four filled, this year's four outlined, the
             # palaces holding this year's outlined, and the palace on the year branch named.
@@ -733,6 +735,15 @@ def main() -> None:
             assert page.locator('#annual-table tbody tr').count() == 4
             assert annual['gregorian_span']['start'] in page.locator('.ay-head').inner_text()
             assert page.locator('.ay-head [aria-current="date"] .ay-now').inner_text() == '今年'
+            # The year-branch palace is marked by a dashed line rather than a tint, and each board badge reads by its full name.
+            branch_look = page.evaluate('''() => {const b = getComputedStyle(document.querySelector('#annual-board .is-branch'));
+                const plain = [...document.querySelectorAll('#annual-board .ay-cell')].find(c => !c.classList.contains('is-branch') && !c.classList.contains('has-year'));
+                return [b.outlineStyle, b.backgroundColor === getComputedStyle(plain).backgroundColor];}''')
+            assert branch_look == ['dashed', True], branch_look
+            assert page.locator('#annual-board').get_attribute('role') == 'list'
+            assert page.locator('#annual-board .ay-star .visually-hidden').count() == 8
+            assert page.locator('#annual-board .ay-star .visually-hidden', has_text='该年').count() == 4
+            assert page.locator('#annual-board .ay-star .hua[aria-hidden="true"]').count() == 8
             # The arrows step a year and keep their place; the way back to this year comes with the step.
             this_year = annual['lunar_year']
             page.locator('#annual-next').click()
@@ -748,17 +759,27 @@ def main() -> None:
             assert page.locator('#annual-next').is_disabled() is False
             page.locator('#annual-run').click()
             assert '1901–2099' in page.locator('#result .inline-msg').inner_text() and page.evaluate('annualResult.lunar_year') == this_year
+            assert page.locator('#result .inline-msg').get_attribute('role') == 'alert'
+            # The arrows refuse it too, rather than stepping from the year shown.
+            page.locator('#annual-prev').click()
+            assert '1901–2099' in page.locator('#result .inline-msg').inner_text() and page.locator('#annual-year').input_value() == '2100'
+            assert page.evaluate('annualResult.lunar_year') == this_year
             page.locator('#annual-year').fill('2099')
             assert page.locator('#annual-next').is_disabled()
             page.locator('#annual-year').fill(str(this_year))
-            # The run of years opens on the year-by-year page from this year, already drawn.
+            # The run of years opens on the year-by-year page from this year, already drawn, with the number of years chosen
+            # there and all twelve palaces; the keyboard lands on that page's tab.
+            page.evaluate("timelineDraft = {...timelineDraft, years: 20, focus_palace: '命宫'}")
             page.locator('#annual-timeline').click()
             page.locator('#timeline-matrix').wait_for(timeout=30000)
-            assert page.locator('#timeline-start').input_value() == str(this_year) and page.locator('#timeline-matrix thead .yt-year').count() == 10
+            assert page.locator('#timeline-start').input_value() == str(this_year) and page.locator('#timeline-matrix thead .yt-year').count() == 20
+            assert page.locator('#timeline-focus').input_value() == '' and page.evaluate('document.activeElement.dataset.tab') == 'timeline'
+            page.evaluate("timelineDraft = {...timelineDraft, years: 10}")
             page.locator('[data-tab="annual"]').click()
             layer_before = page.evaluate('JSON.stringify(ziweiLayer)')
             page.locator('#annual-open-year').click()
             page.wait_for_function(f"() => active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === {this_year}", timeout=30000)
+            assert page.evaluate('document.activeElement.id') == 'palace-' + str(page.evaluate(f"current.ziwei.palaces.findIndex(p => p.name === {annual['year_branch_palace']!r})"))
             page.evaluate('json => {ziweiLayer = JSON.parse(json);}', layer_before)  # later steps carry on from the layer they left
             # The reading page states the chart in two cards that open the full pages, and points on to related tools.
             page.locator('[data-tab="reading"]').click()
