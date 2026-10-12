@@ -536,8 +536,31 @@ function ziweiLines(board, z, selected) {
   // The three harmonies form a triangle; the opposite palace gets its own line.
   line(points[0], points[1]); line(points[1], points[2]); line(points[2], points[0]);
   targets.filter(x => x[1] === 'opposite').forEach(x => line(from, centre(x[0]), 'opposite'));
+  // The selected palace's stem transformations fly to the palaces holding those stars. Each curve bows towards
+  // the middle of the board, so it shows between the cells, and ends at the edge of the target cell.
+  if (showFlying) selected.palace_flying_transformations.forEach((t, i) => {
+    const to = centre(t.target_palace);
+    if (!from || !to || t.self_transform) return;
+    const mid = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2];
+    const pull = [200 - mid[0], 200 - mid[1]];
+    const length = Math.hypot(pull[0], pull[1]) || 1;
+    const spread = (i - 1.5) * 9;  // four curves to one palace stay apart
+    const control = [mid[0] + pull[0] * .7 - pull[1] / length * spread, mid[1] + pull[1] * .7 + pull[0] / length * spread];
+    const edge = (point, toward) => {
+      const d = [toward[0] - point[0], toward[1] - point[1]], scale = 44 / (Math.max(Math.abs(d[0]), Math.abs(d[1])) || 1);
+      return [point[0] + d[0] * scale, point[1] + d[1] * scale];
+    };
+    const a = edge(from, control), b = edge(to, control);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', `M${a[0]} ${a[1]} Q${control[0]} ${control[1]} ${b[0]} ${b[1]}`);
+    path.setAttribute('class', 'fly fly-' + (HUA_CLASS[t.type] || 'lu'));
+    svg.append(path);
+  });
   board.prepend(svg);
 }
+// Badge text in the palace a transformation flies into; a self-transformation stays in its own palace.
+const FLY_MARKS = {'化禄': ['禄入', '自化禄'], '化权': ['权入', '自化权'], '化科': ['科入', '自化科'], '化忌': ['忌入', '自化忌']};
+let showFlying = true;
 const STEM_ORDER = '甲乙丙丁戊己庚辛壬癸', BRANCH_ORDER = '子丑寅卯辰巳午未申酉戌亥';
 // Today's lunar year comes from the calendar engine, so the default 流年 changes on the real Chinese New Year.
 let todayLunarYear = null, todayLunarPending = false;
@@ -797,6 +820,11 @@ function renderZiwei(z) {
     if (live && live.mode === 'year' && live.currentDecade === p) append(marks, 'span', 'palace-mark layer-mark', '大限');
     if (live && live.mode === 'year' && live.smallLimit === p) append(marks, 'span', 'palace-mark layer-mark', '小限');
     if (live && live.marks) live.marks.filter(m => m.index === index).forEach(m => append(marks, 'span', 'palace-mark layer-mark', m.text));
+    if (showFlying) selected.palace_flying_transformations.filter(t => t.target_palace === p.name).forEach(t => {
+      const mark = elt('span', 'palace-mark fly-mark fly-' + (HUA_CLASS[t.type] || 'lu'), FLY_MARKS[t.type][t.self_transform ? 1 : 0]);
+      mark.title = `${selected.name}：${t.star}${t.type}→${p.name}${t.self_transform ? '（自化）' : ''}`;
+      marks.append(mark);
+    });
     if (p.decade) append(foot, 'span', 'decade', `${p.decade.start_age}–${p.decade.end_age}岁`);
     if (p.small_limit_nominal_ages) node.title = '小限虚岁：' + p.small_limit_nominal_ages.slice(0, 6).join('、') + '…';
     node.addEventListener('click', () => {selectedPalace = p.name; render();});
@@ -816,6 +844,10 @@ function renderZiwei(z) {
   brightMark(brightLegend, BRIGHT_LEVELS[0]); append(brightLegend, 'span', null, '亮度：庙旺得利平不陷，由强到弱');
   const tri = append(legend, 'span', 'legend-lines', '虚线：所选宫位的三方；实线：对宫');
   tri.style.marginLeft = 'auto';
+  const fly = append(legend, 'button', 'filter-chip fly-toggle', '飞化连线'); fly.type = 'button'; fly.id = 'ziwei-fly-toggle';
+  fly.setAttribute('aria-pressed', String(showFlying));
+  fly.title = '彩色曲线：所选宫位的宫干四化飞入哪一宫';
+  fly.addEventListener('click', () => {showFlying = !showFlying; render();});
   renderPalacePanel(result, selected, live);
   if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。');
   note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）、主星与昌曲火铃羊陀的庙旺利陷、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。`);
@@ -1175,9 +1207,44 @@ function renderRuleMatrix() {
 }
 // Group relations: two to eight charts from the current form, local profiles and members added here.
 // Members added on this page live only in memory; nothing is stored.
-let groupResult = null, groupKey = null;
-let groupDraft = {useCurrent: true, currentLabel: '我', profiles: [], extras: [], filter: 'all', focus: null,
+let groupResult = null, groupKey = null, groupResultKeys = [];
+// Member notes stay on this page: the current chart's and temporary members' are never stored, a saved
+// profile's only after 「保存到档案」. Notes never go to the server; only the chat draft the user sends carries them.
+let groupDraft = {useCurrent: true, currentLabel: '我', currentNote: '', profiles: [], profileNotes: {}, extras: [], filter: 'all', focus: null,
   extra: {label: '', birth_datetime: '1990-01-01T12:00', timezone: 'Asia/Shanghai', hour_unknown: false}};
+const NOTE_MAX = 120;
+function profileNote(entry) {return entry && typeof entry.note === 'string' ? entry.note.slice(0, NOTE_MAX) : '';}
+function saveProfileNote(id, note) {
+  const profiles = loadProfiles(), entry = profiles.find(x => x.id === id);
+  if (!entry) return false;
+  const text = note.trim().slice(0, NOTE_MAX);
+  if (text) entry.note = text; else delete entry.note;
+  localStorage.setItem(profileKey, JSON.stringify(profiles));
+  return true;
+}
+// One key per member, in the same order as groupMembers(), so notes follow the member rather than the position.
+function groupMemberKeys() {
+  const saved = loadProfiles();
+  return [...(groupDraft.useCurrent && currentInput ? ['current'] : []),
+    ...groupDraft.profiles.filter(id => saved.some(x => x.id === id)).map(id => 'profile:' + id),
+    ...groupDraft.extras.map(x => 'extra:' + x.id)];
+}
+function groupNote(key) {
+  if (key === 'current') return groupDraft.currentNote.trim();
+  if (key.startsWith('profile:')) {
+    const id = key.slice(8);
+    return (groupDraft.profileNotes[id] ?? profileNote(loadProfiles().find(x => x.id === id))).trim();
+  }
+  const extra = groupDraft.extras.find(x => 'extra:' + x.id === key);
+  return extra ? (extra.note || '').trim() : '';
+}
+function noteInput(parent, value, label, onInput) {
+  const input = append(parent, 'input', 'group-note user-text');
+  input.type = 'text'; input.maxLength = NOTE_MAX; input.value = value;
+  input.placeholder = '备注（选填）'; input.setAttribute('aria-label', label + '的备注');
+  input.addEventListener('input', () => onInput(input.value));
+  return input;
+}
 const GROUP_LINKS = [['all', '全部'], ['combine', '天干五合'], ['六合', '六合'], ['六冲', '六冲'], ['六害', '六害'], ['相刑', '相刑'], ['同支', '同支']];
 const LINK_CLASS = {'六合': 'harmony', '六冲': 'clash', '六害': 'harm', '相刑': 'punish', '同支': 'same', combine: 'combine'};
 const BIRTH_KEYS = ['birth_datetime', 'timezone', 'gender', 'late_zi_day_rollover', 'leap_month_second_half_as_next', 'time_mode', 'longitude'];
@@ -1227,13 +1294,15 @@ function renderGroup() {
   currentLabel.maxLength = 50; currentLabel.value = groupDraft.currentLabel; currentLabel.setAttribute('aria-label', '当前命盘的称呼');
   currentBox.addEventListener('change', () => {groupDraft.useCurrent = currentBox.checked; render();});
   currentLabel.addEventListener('input', () => {groupDraft.currentLabel = currentLabel.value;});
+  if (currentBox.checked) noteInput(current, groupDraft.currentNote, '当前命盘', value => {groupDraft.currentNote = value;}).id = 'group-current-note';
   const saved = loadProfiles();
   groupDraft.profiles = groupDraft.profiles.filter(id => saved.some(x => x.id === id));
   if (saved.length) {
     append(picker, 'h4', 'subheading', '本机档案');
     const list = append(picker, 'div', 'group-profiles');
     saved.forEach(entry => {
-      const row = append(list, 'label', 'check-line group-profile');
+      const item = append(list, 'div', 'group-profile-item');
+      const row = append(item, 'label', 'check-line group-profile');
       const box = append(row, 'input'); box.type = 'checkbox'; box.value = entry.id; box.id = 'group-profile-' + entry.id;
       box.checked = groupDraft.profiles.includes(entry.id);
       append(row, 'span', 'user-text', entry.label);
@@ -1242,7 +1311,30 @@ function renderGroup() {
         groupDraft.profiles = box.checked ? [...groupDraft.profiles, entry.id] : groupDraft.profiles.filter(id => id !== entry.id);
         render();
       });
+      const savedNote = profileNote(entry);
+      if (!box.checked && !savedNote) return;
+      item.classList.add('has-note');
+      const editor = append(item, 'div', 'group-note-row');
+      const input = noteInput(editor, groupDraft.profileNotes[entry.id] ?? savedNote, entry.label, value => {groupDraft.profileNotes[entry.id] = value;});
+      input.id = 'group-note-' + entry.id;
+      const save = append(editor, 'button', 'tiny-button', '保存到档案'); save.type = 'button'; save.id = 'group-note-save-' + entry.id;
+      const message = append(editor, 'small', 'muted');
+      message.setAttribute('role', 'status');
+      save.addEventListener('click', () => {
+        try {
+          saveProfileNote(entry.id, input.value); delete groupDraft.profileNotes[entry.id];
+          message.textContent = input.value.trim() ? '备注已保存在本机浏览器' : '备注已从档案删除';
+        } catch (_) {message.textContent = '保存失败：浏览器存储不可用';}
+      });
+      if (savedNote) {
+        const clearButton = append(editor, 'button', 'tiny-button', '删除备注'); clearButton.type = 'button'; clearButton.id = 'group-note-clear-' + entry.id;
+        clearButton.addEventListener('click', () => {
+          try {saveProfileNote(entry.id, ''); delete groupDraft.profileNotes[entry.id]; render();}
+          catch (_) {message.textContent = '删除失败：浏览器存储不可用';}
+        });
+      }
     });
+    append(picker, 'p', 'field-help', '备注只用于这一页和带进 AI 对话的草稿，不发给服务器；档案成员的备注点「保存到档案」后才存进本机浏览器，随档案一起删除和加密备份。');
   } else {
     append(picker, 'p', 'field-help', '还没有本机档案。在出生资料下方保存档案后，可以在这里勾选。');
   }
@@ -1252,6 +1344,7 @@ function renderGroup() {
     append(row, 'span', 'user-text', x.label);
     append(row, 'small', 'muted', x.birth_datetime.replace('T', ' ') + ' · ' + x.timezone);
     if (x.hour_unknown) append(row, 'small', 'muted', '时辰不详');
+    noteInput(row, x.note || '', x.label, value => {x.note = value;}).id = 'group-extra-note-' + index;
     const remove = append(row, 'button', 'tiny-button', '移除'); remove.type = 'button';
     remove.addEventListener('click', () => {groupDraft.extras.splice(index, 1); render();});
   });
@@ -1279,7 +1372,8 @@ function renderGroup() {
     if (!label) {addError.textContent = '先填写称呼'; return;}
     if (!when.value) {addError.textContent = '请填写出生时间'; return;}
     if (groupMembers().length >= 8) {addError.textContent = '最多 8 人'; return;}
-    groupDraft.extras.push({label, birth_datetime: when.value, timezone: zone.value, hour_unknown: unknown.checked});
+    groupDraft.extras.push({id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), label,
+      birth_datetime: when.value, timezone: zone.value, hour_unknown: unknown.checked, note: ''});
     groupDraft.extra = {...draft, label: ''};
     render();
   });
@@ -1298,7 +1392,7 @@ function renderGroup() {
     run.disabled = true; error.textContent = '';
     try {
       groupResult = await postJSON('/api/group-relations', {members: chosen});
-      groupKey = JSON.stringify(chosen); groupDraft.focus = null;
+      groupKey = JSON.stringify(chosen); groupResultKeys = groupMemberKeys(); groupDraft.focus = null;
       render();
     } catch (err) {error.textContent = '对照失败：' + err.message; run.disabled = false;}
   });
@@ -1317,8 +1411,10 @@ function groupChatDraft(g, inputs) {
     if (birth.leap_month_second_half_as_next === false) rules.push(tr('闰月整月按本月'));
     if (birth.time_mode === 'mean_solar') rules.push(tr('平太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
     if (birth.time_mode === 'apparent_solar') rules.push(tr('真太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
+    // The note is the user's own words about this member, shown in the draft before anything is sent.
+    const note = groupNote(groupResultKeys[i] || '').replace(/\s+/g, ' ');
     return ['- ' + m.label, m.birth_datetime.slice(0, 10) + ' ' + (m.hour_unknown ? tr('时辰不详') : m.birth_datetime.slice(11, 16)),
-      m.timezone, ...rules].join(' · ');
+      m.timezone, ...rules, ...(note ? [tr('备注：') + note] : [])].join(' · ');
   });
   return {text: [tr('请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。'), ...lines].join('\n'), lines};
 }
@@ -1346,6 +1442,8 @@ function renderGroupResult(g) {
     const head = append(card, 'div', 'group-member-head');
     append(head, 'span', 'group-dot ' + (m.day_master ? 'bg-' + ELEMENT_CLASS[m.day_master_element] : 'dot-unknown'));
     append(head, 'strong', 'user-text', m.label);
+    const note = groupNote(groupResultKeys[i] || '');
+    if (note) append(card, 'p', 'group-note-text user-text', note);
     const sub = append(card, 'small', 'muted');
     texts(sub, m.pillars.year ? ANIMAL_YEARS[BRANCH_ORDER.indexOf(m.pillars.year[1])] : '生肖不定', ' · ', '日主', ' ' + (m.day_master ? m.day_master + m.day_master_element : '?'));
     if (m.uncertain_pillars.length) append(card, 'small', 'group-uncertain', '时辰不详且当天交节或换日：带 ? 的柱不参与比较');
@@ -1825,7 +1923,7 @@ function renderImportCheck() {
   append(result, 'p', 'field-help', '支持简体或繁体的命盘文字；没识别到的部分会略过。');
   const area = append(result, 'textarea', 'import-text'); area.id = 'import-text'; area.rows = 8; area.maxLength = 6000;
   area.setAttribute('data-no-i18n', '');  // the example shows the Chinese formats the parser reads
-  area.placeholder = '例如：\n乾造 庚辰 甲申 丙午 庚寅\n命宫在午，身宫在官禄，木三局，命主破军，身主文昌\n官禄宫：廉贞 天府\n太阳化禄 武曲化权 太阴化科 天同化忌';
+  area.placeholder = '例如：\n乾造 庚辰 甲申 丙午 庚寅\n命宫在午，身宫在官禄，木三局，命主破军，身主文昌\n官禄宫：廉贞利 天府庙\n太阳化禄 武曲化权 太阴化科 天同化忌';
   area.value = importDraft;
   area.addEventListener('input', () => {importDraft = area.value;});
   const actions = append(result, 'div', 'inline-control');
@@ -1850,6 +1948,7 @@ function renderImportCheck() {
   if (r.reproducing_variants.length) {
     const box = append(result, 'div', 'import-verdict ok');
     append(box, 'b', null, '改用下面的规则后，粘贴的命盘与玄枢完全一致：');
+    if (r.fields.some(f => !f.match && f.key.startsWith('ziwei.brightness'))) append(box, 'small', 'muted', '星曜亮度的差异来自亮度表，不计入。');
     r.variants.filter(v => !v.mismatched).slice(0, 3).forEach((v, i) => {
       const line = append(box, 'div', 'import-variant');
       append(line, 'span', null, v.label);

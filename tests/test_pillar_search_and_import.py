@@ -146,3 +146,28 @@ def test_static_assets_are_compressed_and_revalidated_but_api_is_not():
     assert CLIENT.get('/static/i18n-extra.js', headers={'If-None-Match': js.headers['etag']}).status_code == 304
     api = CLIENT.post('/api/bazi', json=BIRTH, headers={'Accept-Encoding': 'gzip'})
     assert 'content-encoding' not in api.headers and api.headers['cache-control'] == 'no-store'
+
+
+def test_brightness_printed_after_a_star_is_compared_as_a_table_difference():
+    parsed = parse_chart_text('命宮 紫微廟\n夫妻宫：七杀（平） 火星\n官禄宫 廉贞利 天府【庙】\n疾厄宫 天同 巨门')
+    assert parsed['palace_brightness'] == {'命宫': {'紫微': '庙'}, '夫妻宫': {'七杀': '平'}, '官禄宫': {'廉贞': '利', '天府': '庙'}}
+    assert parsed['palace_major_stars']['夫妻宫'] == ['七杀'] and '疾厄宫' not in parsed['palace_brightness']
+    out = chart_import_check(ChartImportRequest(birth=BIRTH, text='命宫 紫微庙\n夫妻宫：七杀平\n官禄宫 廉贞利 天府庙'))
+    fields = {f['key']: f for f in out['fields']}
+    assert fields['ziwei.brightness.命宫']['match'] and fields['ziwei.brightness.官禄宫']['match']
+    assert (fields['ziwei.brightness.夫妻宫']['theirs'], fields['ziwei.brightness.夫妻宫']['ours']) == ('七杀平', '七杀庙')
+    # Only the table differs: no rule variant is offered as the cause, and the cause names the table.
+    assert out['variants'] == [] and out['reproducing_variants'] == []
+    assert any('亮度表' in c for c in out['possible_causes'])
+    # A grade for a star that is not in that palace here is left to the star comparison.
+    moved = chart_import_check(ChartImportRequest(birth=BIRTH, text='夫妻宫 紫微庙'))
+    assert 'ziwei.brightness.夫妻宫' not in {f['key'] for f in moved['fields']}
+
+
+def test_a_late_zi_chart_with_brightness_still_finds_its_rule():
+    late = dict(BIRTH, birth_datetime='2000-08-16T23:30')
+    other = calculate_ziwei(BirthInput(**dict(late, late_zi_day_rollover=True)))
+    text = chart_text(dict(late, late_zi_day_rollover=True)) + '\n' + '\n'.join(
+        p['name'] + ' ' + ' '.join(star + p['star_brightness'][star] for star in p['main_stars']) for p in other['palaces'] if p['main_stars'])
+    out = chart_import_check(ChartImportRequest(birth=late, text=text))
+    assert out['reproducing_variants'][0] == '23:00 换日（早晚子时）'
