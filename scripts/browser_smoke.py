@@ -1613,6 +1613,24 @@ def main() -> None:
             page.locator('#run-btn').click()
             page.wait_for_function(f"() => !currentHourUnknown && currentInput.birth_datetime === {birth_before!r}", timeout=30000)
             page.locator('#dayun-axis').wait_for(timeout=30000)
+            # The data browser: a card per tool with a result, trees that fill in as they open, a filter over keys and values.
+            page.locator('[data-tab="json"]').click()
+            assert page.locator('#json-section-chart').count() == 1 and page.locator('#json-section-bazi_dayun').count() == 1
+            assert page.locator('#json-section-chart .jv-tree > details').count() >= 3 and page.locator('#json-section-chart .jv-tree details[open]').count() == 0
+            page.locator('#json-section-bazi_dayun .jv-tree > details').first.locator('summary').click()
+            page.locator('#json-section-bazi_dayun .jv-tree > details').first.locator(':scope > .jv-children').wait_for(timeout=5000)  # filled as it opens
+            page.locator('#json-filter').fill('natal_month_pillar')
+            page.wait_for_function("() => document.querySelector('#json-filter-count').textContent.includes('处匹配')", timeout=10000)
+            match = page.locator('#json-section-bazi_dayun .jv-leaf.is-match')
+            assert match.count() == 1 and match.get_attribute('title') == 'bazi_dayun.natal_month_pillar' and '甲申' in match.inner_text()
+            assert page.locator('#json-section-chart').count() == 0
+            page.locator('#json-filter').fill('zzz-no-such-field')
+            page.wait_for_function("() => document.querySelector('#json-filter-count').textContent.includes('没有匹配')", timeout=10000)
+            page.locator('#json-filter').fill('')
+            page.wait_for_function("() => document.querySelectorAll('#json-sections .jv-card').length > 1", timeout=10000)
+            page.locator('#json-view-raw').click()
+            assert '"bazi_dayun"' in page.locator('#json-raw').inner_text() and page.locator('#json-view-raw').get_attribute('aria-pressed') == 'true'
+            page.locator('#json-view-tree').click()
             page.locator('[data-tab="boundaries"]').click()
             page.locator('#boundary-radius').fill('8')
             page.locator('#boundary-run').click()

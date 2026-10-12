@@ -6430,13 +6430,166 @@ function renderConsultationResult(c) {
   c.limitations.forEach(x => note(result, x));
 }
 
+// The data behind every tool, as a browser: one card per tool that has a result, each a collapsible tree that fills
+// in as it opens, with a filter over keys and values, the path of every field, and copy or download per card.
+const JV_SECTIONS = {chart: '当前命盘（八字、紫微与解读）', consultation: 'AI 咨询工作流', qimen: '奇门遁甲', qimen_reference_audit: '奇门逐宫核验',
+  ziwei_professional: '专业紫微', ziwei_horoscope: '紫微运限', annual: '年干四化', bazi_dayun: '大运干支', calendar: '历法日历',
+  lunar_inverse: '农历反查', day_officers: '建除值日', date_scan: '择日择时', annual_timeline: '年度轨迹', pair: '双人对照',
+  ziwei_pair: '紫微叠盘', group_relations: '多人关系', decision_matrix: '方案决策', time_audit: '太阳时审计', birth_window: '出生时间窗口',
+  rule_matrix: '规则差异对照', birth_boundaries: '生时边界地图', quality_audit: '排盘质量审计', pillar_search: '四柱反查',
+  chart_import_check: '命盘导入核对', report: '综合报告'};
+const JV_LIMIT = 400;  // matches drawn at most while filtering
+let jsonFilter = '', jsonView = 'tree';
+const jvBytes = value => new Blob([JSON.stringify(value, null, 2)]).size;
+const jvSize = bytes => bytes < 1024 ? bytes + ' B' : (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB';
+const jvPath = (path, key, array) => array ? path + '[' + key + ']' : /^[A-Za-z_$][\w$]*$/.test(key) ? path + '.' + key : path + '[' + JSON.stringify(key) + ']';
+function jvSave(name, value) {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], {type: 'application/json;charset=utf-8'}));
+  const a = elt('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+// Paths whose key or value contains the query, and every path above them.
+function jvMatches(value, path, query, found) {
+  if (found.hits.length >= JV_LIMIT) return;
+  if (value && typeof value === 'object') {
+    const array = Array.isArray(value);
+    (array ? value.map((v, i) => [String(i), v]) : Object.entries(value)).forEach(([k, v]) => {
+      const p = jvPath(path, k, array);
+      if (!array && k.toLowerCase().includes(query)) found.hits.push(p);
+      else if (!(v && typeof v === 'object') && String(v).toLowerCase().includes(query)) {found.hits.push(p); found.leaves.push(p);}
+      jvMatches(v, p, query, found);
+    });
+  }
+}
+// While filtering, `keep` holds every path to draw: the matches and the paths above them, the latter also entered
+// with a trailing \u0000 to mark them open. Below a matched object that is not above another match, all is drawn;
+// a path entered with a trailing \u0001 holds a matched value, and all its fields are drawn for context.
+const jvKeep = (keep, hits, path) => keep && hits.has(path) && !keep.has(path + '\u0000') ? null : keep;
+function jvNode(parent, key, value, path, depth, keep, hits) {
+  const object = value !== null && typeof value === 'object';
+  if (!object) {
+    const row = append(parent, 'div', 'jv-leaf' + (hits && hits.has(path) ? ' is-match' : '')); row.title = path;
+    if (key !== null) {append(row, 'span', 'jv-key', key); row.append(': ');}
+    const type = value === null ? 'null' : typeof value;
+    append(row, 'span', 'jv-' + type, type === 'string' ? JSON.stringify(value) : String(value));
+    return;
+  }
+  const array = Array.isArray(value), entries = array ? value.map((v, i) => [String(i), v]) : Object.entries(value);
+  const node = append(parent, 'details', 'jv-node' + (hits && hits.has(path) ? ' is-match' : ''));
+  node.id = 'jv-' + path.replace(/\s/g, '_');
+  const summary = append(node, 'summary'); summary.title = path;
+  if (key !== null) append(summary, 'span', 'jv-key', key);
+  append(summary, 'span', 'jv-count', array ? '[' + entries.length + ']' : '{' + entries.length + '}');
+  // A short list of plain values is previewed on the closed line.
+  if (array && entries.length && entries.length <= 12 && entries.every(([, v]) => v === null || typeof v !== 'object'))
+    append(summary, 'span', 'jv-preview', entries.map(([, v]) => typeof v === 'string' ? v : String(v)).join(', '));
+  const fill = () => {
+    if (node.dataset.filled) return;
+    node.dataset.filled = '1';
+    const box = append(node, 'div', 'jv-children');
+    const whole = keep && keep.has(path + '\u0001');
+    entries.forEach(([k, v]) => {
+      const p = jvPath(path, k, array);
+      if (!keep || whole || keep.has(p)) jvNode(box, k, v, p, depth + 1, keep && keep.has(p) ? jvKeep(keep, hits, p) : null, hits);
+    });
+    if (!box.childNodes.length) append(box, 'div', 'jv-leaf muted', array ? '[]' : '{}');
+  };
+  if (keep ? keep.has(path) && keep.has(path + '\u0000') : depth < 1) {node.open = true; fill();}
+  node.addEventListener('toggle', () => {if (node.open) fill();});
+}
 function renderJson() {
-  const h = append(result, 'div', 'code-header');
-  append(h, 'h3', null, '结构化 JSON · 可供 MCP / REST 读取');
-  const btn = append(h, 'button', 'tiny-button', '复制 JSON'); btn.type = 'button';
-  btn.addEventListener('click', () => navigator.clipboard.writeText(JSON.stringify(jsonData(), null, 2))
-    .then(() => {btn.textContent = '已复制';}).catch(() => {btn.textContent = '复制失败';}));
-  append(result, 'pre', 'json-code', JSON.stringify(jsonData(), null, 2));
+  title(result, '结构化 JSON 数据', '当前命盘与各工具最近一次结果 · 只在本机 · 复制或下载才离开页面');
+  const data = jsonData(), stale = !!current && JSON.stringify(readInput()) !== JSON.stringify(currentInput);
+  const order = Object.keys(JV_SECTIONS), rank = k => order.includes(k) ? order.indexOf(k) : order.length;
+  const sections = Object.entries(data).filter(([k, v]) => k !== 'birth_hour_unknown' && v !== null && v !== undefined)
+    .sort(([a], [b]) => rank(a) - rank(b));
+  const head = append(result, 'div', 'jv-head');
+  const facts = append(head, 'p', 'jv-facts');
+  texts(facts, sections.length, ' 个工具有结果', ' · ', '共', ' ' + jvSize(jvBytes(data)));
+  if (data.birth_hour_unknown) texts(facts, ' · ', '时辰不详');
+  const tools = append(head, 'div', 'jv-tools');
+  const copyAll = append(tools, 'button', 'tiny-button', '复制全部 JSON'); copyAll.type = 'button'; copyAll.id = 'json-copy';
+  copyAll.addEventListener('click', () => navigator.clipboard.writeText(JSON.stringify(jsonData(), null, 2))
+    .then(() => {copyAll.textContent = '已复制';}).catch(() => {copyAll.textContent = '复制失败';}));
+  const saveAll = append(tools, 'button', 'tiny-button', '下载全部 JSON ↓'); saveAll.type = 'button'; saveAll.id = 'json-download';
+  saveAll.disabled = !current || stale;
+  saveAll.addEventListener('click', () => $('#download-json').click());
+  const views = append(tools, 'div', 'jv-views'); views.setAttribute('role', 'group'); views.setAttribute('aria-label', '显示方式');
+  [['tree', '树状'], ['raw', '原始文本']].forEach(([key, label]) => {
+    const b = append(views, 'button', 'tiny-button' + (jsonView === key ? ' is-active' : ''), label); b.type = 'button'; b.id = 'json-view-' + key;
+    b.setAttribute('aria-pressed', String(jsonView === key));
+    b.addEventListener('click', () => {jsonView = key; render();});
+  });
+  append(result, 'p', 'field-help', 'JSON 含出生日期和时间，复制或下载后由你保管；备注不在其中。下载与命盘工作台右上角的「导出 JSON」相同，出生资料改过但还没重新生成命盘时不能下载。');
+  if (stale) append(result, 'p', 'inline-msg', '出生资料已修改：下面仍是上一张命盘的数据。');
+  if (jsonView === 'raw') {append(result, 'pre', 'json-code', JSON.stringify(data, null, 2)).id = 'json-raw'; return;}
+  if (!sections.length) {append(result, 'p', 'info-inline', '还没有任何结果：生成命盘或使用任一工具后，数据会出现在这里。'); return;}
+  const row = append(result, 'div', 'inline-control jv-filter-row');
+  const filter = createInput('筛选字段名或数值', 'search', jsonFilter, row); filter.id = 'json-filter'; filter.maxLength = 80;
+  filter.setAttribute('aria-describedby', 'json-filter-count');
+  const count = append(row, 'span', 'jv-filter-count'); count.id = 'json-filter-count'; count.setAttribute('role', 'status');
+  const expand = elt('button', 'tiny-button', '全部收起'); expand.type = 'button'; expand.id = 'json-collapse';
+  views.before(expand);
+  const list = append(result, 'div', 'jv-list'); list.id = 'json-sections';
+  const draw = () => {
+    list.replaceChildren(); count.replaceChildren();
+    const query = jsonFilter.trim().toLowerCase();
+    let total = 0, shown = 0;
+    sections.forEach(([key, value]) => {
+      let keep = null, hits = null;
+      if (query) {
+        const found = {hits: [], leaves: []};
+        jvMatches(value, key, query, found);
+        const named = key.toLowerCase().includes(query) || (JV_SECTIONS[key] || '').toLowerCase().includes(query);
+        if (!found.hits.length && !named) return;
+        total += found.hits.length + (named ? 1 : 0);
+        // A section found by its name is shown whole.
+        if (!named) {
+          hits = new Set(found.hits); keep = new Set();
+          found.hits.forEach(p => {
+            const parts = p.match(/^[^.[]+|\.[^.[]+|\[[^\]]*\]/g) || [p];
+            let acc = '';
+            parts.forEach((part, i) => {acc += part; keep.add(acc); if (i < parts.length - 1) keep.add(acc + '\u0000');});
+          });
+          found.leaves.forEach(p => keep.add(p.slice(0, p.length - p.match(/(\.[^.[]+|\[[^\]]*\])$/)[0].length) + '\u0001'));
+        }
+      }
+      shown++;
+      const card = append(list, 'section', 'jv-card'); card.id = 'json-section-' + key;
+      const top = append(card, 'div', 'jv-card-head');
+      const name = append(top, 'div', 'jv-name');
+      append(name, 'b', null, JV_SECTIONS[key] || key);
+      append(name, 'code', null, key);
+      const fields = value && typeof value === 'object' ? (Array.isArray(value) ? value.length : Object.keys(value).length) : 1;
+      texts(append(name, 'small', 'muted'), fields, ' 个字段', ' · ', jvSize(jvBytes(value)));
+      const actions = append(top, 'div', 'jv-actions');
+      const copy = append(actions, 'button', 'tiny-button', '复制本节'); copy.type = 'button';
+      copy.setAttribute('aria-label', calT('复制本节') + ' ' + key);
+      copy.addEventListener('click', () => navigator.clipboard.writeText(JSON.stringify({[key]: value}, null, 2))
+        .then(() => {copy.textContent = '已复制';}).catch(() => {copy.textContent = '复制失败';}));
+      const save = append(actions, 'button', 'tiny-button', '下载本节 ↓'); save.type = 'button';
+      save.setAttribute('aria-label', calT('下载本节') + ' ' + key);
+      save.disabled = stale;
+      save.addEventListener('click', () => jvSave('xuanshu-' + key.replace(/_/g, '-') + '.json', {[key]: value}));
+      const tree = append(card, 'div', 'jv-tree'); tree.dataset.noI18n = '';  // keys and values are data, not interface text
+      if (value === null || typeof value !== 'object') jvNode(tree, null, value, key, 0, null, hits);
+      else {
+        const array = Array.isArray(value), whole = keep && keep.has(key + '\u0001');
+        (array ? value.map((v, i) => [String(i), v]) : Object.entries(value)).forEach(([k, v]) => {
+          const p = jvPath(key, k, array);
+          if (!keep || whole || keep.has(p)) jvNode(tree, k, v, p, 1, keep && keep.has(p) ? jvKeep(keep, hits, p) : null, hits);
+        });
+      }
+    });
+    if (query) {
+      if (!shown) texts(count, '没有匹配的字段或数值');
+      else {texts(count, total, ' 处匹配'); if (total >= JV_LIMIT) texts(count, ' · ', '只显示前', ' ' + JV_LIMIT, ' 处');}
+    }
+  };
+  let timer = null;
+  filter.addEventListener('input', () => {clearTimeout(timer); timer = setTimeout(() => {jsonFilter = filter.value; draw();}, 200);});
+  expand.addEventListener('click', () => list.querySelectorAll('details[open]').forEach(d => {d.open = false;}));
+  draw();
 }
 // Rebuilding the result area must not lose the user's place: keyboard focus,
 // caret position and which collapsible sections were open survive a re-render.
