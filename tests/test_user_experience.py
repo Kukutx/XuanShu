@@ -114,3 +114,16 @@ def test_report_markdown_can_be_copied_without_downloading():
     js=(ROOT/'static/app.js').read_text(encoding='utf-8')
     assert "copyBtn.id = 'consult-copy-markdown'" in js
     assert "navigator.clipboard.writeText(c.markdown)" in js
+
+
+def test_professional_page_install_advice_matches_the_optional_dependency():
+    """The install command the page offers is the provider pinned in pyproject, never a `xuanshu[...]` download."""
+    import re
+    import tomllib
+    js=(ROOT/'static/app.js').read_text(encoding='utf-8')
+    pinned=tomllib.loads((ROOT/'pyproject.toml').read_text(encoding='utf-8'))['project']['optional-dependencies']['professional']
+    command=re.search(r"const PF_INSTALL = '([^']+)'", js).group(1)
+    assert command == f'python -m pip install "{pinned[0]}"'
+    assert 'xuanshu[professional]' not in js
+    # The page reads the provider flag the server reports, and the guards stop a request that cannot be meaningful.
+    assert 'professional_ziwei_provider_available' in js and "'professional-gender'" in js and "'professional-hour-unknown'" in js
