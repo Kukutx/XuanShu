@@ -23,7 +23,7 @@ export XUANSHU_LLM_PROVIDER=openai XUANSHU_LLM_MODEL=deepseek-chat XUANSHU_LLM_B
 
 - REST：`GET /api/chat/status`、`POST /api/chat`，以及同样参数的 `POST /api/chat/stream`（逐行 JSON：工具调用开始与完成、命盘卡片、回答文字、最后是完整结果；断开连接即停止）。不提供 MCP 版本：MCP 客户端本身就是模型，直接调用 34 个工具即可。
 - 对话体验：回答边写边显示，可随时停止（Esc）或重新回答、编辑上一个问题；回答按 Markdown 排版；模型排出的八字、紫微、奇门盘以小卡片嵌在回答里；每条回答后按本次用到的工具给出追问建议。
-- 择日择时：工作台「择日择时」或 `POST /api/date-scan`（MCP `date_candidate_scan`），在最多 93 天里按建除值日、交节日、本命相冲筛选候选日，可附加指定时刻的时家奇门盘；按日期列出，不打吉凶分。
+- 择日择时：工作台「择日择时」或 `POST /api/date-scan`（MCP `date_candidate_scan`），在最多 93 天里按建除值日、交节日、本命相冲筛选候选日，可附加指定时刻的时家奇门盘；结果画成周历（被排除的日子写明是哪个条件排除的），点候选日看农历、相冲、交节和各时刻的奇门盘，也可直接在奇门页打开；按日期列出，不打吉凶分。
 - 人生事件回溯：档案里记录人生事件后可一键对照（`POST /api/life-path`，MCP `life_path_review`），把每个事件与大运、流年干支、年度四化和本命地支关系并列，不需要配置模型。
 - 出生城市：内置 65 个国内外城市的时区和市中心经纬度，选中即自动填写；页面可「添加到主屏幕」。
 - 回答语言：简体中文、繁體中文、English、日本語。

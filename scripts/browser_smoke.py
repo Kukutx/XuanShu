@@ -153,9 +153,28 @@ def main() -> None:
             page.locator('#scan-exclude input[value="建"]').check()
             assert not page.locator('#scan-include input[value="建"]').is_checked()
             page.locator('#scan-exclude input[value="建"]').uncheck()
+            page.locator('#scan-exclude input[value="破"]').check()
             page.locator('#scan-hours').fill('09:00')
             page.locator('#scan-run').click()
             page.get_by_text('值符', exact=False).first.wait_for(timeout=30000)
+            # The result is a week calendar over the whole range: candidates open their detail, dropped days say why.
+            assert page.locator('#scan-grid .ds-day').count() == 30
+            scan = page.evaluate("({picks: dateScanResult.candidates.map(c => c.date), out: dateScanResult.excluded_days.map(d => [d.date, d.reason])})")
+            assert page.locator('#scan-grid .ds-day.is-pick').count() == len(scan['picks']) and len(scan['picks']) + len(scan['out']) == 30
+            assert scan['out'] and all(reason == 'officer_excluded' for _, reason in scan['out'])
+            assert '排除的值日' in page.locator('#scan-day-' + scan['out'][0][0]).inner_text()
+            assert page.locator('#scan-detail h4').inner_text().startswith(scan['picks'][0])
+            page.locator('#scan-day-' + scan['picks'][2] + ' .ds-pick').click()
+            assert page.locator('#scan-detail h4').inner_text().startswith(scan['picks'][2])
+            assert page.locator('#scan-detail .ds-hour-card').count() == 1
+            page.locator('#scan-view-list').click()
+            assert page.locator('#scan-list tbody tr').count() == len(scan['picks'])
+            page.locator('#scan-view-grid').click()
+            # A chart opens on the Qimen page at the same date, time and time zone.
+            page.locator('#scan-qimen-0').click()
+            page.wait_for_function("active === 'qimen' && qimenResult", timeout=30000)
+            assert page.evaluate("qimenResult.instant").startswith(scan['picks'][2] + 'T09:00')
+            page.locator('#qimen-moment').select_option('now')
             page.locator('[data-tab="chat"]').click()
             assert page.locator('#tool-toggle-all').is_visible()
             assert page.locator('.tab:visible').count() < page.locator('.tab').count()

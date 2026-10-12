@@ -223,7 +223,9 @@ function translateText(source) {
     .replace(/(\d{1,2})月(\d{1,2})日/g, '$1/$2')
     // Counted days and ages: 19.97 日 reads 19.97 days, 6岁 7月 reads 6 yr 7 mo.
     .replace(/(\d+)岁 ?(\d+)个?月/g, '$1 yr $2 mo').replace(/(\d+)岁(?![㐀-鿿（(])/g, '$1 yr')
-    .replace(/(\d+(?:\.\d+)?) ?日(?![㐀-鿿])/g, (_, n) => n + (n === '1' ? ' day' : ' days'));
+    .replace(/(\d+(?:\.\d+)?) ?日(?![㐀-鿿])/g, (_, n) => n + (n === '1' ? ' day' : ' days'))
+    // Qimen bureaus: 阴遁5局 reads Yin Dun 5.
+    .replace(/([阴阳])遁 ?(\d)局/g, (_, side, n) => (side === '阴' ? 'Yin' : 'Yang') + ' Dun ' + n);
   const gap = uiLang === 'en' ? ' ' : '';
   // Composed text: replace each known phrase; English gets spaces between replaced words and Chinese.
   const out = source.replace(uiPhraseRe, (hit, offset, whole) => {

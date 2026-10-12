@@ -835,6 +835,10 @@
   "One row per person, one cell per year. The colour is the element of the luck period's stem, a thick edge marks the year a period begins, and \"?\" marks a year in which a period may begin when the hour is unknown. Click a year or a cell to open that year.",
   "1行が1人、1マスが1年。色は大運の天干の五行、太い縁は交運の年、「?」は時刻不明のとき交運があり得る年です。年やマスをクリックするとその年に切り替わります。"
  ],
+ "一行一周，从星期一开始。候选日可以点开，下方列出它的农历、相冲、交节和时家奇门盘；变淡的日子写着把它排除的条件。": [
+  "One week per row, starting on Monday. Click a candidate day to list its lunar date, clashes, term transition and hour Qimen charts below; a faded day names the filter that excluded it.",
+  "1 行が 1 週間で、月曜日から始まります。候補日をクリックすると、下に旧暦・冲・節入り・時家奇門盤を表示します。薄く表示された日には除外した条件を記します。"
+ ],
  "一行一周，从星期一开始；格子里是日期、日干支和正午的值日，今天的日期填色。交节当天另写节气和交节时刻（北京时间）：「17:52 → 开」是交节后轮到开，「成 → 04:02」是交节前为成。": [
   "One week per row, starting on Monday; each cell shows the date, the day stem-branch and the noon officer, with today's date filled in. A jie day also shows the term and its time (Beijing time): “17:52 → Kai” means Kai follows the term, “Cheng → 04:02” means Cheng comes before it.",
   "1 行が 1 週で月曜始まりです。マスには日付、日干支、正午の十二直があり、今日の日付は塗りつぶしで示します。節入りの日は節気と節入り時刻（北京時間）も書きます。「17:52 → 開」は節入り後が開、「成 → 04:02」は節入り前が成という意味です。"
@@ -1122,6 +1126,10 @@
  "与本命四化分开显示 · 仅为星曜位置叠加": [
   "Shown separately from natal Four Transformations · star position overlay only",
   "本命四化とは別表示 · 星曜位置の重ね合わせのみ"
+ ],
+ "与本命相冲": [
+  "Clashes with the natal chart",
+  "本命と冲"
  ],
  "与钟表时间不同": [
   "Differs from clock time",
@@ -1462,6 +1470,10 @@
  "交节已过": [
   "Since the transition",
   "節入りから"
+ ],
+ "交节当天": [
+  "Term-transition day",
+  "節入り当日"
  ],
  "交节当天节令切换前后的值日不同：本表按北京时间正午归类，交节当天另给出交节时刻和交节前后的值日；精确活动时间要对照交节时刻。": [
   "On a jie day the officer differs before and after the term: this table classifies by Beijing noon and also gives the term time and the officers before and after it; check exact times against the term time.",
@@ -1831,9 +1843,17 @@
   "Candidate timing",
   "候補日時の選定"
  ],
+ "候选日": [
+  "Candidate days",
+  "候補日"
+ ],
  "候选日只按你选的传统标签筛选并按日期排列，没有吉凶评分，也不保证择日效果。": [
   "Candidate days are only filtered by the traditional labels you chose and sorted by date; there is no auspiciousness scoring and no guarantee of date-selection effect.",
   "候補日は選択した伝統ラベルで絞り込み、日付順に並べただけです。吉凶の採点はなく、択日の効果も保証しません。"
+ ],
+ "候选日或时家奇门盘已达上限，后面的日子没有扫描；可以缩短范围、减少候选时刻，或从最后扫描的日子之后再扫一次。": [
+  "The candidate or hour Qimen chart limit was reached, so the later days were not scanned; shorten the range, use fewer candidate times, or scan again from the day after the last scanned one.",
+  "候補日または時家奇門盤が上限に達したため、以降の日はスキャンしていません。範囲を短くするか、候補時刻を減らすか、最後にスキャンした日の翌日から再度スキャンしてください。"
  ],
  "候选时刻": [
   "Candidate moments",
@@ -1862,6 +1882,10 @@
  "值日": [
   "Day officer",
   "値日"
+ ],
+ "值日不在保留中": [
+  "Officer not among those kept",
+  "十二直が保留対象外"
  ],
  "值符": [
   "Zhi Fu",
@@ -3539,6 +3563,10 @@
   "São Paulo",
   "サンパウロ"
  ],
+ "在「候选时刻」里填时刻（如 09:00,15:00），每个候选日都会附上这些时刻的时家奇门盘。": [
+  "Enter times under Candidate times (e.g. 09:00,15:00) and each candidate day will carry hour Qimen charts for those times.",
+  "「候補時刻」に時刻（例：09:00,15:00）を入れると、各候補日にその時刻の時家奇門盤が付きます。"
+ ],
  "在传统命盘中通常关联什么话题？": [
   " — what topics is this usually associated with in a traditional chart?",
   "は伝統的な命盤で通常どんな話題と関連しますか？"
@@ -3546,6 +3574,10 @@
  "在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。": [
   "Choose a gender in the birth details to set the decade direction from the year stem and gender.",
   "出生情報で性別を選ぶと、年干の陰陽と性別から大運の順逆を決めます。"
+ ],
+ "在奇门页打开": [
+  "Open on the Qimen page",
+  "奇門ページで開く"
  ],
  "在敏感窗口内": [
   "Within the sensitivity window",
@@ -5439,6 +5471,10 @@
   "By palace",
   "宮ごとの一覧"
  ],
+ "按择日扫描所用时区 ": [
+  "Cast with the date scan's time zone ",
+  "日取りスキャンのタイムゾーン "
+ ],
  "按日期排列": [
   "Sorted by date",
   "日付順"
@@ -5526,6 +5562,14 @@
  "排盘输入与边界审计": [
   "Chart input and boundary audit",
   "命盤入力と境界の監査"
+ ],
+ "排除": [
+  "Excluded",
+  "除外"
+ ],
+ "排除的值日": [
+  "Excluded officer",
+  "除外した十二直"
  ],
  "排除：值日 ": [
   "Excluded: day officer ",
@@ -6559,6 +6603,10 @@
   "No gender set, so no luck pillar",
   "性別未入力のため大運なし"
  ],
+ "未扫描": [
+  "Not scanned",
+  "未スキャン"
+ ],
  "未指定性别或大运顺逆，省略大运对照（方向不会被猜测）。": [
   "Gender or Luck Pillar direction not specified; Luck Pillar comparison omitted (the direction will not be guessed).",
   "性別または大運の順逆が未指定のため、大運の比較を省略しました（方向は推測しません）。"
@@ -6586,6 +6634,10 @@
  "未起运，": [
   "Luck not started, ",
   "未起運、"
+ ],
+ "未选": [
+  "Not kept",
+  "対象外"
  ],
  "未选择": [
   "Not selected",
@@ -9659,6 +9711,10 @@
   "Yang",
   "陽"
  ],
+ "阳遁": [
+  "Yang Dun",
+  "陽遁"
+ ],
  "阴": [
   "Yin",
   "陰"
@@ -9666,6 +9722,10 @@
  "阴煞": [
   "Yin Sha",
   "陰煞"
+ ],
+ "阴遁": [
+  "Yin Dun",
+  "陰遁"
  ],
  "阿姆斯特丹": [
   "Amsterdam",
