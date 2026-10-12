@@ -552,8 +552,11 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .qh-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:14px 0 6px}
 .qh-head .subheading{margin:0}
 .qh-nav{display:flex;gap:6px;margin-left:auto}
+.qh-date{font-variant-numeric:tabular-nums;color:var(--text)}
+.qh-tag{font-size:10px;font-weight:700;color:var(--gold2)}
+.qh-help{margin:6px 0 0}
 .qh-hours{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-@media(min-width:1200px){.qh-hours{grid-template-columns:repeat(13,minmax(0,1fr))}}
+@media(min-width:1400px){.qh-hours{grid-template-columns:repeat(13,minmax(0,1fr))}}
 @media(max-width:640px){.qh-hours{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .qh-hour{display:flex;flex-direction:column;align-items:center;gap:1px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);padding:6px 2px 5px;cursor:pointer;min-width:0;color:var(--text)}
 .qh-hour:hover{border-color:var(--gold)}

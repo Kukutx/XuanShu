@@ -203,3 +203,41 @@ def test_qimen_day_hours_summarize_each_double_hour_of_the_same_day():
         assert h['hour_pillar'][1] == h['branch']
     # 寒露 falls that afternoon, so the bureau changes within the day.
     assert len({(h['solar_term'], h['bureau']) for h in hours}) == 2
+    assert chart['day_hours_date'] == '2026-10-08' and chart['missing_hours'] == []
+    assert [h['index'] for h in hours] == list(range(13))
+
+
+def test_qimen_steps_a_day_at_the_same_double_hour_across_daylight_saving_and_solar_time():
+    def step(days, **moment):
+        return qimen_chart(QimenRequest(moment=moment, include_day_hours=True, step_days=days))
+    # 丑 the night before New York springs forward: 02:00 does not exist the next day, the 丑 hour still does.
+    chart = step(1, birth_datetime='2024-03-09T02:00', timezone='America/New_York')
+    assert chart['stepped'] == {'days': 1, 'date': '2024-03-10', 'moment': '2024-03-10T01:30', 'requested_hour': '丑', 'hour': '丑', 'hour_kept': True}
+    assert chart['hour_pillar'][1] == '丑' and chart['day_hours_date'] == '2024-03-10'
+    # 01:30 is repeated on the day New York falls back; the unrepeated part of 丑 is taken.
+    chart = step(1, birth_datetime='2024-11-02T01:30', timezone='America/New_York')
+    assert chart['stepped']['moment'] == '2024-11-03T02:00' and chart['hour_pillar'][1] == '丑'
+    # True solar time keeps the hour by the solar day, not by adding a day to the clock.
+    for moment, hour in (('2024-03-09T12:00', '午'), ('2024-11-02T11:20', '巳')):
+        before = qimen_chart(QimenRequest(moment={'birth_datetime': moment, 'timezone': 'America/New_York', 'time_mode': 'apparent_solar', 'longitude': -74}))
+        after = step(1, birth_datetime=moment, timezone='America/New_York', time_mode='apparent_solar', longitude=-74)
+        assert before['hour_pillar'][1] == after['hour_pillar'][1] == hour and after['stepped']['hour_kept']
+    back = step(-1, birth_datetime='2024-03-10T01:30', timezone='America/New_York')
+    assert back['stepped']['moment'] == '2024-03-09T02:00' and back['hour_pillar'][1] == '丑'
+    # São Paulo skipped midnight to 01:00 on 2018-11-04: that day has no early Zi, so the nearest hour is cast and
+    # the strip names the hour it leaves out.
+    chart = step(1, birth_datetime='2018-11-03T00:30', timezone='America/Sao_Paulo')
+    assert chart['stepped']['hour_kept'] is False and chart['stepped']['hour'] == '丑' and chart['missing_hours'] == ['早子']
+    assert [h['index'] for h in chart['day_hours']] == list(range(1, 13))
+    with pytest.raises(ValueError):
+        step(1, birth_datetime='2099-12-31T12:00', timezone='Asia/Shanghai')
+    with pytest.raises(ValidationError):
+        QimenRequest(moment={'birth_datetime': '2024-03-09T02:00'}, step_days=8)
+
+
+def test_qimen_day_hours_keep_clock_dates_and_solar_readings_apart():
+    chart = qimen_chart(QimenRequest(moment={'birth_datetime': '2024-07-10T12:00', 'timezone': 'America/New_York',
+                                             'time_mode': 'apparent_solar', 'longitude': -74}, include_day_hours=True))
+    late = chart['day_hours'][-1]
+    assert chart['day_hours_date'] == '2024-07-10' and late['label'] == '晚子'
+    assert late['moment'].startswith('2024-07-11T00:') and late['effective_reading'].startswith('2024-07-10T23:')
