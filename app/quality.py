@@ -35,6 +35,11 @@ def _cyclic_minutes_to_nearest(reading: datetime, target_minutes: list[int]) -> 
     return round(min(min(abs(instant - t), 1440 - abs(instant - t)) for t in target_minutes), 3)
 
 
+def _lunar_lookup_day(reading: datetime, late_zi_day_rollover: bool):
+    """The Gregorian day whose lunar date the chart uses: the next one for 23:00-23:59 with the 23:00 day change."""
+    return reading.date() + timedelta(days=1) if late_zi_day_rollover and reading.hour == 23 else reading.date()
+
+
 def calculation_quality_audit(request: QualityAuditRequest) -> dict:
     inp = request.birth
     original = normalized_dt(inp)
@@ -83,18 +88,19 @@ def calculation_quality_audit(request: QualityAuditRequest) -> dict:
     # boundary, a user may instead expect the lunar date of the same *instant*
     # expressed in China standard time. Show both without silently changing
     # the selected school convention or pretending one is universal.
-    china_reference_day = original.astimezone(CHINA).date()
+    lookup_day = _lunar_lookup_day(actual_reading, inp.late_zi_day_rollover)
+    china_reference_day = _lunar_lookup_day(original.astimezone(CHINA), inp.late_zi_day_rollover)
     china_reference_lunar = (chinese_lunar_date(china_reference_day)
                              if 1901 <= china_reference_day.year <= 2099 else None)
     if china_reference_lunar is None:
         flag('china_calendar_reference_out_of_range', 'information',
              '同一瞬间的北京时间日期在本工具支持的农历范围之外，无法提供 UTC+8 对照。')
-    elif china_reference_day != actual_reading.date():
+    elif china_reference_day != lookup_day:
         if (lunar_date['year'], lunar_date['month'], lunar_date['day'], lunar_date['is_leap_month']) != (
                 china_reference_lunar['year'], china_reference_lunar['month'],
                 china_reference_lunar['day'], china_reference_lunar['is_leap_month']):
             flag('china_lunar_date_basis_disagreement', 'review',
-                 f'按出生地有效公历日 {actual_reading.date()} 排出的农历为 '
+                 f'按出生地有效公历日 {lookup_day} 排出的农历为 '
                  f"{lunar_date['year']}年{lunar_date['month']}月{lunar_date['day']}日；"
                  f'同一绝对瞬间按北京时间 {china_reference_day} 查农历则为 '
                  f"{china_reference_lunar['year']}年{china_reference_lunar['month']}月{china_reference_lunar['day']}日。"
@@ -104,7 +110,7 @@ def calculation_quality_audit(request: QualityAuditRequest) -> dict:
              '出生日期位于农历月首/末日；新月日界与闰月划分需要审慎核对。')
 
     for start, end, differs_from_hko in HKO_UNCERTAIN_MONTHS:
-        if start <= actual_reading.date() <= end:
+        if start <= lookup_day <= end:
             status = '当前天文模型与香港天文台表中月首相差一天' if differs_from_hko else '当前月首和天文台表一致，但天文台仍提示一日不确定性'
             flag('published_new_moon_uncertainty', 'review',
                  f'香港天文台将 {start.isoformat()} 新月日期列为远期不确定边界；{status}。'
@@ -127,9 +133,10 @@ def calculation_quality_audit(request: QualityAuditRequest) -> dict:
         'minutes_to_midnight': midnight_minutes,
         'lunar_date': lunar_date,
         'local_effective_gregorian_date': actual_reading.date().isoformat(),
+        'lunar_lookup_gregorian_date': lookup_day.isoformat(),
         'china_reference_gregorian_date': china_reference_day.isoformat(),
         'china_reference_lunar_date': china_reference_lunar,
-        'lunar_date_basis': 'natal effective local Gregorian date (not UTC+8 instant date)',
+        'lunar_date_basis': 'natal effective local Gregorian date, the next day for 23:00-23:59 with the 23:00 day change (not UTC+8 instant date)',
         'bazi_pillars': {name: row['text'] for name, row in bazi['pillars'].items()},
         'ziwei_ming': ziwei['ming_palace'],
         'ziwei_shen': ziwei['shen_palace'],

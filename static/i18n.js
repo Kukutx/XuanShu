@@ -111,7 +111,7 @@ const UI_TEXT = [
   ['紫微宫位叠盘', 'Zi Wei palace overlay', '紫微の宮位重ね合わせ'],
   // AI chat
   ['回答语言 ', 'Answer language ', '回答言語 '], [' 附带左侧出生参数', ' Include the birth details on the left', ' 左側の出生情報を含める'],
-  [' 已获第二人同意使用其出生资料', ' The other person agreed to use their birth data', ' 相手の出生データ使用に同意を得ている'],
+  [' 已获对方同意使用其出生资料（双人或多人）', ' The other person or people agreed to use their birth data', ' 相手（複数可）の出生データ使用に同意を得ている'],
   ['载入本档案对话', 'Load this profile’s chat', 'このプロフィールの会話を読み込む'],
   ['正在检查对话服务…', 'Checking the chat service…', 'チャットサービスを確認中…'],
   ['直接提问即可，例如「我今年适合换工作吗？」。缺少出生时间或问题范围时，AI 会先追问。', 'Just ask, for example “Is this a good year to change jobs?”. If the birth time or scope is missing, the AI asks first.', '「今年は転職に向いている？」のように質問してください。出生時刻や範囲が足りない場合は AI が先に確認します。'],

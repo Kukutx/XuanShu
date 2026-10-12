@@ -470,6 +470,10 @@ const UI_EXTRA = {
 "AI chat is not enabled yet",
 "AI チャットはまだ有効になっていません"
 ],
+"AI 对话尚未启用，配置语言模型后可以把这些成员带进对话。": [
+"AI chat is not enabled; once a language model is configured you can bring these members into a conversation.",
+"AI 対話はまだ有効になっていません。言語モデルを設定すると、これらのメンバーを対話に持ち込めます。"
+],
 "Agent 接入能力": [
 "Agent integration",
 "エージェント連携"
@@ -589,10 +593,6 @@ const UI_EXTRA = {
 "\\n关注点：": [
 "\\nFocus: ",
 "\\n注目点："
-],
-"iztro 的“晚子时”改用次日农历日": [
-"iztro's \"late Zi\" uses the next day's lunar date",
-"iztro の「晩子時」は翌日の旧暦日を使用"
 ],
 "iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导": [
 "iztro public star-placement formulas; derived from birth year, natal palace position, lunar month/day and double-hour",
@@ -933,6 +933,10 @@ const UI_EXTRA = {
 "丧门": [
 "Sang Men",
 "喪門"
+],
+"个出生在月末最后一天或闰月后半月：iztro 晚子时只把日数加一、不进月，玄枢按次日完整的农历日期排，这是规则不同，不是计算错误。": [
+"births fall on the last day of a lunar month or in the second half of a leap month: at late Zi iztro only adds one to the day number without moving to the next month, while XuanShu uses the whole lunar date of the next day. This is a difference in rules, not a calculation error.",
+"件は旧暦の月末日または閏月の後半に生まれています。iztro の晩子時は日数を一つ進めるだけで月を進めず、玄枢は翌日の旧暦日付をそのまま使います。これは規則の違いで、計算の誤りではありません。"
 ],
 "个区间": [
 " intervals",
@@ -1926,9 +1930,9 @@ const UI_EXTRA = {
 "Born after 23:00: programs differ on whether the Zi hour starts a new day (early/late Zi hour).",
 "23:00 以降の出生：子の刻で日を替えるか（早子・晩子）は流派で異なります。"
 ],
-"出生在 23:00 之后：各家对子时是否换日（早晚子时）规则不同，日柱可能不同。": [
-"Born after 23:00: schools differ on whether the day changes at the Zi hour (early and late Zi), so the day pillar may differ.",
-"23:00 以降の出生：子の刻で日を替えるか（早子・晩子）は流派で異なり、日柱が変わることがあります。"
+"出生在 23:00 之后：各家对子时是否换日（早晚子时）规则不同，日柱和紫微所用的农历日可能不同。": [
+"Born after 23:00: schools differ on whether the day changes at the Zi hour (early and late Zi), so the day pillar and the lunar day used by Zi Wei may differ.",
+"23:00 以降の出生：子の刻で日を替えるか（早子・晩子）は流派で異なり、日柱と紫微が使う旧暦日が変わることがあります。"
 ],
 "出生在农历闰月：闰月前后半月归属哪个月，各家规则不同。": [
 "Born in a leap lunar month: programs differ on which month each half of a leap month belongs to.",
@@ -2441,6 +2445,10 @@ const UI_EXTRA = {
 "叠加农历年（留空不叠加）": [
 "Overlay lunar year (leave blank for none)",
 "重ねる旧暦年（空欄で重ねない）"
+],
+"另有": [
+"Another",
+"ほかに"
 ],
 "另有未补齐输入": [
 "Other inputs still missing",
@@ -3786,9 +3794,9 @@ const UI_EXTRA = {
 "AES-256-GCM encrypted backup created; the passphrase is neither saved nor uploaded to the server.",
 "AES-256-GCM 暗号化バックアップを作成しました。パスフレーズは保存もサーバーへのアップロードもされません。"
 ],
-"已获第二人同意使用其出生资料": [
-"The second person agreed to the use of their birth details",
-"二人目から出生情報の使用に同意を得ています"
+"已获对方同意使用其出生资料（双人或多人）": [
+"The other person or people agreed to use their birth data",
+"相手（複数可）の出生データ使用に同意を得ている"
 ],
 "已计算双方结构对照；无婚恋适配分数或关系成功率。": [
 "Computed a structural comparison of both parties; no marriage/romance compatibility score or relationship success rate.",
@@ -3837,6 +3845,10 @@ const UI_EXTRA = {
 "帝旺": [
 "Emperor Prosperous (Di Wang)",
 "帝旺"
+],
+"带进 AI 对话": [
+"Bring into AI chat",
+"AI 対話に持ち込む"
 ],
 "常见咨询问题：": [
 "Common questions: ",
@@ -4301,6 +4313,10 @@ const UI_EXTRA = {
 "找到 ": [
 "Found ",
 "検出 "
+],
+"把成员的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。": [
+"Puts the members' birth details in the chat box for you to check before sending; tick the consent box in the chat settings first.",
+"メンバーの出生情報を入力欄に入れます。確認してから送信してください。送信前に対話設定で同意の項目にチェックが必要です。"
 ],
 "把独立排盘结果整理为 JSON，包含 reference_source、reference_school、root_fields 和 palaces。每个宫使用 number=1…9；其余只填写需要对照的字段。": [
 "Format the independent chart result as JSON containing reference_source, reference_school, root_fields and palaces. Use number=1…9 for each palace; fill in only the other fields you want compared.",
@@ -5914,10 +5930,6 @@ const UI_EXTRA = {
 "XuanShu compares its lunar dates, four pillars, solar terms, moon phases and Zi Wei charts item by item with independent open-source libraries. The script, pinned reference versions and raw data are in the repository, so anyone can rerun it.",
 "玄枢は旧暦日・四柱・二十四節気・月相・紫微命盤を、独立したオープンソースのライブラリと項目ごとに照合しています。スクリプト、固定バージョンの参照ライブラリ、生データはリポジトリにあり、誰でも再実行できます。"
 ],
-"玄枢紫微仍用当天的农历日，与 iztro 的“早子时”一致": [
-"XuanShu's Zi Wei keeps the same day's lunar date, matching iztro's \"early Zi\"",
-"玄枢の紫微は当日の旧暦日を使い、iztro の「早子時」と一致"
-],
 "玄武": [
 "Xuan Wu (Black Tortoise)",
 "玄武"
@@ -6022,13 +6034,13 @@ const UI_EXTRA = {
 "The user does not know the birth hour: the clock time in the birth parameters is only a placeholder. The hour pillar, the Zi Wei Life and Body palaces and the palace layout cannot be treated as conclusions;",
 "利用者は出生時刻を知りません。出生パラメータの時刻は仮の値です。時柱、紫微の命宮・身宮、宮の配置は結論として扱えません。"
 ],
-"用户已勾选：已获第二人同意。": [
-"User has checked: consent obtained from the second person.",
-"ユーザーがチェック済み：2人目の同意を得ています。"
+"用户已勾选：已获对方同意（双人或多人）。": [
+"The user ticked: the other person or people agreed.",
+"ユーザーはチェック済み：相手（複数可）の同意あり。"
 ],
-"用户未勾选第二人同意。": [
-"User has not checked second-person consent.",
-"ユーザーは2人目の同意にチェックしていません。"
+"用户未勾选对方同意。": [
+"The user has not ticked the other person's consent.",
+"ユーザーは相手の同意にチェックしていません。"
 ],
 "用户研究问题：": [
 "User research question: ",
@@ -6350,9 +6362,9 @@ const UI_EXTRA = {
 "Zi Wei bureau number: ",
 "紫微局数："
 ],
-"紫微按农历正月初一换年、不按 23:00 换日；八字按立春换年，两者的年柱可能不同，这是规则本身的差别。": [
-"Zi Wei changes the year at the lunar new year and does not change the day at 23:00; BaZi changes the year at Lichun. Their year pillars can differ: that is a difference in the rules themselves.",
-"紫微は旧正月で年を替え、23:00 では日を替えません。八字は立春で年を替えるため、両者の年柱が異なることがあります。これはルール自体の違いです。"
+"紫微按农历正月初一换年，八字按立春换年，两者的年柱可能不同，这是规则本身的差别。": [
+"Zi Wei changes year at the lunar new year and bazi at Lichun, so their year pillars can differ; that is a difference in the rules themselves.",
+"紫微は旧正月で、八字は立春で年が替わるため、年柱が異なることがあります。これは規則そのものの違いです。"
 ],
 "紫微排盘": [
 "Zi Wei chart",
@@ -6417,6 +6429,10 @@ const UI_EXTRA = {
 "线上的数字是该标签（或全部标签）的条数；点成员只看与他相关的线，点线打开这一对的明细。": [
 "The number on a line counts that label (or all labels). Click a member to show only their lines; click a line to open that pair's details.",
 "線上の数字はそのラベル（または全ラベル）の件数です。メンバーをクリックするとその人の線だけを表示し、線をクリックするとそのペアの明細を開きます。"
+],
+"经度": [
+"longitude",
+"経度"
 ],
 "经度与时制核对": [
 "Longitude and time-system check",
@@ -6958,6 +6974,10 @@ const UI_EXTRA = {
 "Confirm the lunar year, month, day, and whether it is a leap month, then call lunar_to_gregorian; a nonexistent leap month or lunar 30th day should produce an explicit error.",
 "旧暦の年月日と閏月かどうかを確認してから lunar_to_gregorian を呼び出してください。存在しない閏月や旧暦30日は明確にエラーとすべきです。"
 ],
+"请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。": [
+"Using the group relations comparison, look at the relationships among the people below. Explain only what the traditional labels mean, with no scores.",
+"多人関係の照合を使って、以下の人たちの関係を見てください。伝統的なラベルの意味だけを説明し、点数は付けないでください。"
+],
 "请补充 ": [
 "Please provide ",
 "補足してください："
@@ -7186,6 +7206,10 @@ const UI_EXTRA = {
 "Auxiliary stars: ",
 "輔星："
 ],
+"输入框里有其他人的出生资料：请先在对话设置里勾选「已获对方同意使用其出生资料（双人或多人）」再发送，或删掉这些资料。": [
+"The input contains other people's birth data: tick \"The other person or people agreed to use their birth data\" in the chat settings before sending, or delete that data.",
+"入力欄に他の人の出生データがあります。送信する前に会話設定で「相手（複数可）の出生データ使用に同意を得ている」にチェックを入れるか、そのデータを削除してください。"
+],
 "输入问题，Enter 发送，Shift+Enter 换行": [
 "Type a question; Enter sends, Shift+Enter adds a line",
 "質問を入力。Enter で送信、Shift+Enter で改行"
@@ -7274,10 +7298,6 @@ const UI_EXTRA = {
 "This is a deterministic multi-tool calculation report; no external large language model was run, and it is not the result of autonomous reasoning.",
 "これは決定論的な複数ツールの計算レポートです。外部の大規模言語モデルは実行しておらず、自律的な推論の結果ではありません。"
 ],
-"这是流派规则不同，不是计算错误。": [
-"This is a difference in school rules, not a calculation error.",
-"これは流派の規則の違いで、計算ミスではありません。"
-],
 "这是确定性工具编排，不是自主 LLM。不会根据传统命盘给出人生成功率或虚构事件。": [
 "This is deterministic tool orchestration, not an autonomous LLM. It will not give life success rates or invent events based on traditional charts.",
 "これは決定論的なツール編成であり、自律型 LLM ではありません。伝統的な命盤に基づいて人生の成功率を示したり、出来事を捏造したりしません。"
@@ -7333,6 +7353,10 @@ const UI_EXTRA = {
 "选哪个": [
 "Which one to choose",
 "どれを選ぶ"
+],
+"选择「23:00 换日」后与 iztro 的“晚子时”一致": [
+"With \"day changes at 23:00\", matches iztro's \"late Zi\"",
+"「23:00 に日替わり」を選ぶと iztro の「晩子時」と一致"
 ],
 "选择宫位": [
 "Select palace",
@@ -7669,6 +7693,10 @@ const UI_EXTRA = {
 "鸡年": [
 "Year of the Rooster",
 "酉年（とり）"
+],
+"默认 23:00 不换日，与 iztro 的“早子时”一致": [
+"By default the day does not change at 23:00, matching iztro's \"early Zi\"",
+"既定では 23:00 に日を替えず、iztro の「早子時」と一致"
 ],
 "鼠年": [
 "Year of the Rat",

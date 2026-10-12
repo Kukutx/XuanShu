@@ -131,10 +131,18 @@ def _find_month_index(moons: list[date], day: date) -> int:
     raise ValueError(f"Could not assign date to lunar month: {day}")
 
 
+# 2099-12-31 23:00-23:59 with the 23:00 day change reads the next day's lunar date.
+ROLLOVER_DAY_AFTER_RANGE = date(2100, 1, 1)
+
+
 @lru_cache(maxsize=512)
-def chinese_lunar_date(solar_date: date) -> dict:
-    """Computes modern Chinese lunar day/month/year, including leap month."""
-    if not 1901 <= solar_date.year <= 2099:
+def chinese_lunar_date(solar_date: date, allow_rollover_day: bool = False) -> dict:
+    """Computes modern Chinese lunar day/month/year, including leap month.
+
+    ``allow_rollover_day`` also accepts 2100-01-01, the day a 23:00 day change
+    moves the last supported hour to; it lies in a lunar year already computed.
+    """
+    if not (1901 <= solar_date.year <= 2099 or (allow_rollover_day and solar_date == ROLLOVER_DAY_AFTER_RANGE)):
         raise ValueError("Supported Gregorian years: 1901–2099")
     solstice_this_year = _local_date(solar_term_jd(solar_date.year, 270))
     prior_year = solar_date.year if solar_date >= solstice_this_year else solar_date.year - 1

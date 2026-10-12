@@ -26,7 +26,9 @@ def test_late_birth_with_longitude_and_daylight_saving():
     assert out['rows'][0]['is_baseline'] and out['rows'][0]['differs'] == []
     assert out['summary']['variants'] == 14 and out['summary']['identical_variants'] == 1
     late = rows['23:00 换日（早晚子时）']
-    assert late['changes'] == {'late_zi_day_rollover': True} and late['differs'] == ['pillar.day', 'pillar.hour']
+    # The 23:00 day change moves the bazi day and the Zi Wei lunar day together.
+    assert late['changes'] == {'late_zi_day_rollover': True} and late['differs'] == ['pillar.day', 'pillar.hour', 'lunar', 'ming_stars']
+    assert late['values']['lunar'] == '庚午年四月廿四' and out['rows'][0]['values']['lunar'] == '庚午年四月廿三'
     assert late['values']['pillar.day'] == '癸未' and out['rows'][0]['values']['pillar.day'] == '壬午'
     solar = rows['真太阳时']
     assert solar['effective_reading'] == '1990-05-17T22:19' and 'ming' in solar['differs'] and 'bureau' in solar['differs']
@@ -35,7 +37,7 @@ def test_late_birth_with_longitude_and_daylight_saving():
     assert dst['changes'] == {'birth_datetime': '1990-05-17T22:30', 'timezone': 'Etc/GMT-8'} and dst['applicable'] is False
     assert dst['values']['pillar.month'] == out['rows'][0]['values']['pillar.month'] and late['applicable'] is True
     assert rows['闰月整月按本月']['differs'] == []
-    assert out['summary']['stable_fields'] == ['年柱', '月柱', '农历', '生年四化']
+    assert out['summary']['stable_fields'] == ['年柱', '月柱', '生年四化']
     assert any('23:00' in h for h in out['hints']) and any('夏令时' in h for h in out['hints'])
     # Each row carries complete settings that the page can apply to the birth form.
     assert solar['settings']['time_mode'] == 'apparent_solar' and solar['settings']['longitude'] == 116.4

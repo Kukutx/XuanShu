@@ -731,3 +731,4 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
 .crosscheck-list li{margin:4px 0}
 .crosscheck-dialog .docs-link{display:inline-block;margin-top:10px}
 @media(max-width:600px){.crosscheck-dialog{padding:14px 12px}.crosscheck-table th,.crosscheck-table td{padding:8px 6px;font-size:12px}.crosscheck-table td:first-child{white-space:nowrap}}
+.group-ask{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
