@@ -148,6 +148,11 @@ def main() -> None:
             assert page.locator('#chat-memory-panel').count() == 1
             assert page.locator('#chat-mode option').count() == 2 and page.locator('#chat-mode').input_value() == 'single'
             page.locator('[data-tab="date-scan"]').click()
+            # An officer cannot be kept and excluded at once: ticking one side clears the other.
+            page.locator('#scan-include input[value="建"]').check()
+            page.locator('#scan-exclude input[value="建"]').check()
+            assert not page.locator('#scan-include input[value="建"]').is_checked()
+            page.locator('#scan-exclude input[value="建"]').uncheck()
             page.locator('#scan-hours').fill('09:00')
             page.locator('#scan-run').click()
             page.get_by_text('值符', exact=False).first.wait_for(timeout=30000)
@@ -494,6 +499,10 @@ def main() -> None:
             page.screenshot(path=str(screenshot_dir / '37-rule-matrix.png'), full_page=True)
             page.locator('[data-tab="bazi"]').click()
             page.locator('[data-tab="annual"]').click()
+            # A tool that needs only the chart shows its result on opening, for the current year by default.
+            page.locator('.transform-card').first.wait_for(timeout=30000)
+            assert page.locator('.transform-card').count() == 4
+            assert page.locator('#annual-year').input_value() == str(page.evaluate('new Date().getFullYear()'))
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)
             page.locator('[data-tab="time"]').click()
             page.screenshot(path=str(screenshot_dir / '04-time-audit.png'), full_page=True)
@@ -1065,9 +1074,17 @@ def main() -> None:
 
             # 开发阶段 decade cycles and exact modeled birth-time boundaries.
             page.locator('[data-tab="dayun"]').click()
+            # With a gender the decades of the chart shown are worked out on opening; the button applies a new count.
+            assert page.evaluate('currentInput.gender') != 'unspecified'
+            page.locator('#dayun-table').wait_for(timeout=30000)
+            assert page.locator('#dayun-table tbody tr').count() == 10 and page.locator('#dayun-table tr.is-current').count() <= 1
+            page.locator('#dayun-periods').fill('8')
             page.locator('#dayun-run').click()
+            page.wait_for_function("() => document.querySelectorAll('#dayun-table tbody tr').length === 8", timeout=30000)
+            page.locator('#dayun-periods').fill('10')
+            page.locator('#dayun-run').click()
+            page.wait_for_function("() => document.querySelectorAll('#dayun-table tbody tr').length === 10", timeout=30000)
             page.get_by_text('投影起始时间',exact=False).first.wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() == 10
             assert page.locator('#result thead th').last.inner_text() == '神煞'
             page.screenshot(path=str(screenshot_dir / '17-dayun-desktop.png'), full_page=True)
             page.locator('[data-tab="boundaries"]').click()
@@ -1079,16 +1096,29 @@ def main() -> None:
 
             # All three independently implemented 开发阶段 workflows must work from visible controls.
             page.locator('[data-tab="officers"]').click()
-            page.locator('#officer-run').click()
+            # The coming 30 days are listed on opening; the button applies a new range or filter.
             page.locator('#result tbody tr').first.wait_for(timeout=30000)
             assert page.locator('#result tbody tr').count() == 30
+            page.locator('#officer-days').select_option('7')
+            page.locator('#officer-run').click()
+            page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 7", timeout=30000)
+            page.locator('#officer-days').select_option('30')
+            page.locator('#officer-run').click()
+            page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 30", timeout=30000)
             assert '十二值日' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '14-day-officers-desktop.png'), full_page=True)
 
             page.locator('[data-tab="timeline"]').click()
-            page.locator('#timeline-run').click()
             page.locator('#result tbody tr').first.wait_for(timeout=30000)
             assert page.locator('#result tbody tr').count() == 10
+            # A setting typed while the opening result arrives stays in its field, and the button applies it.
+            page.locator('#timeline-years').select_option('5')
+            page.locator('#timeline-run').click()
+            page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 5", timeout=30000)
+            assert page.locator('#timeline-years').input_value() == '5'
+            page.locator('#timeline-years').select_option('10')
+            page.locator('#timeline-run').click()
+            page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 10", timeout=30000)
             assert '年度轨迹' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '15-annual-timeline-desktop.png'), full_page=True)
 
@@ -1143,6 +1173,9 @@ def main() -> None:
             assert page.locator('#report-year').input_value() == ''
             page.screenshot(path=str(screenshot_dir / '10-report.png'), full_page=True)
             page.locator('[data-tab="integration"]').click()
+            # The counts come from the running server's capabilities.
+            tools = page.evaluate("fetch('/api/capabilities').then(r => r.json()).then(d => d.counts.mcp_tools)")
+            page.wait_for_function(f"() => document.querySelector('#integration-counts').textContent.includes('{tools} Tools')", timeout=30000)
             page.screenshot(path=str(screenshot_dir / '07-integration.png'), full_page=True)
 
             page.locator('#birth_datetime').fill('2057-09-28T12:00')

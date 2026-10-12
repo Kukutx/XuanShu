@@ -28,8 +28,12 @@ def test_consultation_shortcuts_and_advanced_inputs():
 
 def test_accurate_integration_labels_and_default_dates():
     js=(ROOT/'static/app.js').read_text(encoding='utf-8')
-    for count in ('25 Tools','17 Resources','18 Skills','15 Prompts'):
-        assert f"value:'{count}'" in js
+    # The integration page shows the running server's counts, so no number written into the page can fall behind.
+    from app.main import capabilities
+    counts = capabilities()['counts']
+    for key in ('mcp_tools','mcp_resources','agent_skills','mcp_prompts'):
+        assert f"count('{key}'" in js and isinstance(counts[key], int) and counts[key] > 0
+    assert not any(f"value:'{n} Tools'" in js for n in range(100))
     assert 'start_date: localToday()' in js
     assert "question:''" in js
 

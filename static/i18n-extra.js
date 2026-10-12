@@ -1942,6 +1942,10 @@ const UI_EXTRA = {
 "BaZi / Zi Wei / calendar / dual chart / time audit / year-stem Four Transformations",
 "八字 / 紫微 / 暦法 / 双盤 / 時間監査 / 年干四化"
 ],
+"八字 / 紫微 / 奇门 / 历法 / 关系 / 运限 / 审计": [
+"BaZi / Zi Wei / Qi Men / Calendar / Relations / Luck cycles / Audits",
+"八字 / 紫微 / 奇門 / 暦法 / 関係 / 運限 / 監査"
+],
 "八字 · 紫微": [
 "BaZi · Zi Wei",
 "八字 · 紫微"
@@ -3229,6 +3233,10 @@ const UI_EXTRA = {
 "命盘已生成：": [
 "Chart generated: ",
 "命盤を作成しました："
+],
+"命盘没有填性别：选好顺排或逆排后点「计算大运」。": [
+"The chart has no gender: choose forward or reverse, then select “Compute Luck Pillars”.",
+"命盤に性別がありません。順行か逆行を選んでから「大運を計算」を押してください。"
 ],
 "命身宫": [
 "Life/Body Palace",
@@ -6698,6 +6706,10 @@ const UI_EXTRA = {
 "Recalculating under each rule…",
 "各ルールで再計算しています…"
 ],
+"正在按当前命盘计算大运…": [
+"Working out the luck pillars for the current chart…",
+"現在の命盤で大運を計算しています…"
+],
 "正在按问题调用计算工具…": [
 "Calling calculation tools for your question…",
 "質問に応じて計算ツールを呼び出し中…"
@@ -6717,6 +6729,10 @@ const UI_EXTRA = {
 "正在排大运…": [
 "Calculating decade periods…",
 "大運を計算中…"
+],
+"正在查询…": [
+"Looking up…",
+"照会しています…"
 ],
 "正在比对…": [
 "Comparing…",
@@ -7985,6 +8001,10 @@ const UI_EXTRA = {
 "约 ": [
 "approx. ",
 "約 "
+],
+"约当前": [
+"About now",
+"現在ごろ"
 ],
 "纳音": [
 "Na Yin",
