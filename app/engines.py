@@ -390,7 +390,7 @@ def calculate_ziwei(inp: BirthInput) -> dict:
             'solar_time_correction': inp.time_mode != 'clock',
             'time_mode': inp.time_mode,
         },
-        'notes': ['紫微新增选定杂曜、四组十二神与虚岁小限；仍缺完整流曜、流月和流派逐宫验证', '传统时辰依据所选时基计算；太阳时转换为近似值，非精密历史历书定盘', '流派差异请使用一致的命盘规则比对'],
+        'notes': ['紫微新增选定杂曜、四组十二神与虚岁小限；运限层（大限到流时）见 ziwei_horoscope；仍缺完整流曜和流派逐宫验证', '传统时辰依据所选时基计算；太阳时转换为近似值，非精密历史历书定盘', '流派差异请使用一致的命盘规则比对'],
     }
 
 

@@ -225,7 +225,7 @@ SPECIALISTS: dict[str, dict[str, Any]] = {
              'tools': ('bazi_chart', 'bazi_dayun', 'life_path_review', 'pair_comparison', 'group_relations', 'pillars_to_dates')},
     'ziwei': {'label': '紫微斗数专家', 'school': '紫微斗数',
               'tools': ('ziwei_chart', 'ziwei_professional_chart', 'palace_detail', 'annual_transformations',
-                        'annual_timeline', 'life_path_review', 'ziwei_pair_overlay')},
+                        'annual_timeline', 'life_path_review', 'ziwei_pair_overlay', 'ziwei_horoscope')},
     'qimen': {'label': '奇门与择时专家', 'school': '时家奇门、择日择时与历法',
               'tools': ('qimen_hour_chart', 'qimen_reference_audit', 'date_candidate_scan', 'day_officers', 'calendar_days')},
 }

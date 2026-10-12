@@ -3311,6 +3311,103 @@
    }
   }
  },
+ "horoscope": {
+  "sample": {
+   "pairs": 1000,
+   "birth_years": "1930–2049",
+   "targets": "up to 100 years after birth, through 2099",
+   "hours": "00:00–22:59",
+   "seed": 20261012
+  },
+  "results": {
+   "day": {
+    "checked": 1000,
+    "mismatches": 1,
+    "examples": [
+     {
+      "birth": "2037-04-21T08:38",
+      "gender": "female",
+      "target": "2097-08-26T17:30",
+      "xuanshu": [
+       "未",
+       "乙",
+       [
+        "天机",
+        "天梁",
+        "紫微",
+        "太阴"
+       ]
+      ],
+      "reference": [
+       "申",
+       "乙",
+       [
+        "天机",
+        "天梁",
+        "紫微",
+        "太阴"
+       ]
+      ]
+     }
+    ]
+   },
+   "decade": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "hour": {
+    "checked": 1000,
+    "mismatches": 1,
+    "examples": [
+     {
+      "birth": "2037-04-21T08:38",
+      "gender": "female",
+      "target": "2097-08-26T17:30",
+      "xuanshu": [
+       "辰",
+       "乙",
+       [
+        "天机",
+        "天梁",
+        "紫微",
+        "太阴"
+       ]
+      ],
+      "reference": [
+       "巳",
+       "乙",
+       [
+        "天机",
+        "天梁",
+        "紫微",
+        "太阴"
+       ]
+      ]
+     }
+    ]
+   },
+   "month": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "small_limit": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   },
+   "year": {
+    "checked": 1000,
+    "mismatches": 0,
+    "examples": []
+   }
+  },
+  "lunar_python_calendar_differs": {
+   "day": 1,
+   "hour": 1
+  }
+ },
  "findings": [
   "- 节气时刻：2025 年以前与寿星天文历最大相差 17.41 秒。之后最大相差 126.25 秒，来自两边对未来 ΔT 的预报不同（Swiss Ephemeris 预报 2026 年 ΔT 为 68.8 秒）。只有出生或事件离交节只差这么几分钟时，月柱才可能因此不同。",
   "- 1933-07-22 至 1933-08-20（30 天）：朔在 1933-07-23 00:03:03+08:00，离午夜 3.0 分钟。只有 lunardate 不同，sxtwl 和 lunar_python 都与玄枢一致。旧算法容易把这样的朔算到午夜另一侧（Aslaksen 记载 1978 年以前香港、台湾历书仍沿用 1908 年的旧历法）。",

@@ -102,7 +102,10 @@ let professionalTargetDraft = localToday();
 let currentInput = null;
 let selectedPalace = '命宫';
 // Time layer drawn on the Zi Wei board: natal only, one ten-year major limit, or one lunar year.
-let ziweiLayer = {mode: 'natal', decade: null, year: null};
+let ziweiLayer = {mode: 'natal', decade: null, year: null, date: null};
+// Month and day layers come from the engine (斗君 needs the lunar calendar), one date at a time.
+// While a new date loads, the previous result keeps the step buttons usable (and focused).
+let horoscopeResult = null, horoscopeKey = null, horoscopeError = '', horoscopeResultKey = null;
 let calendarResult = null;
 let pairResult = null;
 let pairZiweiResult = null;
@@ -406,7 +409,7 @@ function renderLuckStrip(parent, b) {
     const age = append(btn, 'small', 'luck-age'); age.append('虚龄'); age.append(' ' + (y - birthYear + 1));
     if (!supported) {btn.disabled = true; continue;}
     btn.addEventListener('click', () => {
-      ziweiLayer = {mode: 'year', decade: null, year: y};
+      ziweiLayer = {mode: 'year', decade: null, year: y, date: null};
       activateTab(tabs.find(t => t.dataset.tab === 'ziwei'));
       announce('紫微盘已切到 ' + y + ' 年流年层');
     });
@@ -478,7 +481,7 @@ function renderPalacePanel(parent, palace, layer) {
 }
 // Birth-year transformation → badge class (禄 / 权 / 科 / 忌).
 const HUA_CLASS = {'化禄':'lu','化权':'quan','化科':'ke','化忌':'ji'};
-const LAYER_NAMES = {decade: '大限', year: '流年'};
+const LAYER_NAMES = {decade: '大限', small_limit: '小限', year: '流年', month: '流月', day: '流日'};
 // Layer transformations get an outlined badge with a 限 / 年 prefix, so they are
 // told apart from birth-year ones by shape and text, not by colour alone.
 function currentPalaceIndex(palace) {return current && current.ziwei ? current.ziwei.palaces.indexOf(palace) : -1;}
@@ -548,6 +551,20 @@ function ziweiLayerInfo(z) {
   const currentDecade = age ? decades.find(p => age >= p.decade.start_age && age <= p.decade.end_age) || null : null;
   const smallLimit = age ? z.palaces.find(p => (p.small_limit_nominal_ages || []).includes(age)) || null : null;
   let anchor, stem, label;
+  if (mode === 'month' || mode === 'day') {
+    if (currentHourUnknown) return {mode, unavailable: '流月、流日按出生时辰定斗君；时辰不详时无法确定。'};
+    const h = ziweiHoroscope();
+    if (h.error) return {mode, unavailable: '运限计算失败：' + h.error};
+    if (h.pending) return {mode, pending: true, unavailable: '正在计算运限…', horoscope: h.stale || null};
+    const item = h.layers[mode];
+    if (!item.available) return {mode, horoscope: h, unavailable: item.reason};
+    const at = BRANCH_ORDER.indexOf(item.ming_branch);
+    const stemOwner = z.palaces.find(p => p.stem === item.stem);
+    const marks = ['decade', 'year'].concat(mode === 'day' ? ['month'] : []).filter(key => h.layers[key].available)
+      .map(key => ({index: BRANCH_ORDER.indexOf(h.layers[key].ming_branch), text: LAYER_NAMES[key]}));
+    return {mode, anchor: at, stem: item.stem, label: item.label, horoscope: h, marks, age: h.nominal_age,
+      hua: stemOwner ? stemOwner.palace_flying_transformations : [], layerName: index => names[(at - index + 12) % 12]};
+  }
   if (mode === 'decade') {
     if (!decades.length) return {mode, unavailable: '大限需要性别来定顺行或逆行，请在出生资料里选择性别后重新生成命盘。'};
     const start = ziweiLayer.decade !== null ? ziweiLayer.decade : (currentDecade || decades[0]).decade.start_age;
@@ -565,6 +582,41 @@ function ziweiLayerInfo(z) {
     hua: stemPalace ? stemPalace.palace_flying_transformations : [],
     layerName: index => names[(anchor - index + 12) % 12]};
 }
+function ziweiHoroscope() {
+  const request = {birth: currentInput, target_date: ziweiLayer.date || localToday(), hour_unknown: currentHourUnknown};
+  const key = JSON.stringify(request);
+  if (horoscopeKey !== key) {
+    horoscopeKey = key; horoscopeError = '';
+    postJSON('/api/ziwei-horoscope', request)
+      .then(data => {
+        if (horoscopeKey !== key) return;
+        horoscopeResult = data; horoscopeResultKey = key;
+        // The highlighted palace follows the new layer's 命宫 once it is known.
+        const item = data.layers[ziweiLayer.mode];
+        if (item && item.available && current) selectedPalace = current.ziwei.palaces[BRANCH_ORDER.indexOf(item.ming_branch)].name;
+      })
+      .catch(err => {if (horoscopeKey === key) horoscopeError = err.message;})
+      .finally(() => {if (horoscopeKey === key && active === 'ziwei') render();});
+  }
+  if (horoscopeError) return {error: horoscopeError};
+  return horoscopeResultKey === key ? horoscopeResult : {pending: true, stale: horoscopeResult};
+}
+// Every layer in force on the chosen date, one line each: where its 命宫 sits and its stem's 四化.
+function renderHoroscopeStack(h) {
+  const stack = append(result, 'div', 'layer-stack'); stack.id = 'ziwei-layer-stack';
+  append(stack, 'h4', null, '这一天的运限');
+  ['decade', 'small_limit', 'year', 'month', 'day'].forEach(key => {
+    const item = h.layers[key];
+    const row = append(stack, 'div', 'layer-stack-row' + (key === ziweiLayer.mode ? ' active' : ''));
+    append(row, 'b', null, LAYER_NAMES[key]);
+    if (!item.available) {append(row, 'span', 'muted', item.reason); return;}
+    if (item.ming_natal_palace) texts(append(row, 'span'), '命宫在', ' ' + item.ming_branch, ' · ', '本命', ' ' + item.ming_natal_palace);
+    else texts(append(row, 'span'), '命宫在', ' ' + item.ming_branch);
+    const hua = append(row, 'span', 'layer-stack-hua');
+    hua.append(item.stem + '：');
+    item.transformations.forEach(t => {const s = append(hua, 'span'); s.append(t.star); huaBadge(s, t.type, key);});
+  });
+}
 function setZiweiLayer(z, change) {
   Object.assign(ziweiLayer, change);
   const info = ziweiLayerInfo(z);
@@ -577,13 +629,14 @@ function renderZiweiLayerBar(z, layer) {
   const bar = append(result, 'div', 'layer-bar');
   const modes = append(bar, 'div', 'layer-modes');
   modes.setAttribute('role', 'group'); modes.setAttribute('aria-label', '运限层');
-  [['natal', '本命'], ['decade', '大限'], ['year', '流年']].forEach(([mode, text]) => {
+  [['natal', '本命'], ['decade', '大限'], ['year', '流年'], ['month', '流月'], ['day', '流日']].forEach(([mode, text]) => {
     const button = append(modes, 'button', 'layer-btn' + (ziweiLayer.mode === mode ? ' active' : ''), text);
     button.type = 'button'; button.id = 'ziwei-layer-' + mode;
     button.setAttribute('aria-pressed', String(ziweiLayer.mode === mode));
     button.addEventListener('click', () => setZiweiLayer(z, {mode}));
   });
-  if (!layer) {append(bar, 'small', 'layer-hint', '切到大限或流年，宫名、四化和三方四正会按那一层重新标注。'); return;}
+  if (!layer) {append(bar, 'small', 'layer-hint', '切到大限、流年、流月或流日，宫名、四化和三方四正会按那一层重新标注。'); return;}
+  if (layer.mode === 'month' || layer.mode === 'day') {renderDateLayerStep(bar, z, layer); return;}
   if (layer.unavailable) {append(bar, 'small', 'layer-hint', layer.unavailable); return;}
   const step = append(bar, 'div', 'layer-step');
   const move = delta => {
@@ -606,12 +659,38 @@ function renderZiweiLayerBar(z, layer) {
   const now = append(step, 'button', 'tiny-button', layer.mode === 'decade' ? '当前大限' : '今年'); now.type = 'button'; now.id = 'ziwei-layer-now';
   now.addEventListener('click', () => setZiweiLayer(z, layer.mode === 'decade' ? {decade: null, year: null} : {year: null}));
 }
+// 流月 / 流日: pick any date, step by the engine's month segments or by one day.
+function renderDateLayerStep(bar, z, layer) {
+  const step = append(bar, 'div', 'layer-step');
+  const nav = layer.horoscope ? layer.horoscope.navigation : null;
+  const month = layer.mode === 'month';
+  const target = (month ? ['previous_month', 'next_month'] : ['previous_day', 'next_day']).map(key => nav && nav[key]);
+  const birthDay = currentInput.birth_datetime.slice(0, 10);
+  const prev = append(step, 'button', 'tiny-button', '‹'); prev.type = 'button'; prev.id = 'ziwei-layer-prev';
+  prev.setAttribute('aria-label', month ? '上一个流月' : '前一天');
+  prev.disabled = !target[0] || target[0] < birthDay;
+  prev.addEventListener('click', () => setZiweiLayer(z, {date: target[0]}));
+  const picker = append(step, 'input', 'layer-date'); picker.type = 'date'; picker.id = 'ziwei-layer-date';
+  picker.setAttribute('aria-label', month ? '流月日期' : '流日日期');
+  picker.min = birthDay > '1901-02-19' ? birthDay : '1901-02-19'; picker.max = '2099-12-31';
+  picker.value = ziweiLayer.date || localToday();
+  picker.addEventListener('change', () => {if (picker.value) setZiweiLayer(z, {date: picker.value});});
+  const next = append(step, 'button', 'tiny-button', '›'); next.type = 'button'; next.id = 'ziwei-layer-next';
+  next.setAttribute('aria-label', month ? '下一个流月' : '后一天');
+  next.disabled = !target[1];
+  next.addEventListener('click', () => setZiweiLayer(z, {date: target[1]}));
+  const now = append(step, 'button', 'tiny-button', month ? '本月' : '今天'); now.type = 'button'; now.id = 'ziwei-layer-now';
+  now.addEventListener('click', () => setZiweiLayer(z, {date: null}));
+  if (layer.unavailable) append(bar, 'small', 'layer-hint', layer.unavailable);
+  else append(bar, 'b', 'layer-label', layer.label);
+}
 function renderZiwei(z) {
-  title(result, '紫微十二宫', '点击宫位：高亮三方四正并查看宫干飞化；上方切换本命、大限、流年');
+  title(result, '紫微十二宫', '点击宫位：高亮三方四正并查看宫干飞化；上方切换本命、大限、流年、流月、流日');
   meta(result, [`命宫 ${z.ming_palace}`, `身宫 ${z.shen_palace}`, z.five_elements_bureau, `命主 ${z.ming_master}`, `身主 ${z.shen_master}`, z.transformation_school]);
   ensureTodayLunarYear();
   const layer = ziweiLayerInfo(z);
   renderZiweiLayerBar(z, layer);
+  if (layer && layer.horoscope && !layer.pending) renderHoroscopeStack(layer.horoscope);
   const live = layer && !layer.unavailable ? layer : null;
   const selected = findPalace(z, selectedPalace);
   const related = new Set();
@@ -661,6 +740,7 @@ function renderZiwei(z) {
     if (p.is_shen) append(marks, 'span', 'palace-mark shen-mark', '身');
     if (live && live.mode === 'year' && live.currentDecade === p) append(marks, 'span', 'palace-mark layer-mark', '大限');
     if (live && live.mode === 'year' && live.smallLimit === p) append(marks, 'span', 'palace-mark layer-mark', '小限');
+    if (live && live.marks) live.marks.filter(m => m.index === index).forEach(m => append(marks, 'span', 'palace-mark layer-mark', m.text));
     if (p.decade) append(foot, 'span', 'decade', `${p.decade.start_age}–${p.decade.end_age}岁`);
     if (p.small_limit_nominal_ages) node.title = '小限虚岁：' + p.small_limit_nominal_ages.slice(0, 6).join('、') + '…';
     node.addEventListener('click', () => {selectedPalace = p.name; render();});
@@ -679,7 +759,7 @@ function renderZiwei(z) {
   const tri = append(legend, 'span', 'legend-lines', '虚线：所选宫位的三方；实线：对宫');
   tri.style.marginLeft = 'auto';
   renderPalacePanel(result, selected, live);
-  if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁。不含流曜与流月流日，也不预测具体事件。');
+  if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。不安流曜，也不预测具体事件。');
   note(result, `部分排盘：现含 ${z.star_counts.main} 主星与 ${z.star_counts.auxiliary} 颗选定辅/杂曜、四组十二神（部分依性别）及经度时制选择；不含全流派与完整流年。所有展示均不等于命运预测。`);
 }
 function renderTransform(z) {
@@ -2186,7 +2266,7 @@ function renderIntegration() {
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
-  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, group_relations: groupResult, rule_matrix: ruleMatrixResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
+  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, ziwei_horoscope:horoscopeResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, group_relations: groupResult, rule_matrix: ruleMatrixResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
 }
 function renderConsultation() {
   title(result, '问题驱动咨询工作流', '真实执行工具 · 保留证据来源 · 不在服务器保存对话');
@@ -2440,6 +2520,7 @@ form.addEventListener('submit', async event => {
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
     dayunResult=null;boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
+    horoscopeResult = null; horoscopeKey = null; horoscopeError = ''; horoscopeResultKey = null;
     selectedPalace = '命宫'; ziweiLayer.decade = null; currentHourUnknown = $('#hour_unknown').checked;
     $('#result-subtitle').textContent = data.birth_datetime.replace('T',' ') + ' · ' + data.timezone;
     $('#download-json').disabled = false;
@@ -2777,9 +2858,9 @@ function crosscheckTable(parent, columns, rows, cells) {
   });
   return table;
 }
-function countRows(parent, rows) {
+function countRows(parent, rows, labels = CROSSCHECK_FIELDS) {
   return crosscheckTable(parent, ['对照项', '参考库', '核对数', '不一致', '一致率'], rows, row => [
-    [CROSSCHECK_FIELDS[row.field]], [row.reference, 'mono'], [row.checked.toLocaleString('en-US'), 'num'],
+    [labels[row.field]], [row.reference, 'mono'], [row.checked.toLocaleString('en-US'), 'num'],
     [String(row.mismatches), 'num'], [(100 * (row.checked - row.mismatches) / row.checked).toFixed(3) + '%', 'num']]);
 }
 function renderCrosscheck(dialog) {
@@ -2802,6 +2883,13 @@ function renderCrosscheck(dialog) {
     '选择「23:00 换日」后与 iztro 的“晚子时”一致', ' ' + (zw.late_zi_next_day.checked - zw.late_zi_next_day.mismatches) + '/' + zw.late_zi_next_day.checked);
   if (zw.late_zi_month_kept) texts(append(dialog, 'p', 'field-help'), '另有', ' ' + zw.late_zi_month_kept + ' ',
     '个出生在月末最后一天或闰月后半月：iztro 晚子时只把日数加一、不进月，玄枢按次日完整的农历日期排，这是规则不同，不是计算错误。');
+  if (d.horoscope) {
+    append(dialog, 'h4', null, '紫微运限对照');
+    texts(append(dialog, 'p', 'field-help'), '随机出生与目标时刻', ' ' + d.horoscope.pairs.toLocaleString('en-US'));
+    countRows(dialog, d.horoscope.rows.map(row => ({...row, reference: 'iztro_py'})), {...LAYER_NAMES, month: '流月（斗君）', hour: '流时'});
+    if (d.horoscope.calendar_differs && !d.horoscope.unexplained) append(dialog, 'p', 'field-help', '流日、流时的少数差异都落在玄枢与 lunar_python 农历日期不同的月份（iztro 的农历取自 lunar_python），日数差一天，宫位就差一宫。');
+    if (d.horoscope.unexplained) texts(append(dialog, 'p', 'field-help'), '另有', ' ' + d.horoscope.unexplained + ' ', '处运限差异尚未解释，清单见完整报告。');
+  }
   append(dialog, 'h4', null, '仍有差异的月份');
   const list = append(dialog, 'ul', 'crosscheck-list'); list.id = 'crosscheck-differences';
   if (!d.differences.length) append(list, 'li', 'muted', '—');

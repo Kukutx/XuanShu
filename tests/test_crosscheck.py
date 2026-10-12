@@ -57,6 +57,15 @@ def test_committed_report_matches_its_data():
     assert all(d['cause'] in {'forecast', 'old_almanac', 'table'} for d in page['differences'])
     assert page['fixes'][0]['cause'] == 'beijing_meridian' and len(page['daily']) + len(page['ziwei']['rows']) == 16
     assert page['ziwei']['late_zi_month_kept'] == late['iztro_keeps_month']['births']
+    # Period layers: every difference from iztro falls in a month where lunar_python's calendar differs.
+    horoscope = data['horoscope']
+    assert horoscope['sample']['pairs'] == 1000 and set(horoscope['results']) == {'decade', 'small_limit', 'year', 'month', 'day', 'hour'}
+    mismatches = sum(item['mismatches'] for item in horoscope['results'].values())
+    assert mismatches == sum(horoscope['lunar_python_calendar_differs'].values())
+    assert page['horoscope']['unexplained'] == 0 and page['horoscope']['calendar_differs'] == mismatches
+    assert [(row['field'], row['mismatches']) for row in page['horoscope']['rows']] == [
+        (key, horoscope['results'][key]['mismatches']) for key in ('decade', 'small_limit', 'year', 'month', 'day', 'hour')]
+    assert '## 紫微运限对照 iztro-py' in readme
     app_js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     assert "fetch('/static/crosscheck-summary.json')" in app_js and 'id="crosscheck-open"' in (ROOT / 'static/index.html').read_text(encoding='utf-8')
     pins = (ROOT / 'docs/evals/requirements.txt').read_text(encoding='utf-8')

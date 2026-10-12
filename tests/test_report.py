@@ -70,7 +70,7 @@ def test_report_rest_and_auth(monkeypatch):
 
 
 def test_report_mcp_and_prompt():
-    assert len(TOOL_DEFS)==33
+    assert len(TOOL_DEFS)==34
     assert len(RESOURCES)==17
     assert len(PROMPTS)==15
     resp=process_rpc({'jsonrpc':'2.0','id':1,'method':'tools/call','params':{
@@ -99,4 +99,4 @@ def test_report_frontend_skill_wiring():
     skill=(root/'skills/structured-dossier/SKILL.md').read_text(encoding='utf-8')
     assert 'structured_report' in skill and 'provenance' in skill
     assert CLIENT.get('/api/capabilities').json()['counts']=={
-        'mcp_tools':33,'mcp_resources':17,'mcp_prompts':15,'agent_skills':18}
+        'mcp_tools':34,'mcp_resources':17,'mcp_prompts':15,'agent_skills':18}

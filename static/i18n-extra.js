@@ -70,6 +70,10 @@ const UI_EXTRA = {
 " · changes with the hour",
 " · 時辰で変化"
 ],
+" 不在小限表内。": [
+" is not in the small-limit table.",
+" は小限表にありません。"
+],
 " 不在本流派专家可用的工具范围内": [
 " is not within the tools available to this school's expert",
 " はこの流派の専門家が使えるツールの範囲外です"
@@ -182,6 +186,10 @@ const UI_EXTRA = {
 " hours from it: a slightly different solar-term instant or timezone handling can change the month pillar.",
 " 時間：節気時刻やタイムゾーンの扱いが少し違うだけで月柱が変わることがあります。"
 ],
+" 岁起），童限未列出。": [
+" onward); the childhood limit is not listed.",
+" 歳から）。童限は表示しません。"
+],
 " 年": [
 " years",
 " 年"
@@ -274,9 +282,17 @@ const UI_EXTRA = {
 " traceable observations",
 " 組の追跡可能な観察"
 ],
+" 超出十二个大限。": [
+" is beyond the twelve decade limits.",
+" は十二の大限を超えています。"
+],
 " 辅星 · 生年四化": [
 " auxiliary stars · Birth-year Four Transformations",
 " 輔星 · 生年四化"
+],
+" 还没到第一个大限（": [
+" has not reached the first decade limit (from age",
+" はまだ最初の大限に達していません（"
 ],
 " 项": [
 " items",
@@ -718,6 +734,10 @@ const UI_EXTRA = {
 "Previous major limit",
 "前の大限"
 ],
+"上一个流月": [
+"Previous month layer",
+"前の流月"
+],
 "上一年": [
 "Previous year",
 "前年"
@@ -741,6 +761,10 @@ const UI_EXTRA = {
 "下一个大限": [
 "Next major limit",
 "次の大限"
+],
+"下一个流月": [
+"Next month layer",
+"次の流月"
 ],
 "下一年": [
 "Next year",
@@ -1270,6 +1294,14 @@ const UI_EXTRA = {
 "From this person → other",
 "この人から → 相手"
 ],
+"从流日命宫起子时，每个时辰顺行一宫；四化取时干": [
+"From the day layer's Life palace, Zi hour first, one palace forward per double hour; transformations from the hour stem",
+"流日の命宮から子の刻を起こし、時辰ごとに一宮ずつ順行。四化は時干から"
+],
+"从流月命宫起初一，每日顺行一宫；四化取日干": [
+"From the month layer's Life palace, the first day first, one palace forward per day; transformations from the day stem",
+"流月の命宮から初一を起こし、一日ごとに一宮ずつ順行。四化は日干から"
+],
 "代表本地时刻": [
 "Representative local time",
 "代表ローカル時刻"
@@ -1357,6 +1389,10 @@ const UI_EXTRA = {
 "传统术数缺乏可靠科学依据，不用于医疗、投资、法律或重大决策。": [
 "Traditional divination arts lack a reliable scientific basis and are not to be used for medical, investment, legal or major decisions.",
 "伝統術数には信頼できる科学的根拠がなく、医療・投資・法律や重大な意思決定には用いません。"
+],
+"传统虚岁：目标农历年减出生农历年再加一": [
+"Traditional nominal age: the target lunar year minus the birth lunar year, plus one",
+"伝統的な数え年：対象の旧暦年から出生の旧暦年を引いて一を足す"
 ],
 "传统虚岁；出生当年按一岁计算，非周岁": [
 "Traditional nominal age; counted as one year old in the birth year, not age in completed years",
@@ -2078,6 +2114,10 @@ const UI_EXTRA = {
 "min",
 "分"
 ],
+"切到大限、流年、流月或流日，宫名、四化和三方四正会按那一层重新标注。": [
+"Switch to a decade, year, month or day layer to relabel the palace names, transformations and trine-opposite lines for that layer.",
+"大限・流年・流月・流日に切り替えると、宮名・四化・三方四正がその層で付け直されます。"
+],
 "切到大限或流年，宫名、四化和三方四正会按那一层重新标注。": [
 "Switch to a major limit or a year and the palace names, four transformations and trine lines are relabelled for that layer.",
 "大限または流年に切り替えると、宮名・四化・三方四正がその層で付け直されます。"
@@ -2145,6 +2185,10 @@ const UI_EXTRA = {
 "前六个干支：": [
 "First six stem-branch pairs:",
 "最初の六つの干支："
+],
+"前后翻页的日期是 target_date，配合同一个 target_time 使用；选了 23:00 换日时已扣回提前的一天。": [
+"The previous and next dates are target_date values to use with the same target_time; with the 23:00 day change the day already added is taken back off.",
+"前後の日付は同じ target_time と組み合わせる target_date です。23:00 換日を選んだ場合は繰り上げた一日を差し引いています。"
 ],
 "前后误差（分钟）": [
 "± error (min)",
@@ -2489,6 +2533,10 @@ const UI_EXTRA = {
 "只有 lunardate 不同；这份表的月份长度与天象不符。": [
 "Only lunardate differs; its table gives month lengths that do not match the sky.",
 "lunardate のみ異なります。この表の月の長さが天象と合いません。"
+],
+"只标出各层的命宫与四化落在哪颗本命星上，不安流曜，不预测具体事件。": [
+"Only marks each layer's Life palace and which natal stars its transformations fall on; no flowing stars and no event forecast.",
+"各層の命宮と、四化がどの本命星に付くかだけを示します。流曜は置かず、具体的な出来事は予測しません。"
 ],
 "只校验实际给出的字段；未提供的逐宫字段不计为一致。": [
 "Only fields actually provided are checked; per-palace fields not provided are not counted as consistent.",
@@ -2978,6 +3026,10 @@ const UI_EXTRA = {
 "End of Heat (Chushu)",
 "処暑"
 ],
+"处运限差异尚未解释，清单见完整报告。": [
+"period-layer differences are not yet explained; see the full report for the list.",
+"件の運限の差はまだ説明がつきません。一覧は完全なレポートを参照してください。"
+],
 "备份中存在格式错误的档案": [
 "Backup contains malformed profiles",
 "バックアップに形式の誤ったプロフィールがあります"
@@ -3130,9 +3182,17 @@ const UI_EXTRA = {
 "Major limit ",
 "大限 "
 ],
+"大限的起运岁数和所在宫位取决于五行局与命宫，时辰不详时无法确定。": [
+"The decade starting ages and palaces depend on the five-element bureau and the Life palace, which cannot be fixed when the birth hour is unknown.",
+"大限の起運年齢と宮は五行局と命宮で決まるため、生時が不明だと確定できません。"
+],
 "大限需要性别来定顺行或逆行，请在出生资料里选择性别后重新生成命盘。": [
 "Major limits need a gender to set the direction; choose one in the birth details and generate the chart again.",
 "大限は順行・逆行を決めるために性別が必要です。出生情報で性別を選び、命盤を作り直してください。"
+],
+"大限顺行或逆行取决于性别；出生资料未选性别。": [
+"Whether decade limits run forward or backward depends on gender; no gender is selected in the birth data.",
+"大限の順行・逆行は性別で決まります。出生情報で性別が選ばれていません。"
 ],
 "大雪": [
 "Major Snow (Daxue)",
@@ -3642,9 +3702,17 @@ const UI_EXTRA = {
 "Minor limit",
 "小限"
 ],
+"小限 · ": [
+"Small limit · ",
+"小限 · "
+],
 "小限虚岁：": [
 "Minor-limit nominal ages: ",
 "小限の数え年："
+],
+"小限顺行或逆行取决于性别；出生资料未选性别。": [
+"Whether the small limit runs forward or backward depends on gender; no gender is selected in the birth data.",
+"小限の順行・逆行は性別で決まります。出生情報で性別が選ばれていません。"
 ],
 "小雪": [
 "Minor Snow (Xiaoxue)",
@@ -3881,6 +3949,10 @@ const UI_EXTRA = {
 "年": [
 "Year",
 "年"
+],
+"年 · 虚岁 ": [
+" year · nominal age ",
+"年 · 数え年 "
 ],
 "年/月/日/时 ": [
 "Year/Month/Day/Hour ",
@@ -4562,6 +4634,10 @@ const UI_EXTRA = {
 "Wen Qu",
 "文曲"
 ],
+"斗君：从流年命宫逆数到生月，再顺数到生时为正月，每月顺行一宫；四化取月干（五虎遁）": [
+"Dou Jun: from the year layer's Life palace count back to the birth month, then forward to the birth hour; that palace is the first month and each month moves one palace forward; transformations from the month stem (five-tiger rule)",
+"斗君：流年命宮から生月まで逆に数え、さらに生時まで順に数えた宮が正月。毎月一宮ずつ順行。四化は月干（五虎遁）から"
+],
 "新加坡": [
 "Singapore",
 "シンガポール"
@@ -4894,6 +4970,10 @@ const UI_EXTRA = {
 "Hour unknown: what the hour does not change",
 "時辰不明：時辰に左右されない部分"
 ],
+"时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干和四化星名，不列它们落在哪个本命宫。": [
+"Birth hour unknown: natal palaces and star positions change with the hour, so the small limit and year give only their Life palace branch, stem and transformed stars, not which natal palace they fall in.",
+"生時不明：本命の宮と星の位置は時刻で変わるため、小限・流年は命宮の地支、天干、四化の星名だけを示し、どの本命宮に当たるかは示しません。"
+],
 "时辰交界": [
 "Double-hour boundary",
 "時辰の境界"
@@ -5218,6 +5298,14 @@ const UI_EXTRA = {
 "Natal Life Palace branch (matches public examples); other schools may use the birth-year branch",
 "本命の命宮の地支（公開例と一致）。他の流派では生年の地支を用いる場合があります"
 ],
+"本命宫位所列小限虚岁；四化取该宫宫干": [
+"The nominal ages listed for each natal palace's small limit; transformations from that palace's stem",
+"本命の各宮に記された小限の数え年。四化はその宮の宮干から"
+],
+"本命宫位的大限年龄区间；四化取该宫宫干": [
+"The decade age range of each natal palace; transformations from that palace's stem",
+"本命の各宮の大限年齢区間。四化はその宮の宮干から"
+],
 "本命概览": [
 "Natal overview",
 "本命の概要"
@@ -5237,6 +5325,10 @@ const UI_EXTRA = {
 "本工具只标记数据与计算边界，不替代权威历书或完整紫微流派审查。": [
 "This tool only flags data and calculation boundaries; it does not replace an authoritative almanac or a full Zi Wei school review.",
 "本ツールはデータと計算の境界を示すのみで、権威ある暦書や紫微の流派の完全な審査に代わるものではありません。"
+],
+"本月": [
+"This month",
+"今月"
 ],
 "本机时间 · 历法事实 · 不打吉凶分": [
 "Device clock · calendar facts · no luck scores",
@@ -5546,6 +5638,10 @@ const UI_EXTRA = {
 "Calculating the pillars, solar term and moon phase for the chosen moment…",
 "選んだ時刻の四柱・節気・月相を計算しています…"
 ],
+"正在计算运限…": [
+"Calculating the period layers…",
+"運限を計算中…"
+],
 "正在读取评测结果…": [
 "Loading the evaluation…",
 "評価結果を読み込み中…"
@@ -5686,6 +5782,10 @@ const UI_EXTRA = {
 "No birthplace longitude, so mean and apparent solar time are not in the table; add a longitude in the birth details to compare them too.",
 "出生地の経度がないため、平均太陽時と真太陽時は表にありません。出生情報に経度を入力すると一緒に比較します。"
 ],
+"没有填写时刻（target_time），不列流时。": [
+"No time given (target_time), so the hour layer is not listed.",
+"時刻（target_time）が未入力のため、流時は表示しません。"
+],
 "没有成员的年支或日支凑齐申子辰、亥卯未、寅午戌、巳酉丑。": [
 "No members' year or day branches complete Shen–Zi–Chen, Hai–Mao–Wei, Yin–Wu–Xu or Si–You–Chou.",
 "メンバーの年支・日支で申子辰・亥卯未・寅午戌・巳酉丑がそろう組はありません。"
@@ -5746,9 +5846,57 @@ const UI_EXTRA = {
 "Annual four transformations",
 "流年四化"
 ],
+"流年地支所在宫为流年命宫；四化取年干": [
+"The palace on the year's branch is the year layer's Life palace; transformations from the year stem",
+"流年の地支がある宮が流年命宮。四化は年干から"
+],
 "流年干支以立春为界、按事件当日正午计算；紫微年度四化按农历命名年，两者年界不同。": [
 "The annual stem-branch changes at Start of Spring (Lichun) and is computed at noon on the event day; Zi Wei annual Four Transformations follow the named lunar year, so the two have different year boundaries.",
 "流年干支は立春を境とし、出来事当日の正午で計算します。紫微の年度四化は旧暦の命名年に従うため、両者の年境界は異なります。"
+],
+"流日": [
+"Day layer",
+"流日"
+],
+"流日、流时的少数差异都落在玄枢与 lunar_python 农历日期不同的月份（iztro 的农历取自 lunar_python），日数差一天，宫位就差一宫。": [
+"The few day- and hour-layer differences all fall in months where XuanShu and lunar_python give different lunar dates (iztro takes its lunar dates from lunar_python): one day apart means one palace apart.",
+"流日・流時のわずかな差は、すべて玄枢と lunar_python の旧暦日付が異なる月にあります（iztro の旧暦は lunar_python から）。日数が一日違えば宮も一つずれます。"
+],
+"流日日期": [
+"Day layer date",
+"流日の日付"
+],
+"流时": [
+"Hour layer",
+"流時"
+],
+"流时按所填钟表时间取时辰，不做太阳时换算。": [
+"The hour layer uses the clock time given, without solar-time correction.",
+"流時は入力した時計の時刻で時辰を取り、太陽時の換算はしません。"
+],
+"流月": [
+"Month layer",
+"流月"
+],
+"流月、流日、流时按出生时辰定斗君；时辰不详时无法确定。": [
+"The month, day and hour layers set Dou Jun from the birth hour, so they cannot be determined when the hour is unknown.",
+"流月・流日・流時は生時で斗君を決めるため、時辰不明では決められません。"
+],
+"流月、流日按出生时辰定斗君；时辰不详时无法确定。": [
+"The month and day layers set Dou Jun from the birth hour, so they cannot be determined when the hour is unknown.",
+"流月・流日は生時で斗君を決めるため、時辰不明では決められません。"
+],
+"流月日期": [
+"Month layer date",
+"流月の日付"
+],
+"流月的起法各派不同；这里用斗君，与 iztro 一致。": [
+"Schools start the month layer differently; this uses Dou Jun, as iztro does.",
+"流月の起こし方は流派で異なります。ここでは iztro と同じ斗君を使います。"
+],
+"流月（斗君）": [
+"Month layer (Dou Jun)",
+"流月（斗君）"
 ],
 "流派": [
 "School",
@@ -5853,6 +6001,10 @@ const UI_EXTRA = {
 "点击宫位：高亮三方四正并查看宫干飞化；上方切换本命、大限、流年": [
 "Click a palace to highlight its trine and opposite and see its stem's flying transformations; switch natal, major limit and year above",
 "宮をクリックすると三方四正を強調し宮干飛化を表示します。上で本命・大限・流年を切り替えます"
+],
+"点击宫位：高亮三方四正并查看宫干飞化；上方切换本命、大限、流年、流月、流日": [
+"Click a palace to highlight its trine and opposite and see its stem's flying transformations; switch natal, decade, year, month and day layers above",
+"宮をクリックすると三方四正を強調し宮干飛化を表示。上で本命・大限・流年・流月・流日を切り替え"
 ],
 "点击左侧「生成命盘」开始计算": [
 "Click 'Generate chart' at left to start",
@@ -6386,9 +6538,9 @@ const UI_EXTRA = {
 "Zi Wei Dou Shu comparison",
 "紫微斗数の照合"
 ],
-"紫微新增选定杂曜、四组十二神与虚岁小限；仍缺完整流曜、流月和流派逐宫验证": [
-"Zi Wei adds selected minor stars, four sets of twelve spirits, and nominal-age minor limits; still missing complete transit stars, monthly charts, and palace-by-palace school verification",
-"紫微に選定した雑曜、4組の十二神、数え年の小限を追加。完全な流曜、流月、流派ごとの宮単位の検証はまだありません"
+"紫微新增选定杂曜、四组十二神与虚岁小限；运限层（大限到流时）见 ziwei_horoscope；仍缺完整流曜和流派逐宫验证": [
+"Zi Wei adds selected minor stars, four twelve-spirit series and nominal-age small limits; period layers (decade to hour) are in ziwei_horoscope; full flowing stars and palace-by-palace school verification are still missing",
+"紫微に選定の雑曜、四組の十二神、数え年の小限を追加。運限層（大限から流時）は ziwei_horoscope。完全な流曜と流派ごとの宮単位の検証はまだありません"
 ],
 "紫微星曜和四化按选定公开流派规则，仅部分实现；不同流派可能不一致。": [
 "Zi Wei stars and Four Transformations follow selected public school rules and are only partially implemented; different schools may disagree.",
@@ -6397,6 +6549,14 @@ const UI_EXTRA = {
 "紫微盘已切到 ": [
 "Zi Wei chart switched to ",
 "紫微盤を切り替えました："
+],
+"紫微运限对照": [
+"Zi Wei period layers",
+"紫微の運限の照合"
+],
+"紫微运限（大限到流时）": [
+"Zi Wei periods (decade to hour)",
+"紫微の運限（大限から流時まで）"
 ],
 "紫微重点宫位说明": [
 "Notes on key Zi Wei palaces",
@@ -7246,6 +7406,14 @@ const UI_EXTRA = {
 "Time layers follow published traditional rules: major limits start from the five-phase bureau and run forward for yang males and yin females, with transformations from the limit palace's stem; the annual Life palace is the palace of the year's branch, with transformations from the year stem; minor limits use nominal age. Annual stars, months and days are not included, and no specific events are predicted.",
 "運限の層は公開された伝統規則で表示します：大限は五行局から起こし陽男陰女は順行、四化は大限宮の宮干から取ります。流年命宮はその年の地支の宮、四化は年干から取ります。小限は数え年です。流曜・流月・流日は含まず、具体的な出来事も予測しません。"
 ],
+"运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。不安流曜，也不预测具体事件。": [
+"Period layers follow the public traditional rules: decades start from the five-element bureau and run forward for yang men and yin women, with transformations from the decade palace's stem; the year layer's Life palace is the palace on the year's branch, with transformations from the year stem; the small limit follows the nominal age; the month layer follows Dou Jun (from the year layer's Life palace count back to the birth month, then forward to the birth hour for the first month) and moves one palace per month, with transformations from the month stem; the day layer starts from the month layer's Life palace on the first day and moves one palace per day, with transformations from the day stem. No flowing stars and no event forecast.",
+"運限層は公開されている伝統規則で示します。大限は五行局から起こし、陽男陰女は順行、四化は大限宮の宮干から。流年命宮はその年の地支がある宮、四化は年干から。小限は数え年。流月は斗君（流年命宮から生月まで逆に数え、生時まで順に数えた宮が正月）で毎月順行、四化は月干から。流日は流月命宮を初一として毎日順行、四化は日干から。流曜は置かず、具体的な出来事も予測しません。"
+],
+"运限计算失败：": [
+"Period calculation failed: ",
+"運限の計算に失敗しました："
+],
 "近似起始公历": [
 "Approx. Gregorian start",
 "近似開始西暦"
@@ -7265,6 +7433,10 @@ const UI_EXTRA = {
 "还没有记忆。AI 提议的内容或你手动添加的背景会显示在这里，并随每次提问发送给模型。": [
 "No memory yet. Content suggested by the AI or background you add manually will appear here and be sent to the model with each question.",
 "まだ記憶はありません。AI が提案した内容や手動で追加した背景がここに表示され、質問のたびにモデルへ送信されます。"
+],
+"这一天的运限": [
+"Periods in force on this day",
+"この日の運限"
 ],
 "这个结论的依据是什么？": [
 "What is this conclusion based on?",
@@ -7574,6 +7746,10 @@ const UI_EXTRA = {
 "Chu (Remove)",
 "除"
 ],
+"随机出生与目标时刻": [
+"Random birth and target times",
+"ランダムな出生時刻と対象時刻"
+],
 "随机出生时刻": [
 "Random birth moments:",
 "無作為の出生時刻"
@@ -7717,6 +7893,14 @@ const UI_EXTRA = {
 "龙池": [
 "Long Chi",
 "龍池"
+],
+"（上半月，按": [
+"(first half, counted as ",
+"（前半月、"
+],
+"（下半月，按": [
+"(second half, counted as ",
+"（後半月、"
 ],
 "（农历 ": [
 " (lunar ",

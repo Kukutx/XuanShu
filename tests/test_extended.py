@@ -102,7 +102,7 @@ def test_modern_discovery_list_and_tool_with_real_response():
     assert MODERN_PROTOCOL in discovery.json()['result']['supportedVersions']
     assert discovery.json()['result']['resultType']=='complete'
     tools=modern('tools/list')
-    assert tools.status_code==200 and len(tools.json()['result']['tools'])==33
+    assert tools.status_code==200 and len(tools.json()['result']['tools'])==34
     args={'lunar_year':2024,'lunar_month':1,'lunar_day':1}
     call=modern('tools/call',{'name':'lunar_to_gregorian','arguments':args})
     assert call.status_code==200 and call.json()['result']['structuredContent']['gregorian_date']=='2024-02-10'
@@ -161,5 +161,5 @@ def test_release_ui_and_skills_wired():
     root=Path(__file__).resolve().parents[1]
     js=(root/'static/app.js').read_text(encoding='utf-8')
     assert "'/api/lunar-to-gregorian'" in js and "'/api/birth-window'" in js
-    assert '33 MCP TOOLS' in (root/'static/index.html').read_text(encoding='utf-8')
+    assert '34 MCP TOOLS' in (root/'static/index.html').read_text(encoding='utf-8')
     assert len(list((root/'skills').glob('*/SKILL.md')))==18
