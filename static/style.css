@@ -273,6 +273,12 @@ a{color:inherit;text-decoration:none}
 .ziwei-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
 .ziwei-lines line{stroke:var(--gold);stroke-width:1.2;stroke-dasharray:4 4;vector-effect:non-scaling-stroke;opacity:.8}
 .ziwei-lines line.opposite{stroke-dasharray:none;opacity:.55}
+/* Flying transformations of the selected palace: one curve per 禄权科忌, named again by the badge in the target palace. */
+.ziwei-lines path.fly{fill:none;stroke-width:1.8;vector-effect:non-scaling-stroke;opacity:.9}
+.ziwei-lines .fly-lu{stroke:var(--lu)}.ziwei-lines .fly-quan{stroke:var(--quan)}.ziwei-lines .fly-ke{stroke:var(--ke)}
+.ziwei-lines .fly-ji{stroke:var(--ji);stroke-dasharray:6 3}
+.palace-mark.fly-mark{background:transparent;border:1px solid currentColor}
+.fly-mark.fly-lu{color:var(--lu)}.fly-mark.fly-quan{color:var(--quan)}.fly-mark.fly-ke{color:var(--ke)}.fly-mark.fly-ji{color:var(--ji)}
 .palace{position:relative;z-index:1;min-width:0;border:1px solid var(--border-strong);border-radius:6px;padding:8px 9px 9px;background:var(--panel2);display:flex;flex-direction:column;transition:border-color .15s,background .15s}
 .palace.ming{border-color:var(--gold);background:linear-gradient(var(--accent-soft),var(--accent-soft)),var(--panel2)}
 .palace.shen{box-shadow:inset 0 0 0 1px rgba(145,188,166,.45)}
@@ -536,6 +542,12 @@ a{color:inherit;text-decoration:none}
 .group-profile small{margin-left:auto;font-size:11px}
 .group-extra{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:4px 0;border-bottom:1px dashed var(--border)}
 .group-extra small{font-size:11px}
+.group-profile-item{display:flex;flex-direction:column;gap:4px;min-width:0}
+.group-profile-item.has-note{grid-column:1 / -1}
+.group-note-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-left:24px}
+.group-note-row small{font-size:11px}
+.group-note{flex:1 1 140px;min-width:0;max-width:260px;font-size:12px;padding:5px 8px}
+.group-note-text{margin:2px 0 0;font-size:12px;color:var(--text2);overflow-wrap:anywhere;border-left:2px solid var(--accent-line);padding-left:6px}
 .group-run{align-items:center}
 .group-count{font-size:13px;color:var(--muted)}
 .group-members{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:10px;margin:14px 0 6px}

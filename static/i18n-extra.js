@@ -1022,6 +1022,10 @@ const UI_EXTRA = {
 "Brightness of the main stars, Wen-chang/Wen-qu, Huo/Ling and Qing-yang/Tuo-luo",
 "主星と昌曲・火鈴・羊陀の廟旺利陥"
 ],
+"主星亮度": [
+"major star brightness",
+"主星の明るさ"
+],
 "主星：": [
 "Main stars: ",
 "主星："
@@ -1494,9 +1498,17 @@ const UI_EXTRA = {
 "e.g. considering a career change into design",
 "例：デザイン職への転職を検討中"
 ],
+"保存到档案": [
+"Save to profile",
+"プロフィールに保存"
+],
 "保存失败：当前浏览器无法使用本地存储": [
 "Save failed: local storage is unavailable in this browser",
 "保存失敗：このブラウザではローカルストレージを使用できません"
+],
+"保存失败：浏览器存储不可用": [
+"Save failed: browser storage is unavailable",
+"保存に失敗しました：ブラウザのストレージを使用できません"
 ],
 "修改出生信息": [
 "Edit birth details",
@@ -2213,6 +2225,10 @@ const UI_EXTRA = {
 "初四": [
 "Day 4",
 "4日"
+],
+"删除备注": [
+"Delete note",
+"メモを削除"
 ],
 "删除失败：浏览器存储不可用": [
 "Delete failed: browser storage unavailable",
@@ -3086,9 +3102,25 @@ const UI_EXTRA = {
 "Unsupported backup format or PBKDF2 parameters",
 "バックアップ形式または PBKDF2 パラメータに未対応"
 ],
+"备注只用于这一页和带进 AI 对话的草稿，不发给服务器；档案成员的备注点「保存到档案」后才存进本机浏览器，随档案一起删除和加密备份。": [
+"Notes are used only on this page and in the AI chat draft, never sent to the server. A profile member's note is stored in this browser only after you click “Save to profile”, and is deleted and backed up together with the profile.",
+"メモはこのページと AI 対話の下書きでのみ使われ、サーバーには送られません。プロフィールのメンバーのメモは「プロフィールに保存」を押したときだけこのブラウザに保存され、プロフィールと一緒に削除・暗号化バックアップされます。"
+],
+"备注已从档案删除": [
+"Note removed from the profile",
+"メモをプロフィールから削除しました"
+],
+"备注已保存在本机浏览器": [
+"Note saved in this browser",
+"メモをこのブラウザに保存しました"
+],
 "备注（选填）": [
 "Notes (optional)",
 "メモ（任意）"
+],
+"备注：": [
+"Note: ",
+"メモ："
 ],
 "备选方案（每项输入 0–5 的评分）": [
 "Options (enter a 0–5 score for each)",
@@ -3590,9 +3622,9 @@ const UI_EXTRA = {
 "Palace ",
 "宮 "
 ],
-"宫位主星：每行一个宫名，后接该宫主星，例如「夫妻宫：天机 太阴」；空宫写「空宫」": [
-"Palace stars: one palace name per line followed by its major stars, e.g. \"夫妻宫：天机 太阴\"; write \"空宫\" for an empty palace",
-"宮の主星：1 行に宮名 1 つと主星。例「夫妻宫：天机 太阴」。空宮は「空宫」"
+"宫位主星：每行一个宫名，后接该宫主星，例如「夫妻宫：天机 太阴」；空宫写「空宫」；星名后紧跟庙旺得利平不陷时一并核对亮度，如「紫微庙」「七杀（平）」": [
+"Palace stars: one palace name per line followed by its major stars, e.g. \"夫妻宫：天机 太阴\"; write \"空宫\" for an empty palace; a grade 庙旺得利平不陷 right after a star name is checked too, e.g. \"紫微庙\" or \"七杀（平）\"",
+"宮の主星：1 行に宮名 1 つと主星。例「夫妻宫：天机 太阴」。空宮は「空宫」。星名の直後に廟旺得利平不陥があれば明るさも照合します。例「紫微庙」「七杀（平）」"
 ],
 "宫位关系与查询接口参考，不是个体事件推断": [
 "Reference for palace relationships and query interfaces; not inference about individual events",
@@ -3614,13 +3646,13 @@ const UI_EXTRA = {
 "Palace-stem flying transformations: ",
 "宮干飛化："
 ],
-"宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于": [
-"宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于",
-"宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于"
+"宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于庙": [
+"宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于庙",
+"宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于庙"
 ],
-"宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於": [
-"宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於",
-"宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於"
+"宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於廟": [
+"宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於廟",
+"宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於廟"
 ],
 "家人、团队或朋友的四柱并排 · 只标传统标签，不打分": [
 "Four pillars of family, team or friends side by side · traditional labels only, no score",
@@ -4265,6 +4297,14 @@ const UI_EXTRA = {
 "当日": [
 "That day",
 "当日"
+],
+"彩色曲线：所选宫位的宫干四化飞入哪一宫": [
+"Coloured curves: which palace each stem transformation of the selected palace flies into",
+"色付きの曲線：選んだ宮の宮干四化がどの宮へ飛ぶか"
+],
+"忌入": [
+"Ji in",
+"忌入"
 ],
 "怎么选": [
 "How to choose",
@@ -5166,6 +5206,14 @@ const UI_EXTRA = {
 "Stars",
 "星曜"
 ],
+"星曜亮度的差异来自亮度表，不计入。": [
+"Differences in star brightness come from the brightness table and are not counted.",
+"星の明るさの違いは明るさ表によるもので、数えません。"
+],
+"星曜亮度表因流派而异（得、利、平的判定尤其不同），玄枢使用 iztro 公开的亮度表；星曜落宫一致时，亮度不同只是表不同。": [
+"Star brightness tables differ between schools (especially Good, Fair and Even); XuanShu uses the table iztro publishes. When the stars sit in the same palaces, a different grade only means a different table.",
+"星の明るさ表は流派で異なります（特に得・利・平）。玄枢は iztro が公開する表を使います。星の宮が一致していれば、明るさの違いは表の違いにすぎません。"
+],
 "星曜覆盖：": [
 "Star coverage: ",
 "星曜カバー範囲："
@@ -5553,6 +5601,10 @@ const UI_EXTRA = {
 "本项目明示的规则表；无科学个人属性证明": [
 "Rule tables explicitly stated by this project; no scientific proof of personal attributes",
 "本プロジェクトが明示した規則表。個人の属性に関する科学的証明はありません"
+],
+"权入": [
+"Quan in",
+"権入"
 ],
 "权重": [
 "Weight",
@@ -6526,6 +6578,10 @@ const UI_EXTRA = {
 "'s Three Directions and Four Squares",
 "の三方四正"
 ],
+"的备注": [
+"note",
+"のメモ"
+],
 "盈凸月": [
 "Waxing gibbous",
 "十三夜月（満ちていく凸月）"
@@ -6598,6 +6654,10 @@ const UI_EXTRA = {
 "Check the birth details and generate the chart; BaZi, Zi Wei and the four transformations are computed together.",
 "出生情報を確認して命盤を作成すると、八字・紫微・四化がまとめて計算されます。"
 ],
+"禄入": [
+"Lu in",
+"禄入"
+],
 "禄存": [
 "Lu Cun",
 "禄存"
@@ -6629,6 +6689,10 @@ const UI_EXTRA = {
 "种不同规则下结果与当前完全相同": [
 "alternative rules give exactly the same result",
 "通りの別ルールで結果がまったく同じ"
+],
+"科入": [
+"Ke in",
+"科入"
 ],
 "称呼": [
 "Name",
@@ -6977,6 +7041,22 @@ const UI_EXTRA = {
 "自动识别": [
 "Auto-detect",
 "自動検出"
+],
+"自化忌": [
+"Self Ji",
+"自化忌"
+],
+"自化权": [
+"Self Quan",
+"自化権"
+],
+"自化禄": [
+"Self Lu",
+"自化禄"
+],
+"自化科": [
+"Self Ke",
+"自化科"
 ],
 "艮": [
 "Gen",
@@ -8129,6 +8209,10 @@ const UI_EXTRA = {
 "飞化": [
 "Flying transformations",
 "飛化"
+],
+"飞化连线": [
+"Flying lines",
+"飛化の線"
 ],
 "飞廉": [
 "Fei Lian",

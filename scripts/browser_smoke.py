@@ -57,11 +57,14 @@ def main() -> None:
     i18n_extra_js = (ROOT / 'static/i18n-extra.js').read_text(encoding='utf-8')
     client = TestClient(app)
     counts = {'requests': 0}
+    group_bodies: list[str] = []
 
     def call_api(path: str, data: dict):
         # The page also reads one static data file (the cross-check summary) with fetch.
         if not (path.startswith('/api/') or (data is None and path == '/static/crosscheck-summary.json')):
             raise ValueError('Only /api/ calls can use the local browser bridge')
+        if path == '/api/group-relations':
+            group_bodies.append(json.dumps(data, ensure_ascii=False))
         response = client.get(path) if data is None else client.post(path, json=data)
         counts['requests'] += 1
         return {'ok': response.is_success, 'status': response.status_code, 'data': response.json()}
@@ -182,6 +185,12 @@ def main() -> None:
             page.wait_for_function("() => document.querySelectorAll('.import-table tr.mismatch').length === 1", timeout=30000)
             assert '可能的原因' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '34-import-check.png'), full_page=True)
+            # Brightness printed after a star is compared too; a different grade is a table difference, not a rule.
+            page.locator('#import-text').fill('命宫 紫微庙\n夫妻宫：七杀（平）')
+            page.locator('#import-check-run').click()
+            page.wait_for_function("() => document.querySelectorAll('.import-table tr.mismatch').length === 1", timeout=30000)
+            assert '夫妻宫主星亮度\t七杀平\t七杀庙' in page.locator('.import-table').inner_text()
+            assert '亮度表' in page.locator('#result').inner_text() and page.locator('.import-verdict').count() == 0
 
             # Today card from the header chip: calendar facts for the device clock and labels against the chart.
             assert page.locator('#today-chip').is_visible()
@@ -207,9 +216,33 @@ def main() -> None:
             page.locator('#group-extra-label').fill('同事')
             page.locator('#group-extra-datetime').fill('1992-06-06T09:00')
             page.locator('#group-extra-add').click()
+            # Member notes: a temporary member's stays on the page; a profile's is stored only on 保存到档案.
+            page.locator('#group-extra-note-0').fill('一起做项目')
+            page.locator('#group-note-legacy-1').fill('表姐')
+            page.locator('#group-current-note').fill('本人')
+            # Another current chart starts with an empty note; the first chart's note comes back with it.
+            page.evaluate("() => { window.__chart = currentInput; currentInput = {...currentInput, birth_datetime: '2001-01-01T10:00'}; render(); }")
+            assert page.locator('#group-current-note').input_value() == ''
+            page.evaluate("() => { currentInput = window.__chart; render(); }")
+            assert page.locator('#group-current-note').input_value() == '本人'
+            assert page.evaluate("loadProfiles().find(x => x.id === 'legacy-1').note") is None
+            page.locator('#group-note-save-legacy-1').click()
+            assert page.evaluate("loadProfiles().find(x => x.id === 'legacy-1').note") == '表姐'
             page.locator('#group-run').click()
             page.locator('#group-graph').wait_for(timeout=30000)
             assert page.locator('.group-member').count() == 3 and page.locator('.group-edge').count() == 3
+            assert page.locator('.group-note-text').all_inner_texts() == ['本人', '表姐', '一起做项目']
+            assert group_bodies and all('表姐' not in r and '一起做项目' not in r and '本人' not in r for r in group_bodies), 'Notes must not reach the server'
+            # A selection changed while the request runs does not move the notes onto other members.
+            page.evaluate("""() => { window.__post = postJSON; postJSON = async (...args) => {
+              const reply = await window.__post(...args); groupDraft.useCurrent = false; postJSON = window.__post; return reply; }; }""")
+            page.locator('#group-run').click()
+            page.locator('#group-current:not(:checked)').wait_for(timeout=30000)
+            assert '成员已改变' in page.locator('#result').inner_text()
+            assert page.locator('.group-note-text').all_inner_texts() == ['本人', '表姐', '一起做项目']
+            page.locator('#group-current').check()
+            page.locator('#group-run').click()
+            page.wait_for_function("() => ![...document.querySelectorAll('.feature-note')].some(n => n.textContent.includes('成员已改变'))", timeout=30000)
             assert page.locator('#group-matrix tbody tr').count() == 3 and page.locator('.group-pair').count() == 3
             page.locator('[data-filter="六冲"]').click()
             page.locator('#group-node-0').focus()
@@ -225,7 +258,15 @@ def main() -> None:
                 page.locator('[data-tab="chat"][aria-selected="true"]').wait_for(timeout=30000)
             draft = page.locator('#chat-input').input_value()
             assert draft.startswith('先前没发的问题\n\n请结合多人关系对照') and draft.count('\n- ') == 3, draft
-            assert '- 同事 · 1992-06-06 09:00 · ' in draft, draft
+            assert '- 同事 · 1992-06-06 09:00 · ' in draft and ' · 备注：一起做项目' in draft and ' · 备注：表姐' in draft, draft
+            # An edited note replaces the group's earlier block instead of adding the members again.
+            page.locator('[data-tab="group"]').click()
+            page.locator('#group-extra-note-0').fill('一起做项目两年')
+            page.locator('#group-ask-ai:not([disabled])').click()
+            page.locator('[data-tab="chat"][aria-selected="true"]').wait_for(timeout=30000)
+            draft = page.locator('#chat-input').input_value()
+            assert draft.startswith('先前没发的问题\n\n请结合多人关系对照') and draft.count('\n- ') == 3, draft
+            assert ' · 备注：一起做项目两年' in draft and '备注：一起做项目\n' not in draft and not draft.endswith('备注：一起做项目'), draft
             # Other people's birth data is not sent until the consent box is ticked.
             assert page.locator('#chat-send').is_disabled() and page.locator('#chat-consent-needed').is_visible()
             page.evaluate("() => { chatPartnerOK = true; render(); }")
@@ -233,6 +274,9 @@ def main() -> None:
             page.evaluate("() => { chatPartnerOK = false; render(); }")
             page.screenshot(path=str(screenshot_dir / '39-group-to-chat.png'), full_page=True)
             page.evaluate("() => { chatStatus.enabled = false; chatDraft = ''; }")
+            page.locator('[data-tab="group"]').click()
+            page.locator('#group-note-clear-legacy-1').click()
+            page.wait_for_function("() => loadProfiles().find(x => x.id === 'legacy-1').note === undefined && !document.getElementById('group-note-clear-legacy-1')", timeout=10000)
 
             # Rule differences: the chart recomputed under each common rule choice.
             page.locator('[data-tab="rule-matrix"]').click()
@@ -281,6 +325,16 @@ def main() -> None:
               api: current.ziwei.palaces.flatMap((p, i) => Object.entries(p.star_brightness).map(([star, level]) => star + level + '@palace-' + i)).sort()})''')
             assert bright['shown'] == bright['api'] and len(bright['api']) >= 14, bright
             assert '紫微庙@palace-6' in bright['shown'] and '主星：紫微（庙）' in page.locator('.palace-panel').inner_text()
+            # Flying transformations of the selected Life palace (午, 壬 stem): 天梁 禄 to 卯, 紫微 权 stays (自化),
+            # 左辅 科 to 戌, 武曲 忌 to 寅. One curve per palace it flies into, one badge in each palace.
+            assert page.locator('#ziwei-board path.fly').count() == 3
+            assert page.locator('#palace-3 .fly-mark.fly-lu').inner_text() == '禄入' and page.locator('#palace-6 .fly-mark').inner_text() == '自化权'
+            assert page.locator('#palace-10 .fly-mark.fly-ke').count() == 1 and page.locator('#palace-2 .fly-mark.fly-ji').count() == 1
+            page.locator('#ziwei-fly-toggle').click()
+            assert page.locator('#ziwei-board path.fly').count() == 0 and page.locator('.fly-mark').count() == 0
+            assert page.locator('#ziwei-fly-toggle').get_attribute('aria-pressed') == 'false'
+            page.locator('#ziwei-fly-toggle').click()
+            assert page.locator('#ziwei-board path.fly').count() == 3
             page.locator('#ziwei-layer-decade').click()
             assert page.locator('.palace-layer').count() == 12
             assert page.locator('.palace.layer-anchor').count() == 1

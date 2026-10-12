@@ -44,7 +44,8 @@
         !item.data || typeof item.data!=='object' ||
         typeof item.data.birth_datetime!=='string' || item.data.birth_datetime.length>50 ||
         typeof item.data.timezone!=='string' || item.data.timezone.length>100 ||
-        (item.data.longitude!=null && (!Number.isFinite(item.data.longitude) || Math.abs(item.data.longitude)>180))) {
+        (item.data.longitude!=null && (!Number.isFinite(item.data.longitude) || Math.abs(item.data.longitude)>180)) ||
+        (item.note!=null && (typeof item.note!=='string' || item.note.length>120))) {
         throw new Error('备份中存在格式错误的档案');
       }
     }

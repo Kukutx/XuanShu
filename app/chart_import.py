@@ -2,7 +2,8 @@
 
 The pasted text is parsed for what charts commonly print: the four pillars, the
 Zi Wei Life and Body palaces, the five-elements bureau, the Life and Body
-masters, the major stars of each palace and the birth-year transformations.
+masters, the major stars of each palace (with their brightness when printed)
+and the birth-year transformations.
 Each recognized field is compared with XuanShu's chart for the same birth data.
 When fields differ, the same birth is recomputed under the rule choices that
 commonly differ between programs, and every variant that reproduces the pasted
@@ -17,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .engines import BRANCHES, STEMS, BirthInput, calculate_bazi, calculate_ziwei, normalized_dt
 from .reference import FOUR_TYPES
-from .ziwei_extensions import BODYMASTER_BY_YEAR_BRANCH, LIFEMASTER_BY_BRANCH
+from .ziwei_extensions import BODYMASTER_BY_YEAR_BRANCH, BRIGHTNESS_LEVELS, LIFEMASTER_BY_BRANCH
 
 MAJOR_STARS = ('紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军')
 TRANSFORMING_STARS = MAJOR_STARS + ('文昌', '文曲', '左辅', '右弼')
@@ -29,11 +30,13 @@ PALACE_ALIASES = {
     '田宅': '田宅宫', '福德': '福德宫', '父母': '父母宫',
 }
 # Traditional characters that appear in chart terms, so charts from Taiwan and Hong Kong parse too.
-TRADITIONAL = str.maketrans('宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於', '宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于')
+TRADITIONAL = str.maketrans('宮財遷僕祿機陽貞貪門軍權時殺陰輔羅鈴鉞業體帛無於廟', '宫财迁仆禄机阳贞贪门军权时杀阴辅罗铃钺业体帛无于庙')
 STEM_CLASS, BRANCH_CLASS = '[' + ''.join(STEMS) + ']', '[' + ''.join(BRANCHES) + ']'
 PALACE_PATTERN = re.compile('(' + '|'.join(sorted(PALACE_ALIASES, key=len, reverse=True)) + r')\s*宫?')
 PILLAR_NAMES = {'year': '年柱', 'month': '月柱', 'day': '日柱', 'hour': '时柱'}
 TYPE_NAMES = {t: '生年' + t for t in FOUR_TYPES}
+# A brightness grade printed right after a star name: 紫微庙, 七杀(平), 天府【得】.
+BRIGHTNESS_AFTER = r'\s*[（(【\[]?\s*([' + BRIGHTNESS_LEVELS + '])'
 
 
 class ChartImportRequest(BaseModel):
@@ -103,7 +106,7 @@ def parse_chart_text(text: str) -> dict:
     # Life/Body master mentions are blanked first so a master star is not read as a star of the palace.
     body = re.sub(r'[命身]主\s*[：:]?\s*[一-鿿]{2}', lambda m: ' ' * len(m.group()), text)
     body = re.sub(r'[命身]宫\s*(?:在|位于|落)', lambda m: ' ' * len(m.group()), body)
-    palaces = {}
+    palaces, brightness = {}, {}
     for line in body.splitlines():
         found = list(PALACE_PATTERN.finditer(line))
         for i, m in enumerate(found):
@@ -112,8 +115,13 @@ def parse_chart_text(text: str) -> dict:
             name = PALACE_ALIASES[m.group(1)]
             if stars or re.search(r'空宫|无\s*主星', segment):
                 palaces.setdefault(name, sorted(stars, key=MAJOR_STARS.index))
+            levels = {s: g.group(1) for s in stars if (g := re.search(s + BRIGHTNESS_AFTER, segment))}
+            if levels and name not in brightness:
+                brightness[name] = levels
     if palaces:
         parsed['palace_major_stars'] = palaces
+    if brightness:
+        parsed['palace_brightness'] = brightness
     return parsed
 
 
@@ -142,6 +150,13 @@ def _compare(parsed: dict, bazi: dict, ziwei: dict) -> list[dict]:
     for name, stars in parsed.get('palace_major_stars', {}).items():
         ours = sorted(by_name[name]['main_stars'], key=MAJOR_STARS.index)
         add('ziwei.palace.' + name, name + '主星', '、'.join(stars) or '空宫', '、'.join(ours) or '空宫')
+    # Brightness is compared only for stars that sit in the same palace on both charts.
+    for name, levels in parsed.get('palace_brightness', {}).items():
+        mine = by_name[name]['star_brightness']
+        shared = [star for star in levels if star in mine]
+        if shared:
+            add('ziwei.brightness.' + name, name + '主星亮度', '、'.join(star + levels[star] for star in shared),
+                '、'.join(star + mine[star] for star in shared))
     ours_hua = {t['type']: t['star'] for t in ziwei['birth_year_transformations']}
     for kind, star in parsed.get('transformations', {}).items():
         add('ziwei.transformation.' + kind, TYPE_NAMES[kind], star, ours_hua.get(kind))
@@ -205,6 +220,8 @@ def _causes(birth: BirthInput, fields: list[dict], bazi: dict, ziwei: dict) -> l
         causes.append('时辰不同会连带改变命宫、身宫和星曜位置，先核对出生时间。')
     if any(k.startswith('ziwei.transformation') for k in wrong):
         causes.append('四化表因流派而异（例如庚、壬年的化科化忌），玄枢使用《紫微斗数全书》表。')
+    if any(k.startswith('ziwei.brightness') for k in wrong):
+        causes.append('星曜亮度表因流派而异（得、利、平的判定尤其不同），玄枢使用 iztro 公开的亮度表；星曜落宫一致时，亮度不同只是表不同。')
     return causes
 
 
@@ -214,13 +231,15 @@ def chart_import_check(req: ChartImportRequest) -> dict:
     fields = _compare(parsed, bazi, ziwei)
     mismatched = [f for f in fields if not f['match']]
     variants = []
-    if mismatched:
+    # Rule variants move stars; when only brightness grades differ there is nothing for them to explain.
+    if any(not f['key'].startswith('ziwei.brightness') for f in mismatched):
         for label, alternative in _variants(req.birth):
             try:
                 alt_fields = _compare(parsed, calculate_bazi(alternative), calculate_ziwei(alternative))
             except ValueError:
                 continue
-            wrong = [f['label'] for f in alt_fields if not f['match']]
+            # A brightness table is a school choice no rule variant changes, so it does not count against one.
+            wrong = [f['label'] for f in alt_fields if not f['match'] and not f['key'].startswith('ziwei.brightness')]
             variants.append({'label': label, 'settings': alternative.model_dump(exclude_none=True),
                              'mismatched': len(wrong), 'mismatched_fields': wrong})
         variants.sort(key=lambda v: (v['mismatched'], v['label'].count('+')))
@@ -237,7 +256,7 @@ def chart_import_check(req: ChartImportRequest) -> dict:
         'accepted_formats': [
             '四柱：「年柱 庚辰 月柱 甲申 日柱 丙午 时柱 庚寅」或连续的「庚辰 甲申 丙午 庚寅」',
             '紫微：「命宫在寅」「身宫：夫妻」「水二局」「命主：破军」「身主：天相」',
-            '宫位主星：每行一个宫名，后接该宫主星，例如「夫妻宫：天机 太阴」；空宫写「空宫」',
+            '宫位主星：每行一个宫名，后接该宫主星，例如「夫妻宫：天机 太阴」；空宫写「空宫」；星名后紧跟庙旺得利平不陷时一并核对亮度，如「紫微庙」「七杀（平）」',
             '生年四化：「廉贞化禄」「破军化权」等',
         ],
         'limitations': [
