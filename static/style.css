@@ -19,26 +19,26 @@
 :root[data-theme="light"]{
   color-scheme:light;
   --bg:#f6f2ea;--panel:#fffdf8;--panel2:#f4efe5;--panel3:#ece5d7;--border:#e1d8c7;--border-strong:#8f7f60;
-  --text:#1d1b18;--text2:#35302a;--muted:#6b6357;--faint:#71675a;
-  --gold:#8a6322;--gold2:#6e4a14;--on-gold:#fffaf0;--accent-soft:rgba(138,99,34,.07);--accent-line:rgba(138,99,34,.32);
+  --text:#1d1b18;--text2:#35302a;--muted:#6b6357;--faint:#6b6155;
+  --gold:#825c1e;--gold2:#6e4a14;--on-gold:#fffaf0;--accent-soft:rgba(138,99,34,.07);--accent-line:rgba(138,99,34,.32);
   --green:#2a6f4e;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45);
   --code-bg:#f2ede3;--code-text:#2b2722;--hover:#f1eadc;--shadow:0 10px 30px rgba(80,60,30,.10);
   --ambient-1:rgba(198,150,80,.10);--ambient-2:rgba(120,150,170,.08);
   --wood:#237544;--fire:#b03a22;--earth:#8a5a12;--metal:#696251;--water:#2563a6;
-  --lu:#1f7a47;--quan:#7a48b8;--ke:#2a6db8;--ji:#c63a2c;--on-hua:#fff;
+  --lu:#1b6e40;--quan:#7a48b8;--ke:#2563a8;--ji:#b53526;--on-hua:#fff;
   --dm-0:#9a6a1c;--dm-1:#2f6db5;--dm-2:#2e7d4a;--dm-3:#c0482f;--dm-4:#7550b5;--dm-5:#1f7f7f;--dm-6:#b0427a;--dm-7:#5c6877;
 }
 @media (prefers-color-scheme:light){
   :root:not([data-theme="dark"]){
     color-scheme:light;
     --bg:#f6f2ea;--panel:#fffdf8;--panel2:#f4efe5;--panel3:#ece5d7;--border:#e1d8c7;--border-strong:#8f7f60;
-    --text:#1d1b18;--text2:#35302a;--muted:#6b6357;--faint:#71675a;
-    --gold:#8a6322;--gold2:#6e4a14;--on-gold:#fffaf0;--accent-soft:rgba(138,99,34,.07);--accent-line:rgba(138,99,34,.32);
+    --text:#1d1b18;--text2:#35302a;--muted:#6b6357;--faint:#6b6155;
+    --gold:#825c1e;--gold2:#6e4a14;--on-gold:#fffaf0;--accent-soft:rgba(138,99,34,.07);--accent-line:rgba(138,99,34,.32);
     --green:#2a6f4e;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45);
     --code-bg:#f2ede3;--code-text:#2b2722;--hover:#f1eadc;--shadow:0 10px 30px rgba(80,60,30,.10);
     --ambient-1:rgba(198,150,80,.10);--ambient-2:rgba(120,150,170,.08);
     --wood:#237544;--fire:#b03a22;--earth:#8a5a12;--metal:#696251;--water:#2563a6;
-    --lu:#1f7a47;--quan:#7a48b8;--ke:#2a6db8;--ji:#c63a2c;--on-hua:#fff;
+    --lu:#1b6e40;--quan:#7a48b8;--ke:#2563a8;--ji:#b53526;--on-hua:#fff;
     --dm-0:#9a6a1c;--dm-1:#2f6db5;--dm-2:#2e7d4a;--dm-3:#c0482f;--dm-4:#7550b5;--dm-5:#1f7f7f;--dm-6:#b0427a;--dm-7:#5c6877;
   }
 }
@@ -979,6 +979,7 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .qimen-grid .q-name{font-size:14px;color:var(--text)}
 .qimen-grid .q-stem{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;color:var(--gold2);text-align:right}
 .qimen-grid .q-label{font-size:11px;color:var(--faint);margin-right:4px}
+.qimen-legend{display:none;margin:0 0 6px;font-size:12px;color:var(--text2)}
 .qimen-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:auto}
 .qimen-tag{font-size:11px;border-radius:3px;padding:1px 6px;border:1px solid var(--accent-line);color:var(--gold2)}
 .qimen-tag.void{border-color:var(--warn-line);color:var(--warn)}
@@ -1319,7 +1320,7 @@ html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-
 .bt-seg:last-child{border-right:0}
 .bt-seg.is-alt{background:var(--panel2)}
 .bt-seg.is-birth{box-shadow:inset 0 0 0 2px var(--gold)}
-.bt-seg-num{font-size:11px;color:var(--muted);font-weight:600}
+.bt-seg-num{font-size:11px;color:var(--text2);font-weight:600}
 .bt-seg.is-narrow .bt-seg-num{display:none}
 .bt-tick{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--text2)}
 .bt-tick>.bt-tick-num{position:absolute;bottom:100%;left:50%;transform:translate(-50%,-2px)}
@@ -1617,9 +1618,10 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .tl-cell{height:44px;min-width:40px;border-radius:6px;cursor:pointer;position:relative;line-height:1.05}
 .tl-cell.tl-empty{background:transparent;border:1px dashed var(--border)}
 .tl-cell.tl-note{cursor:default;text-align:left;padding:0 10px;color:var(--muted);border:1px dashed var(--border)}
-.tl-wood{background:color-mix(in srgb,var(--wood) 22%,transparent)}.tl-fire{background:color-mix(in srgb,var(--fire) 22%,transparent)}
-.tl-earth{background:color-mix(in srgb,var(--earth) 22%,transparent)}.tl-metal{background:color-mix(in srgb,var(--metal) 30%,transparent)}
-.tl-water{background:color-mix(in srgb,var(--water) 22%,transparent)}
+/* A light element wash keeps the coloured stems and branches on it readable (AA); the border carries the colour cue. */
+.tl-wood{background:color-mix(in srgb,var(--wood) 12%,transparent);border:1px solid color-mix(in srgb,var(--wood) 45%,transparent)}.tl-fire{background:color-mix(in srgb,var(--fire) 12%,transparent);border:1px solid color-mix(in srgb,var(--fire) 45%,transparent)}
+.tl-earth{background:color-mix(in srgb,var(--earth) 12%,transparent);border:1px solid color-mix(in srgb,var(--earth) 45%,transparent)}.tl-metal{background:color-mix(in srgb,var(--metal) 12%,transparent);border:1px solid color-mix(in srgb,var(--metal) 45%,transparent)}
+.tl-water{background:color-mix(in srgb,var(--water) 12%,transparent);border:1px solid color-mix(in srgb,var(--water) 45%,transparent)}
 .tl-cell.tl-change{box-shadow:inset 3px 0 0 var(--gold)}
 .tl-cell.tl-maybe{background:repeating-linear-gradient(135deg,var(--accent-soft) 0 5px,transparent 5px 10px);border:1px dashed var(--accent-line);color:var(--muted)}
 .tl-cell.tl-selected{outline:2px solid var(--gold);outline-offset:-1px}
@@ -1905,11 +1907,16 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .rule-bar{grid-template-columns:1fr}
   .inline-control input{width:100%}
   .inline-control>label{flex:1;min-width:110px}
+  #result .inline-control input[type=number]{min-width:0;max-width:none}
+  .inline-control>label>select{width:100%;min-width:0}
   .data-table{font-size:12px}
   .qimen-board{gap:4px}
   .qimen-cell{padding:6px;min-height:128px;font-size:12px;gap:3px}
   .qimen-cell strong{font-size:12px}
   .qimen-grid .q-name{font-size:12px}.qimen-grid .q-stem{font-size:15px}
+  .qimen-grid .q-name{min-width:0;overflow-wrap:break-word;hyphens:auto}
+  .qimen-grid .q-stem .q-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .qimen-legend{display:block}
   .element-bar{grid-template-columns:24px minmax(0,1fr) 64px}
 }
 @media(max-width:510px){
@@ -1940,7 +1947,8 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ziwei-board{min-width:580px;gap:4px}
   .ziwei-scroll-hint{display:block}
   .pillar-god,.pillar-sub,.pillar-nayin,.pillar-shensha{font-size:11px}
-  .shensha-tag{padding:0 4px}
+  .shensha-tag{padding:0 4px;white-space:normal;border-radius:8px;text-align:center;max-width:100%}
+  .of-jie-swap{white-space:normal}
   .pillar-shensha .pillar-stage-label{flex-basis:100%}  /* narrow columns: the label on its own line above the stars */
 }
 

@@ -299,6 +299,7 @@ function renderQimen() {
     {label:'值使门及宫位', value:q.zhi_shi_door, detail:'宫 ' + q.zhi_shi_palace},
     {label:'空亡地支', value:q.void_branches.join('、')},
   ]);
+  append(result, 'p', 'qimen-legend', '每宫右侧一列自上而下：天干、暗干、地干。');
   const board=append(result,'div','qimen-board');
   const order=[4,9,2,3,5,7,8,1,6];
   order.forEach(n=>{
