@@ -1700,13 +1700,49 @@ def main() -> None:
             page.locator('[data-tab="report"]').click()
             assert page.locator('#report-year').input_value() == ''
             assert page.locator('#report-deep').is_checked()
+            # Each optional part is a card that says what it needs: without a longitude there is no solar-time audit.
+            assert page.locator('#report-audit').get_attribute('aria-disabled') == 'true' and '没有经度' in page.locator('#report-module-time').inner_text()
+            # The box stays focusable, so its reason is read with it, but a click does not tick it.
+            assert 'report-module-time-need' in page.locator('#report-audit').get_attribute('aria-describedby')
+            page.locator('#report-audit').click(force=True)
+            assert not page.locator('#report-audit').is_checked()
+            assert page.locator('#report-plan').inner_text() == '将运行 4 个计算步骤'
+            page.locator('#report-dayun').check()
+            assert page.locator('#report-plan').inner_text() == '将运行 5 个计算步骤'
+            page.locator('#report-dayun').uncheck()
             page.locator('#report-run').click()
             page.get_by_text('可追溯综合报告', exact=False).first.wait_for(timeout=30000)
             page.locator('#report-download').wait_for(timeout=30000)
             assert '出生数据与排盘边界审计' in page.locator('#result').inner_text()
             assert '规则证据与跨体系差异复核' in page.locator('#result').inner_text()
             assert page.locator('#report-year').input_value() == ''
+            # The report as a document: the pillars, the steps run, a contents list that moves the keyboard to its section.
+            assert page.locator('.rp-pillar').count() == 4 and page.locator('#report-trace li').count() == 4
+            assert page.locator('#report-toc a').count() == page.locator('.rp-section').count() == 5
+            assert page.evaluate("document.activeElement.id") == 'report-doc'
+            page.locator('#report-toc a').nth(4).click()
+            assert page.evaluate("document.activeElement.id") == 'report-sec-4'
+            assert page.evaluate("reportMarkdownSection(reportResult.markdown, '规则证据与跨体系差异复核').startsWith('## 规则证据与跨体系差异复核')")
             page.screenshot(path=str(screenshot_dir / '10-report.png'), full_page=True)
+            # The contents list stays in view beside the report while it is read.
+            page.evaluate("document.querySelector('#report-sec-2').scrollIntoView()")
+            toc_top = page.evaluate("document.querySelector('#report-toc').getBoundingClientRect().top")
+            assert 0 <= toc_top <= 20, toc_top
+            # Each copy button is named by its section, and sits beside the heading rather than inside it.
+            first_title = page.evaluate("reportResult.sections[0].title")
+            assert page.get_by_role('button', name=first_title).count() == 1
+            assert page.get_by_role('heading', name=first_title).locator('button').count() == 0
+            # A chart cast without a birth hour: the report marks the hour pillar and both palaces as unknown, and the
+            # copies say first that the report stands on the 12:00 placeholder.
+            page.locator('#hour_unknown').check()
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => currentHourUnknown && !reportResult", timeout=30000)
+            page.locator('[data-tab="report"]').click()
+            page.locator('#report-run').click()
+            page.locator('#report-hour-note').wait_for(timeout=30000)
+            assert page.locator('.rp-pillar').nth(3).locator('b').text_content() == '??'
+            assert page.evaluate("reportMarkdown(reportResult).startsWith('> 命盘时辰不详')")
+            page.locator('#hour_unknown').uncheck()
             page.locator('[data-tab="integration"]').click()
             # The counts come from the running server's capabilities.
             tools = page.evaluate("fetch('/api/capabilities').then(r => r.json()).then(d => d.counts.mcp_tools)")
@@ -1760,6 +1796,10 @@ def main() -> None:
             page.locator('[data-tab="quality"]').click()
             assert page.locator('#quality-run').is_visible()
             page.screenshot(path=str(screenshot_dir / '13-quality-mobile.png'), full_page=True)
+            # No page is wider than a phone screen.
+            for tab in ('report', 'bazi', 'ziwei'):
+                page.locator(f'[data-tab="{tab}"]').click()
+                assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth"), tab
             # Interface language: English shell, 繁體 conversion of computed text, and back.
             page.set_viewport_size({'width': 1440, 'height': 920})
             page.locator('[data-tab="pair"]').click()

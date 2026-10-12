@@ -1251,6 +1251,10 @@
   "intervals",
   "件の時間帯"
  ],
+ "个计算步骤": [
+  "calculation steps",
+  "個の計算ステップ"
+ ],
  "个边界": [
   " boundaries",
   "個の境界"
@@ -1742,6 +1746,10 @@
  "传统六合 / 六冲 / 同支标签": [
   "Traditional Six Combinations / Six Clashes / same-branch labels",
   "伝統的な六合／六冲／同支ラベル"
+ ],
+ "传统历法与命盘 · 可核验计算报告": [
+  "Traditional calendar and charts · Verifiable calculation report",
+  "伝統暦と命盤 · 検証可能な計算レポート"
  ],
  "传统历法模型，不构成可验证的人生预测": [
   "Traditional calendar model; does not constitute verifiable life prediction",
@@ -2363,6 +2371,10 @@
   "Lunar year must be 1901–2099",
   "旧暦年は 1901–2099 で指定"
  ],
+ "农历年干四化叠加": [
+  "Lunar-year stem transformations overlay",
+  "旧暦年干の四化を重ねる"
+ ],
  "农历年干四化叠加至本命盘，非完整流年盘，不包含流年命宫、限运、流曜。": [
   "The lunar-year stem Four Transformations are overlaid on the natal chart; this is not a complete annual chart and does not include the annual Life Palace, period fortunes or annual stars.",
   "旧暦年干の四化を本命盤に重ねたもので、完全な流年盤ではなく、流年命宮、限運、流曜は含みません。"
@@ -2611,6 +2623,14 @@
   "The birth details changed after this check: the results below belong to the old details. Run the check again.",
   "この照合の後に出生データが変更されました。以下の結果は変更前のデータのものです。もう一度照合してください。"
  ],
+ "出生资料没有性别：自动方向排不出，请填性别或在这里选顺排、逆排。": [
+  "The birth details have no gender, so the direction cannot be set automatically: add a gender, or pick forward or reverse here.",
+  "出生データに性別がないため自動で順逆を決められません。性別を入力するか、ここで順行・逆行を選んでください。"
+ ],
+ "出生资料没有经度，太阳时算不出来；在出生资料里选城市或填经度后再勾选。": [
+  "The birth details have no longitude, so solar time cannot be worked out; choose a city or enter a longitude in the birth details first.",
+  "出生データに経度がないため太陽時を計算できません。出生データで都市を選ぶか経度を入力してからチェックしてください。"
+ ],
  "出生资料质量提示：": [
   "Birth data quality notes: ",
   "出生データの品質に関する注意："
@@ -2731,6 +2751,10 @@
   "First six stem-branch pairs:",
   "最初の六つの干支："
  ],
+ "前后分钟数（1–120）": [
+  "Minutes either side (1–120)",
+  "前後の分数（1–120）"
+ ],
  "前后翻页的日期是 target_date，配合同一个 target_time 使用；选了 23:00 换日时已扣回提前的一天。": [
   "The previous and next dates are target_date values to use with the same target_time; with the 23:00 day change the day already added is taken back off.",
   "前後の日付は同じ target_time と組み合わせる target_date です。23:00 換日を選んだ場合は繰り上げた一日を差し引いています。"
@@ -2746,6 +2770,10 @@
  "力士": [
   "Li Shi",
   "力士"
+ ],
+ "加入八字与紫微的可追溯观察和交叉核查；每条观察依据的字段、规则编号和适用边界在 JSON 数据页里。": [
+  "Adds traceable BaZi and Zi Wei observations and a cross-check between the two; the fields, rule IDs and limits behind each observation are on the JSON data page.",
+  "八字と紫微の追跡可能な所見と相互チェックを加えます。各所見の根拠となるフィールド、ルール番号、適用範囲は JSON データページにあります。"
  ],
  "加入大运时间轴": [
   "Add the luck timeline",
@@ -2898,6 +2926,10 @@
  "十年干支": [
   "Decade stem-branch",
   "十年干支"
+ ],
+ "十年干支大运": [
+  "Ten-year luck pillars",
+  "十年干支の大運"
  ],
  "十年干支大运（非预测）": [
   "Ten-year stem-branch Luck Pillars (not predictive)",
@@ -3327,6 +3359,10 @@
   "The same birth details recalculated under common rule choices · see which fields change",
   "同じ出生情報を各流派の一般的なルールで再計算 · どの項目が変わるか"
  ],
+ "同一出生资料按钟表时间、平太阳时、真太阳时各排一次，列出四柱和命宫的差别。": [
+  "Casts the same birth by clock time, mean solar time and true solar time, and lists how the four pillars and the Life Palace differ.",
+  "同じ出生データを時計時刻・平均太陽時・真太陽時でそれぞれ作盤し、四柱と命宮の違いを示します。"
+ ],
  "同一历法依赖意味着两者相同不构成算法独立认证；不同时要核对临界时刻。": [
   "The same calendar dependency means agreement between the two does not constitute independent algorithmic certification; when they differ, check the critical moments.",
   "同じ暦法に依存しているため、両者の一致はアルゴリズムの独立認証になりません。異なる場合は臨界時刻を照合してください。"
@@ -3482,6 +3518,10 @@
  "命盘时辰不详：四化星由生年天干决定，不随时辰变；但它们落在哪一宫、各宫的宫干和宫干飞化都按 12:00 占位时辰排出，会随时辰而变。": [
   "Birth hour unknown: the transformed stars follow the birth-year stem and do not change with the hour, but the palaces they sit in, each palace's stem and the palace-stem flying transformations are placed with the 12:00 placeholder hour and change with the hour.",
   "出生時刻不明：四化星は生年の天干で決まり時刻では変わりませんが、どの宮に入るか、各宮の宮干と宮干飛化は 12:00 の仮の時刻で配置しており、時刻によって変わります。"
+ ],
+ "命盘时辰不详：本报告按 12:00 占位时辰计算，时柱、命宫、身宫与紫微十二宫都不可靠。": [
+  "Birth hour unknown: this report is computed with a 12:00 placeholder hour, so the hour pillar, Life Palace, Body Palace and the twelve Zi Wei palaces are not reliable.",
+  "出生時刻不明：このレポートは 12:00 の仮の時刻で計算しているため、時柱・命宮・身宮・紫微十二宮は信頼できません。"
  ],
  "命盘时辰不详：本页按 12:00 占位时辰计算，时柱、宫位和时辰交界都不可靠，所以打开时不自动计算。": [
   "Birth hour unknown: this page would work from the 12:00 placeholder, so the hour pillar, palaces and hour boundaries are unreliable, and nothing is computed on opening.",
@@ -3670,6 +3710,10 @@
  "在传统命盘中通常关联什么话题？": [
   " — what topics is this usually associated with in a traditional chart?",
   "は伝統的な命盤で通常どんな話題と関連しますか？"
+ ],
+ "在出生时刻前后若干分钟内找出四柱、命宫等会变的切换点；留空不包含。": [
+  "Finds the moments within some minutes of the birth time where the pillars, the Life Palace and other fields change; leave empty to skip.",
+  "出生時刻の前後数分の間で四柱や命宮などが切り替わる時点を探します。空欄なら含めません。"
  ],
  "在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。": [
   "Choose a gender in the birth details to set the decade direction from the year stem and gender.",
@@ -3863,6 +3907,10 @@
   "Copy JSON",
   "JSON をコピー"
  ],
+ "复制全文 Markdown": [
+  "Copy all as Markdown",
+  "全文を Markdown でコピー"
+ ],
  "复制咨询报告 Markdown": [
   "Copy consultation report Markdown",
   "相談レポートの Markdown をコピー"
@@ -3886,6 +3934,10 @@
  "复制文字盘": [
   "Copy text chart",
   "テキスト命盤をコピー"
+ ],
+ "复制本节": [
+  "Copy section",
+  "この節をコピー"
  ],
  "复制表格": [
   "Copy table",
@@ -3998,6 +4050,10 @@
  "大运按年干阴阳与性别定顺逆，未填性别的成员只列流年。": [
   "Luck direction follows the year stem's yin/yang and gender; members without a gender get the annual pillar only.",
   "大運の順逆は年干の陰陽と性別で決まるため、性別未入力のメンバーは流年のみを示します。"
+ ],
+ "大运方向": [
+  "Luck direction",
+  "大運の方向"
  ],
  "大运方向需要指定性别或手动顺逆": [
   "Luck Pillar direction requires a gender or a manual forward/reverse choice",
@@ -4639,6 +4695,10 @@
   "Jiang Xing",
   "将星"
  ],
+ "将运行": [
+  "Will run",
+  "実行予定"
+ ],
  "将配置中的占位路径替换成你自己的项目路径。运行 Python 的虚拟环境必须先安装项目依赖。": [
   "Replace the placeholder paths in the config with your own project path. The Python virtual environment must have the project dependencies installed first.",
   "設定内のプレースホルダーパスを自分のプロジェクトパスに置き換えてください。Python を実行する仮想環境には事前にプロジェクトの依存関係をインストールする必要があります。"
@@ -4806,6 +4866,10 @@
  "已复制": [
   "Copied",
   "コピーしました"
+ ],
+ "已复制全文": [
+  "Copied all",
+  "全文をコピーしました"
  ],
  "已复制报告": [
   "Report copied",
@@ -5207,6 +5271,14 @@
   "Current chart",
   "現在の命盤"
  ],
+ "当前命盘没有性别：自动方向排不出，请在这里选顺排、逆排，或填性别后重新生成命盘。": [
+  "The current chart has no gender, so the direction cannot be set automatically. Choose forward or reverse here, or fill in the gender and cast the chart again.",
+  "現在の命盤には性別がないため、方向を自動で決められません。ここで順行・逆行を選ぶか、性別を入力して命盤を作り直してください。"
+ ],
+ "当前命盘没有经度，太阳时算不出来；在出生资料里选城市或填经度，重新生成命盘后再勾选。": [
+  "The current chart has no longitude, so solar time cannot be computed. Pick a city or enter a longitude in the birth details, cast the chart again, then tick this.",
+  "現在の命盤には経度がないため、太陽時を計算できません。出生情報で都市を選ぶか経度を入力し、命盤を作り直してからチェックしてください。"
+ ],
  "当前命盘的出生时间晚于此刻，不列个人对照。": [
   "The current chart's birth time is later than this moment, so no personal comparison is shown.",
   "現在の命盤の出生時刻はこの時点より後のため、個人対照は表示しません。"
@@ -5318,6 +5390,10 @@
  "性别（排大运用）": [
   "Gender (for luck pillars)",
   "性別（大運用）"
+ ],
+ "总是包含": [
+  "Always included",
+  "常に含む"
  ],
  "恩光": [
   "En Guang",
@@ -5531,6 +5607,10 @@
   "Puts the members' birth details in the chat box for you to check before sending; tick the consent box in the chat settings first.",
   "メンバーの出生情報を入力欄に入れます。確認してから送信してください。送信前に対話設定で同意の項目にチェックが必要です。"
  ],
+ "把所选农历年的年干四化落到本命十二宫；留空不叠加。": [
+  "Places the four transformations of the chosen lunar year's stem on the natal twelve palaces; leave empty to skip.",
+  "選んだ旧暦年の年干四化を本命十二宮に重ねます。空欄なら重ねません。"
+ ],
  "把独立排盘结果整理为 JSON，包含 reference_source、reference_school、root_fields 和 palaces。每个宫使用 number=1…9；其余只填写需要对照的字段。": [
   "Format the independent chart result as JSON containing reference_source, reference_school, root_fields and palaces. Use number=1…9 for each palace; fill in only the other fields you want compared.",
   "独立した作盤結果を reference_source、reference_school、root_fields、palaces を含む JSON にまとめてください。各宮は number=1…9 を使用し、その他は対照したいフィールドのみ記入します。"
@@ -5546,6 +5626,14 @@
  "报告与集成": [
   "Reports & integration",
   "レポートと連携"
+ ],
+ "报告内容": [
+  "Report contents",
+  "レポートの内容"
+ ],
+ "报告目录": [
+  "Report contents list",
+  "レポートの目次"
  ],
  "拉萨": [
   "Lhasa",
@@ -5634,6 +5722,14 @@
  "按宫列表": [
   "By palace",
   "宮ごとの一覧"
+ ],
+ "按年干阴阳与性别（或手动指定）定顺逆，报告列出起运年龄和前六步大运干支。": [
+  "Sets the direction from the year stem's yin or yang and the gender (or by hand); the report lists the starting age and the first six luck pillars.",
+  "年干の陰陽と性別（または手動指定）で順逆を決め、レポートに起運年齢と最初の六つの大運干支を載せます。"
+ ],
+ "按年干阴阳与性别（或手动指定）排出十步大运和起运年龄。": [
+  "Lays out ten luck pillars and the starting age from the year stem's yin or yang and the gender (or a direction you choose).",
+  "年干の陰陽と性別（または手動指定）から十歩の大運と起運年齢を出します。"
  ],
  "按择日扫描所用时区 ": [
   "Cast with the date scan's time zone ",
@@ -7419,6 +7515,10 @@
   "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
   "各カードはこの年に本人がいる大運と流年です。十神は本人の日主から天干を見ます。流年の後ろの小さな印は原局の地支との関係（冲月は月柱と六冲、合・刑・害も同様、同は同支、日空・年空は旬空に当たる）で、ホバーで全文が見られます。年齢はその年に達する満年齢です。"
  ],
+ "每条观察附上计算字段、规则编号和适用边界，并做八字与紫微的交叉核查。": [
+  "Each observation comes with its calculated fields, rule IDs and limits, plus cross-checks between BaZi and Zi Wei.",
+  "各観察に計算フィールド・規則番号・適用範囲を添え、八字と紫微の相互チェックも行います。"
+ ],
  "每格是该成员已知各柱的天干地支属这一五行的个数（不含藏干），小字是这一五行对该成员日主而言的十神类别；日主所在的五行加框。时辰不详不计时柱，当天交节或换日而不定的柱也不计；日柱也不定时写「日主未定」，不标十神。": [
   "Each cell counts the stems and branches of that member's known pillars belonging to the phase (without hidden stems); the small text is the ten-god group the phase stands for from that member's Day Master, and the Day Master's own phase is outlined. With the hour unknown the hour pillar is not counted, nor a pillar left open by a solar term or day change on the birth day; when the day pillar is open as well the row reads “Day Master unsettled” and no ten-god groups are shown.",
   "各マスはそのメンバーの判明している柱の天干地支のうち、その五行に属する数です（蔵干を除く）。小さい文字はその五行がメンバーの日主から見てどの十神に当たるかで、日主の五行は枠で囲みます。時刻不明なら時柱は数えず、生まれた日に節入りや日替わりがあって決まらない柱も数えません。日柱も決まらないときは「日主未定」と書き、十神は示しません。"
@@ -8203,6 +8303,14 @@
   "Male",
   "男性"
  ],
+ "留空不包含": [
+  "Empty to skip",
+  "空欄なら含めない"
+ ],
+ "留空不叠加": [
+  "Empty to skip",
+  "空欄なら重ねない"
+ ],
  "疾厄": [
   "Health",
   "疾厄"
@@ -8250,6 +8358,10 @@
  "目前未触发已知敏感边界提示。": [
   "No known sensitive-boundary warnings have been triggered so far.",
   "現在、既知の敏感な境界警告は発生していません。"
+ ],
+ "目录": [
+  "Contents",
+  "目次"
  ],
  "目标农历纪年（1901–2099）": [
   "Target lunar year (1901–2099)",
@@ -9179,6 +9291,10 @@
   "Compute time-standard comparison",
   "時制の対照を計算"
  ],
+ "计算来源": [
+  "Calculated by",
+  "計算元"
+ ],
  "计算来源：": [
   "Calculation source: ",
   "計算の出典："
@@ -9190,6 +9306,10 @@
  "计算核验": [
   "Calculation check",
   "計算の検証"
+ ],
+ "计算步骤": [
+  "Calculation steps",
+  "計算ステップ"
  ],
  "计算结构、传统解释与现实事实必须分开；本执行器没有调用 LLM、不会自动查询现实事件。": [
   "Computed structure, traditional interpretation, and real-world facts must be kept separate; this executor did not call an LLM and will not automatically look up real-world events.",
@@ -9214,6 +9334,10 @@
  "证据字段：": [
   "Evidence fields: ",
   "根拠フィールド："
+ ],
+ "证据溯源与跨体系复核": [
+  "Evidence trail and cross-system review",
+  "根拠の追跡と体系間の再確認"
  ],
  "评分": [
   "Score",

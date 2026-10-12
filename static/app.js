@@ -1818,7 +1818,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix'].includes(active)) render();});
+document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report'].includes(active)) render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -5084,59 +5084,204 @@ function renderDeep() {
   deepResult.limitations.forEach(text=>note(result,text));
 }
 
+// The report's parts: the four always computed, then the optional ones as cards, each saying what it needs.
+const REPORT_BASE = ['时制与节令方法', '四柱与藏干统计', '紫微十二宫与四化', '出生数据与排盘边界审计'];
+// One section of the Markdown, from its heading to the next.
+function reportMarkdownSection(markdown, heading) {
+  const lines = markdown.split('\n'), start = lines.indexOf('## ' + heading);
+  if (start < 0) return '';
+  const end = lines.findIndex((line, i) => i > start && line.startsWith('## '));
+  return lines.slice(start, end < 0 ? undefined : end).join('\n').trim();
+}
+// A copy that the browser refuses (no clipboard on a plain-http address, say) selects the text instead.
+async function reportCopy(button, label, text, region, done) {
+  try {await navigator.clipboard.writeText(text); label.textContent = done; announce(calT(done));}
+  catch (_) {
+    const range = document.createRange(); range.selectNodeContents(region);
+    const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
+    label.textContent = '已选中文字，请按 Ctrl+C 复制'; announce(calT('已选中文字，请按 Ctrl+C 复制'));
+  }
+  clearTimeout(button.xsReset);
+  button.xsReset = setTimeout(() => {if (label.isConnected) label.textContent = label.dataset.idle;}, 2500);
+}
+// With the hour unknown the report stands on the 12:00 placeholder, so the copies say so first.
+const REPORT_HOUR_NOTE = '命盘时辰不详：本报告按 12:00 占位时辰计算，时柱、命宫、身宫与紫微十二宫都不可靠。';
+const reportMarkdown = r => (r.xsHourUnknown ? '> ' + REPORT_HOUR_NOTE + '\n\n' : '') + r.markdown;
 function renderReport() {
   title(result, '可追溯综合报告', '独立八字、紫微计算 → 可选年干四化和太阳时审计 → Markdown');
   if (!current) {append(result,'p','info-inline','请先生成出生盘，再生成综合报告。');return;}
-  const formRow = append(result, 'div', 'inline-control');
-  const year = createInput('叠加农历年（留空不叠加）', 'number', reportDraft.lunar_year === null ? '' : String(reportDraft.lunar_year), formRow);
-  year.min = '1901';year.max='2099';year.id='report-year';
-  const label=append(formRow,'label',null,'同时运行三种时制审计');
-  const audit=append(label,'input');audit.type='checkbox';audit.id='report-audit'; audit.checked = reportDraft.include_time_audit;
-  const dylabel=append(formRow,'label',null,'同时加入十年干支大运');
-  const dy=append(dylabel,'input');dy.type='checkbox';dy.id='report-dayun';dy.checked=reportDraft.include_dayun;
-  const evidenceLabel=append(formRow,'label',null,'加入证据溯源与跨体系规则复核');
-  const evidenceBox=append(evidenceLabel,'input');evidenceBox.type='checkbox';evidenceBox.id='report-deep';evidenceBox.checked=reportDraft.include_deep_evidence;
-  const dyselectlabel=append(formRow,'label',null,'大运方向（默认自动）');
-  const dyselect=append(dyselectlabel,'select');dyselect.id='report-dayun-direction';
-  [['','自动'],['forward','顺排'],['reverse','逆排']].forEach(([v,t])=>{const op=append(dyselect,'option',null,t);op.value=v;});dyselect.value=reportDraft.dayun_direction_override;
-  const bd=createInput('临界地图（±分钟；留空不包含）','number',String(reportDraft.birth_boundary_minutes),formRow);
-  bd.id='report-boundary-radius';bd.min='1';bd.max='120';
-  const go=append(formRow,'button',null,'生成综合报告');go.type='button';go.id='report-run';
-  const error=append(result,'p','inline-msg');
+  // The report is for the chart shown, like the other tools: its guards follow that chart, and a changed birth
+  // form takes effect when the chart is cast again.
+  const input = currentInput;
+  // The settings are left out of print, which keeps only the report itself.
+  const setup = append(result, 'div', 'rp-setup');
+  append(setup, 'h4', 'subheading', '报告内容');
+  const base = append(setup, 'div', 'rp-base');
+  append(base, 'span', 'muted', '总是包含');
+  REPORT_BASE.forEach(name => append(base, 'span', 'rp-chip', name));
+  const modules = append(setup, 'div', 'rp-modules');
+  // A card per optional part: a switch or field, what it adds, and why it cannot run when something is missing.
+  const card = (id, what) => {
+    const box = append(modules, 'div', 'rp-module'); box.id = id;
+    const headLine = append(box, 'div', 'rp-module-head');
+    append(box, 'p', 'rp-module-what', what).id = id + '-what';
+    return {box, headLine, what: id + '-what'};
+  };
+  // Each switch or field is described by what its card adds and, when shown, what it still needs.
+  const describe = (control, ...ids) => control.setAttribute('aria-describedby', ids.join(' '));
+  const check = (headLine, id, name, on) => {
+    const label = append(headLine, 'label', 'rp-switch');
+    const box = append(label, 'input'); box.type = 'checkbox'; box.id = id; box.checked = on;
+    append(label, 'b', null, name);
+    return box;
+  };
+  const annual = card('report-module-annual', '把所选农历年的年干四化落到本命十二宫；留空不叠加。');
+  append(annual.headLine, 'b', null, '农历年干四化叠加');
+  const yearRow = append(annual.box, 'div', 'rp-module-fields inline-control');
+  const year = createInput('农历年', 'number', reportDraft.lunar_year === null ? '' : String(reportDraft.lunar_year), yearRow);
+  year.min = '1901'; year.max = '2099'; year.id = 'report-year'; year.placeholder = '留空不叠加'; describe(year, annual.what);
+  const thisYear = append(yearRow, 'button', 'tiny-button', '今年'); thisYear.type = 'button'; thisYear.id = 'report-year-now';
+  const timeCard = card('report-module-time', '同一出生资料按钟表时间、平太阳时、真太阳时各排一次，列出四柱和命宫的差别。');
+  const audit = check(timeCard.headLine, 'report-audit', '三套时制审计', reportDraft.include_time_audit && input.longitude !== null);
+  describe(audit, timeCard.what);
+  // Without a longitude the box stays focusable, so the reason is read with it, but cannot be ticked.
+  if (input.longitude === null) {
+    audit.setAttribute('aria-disabled', 'true'); timeCard.box.classList.add('is-blocked');
+    audit.addEventListener('click', e => e.preventDefault());
+    append(timeCard.box, 'p', 'rp-module-need', '当前命盘没有经度，太阳时算不出来；在出生资料里选城市或填经度，重新生成命盘后再勾选。').id = 'report-module-time-need';
+    describe(audit, timeCard.what, 'report-module-time-need');
+  }
+  const luckCard = card('report-module-dayun', '按年干阴阳与性别（或手动指定）定顺逆，报告列出起运年龄和前六步大运干支。');
+  const dy = check(luckCard.headLine, 'report-dayun', '十年干支大运', reportDraft.include_dayun);
+  const dyRow = append(luckCard.box, 'div', 'rp-module-fields inline-control');
+  const dyLabel = append(dyRow, 'label', null, '大运方向');
+  const dyselect = append(dyLabel, 'select'); dyselect.id = 'report-dayun-direction';
+  [['', '自动'], ['forward', '顺排'], ['reverse', '逆排']].forEach(([v, t]) => {const op = append(dyselect, 'option', null, t); op.value = v;});
+  dyselect.value = reportDraft.dayun_direction_override;
+  const dyNeed = append(luckCard.box, 'p', 'rp-module-need', '当前命盘没有性别：自动方向排不出，请在这里选顺排、逆排，或填性别后重新生成命盘。'); dyNeed.id = 'report-module-dayun-need';
+  describe(dy, luckCard.what, dyNeed.id); describe(dyselect, luckCard.what, dyNeed.id);
+  const boundaryCard = card('report-module-boundary', '在出生时刻前后若干分钟内找出四柱、命宫等会变的切换点；留空不包含。');
+  append(boundaryCard.headLine, 'b', null, '出生时刻临界地图');
+  const bdRow = append(boundaryCard.box, 'div', 'rp-module-fields inline-control');
+  const bd = createInput('前后分钟数（1–120）', 'number', String(reportDraft.birth_boundary_minutes), bdRow);
+  bd.id = 'report-boundary-radius'; bd.min = '1'; bd.max = '120'; bd.placeholder = '留空不包含'; describe(bd, boundaryCard.what);
+  const deepCard = card('report-module-deep', '加入八字与紫微的可追溯观察和交叉核查；每条观察依据的字段、规则编号和适用边界在 JSON 数据页里。');
+  const evidenceBox = check(deepCard.headLine, 'report-deep', '证据溯源与跨体系复核', reportDraft.include_deep_evidence);
+  describe(evidenceBox, deepCard.what);
+  const actions = append(setup, 'div', 'rp-run inline-control');
+  const go = append(actions, 'button', null, '生成综合报告'); go.type = 'button'; go.id = 'report-run';
+  const plan = append(actions, 'span', 'rp-plan'); plan.id = 'report-plan';
+  const error = append(setup, 'p', 'inline-msg'); error.setAttribute('role', 'alert');
+  // The cards light up as they are switched on, and the step count follows: two charts and the quality audit,
+  // then one step per optional part.
+  const refresh = () => {
+    const needsDirection = dy.checked && input.gender === 'unspecified' && !dyselect.value;
+    dyNeed.hidden = !needsDirection;
+    luckCard.box.classList.toggle('is-blocked', needsDirection);
+    // A part that cannot run is not counted as a step.
+    const on = {annual: year.value.trim() !== '', time: audit.checked, dayun: dy.checked && !needsDirection, boundary: bd.value.trim() !== '', deep: evidenceBox.checked};
+    [[annual, on.annual], [timeCard, on.time], [luckCard, on.dayun], [boundaryCard, on.boundary], [deepCard, on.deep]].forEach(([c, v]) => c.box.classList.toggle('is-on', v));
+    plan.replaceChildren(); texts(plan, '将运行', ' ', 3 + Object.values(on).filter(Boolean).length, ' ', '个计算步骤');
+    // Choices are kept as they are made, so another redraw does not undo them.
+    // A box that cannot be ticked for this chart keeps the earlier choice for the next chart.
+    Object.assign(reportDraft, {lunar_year: year.value.trim() === '' ? null : Number(year.value),
+      include_time_audit: input.longitude === null ? reportDraft.include_time_audit : audit.checked, include_dayun: dy.checked,
+      include_deep_evidence: evidenceBox.checked, dayun_direction_override: dyselect.value, birth_boundary_minutes: bd.value.trim()});
+  };
+  [year, bd].forEach(x => x.addEventListener('input', refresh));
+  [audit, dy, evidenceBox, dyselect].forEach(x => x.addEventListener('change', refresh));
+  thisYear.addEventListener('click', () => {year.value = String(defaultLunarYear()); refresh();});
+  refresh();
   go.addEventListener('click',async()=>{
-    if (audit.checked && readInput().longitude===null){error.textContent='时制审计必须填写出生地经度。';return;}
+    if (audit.checked && input.longitude===null){error.textContent='时制审计必须填写出生地经度。';return;}
     const value=year.value.trim();
     const lunar_year=value===''?null:Number(value);
     const boundary_minutes=bd.value.trim()===''?null:Number(bd.value);
     if(boundary_minutes!==null && (!Number.isInteger(boundary_minutes)||boundary_minutes<1||boundary_minutes>120)){
       error.textContent='临界地图分钟数必须为1–120整数';return;
     }
-    if(dy.checked && readInput().gender==='unspecified' && !dyselect.value){error.textContent='大运方向需要指定性别或手动顺逆';return;}
-    reportDraft={lunar_year,include_time_audit:audit.checked,include_dayun:dy.checked,include_deep_evidence:evidenceBox.checked,
-      dayun_direction_override:dyselect.value,birth_boundary_minutes:bd.value.trim()};
+    if(dy.checked && input.gender==='unspecified' && !dyselect.value){error.textContent='大运方向需要指定性别或手动顺逆';return;}
     go.disabled=true;error.textContent='';
-    try {reportResult=await postJSON('/api/report',{birth:readInput(),lunar_year,
+    const hourUnknown = currentHourUnknown;
+    try {reportResult=await postJSON('/api/report',{birth:input,lunar_year,
       include_time_audit:audit.checked,include_dayun:dy.checked,include_deep_evidence:evidenceBox.checked,
-      dayun_direction_override:dyselect.value||null,birth_boundary_minutes:boundary_minutes});render();}
+      dayun_direction_override:dyselect.value||null,birth_boundary_minutes:boundary_minutes});
+      reportResult.xsHourUnknown = hourUnknown; reportResult.xsBirth = input; render();
+      const top = $('#report-doc'); if (top) top.focus();}
     catch(e){error.textContent='生成失败：'+e.message;}
     finally{go.disabled=false;}
   });
-  if(!reportResult){append(result,'p','info-inline','该报告由确定性规则工具编排生成，展示各步骤来源，不调用外部大语言模型，也不保存到服务器。');return;}
-  meta(result,[reportResult.system,reportResult.version,`${reportResult.tool_trace.length} 次计算步骤`]);
-  reportResult.sections.forEach(section=>{
-    const panel=append(result,'section','report-section');
-    append(panel,'h4','subheading',section.title);
-    const ul=append(panel,'ul','reading-list');
-    section.facts.forEach(f=>append(ul,'li',null,f));
-    append(panel,'p','feature-note','计算来源：'+section.provenance);
+  append(setup, 'p', 'field-help', '该报告由确定性规则工具编排生成，展示各步骤来源，不调用外部大语言模型，也不保存到服务器。');
+  if (!reportResult) return;
+  const r = reportResult;
+  const doc = append(result, 'article', 'rp-doc'); doc.id = 'report-doc'; doc.tabIndex = -1;
+  doc.setAttribute('aria-labelledby', 'report-doc-title');
+  const head = append(doc, 'header', 'rp-head');
+  append(head, 'h3', null, '传统历法与命盘 · 可核验计算报告').id = 'report-doc-title';
+  const pillars = append(head, 'div', 'rp-pillars');
+  ['年柱', '月柱', '日柱', '时柱'].forEach((name, i) => {
+    const cell = append(pillars, 'div', 'rp-pillar' + (i === 2 ? ' is-master' : ''));
+    append(cell, 'small', null, name);
+    const gz = append(cell, 'b'); gz.dataset.noI18n = '';
+    if (i === 3 && r.xsHourUnknown) {append(gz, 'span', 'muted', '?'); append(gz, 'span', 'muted', '?'); cell.title = calT('时辰不详'); return;}
+    append(gz, 'span', stemClass(r.overview.pillars[i][0]), r.overview.pillars[i][0]); append(gz, 'span', branchClass(r.overview.pillars[i][1]), r.overview.pillars[i][1]);
   });
-  const download=append(result,'button','tiny-button','下载 Markdown 报告 ↓');download.type='button';download.id='report-download';
-  download.addEventListener('click',()=>{
-    const blob=new Blob([reportResult.markdown],{type:'text/markdown;charset=utf-8'});
-    const url=URL.createObjectURL(blob);const a=elt('a');a.href=url;a.download='xuanshu-report.md';
-    document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+  const facts = append(head, 'div', 'rp-head-facts');
+  const fact = (label, value, glyph) => {const p = append(facts, 'p'); append(p, 'span', 'muted', label); const b = append(p, 'b'); if (glyph) {b.dataset.noI18n = ''; append(b, 'span', glyph, value);} else b.textContent = value;};
+  fact('日主', r.overview.day_master, stemClass(r.overview.day_master));
+  fact('命宫', r.xsHourUnknown ? '?' : r.overview.ming_palace, r.xsHourUnknown ? 'muted' : branchClass(r.overview.ming_palace));
+  fact('身宫', r.xsHourUnknown ? '?' : r.overview.shen_palace, r.xsHourUnknown ? 'muted' : branchClass(r.overview.shen_palace));
+  const birth = r.xsBirth || {};
+  meta(head, [(birth.birth_datetime || '').replace('T', ' ') + ' · ' + (birth.timezone || ''), r.system + ' ' + r.version, `${r.tool_trace.length} 次计算步骤`]);
+  if (r.xsHourUnknown) append(head, 'p', 'rp-hour-note', REPORT_HOUR_NOTE).id = 'report-hour-note';
+  // The steps the server ran, in order, each named by its tool.
+  const trace = append(doc, 'ol', 'rp-trace'); trace.id = 'report-trace'; trace.setAttribute('aria-label', '计算步骤');
+  r.tool_trace.forEach(step => {
+    const li = append(trace, 'li', 'rp-step' + (step.status === 'computed' ? ' is-done' : ''));
+    append(li, 'span', 'rp-step-n', String(step.step));
+    const name = append(li, 'code', null, step.tool); name.title = step.engine;
+    if (step.status !== 'computed') append(li, 'small', null, step.status);
   });
-  reportResult.limitations.forEach(x=>note(result,x));
+  const layout = append(doc, 'div', 'rp-layout');
+  const toc = append(layout, 'nav', 'rp-toc'); toc.id = 'report-toc'; toc.setAttribute('aria-label', '报告目录');
+  append(toc, 'b', null, '目录');
+  const tocList = append(toc, 'ol');
+  const body = append(layout, 'div', 'rp-body');
+  r.sections.forEach((section, i) => {
+    const link = append(append(tocList, 'li'), 'a', null, section.title); link.href = '#report-sec-' + i;
+    const panel = append(body, 'section', 'rp-section'); panel.id = 'report-sec-' + i; panel.tabIndex = -1;
+    panel.setAttribute('aria-labelledby', 'report-sec-' + i + '-title');
+    const headRow = append(panel, 'div', 'rp-section-head');
+    const heading = append(headRow, 'h4', 'rp-section-title');
+    append(heading, 'span', 'rp-section-n', String(i + 1)); append(heading, 'span', null, section.title).id = 'report-sec-' + i + '-title';
+    const copy = append(headRow, 'button', 'tiny-button rp-copy'); copy.type = 'button'; copy.id = 'report-copy-' + i;
+    const copyLabel = append(copy, 'span', null, '复制本节'); copyLabel.dataset.idle = '复制本节';
+    copy.append(' '); append(copy, 'span', 'visually-hidden', section.title);
+    copy.addEventListener('click', () => reportCopy(copy, copyLabel, reportMarkdownSection(r.markdown, section.title), panel, '已复制'));
+    const ul = append(panel, 'ul', 'rp-facts');
+    section.facts.forEach(f => append(ul, 'li', null, f));
+    // Module names read as code; anything else in the sources (a published note, a document) as text.
+    const source = append(panel, 'p', 'rp-source');
+    append(source, 'span', 'muted', '来源');
+    section.provenance.split(' / ').forEach(part => {const text = part.trim(); append(source, /^[\w]+(\.[\w]+)+$/.test(text) ? 'code' : 'span', 'rp-source-part', text);});
+  });
+  // Moving through the contents keeps the keyboard with the section it opens.
+  toc.addEventListener('click', e => {
+    const link = e.target.closest('a'); if (!link) return;
+    e.preventDefault();
+    const target = $(link.getAttribute('href'));
+    target.scrollIntoView({block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    target.focus({preventScroll: true});
+  });
+  const tools = append(result, 'div', 'rp-actions');
+  const download=append(tools,'button','tiny-button','下载 Markdown 报告 ↓');download.type='button';download.id='report-download';
+  download.addEventListener('click',()=>downloadBlob(new Blob([reportMarkdown(r)],{type:'text/markdown;charset=utf-8'}),'xuanshu-report.md'));
+  const copyAll = append(tools, 'button', 'tiny-button'); copyAll.type = 'button'; copyAll.id = 'report-copy';
+  const copyAllLabel = append(copyAll, 'span', null, '复制全文 Markdown'); copyAllLabel.dataset.idle = '复制全文 Markdown';
+  copyAll.addEventListener('click', () => reportCopy(copyAll, copyAllLabel, reportMarkdown(r), doc, '已复制全文'));
+  const printIt = append(tools, 'button', 'tiny-button', '打印 / 存为 PDF'); printIt.type = 'button'; printIt.id = 'report-print';
+  printIt.addEventListener('click', () => window.print());
+  r.limitations.forEach(x=>note(result,x));
 }
 function renderDayun() {
   title(result, '八字大运十年干支', '年干阴阳 + 性别或手动顺逆 · 十二节令 · 三日折一岁');
