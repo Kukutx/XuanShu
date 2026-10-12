@@ -1962,6 +1962,12 @@ function askAfterYearLoaded(prefix, ok) {
   askAfterYear = null;
   if (ok && active === prefix) {const button = $('#' + prefix + '-ask-ai'); if (button && !button.disabled) button.click();}
 }
+// 生成图片卡片 next to 带进 AI 对话: the result as a PNG for sharing.
+function relationCardButton(after, kind) {
+  const button = elt('button', 'tiny-button', '生成图片卡片'); button.type = 'button'; button.id = kind + '-card';
+  after.after(button);
+  button.addEventListener('click', () => openRelationCard(kind));
+}
 // The 带进 AI 对话 button with its hint; it is off until the chat service is configured, and while another year or
 // a new comparison is loading (the draft would carry the year still shown).
 function chatAskButton(id, page, readyText, offText, busy) {
@@ -1982,6 +1988,7 @@ function renderGroupResult(g) {
     const {text: draft, others} = groupChatDraft(g, JSON.parse(groupKey || '[]'));
     groupChatBlock = sendDraftToChat(draft, others, groupChatBlock);
   });
+  relationCardButton(askButton, 'group');
   textExport(result, 'group-text', () => groupText(g), 'xuanshu-group.txt');
   const cards = append(result, 'div', 'group-members');
   g.members.forEach((m, i) => {
@@ -2935,6 +2942,7 @@ function renderPair() {
     const {text: draft, others} = pairChatDraft(r, JSON.parse(pairKey || '{}'));
     pairChatBlock = sendDraftToChat(draft, others, pairChatBlock);
   });
+  relationCardButton(askButton, 'pair');
   textExport(result, 'pair-text', pairText, 'xuanshu-pair.txt');
   const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table'); table.id = 'pair-pillars';
   const hr = append(append(table, 'thead'), 'tr');
@@ -4083,6 +4091,239 @@ function openShareCard() {
   if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
 }
 $('#share-card').addEventListener('click', openShareCard);
+
+// Relation card: the group or pair result as a PNG drawn on a local canvas. It shows the names as typed, the
+// four pillars, the labels between each pair and, with a year, the luck timeline; never birth dates, times or
+// notes. Nothing is uploaded.
+function relationCardData(kind) {
+  if (kind === 'pair') {
+    const r = pairResult;
+    return {kind, title: '双人对照卡片', file: 'xuanshu-pair.png', people: [{...r.person_a, label: 'A'}, {...r.person_b, label: 'B'}],
+      pairs: [{a_label: 'A', b_label: 'B', day_stems: r.day_stems, label_counts: r.label_counts}], year_view: r.year_view};
+  }
+  const g = groupResult;
+  return {kind, title: '多人关系卡片', file: 'xuanshu-group.png', people: g.members, pairs: g.pairs, year_view: g.year_view};
+}
+const RELATION_CARD_PAIRS = 10;
+const LINK_TOKEN = {'六合': '--green', '六冲': '--red', '六害': '--warn', '相刑': '--quan', '同支': '--muted'};
+function drawRelationCard(canvas, data) {
+  const T = text => typeof translateText === 'function' ? translateText(text) : text;
+  const css = getComputedStyle(document.documentElement), token = name => css.getPropertyValue(name).trim();
+  const sans = "'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", serif = "'Noto Serif SC','Songti SC','STSong',serif";
+  const W = 1080, PAD = 64, inner = W - PAD * 2, CHIPS_X = PAD + 316;
+  const people = data.people, v = data.year_view;
+  const shownPairs = data.pairs.slice(0, RELATION_CARD_PAIRS);
+  const rows = v ? v.luck_timeline || [] : [];
+  canvas.width = W; canvas.height = 1;
+  const g = canvas.getContext('2d');
+  // Each pair's labels as chips, laid out before the height is known: they wrap onto more lines in long languages.
+  const chipsOf = pair => [...(pair.day_stems.combination ? [[T(pair.day_stems.combination), '--green']] : []),
+    ...LINK_TYPES_ORDER.filter(type => pair.label_counts[type]).map(type => [T(type) + ' ' + pair.label_counts[type], LINK_TOKEN[type]])];
+  const layoutChips = chips => {
+    g.font = `400 18px ${sans}`;
+    let x = CHIPS_X, line = 0;
+    return chips.map(([label, color]) => {
+      const width = Math.min(g.measureText(label).width + 20, W - PAD - CHIPS_X);
+      if (x > CHIPS_X && x + width > W - PAD) {x = CHIPS_X; line += 1;}
+      const placed = {label, color, x, line, width}; x += width + 8;
+      return placed;
+    });
+  };
+  // The day-stem ten god each way, beneath the names; on two lines when both do not fit on one.
+  const tenGodLines = stems => {
+    const a = stems.a_sees_b ? T(stems.a_sees_b) : '？', b = stems.b_sees_a ? T(stems.b_sees_a) : '？';
+    g.font = `400 17px ${sans}`;
+    return g.measureText(a + ' / ' + b).width > CHIPS_X - PAD - 16 ? [a + ' /', b] : [a + ' / ' + b];
+  };
+  const pairLayouts = shownPairs.map(pair => {
+    const chips = layoutChips(chipsOf(pair)), gods = tenGodLines(pair.day_stems);
+    const lines = chips.length ? chips[chips.length - 1].line + 1 : 1;
+    return {pair, chips, gods, height: Math.max(74 + (gods.length - 1) * 22, 26 + lines * 42)};
+  });
+  // The closing note may need two lines.
+  const footNote = T('传统文化符号，未经科学预测效力验证，不作医疗、投资、法律等决策依据。');
+  g.font = `400 22px ${sans}`;
+  const footLines = g.measureText(footNote).width > inner ? splitLine(footNote) : [footNote];
+  const pillarsH = 104 + people.length * 72;
+  const pairsH = 76 + pairLayouts.reduce((sum, x) => sum + x.height, 0) + (data.pairs.length > shownPairs.length ? 40 : 0);
+  const luckH = rows.length ? 118 + rows.length * 56 : 0;
+  const footH = 120 + footLines.length * 34;
+  const H = 200 + pillarsH + pairsH + luckH + footH;
+  canvas.height = H;
+  g.fillStyle = token('--panel'); g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W * .85, 0, 0, W * .85, 0, W * .9);
+  glow.addColorStop(0, token('--accent-soft')); glow.addColorStop(1, 'transparent');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  g.strokeStyle = token('--accent-line'); g.lineWidth = 2; g.strokeRect(24, 24, W - 48, H - 48);
+  // Shrinks a long value down to three quarters of its size, then cuts it with an ellipsis.
+  const text = (value, x, y, size, color, {font = sans, align = 'left', weight = '400', max = W - PAD - x} = {}) => {
+    value = String(value);
+    const floor = Math.max(12, Math.round(size * .75));
+    g.font = `${weight} ${size}px ${font}`;
+    while (size > floor && g.measureText(value).width > max) {size -= 1; g.font = `${weight} ${size}px ${font}`;}
+    if (g.measureText(value).width > max) {
+      while (value.length > 1 && g.measureText(value + '…').width > max) value = value.slice(0, -1);
+      value += '…';
+    }
+    g.fillStyle = color; g.textAlign = align; g.fillText(value, x, y);
+    return g.measureText(value).width;
+  };
+  const stemColor = stem => token('--' + (ELEMENT_CLASS[STEM_ELEMENTS[STEM_ORDER.indexOf(stem)]] || 'faint'));
+  const branchColor = branch => token('--' + (ELEMENT_CLASS[BRANCH_ELEMENTS[BRANCH_ORDER.indexOf(branch)]] || 'faint'));
+  const rule = y => {g.strokeStyle = token('--border'); g.lineWidth = 1; g.beginPath(); g.moveTo(PAD, y); g.lineTo(W - PAD, y); g.stroke();};
+  text('玄枢', PAD, 120, 52, token('--gold'), {font: serif, weight: '600'});
+  text('XUANSHU', PAD + 120, 116, 22, token('--gold'), {weight: '600'});
+  text(T(data.title) + ' · ' + T('本地确定性计算'), W - PAD, 116, 24, token('--muted'), {align: 'right', max: inner - 330});
+  text(T('只标传统标签，不打分、不排名'), PAD, 168, 22, token('--text2'));
+  let y = 200;
+  // Four pillars: a row per person.
+  text(T('四柱'), PAD, y + 34, 28, token('--gold2'), {weight: '600'});
+  const nameW = 220, colW = 132, masterX = PAD + nameW + colW * 4, zodiacX = masterX + 118;
+  ['年柱', '月柱', '日柱', '时柱'].forEach((label, i) => text(T(label), PAD + nameW + colW * i + colW / 2, y + 80, 18, token('--muted'), {align: 'center', max: colW - 8}));
+  text(T('日主'), masterX + 50, y + 80, 18, token('--muted'), {align: 'center', max: 110});
+  text(T('生肖'), zodiacX + 44, y + 80, 18, token('--muted'), {align: 'center', max: 92});
+  y += 104;
+  people.forEach(person => {
+    rule(y - 4);
+    text(person.label, PAD, y + 44, 28, token('--text'), {weight: '600', max: nameW - 16});
+    PILLAR_KEYS.forEach((key, i) => {
+      const pillar = person.pillars[key], cx = PAD + nameW + colW * i + colW / 2;
+      if (!pillar) {text('？', cx, y + 48, 36, token('--faint'), {font: serif, align: 'center'}); return;}
+      text(pillar[0], cx - 22, y + 48, 40, stemColor(pillar[0]), {font: serif, align: 'center', weight: '600', max: 48});
+      text(pillar[1], cx + 22, y + 48, 40, branchColor(pillar[1]), {font: serif, align: 'center', weight: '600', max: 48});
+    });
+    if (person.day_master) {
+      text(person.day_master, masterX + 34, y + 48, 36, stemColor(person.day_master), {font: serif, align: 'center', weight: '600', max: 44});
+      text(T(person.day_master_element), masterX + 72, y + 46, 20, token('--muted'), {max: 44});
+    } else text('？', masterX + 50, y + 48, 36, token('--faint'), {font: serif, align: 'center'});
+    text(person.zodiac ? T(person.zodiac) : '？', zodiacX + 44, y + 46, 24, token('--text2'), {align: 'center', max: 92});
+    y += 72;
+  });
+  y += 20;
+  // Each pair: the day-stem ten god both ways and the labels between their pillars.
+  text(T('两两关系'), PAD, y + 34, 28, token('--gold2'), {weight: '600'});
+  y += 76;
+  // Names, then the day-stem ten god each way beneath them (A sees B / B sees A); the labels as chips on the right.
+  pairLayouts.forEach(({pair, chips, gods, height}) => {
+    rule(y - 30);
+    text(pair.a_label + ' ↔ ' + pair.b_label, PAD, y + 2, 24, token('--text'), {weight: '600', max: CHIPS_X - PAD - 16});
+    gods.forEach((line, n) => text(line, PAD, y + 32 + n * 22, 17, token('--text2'), {max: CHIPS_X - PAD - 16}));
+    if (!chips.length) text(T('无标记'), CHIPS_X, y + 2, 20, token('--muted'));
+    chips.forEach(({label, color, x, line, width}) => {
+      const top = y - 20 + line * 42;
+      g.strokeStyle = token(color); g.lineWidth = 1.5;
+      g.beginPath(); (g.roundRect ? g.roundRect.bind(g) : g.rect.bind(g))(x, top, width, 32, 16); g.stroke();
+      text(label, x + 10, top + 22, 18, token(color), {max: width - 16});
+    });
+    y += height;
+  });
+  if (data.pairs.length > shownPairs.length) {
+    text(T('未画出的两两关系（见文字版）：') + (data.pairs.length - shownPairs.length), PAD, y - 10, 20, token('--muted'));
+    y += 40;
+  }
+  // The luck timeline of the year shown: fifteen years, a colour per luck period.
+  if (rows.length) {
+    y += 10;
+    text(T('大运时间轴') + ' · ' + v.year + ' ' + v.year_pillar, PAD, y + 34, 28, token('--gold2'), {weight: '600'});
+    const start = luckWindowFor(data.kind, v.year), years = Array.from({length: LUCK_SPAN}, (_, k) => start + k);  // as on the page
+    const left = PAD + 160, cell = (W - PAD - left) / LUCK_SPAN;
+    years.forEach((year, k) => text(String(year).slice(2), left + cell * k + cell / 2, y + 80, 16, year === v.year ? token('--text') : token('--muted'),
+      {align: 'center', weight: year === v.year ? '700' : '400', max: cell}));
+    y += 96;
+    rows.forEach(row => {
+      text(row.label, PAD, y + 30, 22, token('--text'), {weight: '600', max: 150});
+      if (row.status !== 'ok') {
+        text(T(row.status === 'needs_gender' ? '未填性别，不排大运' : '时辰不详且当天交节，大运无法确定'), left + 8, y + 30, 18, token('--muted'), {max: W - PAD - left - 16});
+        y += 56; return;
+      }
+      years.forEach((year, k) => {
+        const at = luckAt(row, year), x = left + cell * k + 1.5;
+        if (at.kind !== 'period' && at.kind !== 'maybe') return;
+        g.globalAlpha = at.kind === 'maybe' ? .12 : .28;
+        g.fillStyle = at.kind === 'maybe' ? token('--gold') : stemColor(at.period.pillar[0]);
+        g.fillRect(x, y, cell - 3, 46);
+        g.globalAlpha = 1;
+        if (at.kind === 'maybe') {text('?', x + (cell - 3) / 2, y + 30, 18, token('--muted'), {align: 'center'}); return;}
+        if (at.first) {g.fillStyle = token('--gold'); g.fillRect(x, y, 3, 46);}
+        if (at.first || k === 0 || luckAt(row, year - 1).kind !== 'period') {
+          let run = 1;
+          while (k + run < years.length && luckAt(row, years[k + run]).period === at.period) run++;
+          g.save(); g.beginPath(); g.rect(x, y, run * cell - 3, 46); g.clip();
+          // A period seen for a single year is written smaller so that both characters fit in the cell.
+          const p = at.period, size = run > 1 ? 24 : 19, inset = run > 1 ? 8 : 4;
+          const w = text(p.pillar[0], x + inset, y + 31, size, stemColor(p.pillar[0]), {font: serif, weight: '600', max: 30});
+          text(p.pillar[1], x + inset + w, y + 31, size, branchColor(p.pillar[1]), {font: serif, weight: '600', max: 30});
+          if (p.ten_god && run > 1) text(T(p.ten_god), x + inset + w * 2 + 8, y + 30, 16, token('--text2'), {max: run * cell - w * 2 - 24});
+          g.restore();
+        }
+      });
+      y += 56;
+    });
+    const k = years.indexOf(v.year);
+    if (k >= 0) {g.strokeStyle = token('--gold'); g.lineWidth = 2; g.strokeRect(left + cell * k, y - rows.length * 56 - 4, cell, rows.length * 56 + 2);}
+  }
+  rule(H - footH + 10);
+  footLines.forEach((line, n) => text(line, PAD, H - footH + 56 + n * 34, 22, token('--muted'), {max: inner}));
+  text('XuanShu · open source · deterministic, reproducible', PAD, H - 58, 22, token('--gold'));
+}
+// A long line split in two near its middle: after the punctuation mark closest to it, else at a space (English),
+// else between characters.
+function splitLine(line) {
+  const middle = Math.floor(line.length / 2);
+  let at = -1;
+  for (let i = 0; i < line.length; i++) {
+    if ('。；，、;,'.includes(line[i]) && Math.abs(i + 1 - middle) <= 14 && (at < 0 || Math.abs(i + 1 - middle) < Math.abs(at - middle))) at = i + 1;
+  }
+  if (at < 0) {const space = line.lastIndexOf(' ', middle + 12); at = space > middle - 20 ? space : middle;}
+  return [line.slice(0, at).trim(), line.slice(at).trim()];
+}
+const LINK_TYPES_ORDER = ['同支', '六合', '六冲', '六害', '相刑'];
+let relationCardRefresh = null;
+document.addEventListener('xuanshu-language', () => {const dialog = $('#relation-card-dialog'); if (dialog && dialog.open && relationCardRefresh) relationCardRefresh();});
+function openRelationCard(kind) {
+  let dialog = $('#relation-card-dialog');
+  if (!dialog) {
+    dialog = elt('dialog', 'share-dialog'); dialog.id = 'relation-card-dialog';
+    dialog.setAttribute('aria-labelledby', 'relation-card-title');
+    document.body.append(dialog);
+  }
+  dialog.replaceChildren();
+  const data = relationCardData(kind);
+  const head = append(dialog, 'div', 'share-head');
+  append(head, 'h3', null, data.title).id = 'relation-card-title';
+  const close = append(head, 'button', 'tiny-button', '关闭'); close.type = 'button'; close.id = 'relation-card-close';
+  close.addEventListener('click', () => dialog.close());
+  const canvas = append(dialog, 'canvas', 'share-canvas'); canvas.id = 'relation-card-canvas';
+  canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', '关系卡片预览');
+  append(dialog, 'p', 'field-help', '卡片只在这台设备上生成，不上传。画上的是称呼、四柱和传统标签，不画出生日期、时间和备注；但四柱本身大致能反推出生日期。');
+  const actions = append(dialog, 'div', 'profile-actions share-actions');
+  const save = append(actions, 'button', 'primary-btn', '下载 PNG'); save.type = 'button'; save.id = 'relation-card-download';
+  save.addEventListener('click', () => canvas.toBlob(blob => {if (blob) downloadBlob(blob, data.file);}, 'image/png'));
+  // As on the chart card, the PNG is prepared before the click so the share sheet still counts as a user gesture.
+  let cardFile = null, version = 0;
+  const share = typeof navigator.share === 'function' && typeof navigator.canShare === 'function' ? append(actions, 'button', 'tiny-button', '分享到…') : null;
+  if (share) {
+    share.type = 'button'; share.id = 'relation-card-share';
+    share.addEventListener('click', async () => {
+      const file = cardFile;
+      if (!file || !navigator.canShare({files: [file]})) {share.textContent = '此浏览器不能分享图片，请下载 PNG'; return;}
+      try {await navigator.share({files: [file], title: '玄枢'});}
+      catch (e) {if (e.name !== 'AbortError') share.textContent = '分享失败，请下载 PNG';}
+    });
+  }
+  const refresh = () => {
+    drawRelationCard(canvas, data);
+    if (!share) return;
+    const mine = ++version; cardFile = null; share.disabled = true; share.textContent = '分享到…';
+    canvas.toBlob(blob => {
+      if (!blob || mine !== version) return;
+      cardFile = new File([blob], data.file, {type: 'image/png'}); share.disabled = false;
+    }, 'image/png');
+  };
+  relationCardRefresh = refresh;
+  refresh();
+  if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
+}
 
 // Calculation cross-check: the summary that scripts/eval_crosscheck.py writes.
 const CROSSCHECK_FIELDS = {lunar: '农历日期', day: '日柱', year: '年柱', month: '月柱', hour: '时柱',

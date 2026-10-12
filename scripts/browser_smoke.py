@@ -27,6 +27,32 @@ from app.main import app
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def check_relation_card(page, kind: str, screenshot: Path) -> None:
+    """Open a relation card, check what it draws and what it saves, and close it."""
+    page.evaluate("""() => {
+      window.__drawn = []; window.__saved = []; window.__fillText = CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText = function (text, ...rest) { window.__drawn.push(String(text)); return window.__fillText.call(this, text, ...rest); };
+      window.__downloadBlob = downloadBlob; downloadBlob = (blob, name) => { window.__saved.push([name, blob.type, blob.size]); };
+    }""")
+    page.locator(f'#{kind}-card').click()
+    page.locator('#relation-card-dialog[open]').wait_for(timeout=10000)
+    assert page.evaluate("document.querySelector('#relation-card-canvas').width") == 1080
+    drawn = page.evaluate('window.__drawn')
+    data = page.evaluate(f"(() => {{ const d = relationCardData('{kind}'); return {{labels: d.people.map(p => p.label), year: d.year_view.year}}; }})()")
+    labels = data['labels']
+    assert labels and all(label in drawn or label[:4] in ''.join(drawn) for label in labels), (labels, drawn)
+    assert f"大运时间轴 · {data['year']}" in ''.join(drawn), drawn
+    joined = '\n'.join(drawn)
+    assert not re.search(r'\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}|备注', joined) and '一起做项目' not in joined and '表姐' not in joined, drawn
+    page.locator('#relation-card-canvas').screenshot(path=str(screenshot))
+    page.locator('#relation-card-download').click()
+    page.wait_for_function('() => window.__saved.length === 1', timeout=10000)
+    assert page.evaluate('window.__saved[0]')[:2] == [f'xuanshu-{kind}.png', 'image/png'] and page.evaluate('window.__saved[0][2]') > 10000
+    page.evaluate("() => { CanvasRenderingContext2D.prototype.fillText = window.__fillText; downloadBlob = window.__downloadBlob; }")
+    page.locator('#relation-card-close').click()
+    assert page.locator('#relation-card-dialog[open]').count() == 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--chromium', type=Path, default=Path('/usr/bin/chromium'))
@@ -419,6 +445,8 @@ def main() -> None:
             page.screenshot(path=str(screenshot_dir / '39-group-to-chat.png'), full_page=True)
             page.evaluate("() => { chatStatus.enabled = false; chatDraft = ''; }")
             page.locator('[data-tab="group"]').click()
+            # The relation card is drawn on this device: names, pillars and labels, never notes, birth dates or times.
+            check_relation_card(page, 'group', screenshot_dir / '44-group-card.png')
             page.locator('#group-note-clear-legacy-1').click()
             page.wait_for_function("() => loadProfiles().find(x => x.id === 'legacy-1').note === undefined && !document.getElementById('group-note-clear-legacy-1')", timeout=10000)
 
@@ -882,6 +910,7 @@ def main() -> None:
             page.locator('#pair-year-input').fill('2026')
             page.locator('#pair-year-input').dispatch_event('change')
             page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
+            check_relation_card(page, 'pair', screenshot_dir / '45-pair-card.png')
             # 4 pillar rows + every labelled branch link + 12 branch rows + 8 cross-chart transformations, besides the luck timeline.
             links = page.evaluate('pairResult.branch_links.length')
             assert links >= 1 and page.locator('#result tbody tr').count() - page.locator('#pair-timeline tbody tr').count() == 4 + links + 12 + 8

@@ -1098,6 +1098,10 @@ const UI_EXTRA = {
 "Southeast",
 "南東"
 ],
+"两两关系": [
+"Pairs",
+"二人ずつの関係"
+],
 "两两明细": [
 "Pair by pair",
 "ペアごとの明細"
@@ -2082,6 +2086,10 @@ const UI_EXTRA = {
 "Relationships & decisions",
 "関係と意思決定"
 ],
+"关系卡片预览": [
+"Relation card preview",
+"関係カードのプレビュー"
+],
 "关系可能叠加，标记不带强弱权重，也不等于个人关系或事件的吉凶。": [
 "Relations may overlap; markers carry no strength weighting and do not equal the auspiciousness of personal relationships or events.",
 "関係は重なることがあります。マーカーに強弱の重みはなく、個人の関係や出来事の吉凶を意味しません。"
@@ -2718,6 +2726,10 @@ const UI_EXTRA = {
 "The card is made on this device and never uploaded. Note: the four pillars alone roughly reveal the birth date and hour (they repeat about every 60 years); keep only the Zi Wei part if that matters to you.",
 "カードはこの端末で作成され、アップロードされません。注意：四柱だけでも出生日と時辰をおおよそ逆算できます（約 60 年周期）。気になる場合は紫微の部分だけを残してください。"
 ],
+"卡片只在这台设备上生成，不上传。画上的是称呼、四柱和传统标签，不画出生日期、时间和备注；但四柱本身大致能反推出生日期。": [
+"The card is made on this device and is not uploaded. It shows the names, the four pillars and the traditional labels, never birth dates, times or notes; the four pillars themselves still roughly reveal a birth date.",
+"カードはこの端末で作成され、アップロードされません。描くのは呼び名、四柱、伝統的なラベルだけで、生年月日・時刻・メモは描きません。ただし四柱から生年月日はおおよそ逆算できます。"
+],
 "卯时 05–07": [
 "Mao hour 05–07",
 "卯の刻 05–07"
@@ -2789,6 +2801,10 @@ const UI_EXTRA = {
 "双人四柱对照": [
 "Two-person Four Pillars comparison",
 "二人の四柱対照"
+],
+"双人对照卡片": [
+"Two-person card",
+"二人の比較カード"
 ],
 "双人盘文化对照": [
 "Two-person chart cultural comparison",
@@ -2869,6 +2885,10 @@ const UI_EXTRA = {
 "只有 lunardate 不同；这份表的月份长度与天象不符。": [
 "Only lunardate differs; its table gives month lengths that do not match the sky.",
 "lunardate のみ異なります。この表の月の長さが天象と合いません。"
+],
+"只标传统标签，不打分、不排名": [
+"Traditional labels only: no scores, no ranking",
+"伝統的なラベルのみ。点数も順位も付けません"
 ],
 "只标传统标签，不评价好坏，也不预测这一年会发生什么。": [
 "Traditional labels only: no judgement of good or bad, and no forecast of what this year will bring.",
@@ -3513,6 +3533,10 @@ const UI_EXTRA = {
 "多人 家人 家庭 团队 朋友 关系 三合 生肖 family team group": [
 "group family household team friends relationship three-harmony zodiac",
 "複数人 家族 家庭 チーム 友人 関係 三合 干支 family team group"
+],
+"多人关系卡片": [
+"Group relations card",
+"複数人の関係カード"
 ],
 "多人关系对照": [
 "Group relations",
@@ -6158,6 +6182,10 @@ const UI_EXTRA = {
 "No Six Harmonies or Six Clashes marked",
 "六合・六冲の印なし"
 ],
+"未画出的两两关系（见文字版）：": [
+"Pairs not drawn (see the text version): ",
+"描いていない組（テキスト版を参照）："
+],
 "未起运": [
 "Luck not started",
 "未起運"
@@ -6213,6 +6241,10 @@ const UI_EXTRA = {
 "本地 HTTP 端点": [
 "Local HTTP endpoint",
 "ローカル HTTP エンドポイント"
+],
+"本地确定性计算": [
+"computed locally and deterministically",
+"ローカルで確定的に計算"
 ],
 "本工具只标记数据与计算边界，不替代权威历书或完整紫微流派审查。": [
 "This tool only flags data and calculation boundaries; it does not replace an authoritative almanac or a full Zi Wei school review.",
@@ -7205,6 +7237,10 @@ const UI_EXTRA = {
 "生成命盘后，这里会列出今天四柱对日主的十神，以及与本命四支的六冲、六合、同支。": [
 "After you generate a chart, this lists the ten god of each of today's pillars against the Day Master, and their six clashes, six harmonies and same branches with the natal branches.",
 "命盤を作成すると、今日の四柱の日主に対する十神と、本命の四支との六冲・六合・同支をここに表示します。"
+],
+"生成图片卡片": [
+"Make image card",
+"画像カードを作る"
 ],
 "生成失败：": [
 "Generation failed: ",
