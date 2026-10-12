@@ -1560,9 +1560,46 @@ def main() -> None:
             page.locator('#dayun-periods').fill('10')
             page.locator('#dayun-run').click()
             page.wait_for_function("() => document.querySelectorAll('#dayun-table tbody tr').length === 10", timeout=30000)
-            page.get_by_text('投影起始时间',exact=False).first.wait_for(timeout=30000)
+            # The starting age is worked out step by step; the axis has a band per decade, opens on the current one
+            # and a band opens its own decade with its years, keeping the focus on the band.
+            assert '÷ 3' in page.locator('.dy-start').inner_text() and page.locator('.dy-start .dy-node').count() == 2
+            assert page.locator('#dayun-axis .dy-decade').count() == 10 and page.locator('#dayun-axis .dy-decade.is-now').count() == 1
+            assert page.locator('#dayun-axis .dy-decade.is-now').get_attribute('aria-pressed') == 'true'
+            assert page.locator('#dayun-years tbody tr').count() == 10 and page.locator('#dayun-detail .dy-hidden').count() >= 1
+            page.locator('#dayun-band-5').click()
+            page.wait_for_function("() => document.querySelector('#dayun-band-5').getAttribute('aria-pressed') === 'true' && document.activeElement.id === 'dayun-band-5'", timeout=30000)
+            assert page.locator('#dayun-detail .dy-detail-gz').inner_text() == page.locator('#dayun-band-5 .dy-band-gz').inner_text()
+            assert page.locator('#dayun-axis [aria-pressed="true"]').count() == 1
+            assert any(t.count(':') == 3 for t in page.locator('.dy-start .dy-node small').all_inner_texts())  # the solar term to the second, with its offset
             assert page.locator('#result thead th').last.inner_text() == '神煞'
             page.screenshot(path=str(screenshot_dir / '17-dayun-desktop.png'), full_page=True)
+            # Whole days carry into a month and months into a year, so the age never reads 30 days or 12 months.
+            assert page.evaluate("JSON.stringify(startAgeParts({start_age_traditional_parts: {years: 7, months: 5, days_nominal_30_day_month: 29.6}}))") == '{"years":7,"months":6,"days":0}'
+            assert page.evaluate("JSON.stringify(startAgeParts({start_age_traditional_parts: {years: 6, months: 11, days_nominal_30_day_month: 29.7}}))") == '{"years":7,"months":0,"days":0}'
+            # Today is read before the decades and drawn only in the gutters; the band before the first decade shows its label.
+            assert page.evaluate("[...document.querySelector('#dayun-axis').children].findIndex(c => c.classList.contains('dy-today'))") in (-1, 0)
+            assert page.evaluate("document.querySelector('#dayun-axis .dy-before small').getBoundingClientRect().height") > 0
+            assert page.evaluate("getComputedStyle(document.querySelector('#dayun-axis .dy-today') || document.body, '::before').height") in ('24px', 'auto')
+            # Picking a decade is announced, and the detail has its own heading.
+            page.locator('#dayun-band-3').click()
+            page.wait_for_function("() => document.querySelector('#live-status').textContent.includes(document.querySelector('#dayun-band-3 .dy-band-gz').textContent)", timeout=30000)
+            assert page.locator('#dayun-detail-title').count() == 1
+            # Cast without the hour on a day a jie begins, the sequence itself depends on the hour: the page says so and
+            # keeps only the placeholder table.
+            birth_before = page.evaluate('currentInput.birth_datetime')
+            page.locator('#birth_datetime').fill('2000-08-07T12:00')
+            page.locator('#hour_unknown').check()
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => currentHourUnknown && currentInput.birth_datetime.startsWith('2000-08-07')", timeout=30000)
+            page.locator('#dayun-open').wait_for(timeout=30000)
+            assert '立秋' in page.locator('#dayun-open').inner_text() and page.locator('#dayun-axis').count() == 0
+            page.locator('#dayun-table').wait_for(timeout=30000)
+            assert '只是其中一种可能' in page.locator('#result').inner_text() and '起运随时辰而定' in page.locator('#result').inner_text()
+            page.locator('#hour_unknown').uncheck()
+            page.locator('#birth_datetime').fill(birth_before)
+            page.locator('#run-btn').click()
+            page.wait_for_function(f"() => !currentHourUnknown && currentInput.birth_datetime === {birth_before!r}", timeout=30000)
+            page.locator('#dayun-axis').wait_for(timeout=30000)
             page.locator('[data-tab="boundaries"]').click()
             page.locator('#boundary-radius').fill('8')
             page.locator('#boundary-run').click()

@@ -157,7 +157,7 @@ let uiObserver = null;
 const uiIndex = {};
 // One-character entries join only for the five elements, which results compose as 木 / 水.
 const UI_SINGLE_TOKENS = '木火土金水';
-const UI_WHOLE_ONLY = ['1 天', '1 小时'];
+const UI_WHOLE_ONLY = ['1 天', '1 小时', '1 岁', '1 个月'];
 let uiPhraseMap = {};  // trimmed phrase -> entry; an exact (untrimmed) key wins
 let uiPhrases = [], uiPhraseRe = null;
 function buildUiIndex() {

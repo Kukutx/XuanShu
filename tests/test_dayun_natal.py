@@ -28,6 +28,8 @@ def test_luck_pillar_against_the_natal_chart():
     si = natal_interactions('辛巳', natal)
     assert si['stem_relations'] == [{'pillar': 'day', 'stem': '丙', 'labels': ['丙辛合水']}]
     assert [(r['pillar'], r['labels']) for r in si['branch_relations']] == [('month', ['六合', '相刑']), ('hour', ['六害', '相刑'])]
+    # The stems hidden in the luck pillar's branch, main qi first, each with its ten god against the day master 丙.
+    assert [(h['stem'], h['element'], h['ten_god']) for h in si['hidden_stems']] == [('丙', '火', '比肩'), ('戊', '土', '食神'), ('庚', '金', '偏财')]
     # 卯 is in the day pillar's void (丙午 belongs to the 甲辰 decade: 寅卯).
     assert natal_interactions('己卯', natal)['void_of'] == ['day']
     # Without the hour, nothing is read against the placeholder hour pillar.

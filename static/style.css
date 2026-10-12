@@ -273,6 +273,65 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .dayun-now{margin-left:8px;padding:1px 7px;border:1px solid var(--gold);border-radius:999px;font-size:12px;line-height:1.5;white-space:nowrap;color:var(--gold2)}
 .dayun-table td.nowrap{white-space:nowrap}
 .dayun-table td:last-child{min-width:6.5em}
+.dy-start{margin:4px 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
+.dy-start .subheading{margin-top:0}
+.dy-calc{display:flex;align-items:stretch;gap:0;margin:6px 0 10px}
+.dy-node{display:flex;flex-direction:column;gap:2px;padding:8px 12px;border:1px solid var(--gold);border-radius:8px;background:var(--panel);min-width:0}
+.dy-node b{color:var(--gold2);font-weight:600}
+.dy-node small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.dy-gap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;padding:0 10px;min-width:120px;font-size:12px;color:var(--muted);text-align:center}
+.dy-gap::before{content:'';position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--gold)}
+.dy-gap span,.dy-gap b{position:relative;background:var(--panel2);padding:0 6px}
+.dy-gap span{transform:translateY(-10px)}.dy-gap b{transform:translateY(10px);color:var(--text);font-size:14px}
+.dy-formula{margin:0 0 6px;font-size:14px;color:var(--text);font-variant-numeric:tabular-nums}
+.dy-formula b{color:var(--gold2)}
+.dy-formula .nowrap{white-space:nowrap}
+.dy-warn{margin:0 0 10px;padding:10px 14px;border:1px solid var(--warn-line);border-left:4px solid var(--warn);border-radius:8px;background:var(--warn-soft);color:var(--text);font-size:13px}
+.dy-warn p{margin:0 0 4px}.dy-warn p:last-child{margin:0}
+.dy-axis-wrap{overflow-x:auto;margin:4px 0 14px;padding-bottom:4px}
+/* Wide enough to read on a phone, where the axis scrolls sideways; a desktop panel shows it whole. */
+.dy-axis{position:relative;height:104px;min-width:600px}
+.dy-band{position:absolute;top:18px;bottom:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:6px 2px 4px;border:1px solid var(--border);border-top:4px solid var(--band,var(--border));border-radius:6px;background:var(--panel2);color:var(--text);font:inherit;min-width:0;overflow:hidden}
+.dy-before{border-top-color:var(--border);border-style:dashed;color:var(--muted);justify-content:center;font-size:11px}
+.dy-before small{writing-mode:vertical-rl;height:100%;max-height:100%;overflow:hidden;text-overflow:ellipsis}
+.dy-decade{cursor:pointer}
+.dy-decade:hover{border-color:var(--gold);border-top-color:var(--band)}
+.dy-decade:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.dy-decade.is-picked{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--gold)}
+.dy-band-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.2}
+.dy-band small{font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.dy-decade.is-now .dy-band-age::after{content:' ●';content:' ●' / '';color:var(--gold2)}
+/* Today: a line in the gutter above the bands and a tick below them, never across a decade's labels. */
+.dy-today{position:absolute;top:0;bottom:0;width:0;z-index:1;pointer-events:none}
+.dy-today::before,.dy-today::after{content:'';position:absolute;left:-1px;border-left:2px solid var(--gold2)}
+.dy-today::before{top:0;height:24px}.dy-today::after{bottom:0;height:12px}
+.dy-today small{position:absolute;top:0;left:3px;font-size:11px;font-weight:700;color:var(--gold2);white-space:nowrap}
+.dy-detail{margin:0 0 18px;padding:14px 16px;border:1px solid var(--gold);border-radius:10px}
+.dy-detail-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
+.dy-detail-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:40px;line-height:1;font-weight:600}
+.dy-facts{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0}
+.dy-facts dt{font-size:11px;color:var(--muted)}
+.dy-facts dd{margin:2px 0 0;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.dy-hidden b{font-family:'Songti SC','STSong','Noto Serif SC',serif}
+.dy-hidden small{margin-left:2px;font-size:11px;font-weight:400;color:var(--muted)}
+.dy-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.dy-chip{font-size:12px;padding:2px 8px;border:1px solid var(--link);border-radius:999px;color:var(--text)}
+.dy-chip.link-clash{border-style:dashed}
+.dy-stars{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:8px 0;font-size:13px}
+.dy-star{color:var(--gold2);font-weight:600}
+.dy-star small{font-weight:400;color:var(--muted);font-size:11px}
+.dy-years{margin-top:6px}
+.dy-years tr.is-current td,.dy-years tr.is-current th{background:var(--accent-soft)}
+.dy-years .pillar-cell,.dy-years th[scope=row]{white-space:nowrap}
+.dy-years td,.dy-years th{vertical-align:top}
+.dy-change{margin:8px 0 0}
+@media(max-width:640px){
+  .dy-calc{flex-direction:column;align-items:stretch}
+  .dy-gap{min-height:54px}
+  .dy-gap::before{left:50%;right:auto;top:0;bottom:0;border-top:0;border-left:1px dashed var(--gold)}
+  .dy-gap span,.dy-gap b{transform:none}
+  .dy-detail-gz{font-size:32px}
+}
 .consult-shortcuts{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:8px 0 16px}
 .consult-shortcuts .small-text{font-size:12px;color:var(--muted);width:100%}
 .consult-shortcuts button{white-space:normal;text-align:left}
@@ -1625,7 +1684,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--panel3:#f4f1ea;--border:#d9d2c3;--border-strong:#c9bfa9;--text:#111;--text2:#222;--muted:#555;--faint:#777;--gold:#8a6428;--gold2:#6d4c16;--accent-soft:#faf7f0;--accent-line:#d9c7a3;--code-bg:#f7f5f0;--code-text:#111;--shadow:none;--wood:#2f8a54;--fire:#c4452c;--earth:#a26b1e;--metal:#6d6656;--water:#2a6bb0;--lu:#24864f;--quan:#7a48b8;--ke:#2a6db8;--ji:#c63a2c;--green:#2d7552;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45);--dm-0:#9a6a1c;--dm-1:#2f6db5;--dm-2:#2e7d4a;--dm-3:#c0482f;--dm-4:#7550b5;--dm-5:#1f7f7f;--dm-6:#b0427a;--dm-7:#5c6877}
   .dm-seg,.dm-swatch,.dm-band,.dm-mark,.dm-weights,.dm-track,.dm-range,.is-lead .dm-rank,.bt-track,.bt-seg,.bt-tick,.bt-tick-num,.bt-pin,.bt-pillar.is-changed,.today-term-track,.today-term-fill,.ps-track,.ps-now,.ps-mark::after,.hua{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff;font-size:12px}
-  .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,.of-legend,.of-views,.fh-views,.ds-hour-card .tiny-button,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip):not(.fh-pick):not(.ds-pick):not(.ic-hour):not(.qh-hour):not(.rm-value){display:none!important}
+  .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,.of-legend,.of-views,.fh-views,.ds-hour-card .tiny-button,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip):not(.fh-pick):not(.ds-pick):not(.ic-hour):not(.qh-hour):not(.rm-value):not(.dy-decade){display:none!important}
   .shell{max-width:none;padding:0}
   .main-grid{display:block}
   .panel{border:0;box-shadow:none}
@@ -1644,6 +1703,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ev-card,.tb-card{break-inside:avoid}
   .dm-wrap{display:none}.dm-option-card{break-inside:avoid}  /* the cards repeat every rating */
   .ay-board,.ay-head{break-inside:avoid}.ay-actions{display:none!important}
+  .dy-axis-wrap{overflow:visible}.dy-axis{min-width:0}.dy-start,.dy-detail-head,.dy-years tr{break-inside:avoid}
   a[href^="http"]::after{content:' (' attr(href) ')';font-size:10px;color:#555}
 }
 /* Calculation cross-check dialog */

@@ -134,6 +134,8 @@ def natal_interactions(pillar: str, natal: dict, pillar_keys: tuple[str, ...] = 
     return {
         'pillar': pillar,
         'ten_god_of_stem': _ten_god(master, stem),
+        'hidden_stems': [{'stem': hidden, 'element': STEM_ELEMENT[STEMS.index(hidden)], 'ten_god': _ten_god(master, STEMS.index(hidden))}
+                         for hidden in HIDDEN_STEMS[pillar[1]]],
         'na_yin': NAYIN_NAMES[_sexagenary_by_pair(stem, branch) // 2],
         'growth_stage': growth_stage(master, branch),
         'self_stage': growth_stage(stem, branch),

@@ -86,6 +86,10 @@ const UI_EXTRA = {
 " intervals",
 " 区間"
 ],
+" 个月": [
+" months",
+" か月"
+],
 " 个边界、": [
 " boundaries, ",
 " 個の境界、"
@@ -438,6 +442,10 @@ const UI_EXTRA = {
 "1 interval",
 "1 件の時間帯"
 ],
+"1 个月": [
+"1 month",
+"1 か月"
+],
 "1 天": [
 "1 day",
 "1 日"
@@ -445,6 +453,10 @@ const UI_EXTRA = {
 "1 小时": [
 "1 hour",
 "1 時間"
+],
+"1 岁": [
+"1 yr",
+"1 歳"
 ],
 "1 种": [
 "1 way",
@@ -966,6 +978,10 @@ const UI_EXTRA = {
 "Three Directions and Four Squares: ",
 "三方四正："
 ],
+"三日折一岁：出生到节令每 3 天算 1 年，1 天算 4 个月，1 个时辰算 10 天；公历日期按每年 365.2425 天推算，是近似值。": [
+"Three days make one year: each 3 days between the birth and the solar term count as 1 year, 1 day as 4 months and one double hour as 10 days; Gregorian dates are projected at 365.2425 days a year and are approximate.",
+"三日で一歳：出生から節までの 3 日を 1 年、1 日を 4 か月、1 時辰を 10 日と数えます。西暦の日付は 1 年 365.2425 日で推算した近似値です。"
+],
 "三月": [
 "Month 3",
 "三月"
@@ -1162,9 +1178,21 @@ const UI_EXTRA = {
 "differs from the birth segment",
 "出生時刻の区間と異なる"
 ],
+"与原局": [
+"With the natal chart",
+"原局との関係"
+],
+"与原局一栏：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空，悬停可看全部关系。流年以立春换年，虚龄从农历出生年起算。只列关系与标签，不判断吉凶。": [
+"\"With the natal chart\": 冲月 means a clash with the month branch, 合, 刑 and 害 likewise, 同 the same branch; 日空 and 年空 mean the day or year void. Hover for every relation. Years change at Lichun; nominal age counts from the lunar birth year. Relations and labels only, no judgement of good or bad.",
+"「原局との関係」欄：冲月は月柱との六冲、合・刑・害も同様、同は同じ地支です。日空・年空は日柱・年柱の旬空に当たることを示します。ホバーで全ての関係を表示します。流年は立春で切り替わり、数え年は旧暦の生年から数えます。関係とラベルのみで、吉凶は判断しません。"
+],
 "与原局地支无冲合": [
 "No clash or combination with the natal branches",
 "原局の地支と冲・合なし"
+],
+"与原局没有冲合刑害": [
+"No clash, combination, punishment or harm with the natal chart",
+"原局との冲・合・刑・害はありません"
 ],
 "与原局的星运、空亡和合冲刑害只是传统标签，不判断合化成败，也不据此断吉凶。": [
 "Growth stages, voids and combinations, clashes, punishments and harms against the natal chart are traditional labels only; whether a combination transforms is not judged, and nothing here predicts fortune.",
@@ -1569,6 +1597,10 @@ const UI_EXTRA = {
 "交运年": [
 "Luck change",
 "交運年"
+],
+"交运约在": [
+"The change comes around",
+"交運はおよそ"
 ],
 "亥卯未": [
 "Hai–Mao–Wei",
@@ -2162,6 +2194,10 @@ const UI_EXTRA = {
 "All twelve palaces",
 "全十二宮"
 ],
+"全部大运": [
+"All Luck Pillars",
+"すべての大運"
+],
 "全部提供字段一致": [
 "All provided fields match",
 "提供された全フィールドが一致"
@@ -2558,6 +2594,10 @@ const UI_EXTRA = {
 "Source",
 "出典"
 ],
+"出生": [
+"Birth",
+"出生"
+],
 "出生信息未填写": [
 "Birth details not entered",
 "出生情報が未入力です"
@@ -2617,6 +2657,10 @@ const UI_EXTRA = {
 "出生年地支": [
 "Birth year branch",
 "出生年の地支"
+],
+"出生当天交节": [
+"A jie term begins on the birth day",
+"出生日に節入り"
 ],
 "出生当天在农历年的交界，日子随时辰而定，生年天干可能不同，四化星暂不列出。": [
 "The birth day sits at the turn of the lunar year and depends on the hour, so the birth year's stem may differ and the transformation stars are not listed.",
@@ -2753,10 +2797,6 @@ const UI_EXTRA = {
 "出生资料：": [
 "Birth data: ",
 "出生データ："
-],
-"出生距节": [
-"Birth to solar term",
-"出生から節まで"
 ],
 "分享到…": [
 "Share…",
@@ -3589,6 +3629,10 @@ const UI_EXTRA = {
 "同辈、手足和同伴关系": [
 "Peers, siblings and companions",
 "同輩、兄弟姉妹と仲間との関係"
+],
+"名义年龄": [
+"Nominal age",
+"名目年齢"
 ],
 "名义起始年龄": [
 "Nominal starting age",
@@ -5746,6 +5790,10 @@ const UI_EXTRA = {
 "All values come from the user's subjective scores and weights; the ranking is not objective truth, a probability, or a prediction of real-world outcomes.",
 "すべての数値はユーザーが入力した主観的な評価と重みに基づきます。順位は客観的な真実、確率、現実の結果予測ではありません。"
 ],
+"所选大运": [
+"Selected Luck Pillar",
+"選んだ大運"
+],
 "所选宫位": [
 "Selected palace",
 "選択した宮位"
@@ -5761,10 +5809,6 @@ const UI_EXTRA = {
 "所选时刻算不出来：": [
 "The chosen moment could not be calculated: ",
 "選んだ時刻を計算できません："
-],
-"所选节令": [
-"Selected solar term",
-"選択した節令"
 ],
 "手动逆排": [
 "Manual reverse",
@@ -5845,10 +5889,6 @@ const UI_EXTRA = {
 "把独立排盘结果整理为 JSON，包含 reference_source、reference_school、root_fields 和 palaces。每个宫使用 number=1…9；其余只填写需要对照的字段。": [
 "Format the independent chart result as JSON containing reference_source, reference_school, root_fields and palaces. Use number=1…9 for each palace; fill in only the other fields you want compared.",
 "独立した作盤結果を reference_source、reference_school、root_fields、palaces を含む JSON にまとめてください。各宮は number=1…9 を使用し、その他は対照したいフィールドのみ記入します。"
-],
-"投影起始时间": [
-"Projected start time",
-"推定開始時刻"
 ],
 "报告 综述 markdown": [
 "report summary markdown",
@@ -5953,6 +5993,10 @@ const UI_EXTRA = {
 "按宫列表": [
 "By palace",
 "宮ごとの一覧"
+],
+"按常见排法，交运当年整年记在这步大运下；在这之前的几个月实际仍在上一步大运。": [
+"by the usual listing the whole year of the change counts under this Luck Pillar; the months before it still belong to the previous one.",
+"一般的な並べ方では交運の年は丸ごとこの大運に入れますが、それより前の数か月は実際にはまだ前の大運です。"
 ],
 "按年干阴阳与性别（或手动指定）定顺逆，报告列出起运年龄和前六步大运干支。": [
 "Sets the direction from the year stem's yin or yang and the gender (or by hand); the report lists the starting age and the first six luck pillars.",
@@ -6406,6 +6450,10 @@ const UI_EXTRA = {
 "The day pillar depends on the hour, so the day master is open and ten gods are not marked.",
 "日柱は時刻次第のため日主が定まらず、十神は付けていません。"
 ],
+"日柱随时辰而定，日主未定，十神和星运暂不标注。": [
+"The day pillar depends on the hour, so the Day Master is not settled; ten gods and growth stages are not marked.",
+"日柱は時辰しだいで日主が定まらないため、十神と星運は表示しません。"
+],
 "日柱随时辰而定，日主未定，十神暂不标注。": [
 "The day pillar depends on the hour, so the Day Master is unsettled and no ten gods are given.",
 "日柱が時刻次第のため日主が定まらず、十神は示しません。"
@@ -6686,6 +6734,10 @@ const UI_EXTRA = {
 "For a member with an unknown hour, luck is computed for the first and the last minute of the birth day; when they differ both are listed, and the annual pillar is not compared with the hour pillar.",
 "時刻不明のメンバーは誕生日の最も早い時刻と遅い時刻でそれぞれ大運を出し、異なる場合は両方を並べます。流年も時柱とは比べません。"
 ],
+"时辰不详（按 12:00）": [
+"hour unknown (12:00 used)",
+"時辰不明（12:00 で計算）"
+],
 "时辰不详，不列换算后的时刻": [
 "Hour unknown, so no converted time is listed",
 "時辰不明のため、換算後の時刻は示しません"
@@ -6718,6 +6770,10 @@ const UI_EXTRA = {
 "Hour unknown: palaces are placed from the 12:00 placeholder, so the landing palaces change with the hour.",
 "時刻不明：宮位は 12:00 の仮の時刻で配置しており、落宮は時刻によって変わります。"
 ],
+"时辰不详：按 12:00 占位计算；出生时间前后差 12 小时，起运最多差约 2 个月。": [
+"Birth hour unknown: worked out from a 12:00 placeholder; 12 hours either way moves the start by up to about 2 months.",
+"出生時刻不明：12:00 の仮の時刻で計算しています。前後 12 時間ずれると、起運は最大で約 2 か月ずれます。"
+],
 "时辰不详：时柱按 12:00 占位；出生当天交节，又按 23:00 换日或按太阳时换算，月柱、日柱随时辰而定。这三柱都不计入，日主未定，也不标十神。": [
 "The hour is unknown: the hour pillar is a 12:00 placeholder; a solar term (jie) falls on the birth day and the day changes at 23:00 or follows solar time, so the month and day pillars depend on the hour. These three pillars are not counted, and with no settled Day Master the Ten Gods are not shown.",
 "時刻不明：時柱は 12:00 の仮置きです。誕生日に節入りがあり、23:00 で日が替わるか太陽時で換算するため、月柱と日柱は時刻次第です。この三柱は数えず、日主が定まらないので十神も示しません。"
@@ -6741,6 +6797,14 @@ const UI_EXTRA = {
 "时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干、四化星名和本层流曜，不列它们落在哪个本命宫。": [
 "Birth hour unknown: natal palaces and star positions change with the hour, so the small limit and year give only their Life palace branch, stem, transformed stars and period stars, not which natal palace they fall in.",
 "生時不明：本命の宮と星の位置は時刻で変わるため、小限・流年は命宮の地支、天干、四化の星名とその層の流曜だけを示し、どの本命宮に当たるかは示しません。"
+],
+"时辰不详：生在交节之前或之后，年柱和月柱都不同，大运的顺逆、干支和起运岁数也都跟着变。下面的大运表按 12:00 占位排出，只是其中一种可能；补上出生时辰后才有起运推算和人生时间轴。": [
+"Birth hour unknown: born before or after the term, the year and month pillars differ, and so do the direction, the pillars and the starting age of the Luck Pillars. The table below is cast on the 12:00 placeholder and is only one of the possibilities; the start calculation and the life timeline appear once the birth hour is filled in.",
+"時辰不明：節入りの前か後かで年柱と月柱が異なり、大運の順逆・干支・起運年齢もすべて変わります。下の大運表は 12:00 の仮の時刻で排した可能性の一つにすぎません。出生時辰を入力すると起運の計算と人生の時間軸を表示します。"
+],
+"时辰不详：生在交节之前或之后，月柱不同，大运的干支和起运岁数也都跟着变。下面的大运表按 12:00 占位排出，只是其中一种可能；补上出生时辰后才有起运推算和人生时间轴。": [
+"Birth hour unknown: born before or after the term, the month pillar differs, and so do the pillars and the starting age of the Luck Pillars. The table below is cast on the 12:00 placeholder and is only one of the possibilities; the start calculation and the life timeline appear once the birth hour is filled in.",
+"時辰不明：節入りの前か後かで月柱が異なり、大運の干支と起運年齢も変わります。下の大運表は 12:00 の仮の時刻で排した可能性の一つにすぎません。出生時辰を入力すると起運の計算と人生の時間軸を表示します。"
 ],
 "时辰交界": [
 "Double-hour boundary",
@@ -9974,9 +10038,21 @@ const UI_EXTRA = {
 "The Luck Pillar starting age converts three days to one year; the starting Gregorian time uses an approximate 365.2425-day-year projection, not a precise luck-change date agreed across schools.",
 "起運年齢は3日を1歳に換算します。開始の西暦日時は365.2425日の近似年による投影で、各流派で統一された正確な交運日ではありません。"
 ],
+"起运怎么算": [
+"How the starting age is worked out",
+"起運の計算"
+],
+"起运约": [
+"Starts about",
+"起運はおよそ"
+],
 "起运约 ": [
 "Luck Pillars start at about ",
 "起運 約 "
+],
+"起运随时辰而定": [
+"Start depends on the birth hour",
+"起運は時辰しだい"
 ],
 "起（含）": [
 "From (inclusive)",
@@ -10198,6 +10274,10 @@ const UI_EXTRA = {
 "Luan (decade)",
 "限の鸞"
 ],
+"近似公历": [
+"Approx. Gregorian dates",
+"おおよその西暦"
+],
 "近似起始公历": [
 "Approx. Gregorian start",
 "近似開始西暦"
@@ -10294,6 +10374,10 @@ const UI_EXTRA = {
 "A daylight-saving switch skips or repeats part of the clock on this day, so no unambiguous moment falls in these hours, which are not listed:",
 "この日は夏時間の切り替えで時計の一部が飛ぶか重なるため、これらの時辰には一意に決まる時刻がなく、表示していません："
 ],
+"这张表按 12:00 占位排出，只是其中一种可能。": [
+"This table is cast on the 12:00 placeholder and is only one of the possibilities.",
+"この表は 12:00 の仮の時刻で排したもので、可能性の一つにすぎません。"
+],
 "这是一份确定性多工具计算报告，未运行外部大语言模型，不是自主推理结果。": [
 "This is a deterministic multi-tool calculation report; no external large language model was run, and it is not the result of autonomous reasoning.",
 "これは決定論的な複数ツールの計算レポートです。外部の大規模言語モデルは実行しておらず、自律的な推論の結果ではありません。"
@@ -10305,6 +10389,10 @@ const UI_EXTRA = {
 "这是问题驱动的执行流程。优先调用 consultation_execute 来执行真实的 Clarify/Compute/Verify 工作流（不要仅凭提示编造工具调用）；工具会返回 intent/status/missing_inputs/tool_trace/observations/continuation 与限制。若 status=needs_input 或 partial，先请用户确认所需输入；可用 continuation 跨次承接主题，但出生参数仍须重新提供。需要 LLM 表达时只据返回的证据分析，不得冒充执行器调用了语言模型。此前的指引仍适用：先明确用户实际问题、时间范围及必要出生输入，再判断是本命、年度职业、关系合盘、多候选择时、方案比较还是流派争议。先检查需要的出生数据质量；按需求选择 bazi_chart、ziwei_chart、deep_evidence_review、pair_comparison、annual_transformations、qimen_hour_chart、decision_matrix 等真实工具，不要每次全部调用。需要报告时调用 structured_report(include_deep_evidence=true)，有经度才启用 include_time_audit，完整保留 tool_trace、provenance、limitations。将计算事实、传统解释、用户提供的现实事实和推测分层陈述；检查流派差异与不完整紫微运限，不输出科学预测、无来源现实信息或虚构成功率。当前没有服务器长期记忆、真人账户及在线自主 Agent，不得假装已保存人生事件或完成真实联网核验。": [
 "This is a question-driven execution workflow. Prefer calling consultation_execute to run the real Clarify/Compute/Verify workflow (do not fabricate tool calls from the prompt alone); the tool returns intent/status/missing_inputs/tool_trace/observations/continuation and limitations. If status=needs_input or partial, first ask the user to confirm the required inputs; continuation can carry a topic across turns, but birth parameters must still be provided again. When LLM wording is needed, analyze only on the basis of the returned evidence, and do not pretend that the executor called a language model. The earlier guidance still applies: first clarify the user's actual question, time range, and necessary birth inputs, then decide whether it is natal, annual career, relationship synastry, multi-candidate time selection, option comparison, or a school dispute. First check the quality of the required birth data; choose real tools as needed such as bazi_chart, ziwei_chart, deep_evidence_review, pair_comparison, annual_transformations, qimen_hour_chart, and decision_matrix, rather than calling all of them every time. When a report is needed, call structured_report(include_deep_evidence=true), enable include_time_audit only when longitude is available, and keep tool_trace, provenance, and limitations in full. Present computed facts, traditional interpretations, user-provided real-world facts, and speculation in separate layers; check for school differences and the incomplete Zi Wei luck periods, and do not output scientific predictions, unsourced real-world information, or fabricated success rates. There is currently no long-term server memory, real user account, or online autonomous Agent; do not pretend to have saved life events or completed real online verification.",
 "これは質問主導の実行フローです。実際の Clarify/Compute/Verify ワークフローを実行するため、consultation_execute の呼び出しを優先してください（プロンプトだけでツール呼び出しを捏造しないでください）。ツールは intent/status/missing_inputs/tool_trace/observations/continuation と制限事項を返します。status=needs_input または partial の場合は、まずユーザーに必要な入力を確認してください。continuation により話題を次回へ引き継げますが、出生パラメータは改めて提供する必要があります。LLM による表現が必要な場合は、返された根拠のみに基づいて分析し、実行器が言語モデルを呼び出したかのように装ってはいけません。これまでの指示も引き続き適用されます。まずユーザーの実際の質問、期間、必要な出生入力を明確にし、本命、年度の職業、関係の合盤、複数候補の択時、案の比較、流派の争点のいずれかを判断してください。まず必要な出生データの品質を確認し、必要に応じて bazi_chart、ziwei_chart、deep_evidence_review、pair_comparison、annual_transformations、qimen_hour_chart、decision_matrix などの実際のツールを選び、毎回すべてを呼び出さないでください。レポートが必要な場合は structured_report(include_deep_evidence=true) を呼び出し、経度がある場合にのみ include_time_audit を有効にし、tool_trace、provenance、limitations を完全に保持してください。計算上の事実、伝統的解釈、ユーザー提供の現実の事実、推測を層に分けて述べ、流派の違いや不完全な紫微の運限を確認し、科学的予測、出典のない現実情報、捏造した成功率を出力してはいけません。現在、サーバーの長期記憶、実在のユーザーアカウント、オンラインの自律 Agent はありません。人生の出来事を保存したり、実際のオンライン検証を完了したりしたかのように装ってはいけません。"
+],
+"这步大运里的流年": [
+"Years within this Luck Pillar",
+"この大運の流年"
 ],
 "这段年份里没有对得上的时间。可以放宽年份，或切换换日规则再试。": [
 "No matching time in these years. Widen the years or switch the day-boundary rule and try again.",
@@ -10353,6 +10441,10 @@ const UI_EXTRA = {
 "逆排": [
 "Reverse",
 "逆行"
+],
+"逆排：往前数到上一个节": [
+"Reverse: counted back to the previous jie term",
+"逆行：前の節までさかのぼって数えます"
 ],
 "选哪个": [
 "Which one to choose",
@@ -10697,6 +10789,10 @@ const UI_EXTRA = {
 "顺排": [
 "Forward",
 "順行"
+],
+"顺排：往后数到下一个节": [
+"Forward: counted on to the next jie term",
+"順行：次の節まで数えます"
 ],
 "顺逆方向（默认年干/性别）": [
 "Forward/reverse direction (default by year stem/gender)",
