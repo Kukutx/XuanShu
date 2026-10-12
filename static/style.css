@@ -899,18 +899,25 @@ small.yt-now{font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:.0
 .of-gz{display:block;margin:12px 0 1px;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:12px;font-weight:400;letter-spacing:.04em}
 .of-officer{display:block;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:22px;font-weight:600;line-height:1.15;color:var(--text)}
 .of-jie{display:block;margin-top:2px;font-size:10.5px;line-height:1.3;color:var(--green)}
-.of-jie b{margin-left:2px;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:12px;color:var(--text)}
+.of-jie b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:12px;color:var(--text)}
+.of-jie-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.of-jie-swap{display:block;white-space:nowrap;font-variant-numeric:tabular-nums}
 .of-day.is-jie{border-color:var(--green)}
-.of-day.is-today{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
-.of-day.is-today .of-date{color:var(--gold2);font-weight:600}
+/* Today fills its date; a marked day is outlined, so the two stay apart when both apply. */
+.of-day.is-today .of-date{top:4px;left:4px;padding:0 5px;border-radius:999px;background:var(--gold);color:var(--on-gold);font-weight:700}
 .of-day.is-mark{background:var(--accent-soft);border-color:var(--gold)}
 .of-day.is-mark .of-officer{color:var(--gold2)}
-.of-day.is-dim{opacity:.38}
-html[lang="en"] .of-officer{font-family:inherit;font-size:14px;line-height:1.2;overflow-wrap:anywhere}
+.of-day.is-mark-jie .of-officer{color:var(--text)}
+.of-day.is-mark-jie .of-jie-swap b{color:var(--gold2)}
+.of-day.is-dim{background:transparent}
+.of-day.is-dim .of-officer{color:var(--faint);font-weight:400}
+.of-day.is-dim .of-gz span{color:var(--faint)!important}
+html[lang="en"] .of-officer{font-family:inherit;font-size:14px;line-height:1.2}
 html[lang="en"] :is(.of-chip b,.of-jie b){font-family:inherit;font-size:13px}html[lang="en"] .of-jie b{font-size:inherit}
-.of-list tr.is-dim{opacity:.45}
+.of-list tr.is-dim>td{color:var(--faint)}
+.of-today{display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--gold);color:var(--on-gold);font-size:11px;font-weight:700}
 .of-list tr.is-mark>td{background:var(--accent-soft)}
-.of-list td b{margin-left:3px;color:var(--gold2)}
+.of-list td b{color:var(--gold2)}
 .today-facts{margin-top:10px}
 .today-empty{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:12px 14px}
 .today-table td,.today-table th{vertical-align:middle}

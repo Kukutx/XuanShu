@@ -54,15 +54,8 @@ def _solar_month_branch(day: date, hour: int) -> int:
     return (2 + month_offset) % 12
 
 
-def _jie_boundary_on(day: date) -> bool:
-    """True when a jie instant falls anywhere in [00:00, 24:00) China time."""
-    start = datetime.combine(day, time(), tzinfo=CHINA)
-    end = start + timedelta(days=1) - timedelta(microseconds=1)
-    return solar_month_offset(start) != solar_month_offset(end)
-
-
 def _jie_on(day: date, day_branch: str) -> dict | None:
-    """The jie falling on a China date, and the month branch and officer on either side of it."""
+    """The jie falling anywhere in [00:00, 24:00) of a China date, and the month branch and officer on either side of it."""
     start = datetime.combine(day, time(), tzinfo=CHINA)
     end = start + timedelta(days=1) - timedelta(microseconds=1)
     if solar_month_offset(start) == solar_month_offset(end):
@@ -86,15 +79,16 @@ def day_officer_calendar(request: DayOfficerRequest) -> dict:
         officer = DAY_OFFICERS[(BRANCHES.index(day_branch) - noon_month) % 12]
         if request.filter_officers and officer not in request.filter_officers:
             continue
+        jie = _jie_on(current, day_branch)
         days.append({
             'date': current.isoformat(),
             'day_pillar': day_pillar,
             'month_branch_at_noon': BRANCHES[noon_month],
             'day_branch': day_branch,
             'officer': officer,
-            'jie_boundary_on_date': _jie_boundary_on(current),
-            # On a jie day: the term, its China time, and the officer before and after it (the noon one is listed above).
-            'jie_on_date': _jie_on(current, day_branch),
+            'jie_boundary_on_date': jie is not None,
+            # On a jie day: the term, its China time, and the officer before and after it (the noon one is one of them).
+            'jie_on_date': jie,
         })
     return {
         'system': 'jianchu-twelve-day-officers',
@@ -106,7 +100,7 @@ def day_officer_calendar(request: DayOfficerRequest) -> dict:
         'method': 'twelve-jie-month-branch + sexagenary-day-branch at China noon',
         'limitations': [
             '十二值日是传统历法标签，不构成吉凶评分、黄历宜忌或择日保证。',
-            '交节当天节令切换前后的值日不同：本表按北京时间正午归类，交节当天另给出交节时刻和节后的值日；精确活动时间要对照交节时刻。',
+            '交节当天节令切换前后的值日不同：本表按北京时间正午归类，交节当天另给出交节时刻和交节前后的值日；精确活动时间要对照交节时刻。',
             '本模型不声称为任何特定流派的完整黄历择日法。',
         ],
     }

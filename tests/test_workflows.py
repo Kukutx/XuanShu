@@ -44,6 +44,14 @@ def test_officer_sequence_and_jie_split_2024_lichun():
     assert all(d['jie_on_date'] is None for i,d in enumerate(data) if i != 1)
 
 
+def test_officer_on_a_morning_jie_is_the_one_after_the_term():
+    # 立春 2026 fell at 04:02 China time, so noon is already in the 寅 month: the noon officer 危 is the one after it.
+    day=day_officer_calendar(DayOfficerRequest(start_date='2026-02-04',days=1))['days'][0]
+    assert day['officer']=='危' and day['month_branch_at_noon']=='寅' and day['jie_boundary_on_date'] is True
+    assert day['jie_on_date']=={'name':'立春','time_china':'2026-02-04T04:02+08:00','month_branch_before':'丑','officer_before':'成',
+                                'month_branch_after':'寅','officer_after':'危'}
+
+
 def test_officers_filters_return_only_requested_labels():
     data=day_officer_calendar(DayOfficerRequest(start_date='2024-02-01',days=31,filter_officers=['建','开']))
     assert data['requested_days']==31
@@ -128,7 +136,7 @@ def test_decision_rejects_invalid_data(bad):
 
 def test_endpoints_mcp_and_rest_parity():
     requests=[
-        ('day_officers','/api/day-officers',{'start_date':'2026-10-15','days':5}),
+        ('day_officers','/api/day-officers',{'start_date':'2026-11-05','days':5}),  # 立冬 on 11-07
         ('annual_timeline','/api/annual-timeline',{'birth':BIRTH,'start_lunar_year':2024,'years':3}),
         ('decision_matrix','/api/decision-matrix',valid_matrix()),
     ]
@@ -138,6 +146,8 @@ def test_endpoints_mcp_and_rest_parity():
         rpc=process_rpc({'jsonrpc':'2.0','id':9,'method':'tools/call','params':{'name':name,'arguments':payload}})
         assert rpc['result']['structuredContent']==response.json()
         assert rpc['result']['isError'] is False
+        if name=='day_officers':
+            assert [d['date'] for d in response.json()['days'] if d['jie_on_date']]==['2026-11-07']
     counts=client.get('/api/capabilities').json()['counts']
     assert counts=={'mcp_tools':34,'mcp_resources':17,'mcp_prompts':15,'agent_skills':18}
 

@@ -11,8 +11,8 @@ license: AGPL-3.0
 ## 执行步骤
 
 1. 先确认公历日期范围，统一按 `Asia/Shanghai` 的北京时间解释日期。不要擅自用本地设备时区替换。
-2. 使用 MCP 工具 `day_officers`，提供 `start_date`、`days`（1–93）和可选 `filter_officers`。保留输出 `day_pillar`、`month_branch_at_noon`、`officer` 和 `jie_boundary_on_date`。
-3. 当边界标记为真时，提示该日交节前后采用的月建可能改变；如需精确时刻，再调用 `solar_terms` 或相关节令计算。
+2. 使用 MCP 工具 `day_officers`，提供 `start_date`、`days`（1–93）和可选 `filter_officers`。保留输出 `day_pillar`、`month_branch_at_noon`、`officer`、`jie_boundary_on_date` 和 `jie_on_date`（交节当天的节名、北京时间交节时刻、交节前后的月支和值日）。
+3. 当边界标记为真时，按 `jie_on_date` 写明交节时刻和交节前后各是哪个值日，不要只报正午的值日。
 4. 引用规则资源 `astro://rules/jianchu`。任何传统标签都不能描述为真实吉凶、婚姻成败或医疗、财务收益的证据。
 
 ## 避免的错误

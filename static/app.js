@@ -1830,9 +1830,29 @@ function renderCalendar() {
   note(result, data.notes.join(' '));
 }
 // 建除值日 as a calendar: a week per row, Monday first, the officer of each day large. Picking an officer marks
-// its days and dims the rest (nothing is left out), and a jie day says which officer follows the term.
+// its days and dims the rest (nothing is left out), and a jie day names the other officer of that day.
 let officerMark = '', officerView = 'grid';
 const DAY_OFFICER_ORDER = [...'建除满平定执破危成收开闭'];
+// The noon officer is one of the two on a jie day: the one before the term when it falls after noon, the one after it
+// when it falls before. The other one is what the day adds.
+function officerJie(d) {
+  const j = d.jie_on_date, after = d.officer === j.officer_before;
+  return {name: j.name, time: j.time_china.slice(11, 16), after, other: after ? j.officer_after : j.officer_before};
+}
+// English officer names are a pinyin and a gloss, Po (Destruction); a day cell keeps the pinyin.
+const officerShort = o => calLang() === 'en' ? calT(o).replace(/\s*\([^)]*\)$/, '') : o;
+// A jie line: compact in a cell (17:52 → 开 after the term, 成 → 04:02 before it), with the words for screen readers.
+function officerJieText(parent, d, compact) {
+  const jie = officerJie(d);
+  if (!compact) {texts(parent, termText(jie.name), ' ', jie.time, ' · ', jie.after ? '节后' : '节前', ' '); append(parent, 'b', null, jie.other); return;}
+  parent.title = termText(jie.name) + ' ' + jie.time;
+  const shown = append(parent, 'span', 'of-jie-short'); shown.setAttribute('aria-hidden', 'true'); shown.dataset.noI18n = '';
+  append(shown, 'span', 'of-jie-name', termText(jie.name, true));
+  const swap = append(shown, 'span', 'of-jie-swap'), other = elt('b', null, officerShort(jie.other));
+  other.title = calT(jie.other);
+  if (jie.after) swap.append(jie.time + ' → ', other); else swap.append(other, ' → ' + jie.time);
+  officerJieText(append(parent, 'span', 'visually-hidden'), d, false);
+}
 function renderDayOfficers() {
   title(result,'建除十二值日','节令月支 × 日支 · 仅传统标签，不给吉凶或宜忌结论');
   const row=append(result,'div','inline-control');
@@ -1856,7 +1876,7 @@ function renderDayOfficers() {
     officerDraft={start_date:start.value,days:Number(count.value)};
     query();render();
   });
-  append(result,'p','field-help','查询按北京时间正午取值；交节当天另写节后的值日。');
+  append(result,'p','field-help','查询按北京时间正午取值；交节当天另写交节时刻和另一个值日。');
   if(officerPending)append(result,'p','field-help','正在查询…');
   if(!officerResult)return;
   const days = officerResult.days, first = days[0], last = days[days.length - 1];
@@ -1877,11 +1897,11 @@ function renderDayOfficers() {
     if (o) texts(append(chip, 'small'), '×', counts[o] || 0);
     chip.addEventListener('click', () => {officerMark = o; render();});
   });
-  const marks = d => officerMark && (d.officer === officerMark || (d.jie_on_date && d.jie_on_date.officer_after === officerMark));
+  const marks = d => officerMark && (d.officer === officerMark || (d.jie_on_date && officerJie(d).other === officerMark));
   if (officerMark) {
-    const n = days.filter(marks).length, late = days.filter(d => d.officer !== officerMark && marks(d)).length;
+    const n = days.filter(marks).length, part = days.filter(d => d.officer !== officerMark && marks(d)).length;
     const line = countText(texts(append(result, 'p', 'of-summary'), '突出显示', ' ', officerMark, ' · '), n, ' 天');
-    if (late) countText(texts(line, ' · ', '其中交节后才轮到', ' '), late, ' 天');
+    if (part) {texts(line, ' · ', '其中', ' '); countText(line, part, ' 天'); texts(line, ' ', '只在交节前或交节后');}
   }
   const views = append(result, 'div', 'layer-modes of-views');
   views.setAttribute('role', 'group'); views.setAttribute('aria-label', '显示方式');
@@ -1891,10 +1911,8 @@ function renderDayOfficers() {
     button.addEventListener('click', () => {officerView = key; render();});
   });
   const today = localToday(), weekdayOf = date => (new Date(date + 'T00:00:00Z').getUTCDay() + 6) % 7;
-  const jieText = (parent, j) => {
-    texts(parent, termText(j.name, true), ' ', j.time_china.slice(11, 16), ' · ', '节后');
-    append(parent, 'b', null, j.officer_after);
-  };
+  // A day marked only for the officer before or after its term: that officer is the marked one, not the noon one.
+  const markClass = d => !officerMark ? '' : !marks(d) ? ' is-dim' : d.officer === officerMark ? ' is-mark' : ' is-mark is-mark-jie';
   if (officerView === 'grid') {
     const wrap = append(result, 'div', 'of-wrap');
     const table = append(wrap, 'table', 'of-grid'); table.id = 'officer-grid';
@@ -1912,27 +1930,29 @@ function renderDayOfficers() {
     cells.forEach((d, i) => {
       if (i % 7 === 0) tr = append(body, 'tr');
       if (!d) {append(tr, 'td', 'of-blank'); return;}
-      const td = append(tr, 'td', 'of-day' + (d.date === today ? ' is-today' : '') + (d.jie_on_date ? ' is-jie' : '') + (officerMark ? (marks(d) ? ' is-mark' : ' is-dim') : ''));
+      const td = append(tr, 'td', 'of-day' + (d.date === today ? ' is-today' : '') + (d.jie_on_date ? ' is-jie' : '') + markClass(d));
       td.id = 'officer-day-' + d.date;
       const date = append(td, 'span', 'of-date');
       const [, m, dd] = d.date.split('-').map(Number);
       date.textContent = (i < 7 && i === weekdayOf(first.date)) || dd === 1 ? m + '/' + dd : String(dd);
+      if (d.date === today) {td.setAttribute('aria-current', 'date'); append(td, 'span', 'visually-hidden', '今天');}
       const gz = append(td, 'b', 'of-gz'); gz.dataset.noI18n = '';
       append(gz, 'span', stemClass(d.day_pillar[0]), d.day_pillar[0]); append(gz, 'span', branchClass(d.day_pillar[1]), d.day_pillar[1]);
-      append(td, 'span', 'of-officer', d.officer);
-      if (d.jie_on_date) jieText(append(td, 'small', 'of-jie'), d.jie_on_date);
+      const officer = append(td, 'span', 'of-officer', officerShort(d.officer)); officer.dataset.noI18n = ''; officer.title = calT(d.officer);
+      if (d.jie_on_date) officerJieText(append(td, 'small', 'of-jie'), d, true);
     });
-    append(result, 'p', 'field-help', '一行一周，从星期一开始；格子里是日期、日干支和正午的值日。交节当天另写节气、交节时刻（北京时间）和节后的值日。');
+    append(result, 'p', 'field-help', '一行一周，从星期一开始；格子里是日期、日干支和正午的值日，今天的日期填色。交节当天另写节气和交节时刻（北京时间）：「17:52 → 开」是交节后轮到开，「成 → 04:02」是交节前为成。');
   } else {
     const table=append(append(result,'div','table-wrap'),'table','data-table of-list'); table.id = 'officer-list';
     const hr=append(append(table,'thead'),'tr');
     ['公历日','日干支','正午月建','十二值日','交节'].forEach(x=>append(hr,'th',null,x));
     const body=append(table,'tbody');
     days.forEach(d=>{
-      const tr=append(body,'tr', officerMark ? (marks(d) ? 'is-mark' : 'is-dim') : null);
+      const tr=append(body,'tr', markClass(d).trim() || null);
       [d.date,d.day_pillar,d.month_branch_at_noon,d.officer].forEach(x=>append(tr,'td',null,x));
+      if (d.date === today) {tr.setAttribute('aria-current', 'date'); append(tr.firstChild, 'small', 'of-today', '今天');}
       const jie = append(tr, 'td');
-      if (d.jie_on_date) jieText(jie, d.jie_on_date); else jie.textContent = '—';
+      if (d.jie_on_date) officerJieText(jie, d, false); else jie.textContent = '—';
     });
   }
   officerResult.limitations.forEach(x=>note(result,x));
