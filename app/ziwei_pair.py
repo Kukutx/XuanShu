@@ -47,6 +47,8 @@ def _transformations_into(source: dict, target: dict, target_palaces: dict[str, 
 
 
 def ziwei_pair_overlay(request: PairInput) -> dict:
+    if request.person_a_hour_unknown or request.person_b_hour_unknown:
+        raise ValueError('紫微宫位叠盘需要两人的出生时辰：时辰不详时无法安命宫，也就没有宫位可以对齐。')
     a, b = calculate_ziwei(request.person_a), calculate_ziwei(request.person_b)
     pa, pb = _by_branch(a), _by_branch(b)
     grid = [{'branch': br,

@@ -9,9 +9,10 @@ license: AGPL-3.0
 
 1. Obtain two distinct birth records with local birth date/time and IANA timezone. Do not retain sensitive birth information beyond the immediate task.
 2. Call `pair_comparison` with nested `person_a` and `person_b` BirthInput objects.
-3. Describe shared stems and four pillar branch relations. `六合`, `六冲`, `同支` are **cultural classifications**, not measurements of relationship stability or worth.
-4. Respect the user's selected 23:00 day boundary for each chart separately.
-5. For broader symbolism, optionally call `bazi_chart` on each record. Avoid combining unsupported Zi Wei relationship calculations into a definitive compatibility claim.
+3. Describe the day-stem ten god in both directions (`day_stems`), the day-stem five combination, the zodiac labels and `branch_links`: every labelled pair of branches across the four pillars (`同支`, `六合`, `六冲`, `六害`, `相刑`), including pillars in different positions. These are **cultural classifications**, not measurements of relationship stability or worth.
+4. If either person does not know the birth hour, pass `person_a_hour_unknown` or `person_b_hour_unknown`. That hour pillar is then `null` and never compared; a pillar that changes during that birth day (a jie or a 23:00 day change) is `null` too. Do not call `ziwei_pair_overlay` in that case: it needs both hours and refuses.
+5. Respect the user's selected 23:00 day boundary for each chart separately.
+6. For broader symbolism, optionally call `bazi_chart` on each record. Avoid combining unsupported Zi Wei relationship calculations into a definitive compatibility claim.
 
 ## Example arguments
 
