@@ -183,6 +183,10 @@
   " hours from it: a slightly different solar-term instant or timezone handling can change the month pillar.",
   " 時間：節気時刻やタイムゾーンの扱いが少し違うだけで月柱が変わることがあります。"
  ],
+ " 岁": [
+  " yrs",
+  " 歳"
+ ],
  " 岁起），童限未列出。": [
   " onward); the childhood limit is not listed.",
   " 歳から）。童限は表示しません。"
@@ -190,6 +194,10 @@
  " 年": [
   " years",
   " 年"
+ ],
+ " 年交运": [
+  " luck change",
+  " 年交運"
  ],
  " 年我的事业选择可从哪些传统结构和现实约束分析？": [
   ": which traditional structures and real-world constraints can I use to analyze my career choices that year?",
@@ -199,9 +207,17 @@
   " annual layer",
   " 年の流年層"
  ],
+ " 年起运": [
+  " luck starts",
+  " 年起運"
+ ],
  " 张盘；达到上限时停止扫描并标记 truncated，不输出缺盘的候选日。": [
   " charts; scanning stops at the limit and is marked truncated, and candidate days with missing charts are not output.",
   " 枚の盤。上限に達するとスキャンを停止して truncated を付け、盤の欠けた候補日は出力しません。"
+ ],
+ " 或 ": [
+  " or ",
+  " または "
  ],
  " 排出的农历为 ": [
   " gives the lunar date as ",
@@ -639,6 +655,10 @@
   "“＝” means the same as the current settings; highlighted cells are results that change under that rule. Apply writes the rule into the birth details and recalculates. Removing daylight saving time changes how the birth time itself is read, so it cannot be applied directly; once you have confirmed the record used summer time, edit the birth time by hand.",
   "「＝」は現在の設定と同じ、色付きのセルはその規則で変わる結果です。「適用」は規則を出生情報に書き込んで再計算します。夏時間を差し引く規則は出生時刻そのものの読み方を変えるため直接適用できません。記録が夏時間だったと確認できたら、出生時刻を手動で修正してください。"
  ],
+ "‹ 上一年": [
+  "‹ Previous year",
+  "‹ 前年"
+ ],
  "← 左右滑动查看完整十二宫 →": [
   "← Swipe sideways to see all twelve palaces →",
   "← 左右にスワイプして十二宮すべてを表示 →"
@@ -883,6 +903,10 @@
   "Next year",
   "翌年"
  ],
+ "下一年 ›": [
+  "Next year ›",
+  "翌年 ›"
+ ],
  "下一节令": [
   "Next solar term",
   "次の節令"
@@ -999,9 +1023,17 @@
   "Any",
   "指定なし"
  ],
+ "与原局地支无冲合": [
+  "No clash or combination with the natal branches",
+  "原局の地支と冲・合なし"
+ ],
  "与原局的星运、空亡和合冲刑害只是传统标签，不判断合化成败，也不据此断吉凶。": [
   "Growth stages, voids and combinations, clashes, punishments and harms against the natal chart are traditional labels only; whether a combination transforms is not judged, and nothing here predicts fortune.",
   "原局との星運・空亡・合沖刑害は伝統的なラベルにすぎず、合化の成否は判断せず、吉凶も断じません。"
+ ],
+ "与大运页相同：三日折一岁，顺逆按年干阴阳与性别": [
+  "Same as the Luck page: three days count as one year; direction by year-stem yin/yang and gender",
+  "大運ページと同じ：三日を一年に換算し、順逆は年干の陰陽と性別で決める"
  ],
  "与我的命盘": [
   "Against my chart",
@@ -1207,6 +1239,10 @@
   "also",
   "も"
  ],
+ "也请对照这一年的大运流年：": [
+  "Please also compare the luck and annual pillars of this year: ",
+  "この年の大運・流年もあわせて見てください："
+ ],
  "乾": [
   "Qian",
   "乾"
@@ -1322,6 +1358,10 @@
  "交节约 ": [
   " is about ",
   "の節入りまで約 "
+ ],
+ "交运年": [
+  "Luck change",
+  "交運年"
  ],
  "亥卯未": [
   "Hai–Mao–Wei",
@@ -1950,6 +1990,10 @@
  "公历交运时间仅为均值年投影，不能当作精确流派交运日。": [
   "Gregorian Luck Pillar transition times are only mean-year projections and cannot be treated as precise school-specific transition dates.",
   "西暦の交運時刻は平均年による投影にすぎず、流派ごとの正確な交運日とはみなせません。"
+ ],
+ "公历年": [
+  "Year",
+  "西暦年"
  ],
  "公历日": [
   "Gregorian day",
@@ -2675,6 +2719,14 @@
   "Shen Sha on the natal pillars",
   "原局四柱の神煞"
  ],
+ "原局有不定的柱，不与流年比较": [
+  "Natal chart has an uncertain pillar; not compared with the year",
+  "原局に未確定の柱があるため流年と比べない"
+ ],
+ "原局有不定的柱，不比较": [
+  "Natal chart has an uncertain pillar; not compared",
+  "原局に未確定の柱があるため比べない"
+ ],
  "厦门": [
   "Xiamen",
   "アモイ"
@@ -2794,6 +2846,10 @@
  "只有 lunardate 不同；这份表的月份长度与天象不符。": [
   "Only lunardate differs; its table gives month lengths that do not match the sky.",
   "lunardate のみ異なります。この表の月の長さが天象と合いません。"
+ ],
+ "只标传统标签，不评价好坏，也不预测这一年会发生什么。": [
+  "Traditional labels only: no judgement of good or bad, and no forecast of what this year will bring.",
+  "伝統的なラベルのみを示し、良し悪しの評価やこの年の出来事の予測はしません。"
  ],
  "只标出各层的命宫、四化落在哪颗本命星上和本层流曜，不预测具体事件。": [
   "Only marks each layer's Life palace, which natal stars its four transformations fall on and the layer's period stars; no events are predicted.",
@@ -2934,6 +2990,10 @@
  "同一命盘两套明确输入/时制口径比较": [
   "Comparison of two explicit input/time-basis conventions for the same chart",
   "同一命盤における二つの明示的な入力・時制基準の比較"
+ ],
+ "同一年的流年对每个人相同，所以成员之间只比较各自的大运：天干五合与地支同支、六合、六冲、六害、相刑。": [
+  "The annual pillar is the same for everyone in a year, so members are compared by their luck pillars only: stem five combinations and the branch labels same branch, six harmony, six clash, six harm and punishment.",
+  "同じ年の流年は全員共通なので、メンバー同士は各自の大運だけを比べます：天干五合と地支の同支・六合・六冲・六害・相刑。"
  ],
  "同一瞬间的北京时间日期在本工具支持的农历范围之外，无法提供 UTC+8 对照。": [
   "The Beijing Time date for the same instant is outside the lunar range supported by this tool; no UTC+8 comparison can be provided.",
@@ -3487,6 +3547,14 @@
   "Decade and annual pillars",
   "大運と流年"
  ],
+ "大运之间": [
+  "Between luck pillars",
+  "大運どうし"
+ ],
+ "大运之间：": [
+  "Between luck pillars: ",
+  "大運どうし："
+ ],
  "大运区间是名义起运年龄的公历近似投影，交运日前后的事件归属可能有误差。": [
   "Luck Pillar intervals are approximate Gregorian projections of the nominal starting age; attribution of events around the transition date may be inaccurate.",
   "大運の区間は名目上の起運年齢を西暦に近似投影したもので、交運日前後の出来事の帰属には誤差が生じることがあります。"
@@ -3494,6 +3562,10 @@
  "大运干支排法": [
   "Luck Pillar stem-branch arrangement",
   "大運干支の配列法"
+ ],
+ "大运按年干阴阳与性别定顺逆，未填性别的成员只列流年。": [
+  "Luck direction follows the year stem's yin/yang and gender; members without a gender get the annual pillar only.",
+  "大運の順逆は年干の陰陽と性別で決まるため、性別未入力のメンバーは流年のみを示します。"
  ],
  "大运方向需要指定性别或手动顺逆": [
   "Luck Pillar direction requires a gender or a manual forward/reverse choice",
@@ -3511,6 +3583,10 @@
   "The decade periods could not be calculated here; try the Decade Pillars tool.",
   "大運を計算できませんでした。「大運干支」で個別に計算できます。"
  ],
+ "大运流年对照": [
+  "Luck and annual pillars by year",
+  "大運・流年の対照"
+ ],
  "大运流年干支神煞": [
   "Shen Sha on luck and year pillars",
   "大運・流年干支の神煞"
@@ -3518,6 +3594,10 @@
  "大运流年的神煞按原局日干、年干、年支、日支、月支查，只列名称与查法出处，不断吉凶。": [
   "Shen Sha on luck and year pillars are read from the natal day stem, year stem, year branch, day branch and month branch; only names, rules and sources are given, with no good-or-bad reading.",
   "大運・流年の神煞は原局の日干・年干・年支・日支・月支から求め、名称と求め方・出典だけを示し、吉凶は判断しません。"
+ ],
+ "大运：": [
+  "Luck pillar: ",
+  "大運："
  ],
  "大运：正在排…": [
   "Luck periods: calculating…",
@@ -4415,6 +4495,10 @@
   "Years follow the named lunar year and do not start on Gregorian January 1; near Chinese New Year and solar-term changes, verify which period a time belongs to.",
   "年は旧暦の命名年に従い、西暦1月1日からは始まりません。春節や節気の前後では時刻の帰属を確認してください。"
  ],
+ "年份要在 1901 到 2099 之间": [
+  "The year must be between 1901 and 2099",
+  "年は 1901〜2099 の範囲で入力してください"
+ ],
  "年干": [
   "Year stem",
   "年干"
@@ -4486,6 +4570,10 @@
  "年解": [
   "Nian Jie (annual)",
   "年解"
+ ],
+ "年龄": [
+  "Age",
+  "年齢"
  ],
  "广州": [
   "Guangzhou",
@@ -4663,6 +4751,10 @@
   "A jie term begins that day; the day officer differs before and after it",
   "当日は交節日で、節入りの前後で値日が異なります"
  ],
+ "当年交运": [
+  "Luck changes this year",
+  "この年に交運"
+ ],
  "当日": [
   "That day",
   "当日"
@@ -4679,6 +4771,10 @@
   "How to choose",
   "どう選ぶ"
  ],
+ "性别未填": [
+  "Gender not set",
+  "性別未入力"
+ ],
  "性别未指定时需要手动选择顺逆。": [
   "Choose forward/reverse manually when gender is not specified.",
   "性別未指定の場合は順逆を手動で選択してください。"
@@ -4690,6 +4786,10 @@
  "性别（定顺逆）": [
   "Gender (sets direction)",
   "性別（順逆を決定）"
+ ],
+ "性别（排大运用）": [
+  "Gender (for luck pillars)",
+  "性別（大運用）"
  ],
  "恩光": [
   "En Guang",
@@ -4747,6 +4847,10 @@
   "Cheng (Success)",
   "成"
  ],
+ "成员两两比较大运：天干五合，地支同支、六合、六冲、六害、相刑": [
+  "Each pair of members compared by luck pillars: stem five combinations; branch same branch, six harmony, six clash, six harm, punishment",
+  "メンバー同士の大運を比較：天干五合、地支の同支・六合・六冲・六害・相刑"
+ ],
  "成员关系图": [
   "Relation map of the members",
   "メンバーの関係図"
@@ -4774,6 +4878,10 @@
  "我的大运走势是怎样的？": [
   "How do my major cycles run?",
   "私の大運の流れはどうなっていますか？"
+ ],
+ "或": [
+  "or",
+  "または"
  ],
  "所列四支两两配对未命中当前实现的合冲刑害表。": [
   "None of the pairwise combinations of the four listed branches matched the currently implemented combination/clash/punishment/harm tables.",
@@ -4982,6 +5090,10 @@
  "换一个时间再排一盘对比一下": [
   "Cast another chart at a different time to compare",
   "別の時刻でもう一度盤を作って比べる"
+ ],
+ "换年失败：": [
+  "Could not change the year: ",
+  "年の切り替えに失敗しました："
  ],
  "换成其他规则后仍不一致的项目": [
   "Fields that still differ under other rules",
@@ -5543,6 +5655,10 @@
   "Hour unknown",
   "時辰不明"
  ],
+ "时辰不详且出生当天交节的成员，月柱可能有两种，大运无法确定；流年也不与其原局比较。": [
+  "For a member with an unknown hour born on a jie day, the month pillar may be either of two, so the luck pillar cannot be set; the annual pillar is not compared with that chart either.",
+  "時刻不明で誕生日に節入りがあるメンバーは月柱が二通りありうるため大運を確定できず、流年も原局と比べません。"
+ ],
  "时辰不详且出生当天交节（或按 23:00 换日）的一方，当天之内会变的年柱、月柱或日柱也不参与比较。": [
   "For a person with an unknown hour born on a solar-term day (or a 23:00 day change), a year, month or day pillar that changes during that day is also left out.",
   "出生時刻が不明で、出生日に節入り（または23:00の日替わり）がある側は、その日のうちに変わる年柱・月柱・日柱も比較に加えません。"
@@ -5555,9 +5671,21 @@
   "Birth hour unknown on a jie or day-change date: pillars marked ? are left out",
   "出生時刻不明で当日に節入りか日替わりあり：? の柱は比較しません"
  ],
+ "时辰不详且当天交节，月柱不定，大运无法确定": [
+  "Hour unknown on a jie day: month pillar uncertain, luck pillar cannot be set",
+  "時刻不明かつ節入り当日：月柱が未確定のため大運を確定できない"
+ ],
  "时辰不详时，各宫名称和星曜位置会随时辰变化，不列各层宫位对照表。": [
   "With the birth hour unknown, palace names and star positions change with the hour, so the palaces-across-layers table is not shown.",
   "出生時刻が不明なときは、宮名と星の位置が時刻によって変わるため、各層の宮位対照表は表示しません。"
+ ],
+ "时辰不详的成员按出生当天最早与最晚的时刻各排一次大运；两者不同时并列两种可能，流年也不与时柱比较。": [
+  "For a member with an unknown hour, luck is computed for the first and the last minute of the birth day; when they differ both are listed, and the annual pillar is not compared with the hour pillar.",
+  "時刻不明のメンバーは誕生日の最も早い時刻と遅い時刻でそれぞれ大運を出し、異なる場合は両方を並べます。流年も時柱とは比べません。"
+ ],
+ "时辰不详：出生当天早晚不同，大运也不同": [
+  "Hour unknown: the luck pillar differs between early and late in the birth day",
+  "時刻不明：誕生日の朝と夜で大運が異なる"
  ],
  "时辰不详：哪些部分不受时辰影响": [
   "Hour unknown: what the hour does not change",
@@ -5795,6 +5923,10 @@
   "Month pillar",
   "月柱"
  ],
+ "月柱不定，大运无法确定": [
+  "Month pillar uncertain; luck pillar cannot be set",
+  "月柱が未確定のため大運を確定できない"
+ ],
  "月柱天干与年干不合五虎遁：": [
   "The month stem does not follow the year stem (Five Tigers rule): for a ",
   "月柱の天干が年干の五虎遁に合いません："
@@ -5935,6 +6067,18 @@
   "Untitled",
   "無題"
  ],
+ "未填": [
+  "Not set",
+  "未入力"
+ ],
+ "未填性别、未起运或大运随时辰而定的成员不参与大运之间的比较。": [
+  "Members without a gender, whose luck has not started, or whose luck pillar depends on the hour are left out of the luck comparison.",
+  "性別未入力、未起運、または大運が時刻次第のメンバーは大運どうしの比較に含めません。"
+ ],
+ "未填性别，不排大运": [
+  "No gender set, so no luck pillar",
+  "性別未入力のため大運なし"
+ ],
  "未指定性别或大运顺逆，省略大运对照（方向不会被猜测）。": [
   "Gender or Luck Pillar direction not specified; Luck Pillar comparison omitted (the direction will not be guessed).",
   "性別または大運の順逆が未指定のため、大運の比較を省略しました（方向は推測しません）。"
@@ -5950,6 +6094,14 @@
  "未标记六合或六冲": [
   "No Six Harmonies or Six Clashes marked",
   "六合・六冲の印なし"
+ ],
+ "未起运": [
+  "Luck not started",
+  "未起運"
+ ],
+ "未起运，": [
+  "Luck not started, ",
+  "未起運、"
  ],
  "未选择": [
   "Not selected",
@@ -6299,6 +6451,10 @@
   "Calling calculation tools for your question…",
   "質問に応じて計算ツールを呼び出し中…"
  ],
+ "正在换年…": [
+  "Changing the year…",
+  "年を切り替え中…"
+ ],
  "正在换算…": [
   "Converting…",
   "換算中…"
@@ -6431,6 +6587,10 @@
   "One chart a day",
   "一日一盤"
  ],
+ "每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。": [
+  "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
+  "各カードはこの年に本人がいる大運と流年です。十神は本人の日主から天干を見ます。流年の後ろの小さな印は原局の地支との関係（冲月は月柱と六冲、合・刑・害も同様、同は同支、日空・年空は旬空に当たる）で、ホバーで全文が見られます。年齢はその年に達する満年齢です。"
+ ],
  "每段按中点计算代表盘，边界端点附近应使用原始出生记录重新核对。": [
   "Each segment's representative chart is computed at its midpoint; near boundary endpoints, re-check using the original birth record.",
   "各区間の代表盤は中点で計算します。境界の端点付近では元の出生記録で再確認してください。"
@@ -6555,6 +6715,10 @@
   "annual year-fortune yearly",
   "流年 年運 年度"
  ],
+ "流年与各人原局：十神、星运、空亡、干支合冲刑害、补成三合三会、神煞": [
+  "The annual pillar against each natal chart: ten god, growth stages, void, stem and branch relations, completed triads and seasonal groups, auxiliary stars",
+  "流年と各人の原局：十神、星運、空亡、干支の合冲刑害、三合・三会の成立、神煞"
+ ],
  "流年与本命": [
   "Annual and natal",
   "流年と本命"
@@ -6579,6 +6743,10 @@
   "The annual stem-branch changes at Start of Spring (Lichun) and is computed at noon on the event day; Zi Wei annual Four Transformations follow the named lunar year, so the two have different year boundaries.",
   "流年干支は立春を境とし、出来事当日の正午で計算します。紫微の年度四化は旧暦の命名年に従うため、両者の年境界は異なります。"
  ],
+ "流年干支是立春开始的那一年的干支，与大运页同一排法；交运当年整年记在新大运下，交运日之前的几个月实际仍属上一步大运。": [
+  "The annual pillar is the one that begins at Li Chun of that year, as on the Luck page; the year a luck period begins is listed whole under it, though the months before the change still belong to the previous period.",
+  "流年の干支はその年の立春から始まる干支で、大運ページと同じ数え方です。交運の年は丸ごと新しい大運に入れますが、交運日より前の数か月は実際には前の大運に属します。"
+ ],
  "流年按常见排法从交运那一年列起：交运当年整年记在新大运下，交运日之前的几个月实际仍属上一步大运。": [
   "Annual pillars follow the common listing from the year a period begins: that whole year is listed under the new period, although the months before the change still belong to the previous one.",
   "流年は一般的な並べ方に従い交運の年から並べます。交運の年は丸ごと新しい大運の下に置きますが、交運日より前の数か月は実際には前の大運に属します。"
@@ -6586,6 +6754,10 @@
  "流年流曜（含年解）": [
   "Annual period stars (with Nian Jie)",
   "流年の流曜（年解を含む）"
+ ],
+ "流年：": [
+  "Annual pillar: ",
+  "流年："
  ],
  "流日": [
   "Day layer",
@@ -6778,6 +6950,10 @@
  "炉中火": [
   "Furnace Fire (Lu Zhong Huo)",
   "炉中火"
+ ],
+ "点「对照关系」重新计算后可以看这一部分。": [
+  "Click Compare again to see this part.",
+  "「関係を対照」をもう一度押すとこの部分が表示されます。"
  ],
  "点击「查询日历」查看农历、日柱与当日节气时间。此功能不提供吉凶宜忌。": [
   "Click 'Look up calendar' to see the lunar date, day pillar and that day's solar term time. This feature does not provide auspicious/inauspicious or do/avoid guidance.",
@@ -7311,6 +7487,10 @@
   "Year pillar around Lichun",
   "立春前後の年柱"
  ],
+ "立春换年，公历年对应的干支": [
+  "Year changes at Li Chun: the stem-branch of the civil year",
+  "立春で年が替わる：西暦年に対応する干支"
+ ],
  "立春等节令交接": [
   "Solar-term transitions such as Start of Spring (Lichun)",
   "立春などの節気の切り替わり"
@@ -7823,6 +8003,10 @@
   "Fei Lian",
   "蜚廉"
  ],
+ "补成": [
+  "Completes",
+  "補成"
+ ],
  "表面合计：": [
   "Surface totals:",
   "表面の合計："
@@ -8215,6 +8399,10 @@
   "Before Luck Pillars begin",
   "起運前"
  ],
+ "起运年": [
+  "Luck starts",
+  "起運年"
+ ],
  "起运年龄按三日折一岁；起始公历时间采用365.2425日近似年投影，非各流派统一精确交运日。": [
   "The Luck Pillar starting age converts three days to one year; the starting Gregorian time uses an approximate 365.2425-day-year projection, not a precise luck-change date agreed across schools.",
   "起運年齢は3日を1歳に換算します。開始の西暦日時は365.2425日の近似年による投影で、各流派で統一された正確な交運日ではありません。"
@@ -8230,6 +8418,10 @@
  "超出 1901–2099 的计算范围": [
   "Outside the supported 1901–2099 range",
   "計算範囲 1901–2099 の外です"
+ ],
+ "超出所排的十二步大运": [
+  "Beyond the twelve luck periods listed",
+  "算出した十二の大運の範囲外"
  ],
  "超出核验输入上限": [
   "Exceeds the verification input limit",
@@ -8450,6 +8642,18 @@
  "这一天的运限": [
   "Periods in force on this day",
   "この日の運限"
+ ],
+ "这一年少于两位成员排出了大运，没有可比较的大运。": [
+  "Fewer than two members have a luck pillar this year, so there is nothing to compare.",
+  "この年に大運が出たメンバーが二人未満のため、比べる大運がありません。"
+ ],
+ "这一年尚未出生": [
+  "Not yet born in this year",
+  "この年はまだ生まれていない"
+ ],
+ "这一年成员的大运之间没有天干五合或地支冲合刑害。": [
+  "This year, no stem five combination or branch clash, harmony, punishment or harm links the members' luck pillars.",
+  "この年はメンバーの大運どうしに天干五合も地支の冲・合・刑・害もありません。"
  ],
  "这个结论的依据是什么？": [
   "What is this conclusion based on?",
@@ -9015,6 +9219,10 @@
   "(Fall)",
   "（陥）"
  ],
+ "（随时辰而定）": [
+  " (depends on the hour)",
+  "（時刻次第）"
+ ],
  "）· 命盘事实只来自确定性工具，每次调用都可展开查看": [
   ") · chart facts come only from deterministic tools; every call can be expanded for inspection",
   "）· 命盤の事実は決定論的ツールのみに由来し、各呼び出しは展開して確認可能"
@@ -9111,6 +9319,10 @@
   "; status: ",
   "；状態："
  ],
+ "；神煞": [
+  "; auxiliary stars",
+  "；神煞"
+ ],
  "；藏干 ": [
   "; hidden ",
   "；蔵干 "
@@ -9138,5 +9350,9 @@
  "？：这一柱不参与比较（时辰不详；年、月、日柱则是时辰不详且出生当天交节或换日）。": [
   "?: this pillar is not compared (birth hour unknown; for a year, month or day pillar, the hour is unknown and a solar term or day change falls on the birth day).",
   "？：この柱は比較しません（出生時刻が不明。年・月・日柱は、時刻不明かつ出生日に節入りまたは日替わりがある場合）。"
+ ],
+ "年 · 大运流年】十神以各人日主看天干": [
+  " · Luck and annual pillars] Ten gods from each person's own day master",
+  "年 · 大運・流年】十神は各人の日主から天干を見る"
  ]
 }

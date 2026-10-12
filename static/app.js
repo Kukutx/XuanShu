@@ -1541,10 +1541,15 @@ function renderRuleMatrix() {
 // Group relations: two to eight charts from the current form, local profiles and members added here.
 // Members added on this page live only in memory; nothing is stored.
 let groupResult = null, groupKey = null, groupResultKeys = [], groupChatBlock = null;
+// The year of the luck and year-pillar view. A newer request (another year, or 对照关系) makes older replies stale.
+// A 对照关系 run waiting for its reply keeps its members here: switching the year meanwhile asks for those
+// members, not the ones of the result shown. A year typed but not yet entered survives a re-render.
+let groupYearTicket = 0, groupYearPending = false, groupYearError = '', groupRun = null, groupRunError = '', groupYearTyped = null;
 // Member notes stay on this page: the current chart's and temporary members' are never stored, a saved
 // profile's only after 「保存到档案」. Notes never go to the server; only the chat draft the user sends carries them.
 let groupDraft = {useCurrent: true, currentLabel: '我', currentNote: {key: '', text: ''}, profiles: [], profileNotes: {}, extras: [], filter: 'all', focus: null,
-  extra: {label: '', birth_datetime: '1990-01-01T12:00', timezone: 'Asia/Shanghai', hour_unknown: false}};
+  extra: {label: '', birth_datetime: '1990-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified', hour_unknown: false},
+  year: new Date().getFullYear()};
 const NOTE_MAX = 120;
 function profileNote(entry) {return entry && typeof entry.note === 'string' ? entry.note.slice(0, NOTE_MAX) : '';}
 function saveProfileNote(id, note) {
@@ -1582,6 +1587,7 @@ function noteInput(parent, value, label, onInput) {
 }
 const GROUP_LINKS = [['all', '全部'], ['combine', '天干五合'], ['六合', '六合'], ['六冲', '六冲'], ['六害', '六害'], ['相刑', '相刑'], ['同支', '同支']];
 const LINK_CLASS = {'六合': 'harmony', '六冲': 'clash', '六害': 'harm', '相刑': 'punish', '同支': 'same', combine: 'combine'};
+const GENDER_TEXT = {male: '男', female: '女'};
 const BIRTH_KEYS = ['birth_datetime', 'timezone', 'gender', 'late_zi_day_rollover', 'leap_month_second_half_as_next', 'time_mode', 'longitude'];
 function birthOf(data) {
   const birth = {};
@@ -1595,7 +1601,8 @@ function groupMembers() {
     const entry = saved.find(x => x.id === id);
     if (entry) members.push({label: entry.label.trim().slice(0, 50) || '档案', birth: birthOf(entry.data), hour_unknown: entry.hour_unknown === true});
   });
-  groupDraft.extras.forEach(x => members.push({label: x.label, birth: {birth_datetime: x.birth_datetime, timezone: x.timezone}, hour_unknown: x.hour_unknown}));
+  groupDraft.extras.forEach(x => members.push({label: x.label, hour_unknown: x.hour_unknown,
+    birth: {birth_datetime: x.birth_datetime, timezone: x.timezone, ...(x.gender && x.gender !== 'unspecified' ? {gender: x.gender} : {})}}));
   // Labels must be distinct: a repeated one gets the first number that no other final label uses.
   const used = new Set();
   members.forEach(m => {
@@ -1704,8 +1711,34 @@ function groupText(g) {
   const totals = g.element_overview.surface_totals, masters = g.element_overview.day_masters;
   lines.push('', '【五行】', '表面合计：' + PHASES.split('').map(e => e + ' ' + totals[e]).join(gap) + '（四柱天干地支，不含藏干）',
     '日主：' + PHASES.split('').filter(e => masters[e].length).map(e => e + ' ' + masters[e].map(asName).join('、')).join('；'));
+  if (g.year_view) lines.push('', ...groupYearText(g.year_view));
   lines.push('', ...g.notes, ...TEXT_FOOTER);
   return finishText(lines);
+}
+// The luck and year-pillar section of the text copy.
+function luckText(l) {
+  if (l.status === 'not_started') return '未起运，' + (l.start_year || (l.start_years || []).join(' 或 ')) + ' 年起运';
+  if (l.status === 'beyond') return '超出所排的十二步大运';
+  const starts = l.start_year ? [l.start_year] : l.start_years || [];
+  return l.pillar + (l.ten_god ? ' ' + l.ten_god : '') + (starts.length ? '，' + starts.join(' 或 ') + ' 年交运' : '');
+}
+function groupYearText(v) {
+  const gap = '　', lines = ['【' + v.year + ' ' + v.year_pillar + '年 · 大运流年】十神以各人日主看天干'];
+  v.members.forEach(m => {
+    const who = asName(m.label) + '（' + (GENDER_TEXT[m.gender] || '性别未填') + (m.status === 'born' ? '，' + m.age + ' 岁' : '') + '）';
+    if (m.status === 'not_born') {lines.push(who + gap + '这一年尚未出生'); return;}
+    const l = m.luck;
+    const luck = l.status === 'needs_gender' ? '未填性别，不排大运' : l.status === 'uncertain_pillars' ? '月柱不定，大运无法确定'
+      : l.status === 'depends_on_hour' ? l.options.map(luckText).join(' 或 ') + '（随时辰而定）' : luckText(l);
+    const n = m.year_reading;
+    const reading = n ? n.ten_god_of_stem + (yearReadingParts(n).length ? '：' + yearReadingParts(n).join('；') : '')
+      + ((n.shensha || []).length ? '；神煞 ' + n.shensha.map(x => x.name).join('、') : '') : '原局有不定的柱，不比较';
+    lines.push(who, gap + '大运：' + luck, gap + '流年：' + reading);
+  });
+  const marked = v.luck_pairs.filter(p => p.branch_labels.length || p.stem_combination);
+  lines.push('大运之间：' + (marked.map(p => asName(p.a_label) + ' ' + p.a_pillar + ' ↔ ' + asName(p.b_label) + ' ' + p.b_pillar + ' '
+    + [p.stem_combination, ...p.branch_labels].filter(Boolean).join('、')).join('；') || '无标记'));
+  return lines;
 }
 function renderGroup() {
   title(result, '多人关系', '家人、团队或朋友的四柱并排 · 只标传统标签，不打分');
@@ -1769,6 +1802,7 @@ function renderGroup() {
     const row = append(picker, 'div', 'group-extra');
     append(row, 'span', 'user-text', x.label);
     append(row, 'small', 'muted', x.birth_datetime.replace('T', ' ') + ' · ' + x.timezone);
+    if (GENDER_TEXT[x.gender]) append(row, 'small', 'muted', GENDER_TEXT[x.gender]);
     if (x.hour_unknown) append(row, 'small', 'muted', '时辰不详');
     noteInput(row, x.note || '', x.label, value => {x.note = value;}).id = 'group-extra-note-' + index;
     const remove = append(row, 'button', 'tiny-button', '移除'); remove.type = 'button';
@@ -1784,6 +1818,10 @@ function renderGroup() {
   const zone = append(zoneLabel, 'select'); zone.id = 'group-extra-timezone';
   [...$('#timezone').options].forEach(opt => {const option = append(zone, 'option', null, opt.textContent); option.value = opt.value;});
   zone.value = draft.timezone;
+  const genderLabel = append(add, 'label', null, '性别（排大运用）');
+  const gender = append(genderLabel, 'select'); gender.id = 'group-extra-gender';
+  [['unspecified', '未填'], ['male', '男'], ['female', '女']].forEach(([value, text]) => {append(gender, 'option', null, text).value = value;});
+  gender.value = draft.gender;
   const unknownRow = append(add, 'label', 'check-line');
   const unknown = append(unknownRow, 'input'); unknown.type = 'checkbox'; unknown.id = 'group-extra-unknown'; unknown.checked = draft.hour_unknown;
   unknownRow.append('不知道出生时辰');
@@ -1792,6 +1830,7 @@ function renderGroup() {
   nameInput.addEventListener('input', () => {draft.label = nameInput.value;});
   when.addEventListener('input', () => {draft.birth_datetime = when.value;});
   zone.addEventListener('change', () => {draft.timezone = zone.value;});
+  gender.addEventListener('change', () => {draft.gender = gender.value;});
   unknown.addEventListener('change', () => {draft.hour_unknown = unknown.checked;});
   addButton.addEventListener('click', () => {
     const label = nameInput.value.trim();
@@ -1799,7 +1838,7 @@ function renderGroup() {
     if (!when.value) {addError.textContent = '请填写出生时间'; return;}
     if (groupMembers().length >= 8) {addError.textContent = '最多 8 人'; return;}
     groupDraft.extras.push({id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), label,
-      birth_datetime: when.value, timezone: zone.value, hour_unknown: unknown.checked, note: ''});
+      birth_datetime: when.value, timezone: zone.value, gender: gender.value, hour_unknown: unknown.checked, note: ''});
     groupDraft.extra = {...draft, label: ''};
     render();
   });
@@ -1811,17 +1850,25 @@ function renderGroup() {
   run.disabled = members.length < 2 || members.length > 8;
   const error = append(result, 'p', 'inline-msg');
   if (members.length > 8) error.textContent = '最多 8 人，请取消一些勾选';
+  else if (groupRunError) error.textContent = groupRunError;
   run.addEventListener('click', async () => {
     // Read the selection again: a label typed since the last render is not in `members` yet.
     // The note keys are taken with it, so a change made while the request runs cannot shift the notes.
     const chosen = groupMembers(), keys = groupMemberKeys();
     if (chosen.length < 2 || chosen.length > 8) {error.textContent = '请选 2 到 8 人'; return;}
-    run.disabled = true; error.textContent = '';
+    run.disabled = true; error.textContent = ''; groupRunError = '';
+    const ticket = ++groupYearTicket;
+    groupRun = {chosen, keys};
     try {
-      groupResult = await postJSON('/api/group-relations', {members: chosen});
-      groupKey = JSON.stringify(chosen); groupResultKeys = keys; groupDraft.focus = null;
-      render();
-    } catch (err) {error.textContent = '对照失败：' + err.message; run.disabled = false;}
+      const reply = await postJSON('/api/group-relations', {members: chosen, year: groupDraft.year});
+      if (ticket !== groupYearTicket) return;
+      groupResult = reply; groupKey = JSON.stringify(chosen); groupResultKeys = keys; groupDraft.focus = null;
+      groupRun = null; groupYearPending = false; groupYearError = '';
+    } catch (err) {
+      if (ticket !== groupYearTicket) return;
+      groupRun = null; groupYearPending = false; groupRunError = '对照失败：' + err.message;
+    }
+    if (active === 'group') render();
   });
   if (!groupResult) return;
   if (groupKey !== JSON.stringify(members)) append(result, 'p', 'feature-note', '成员已改变，下面仍是上一次的结果；点「对照关系」更新。');
@@ -1840,10 +1887,13 @@ function groupChatDraft(g, inputs) {
     if (birth.time_mode === 'apparent_solar') rules.push(tr('真太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
     // The note is the user's own words about this member, shown in the draft before anything is sent.
     const note = groupNote(groupResultKeys[i] || '').replace(/\s+/g, ' ');
+    const gender = GENDER_TEXT[birth.gender];
     return ['- ' + m.label, m.birth_datetime.slice(0, 10) + ' ' + (m.hour_unknown ? tr('时辰不详') : m.birth_datetime.slice(11, 16)),
-      m.timezone, ...rules, ...(note ? [tr('备注：') + note] : [])].join(' · ');
+      m.timezone, ...(gender ? [tr(gender)] : []), ...rules, ...(note ? [tr('备注：') + note] : [])].join(' · ');
   });
-  return {text: [tr('请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。'), ...lines].join('\n'), lines};
+  const ask = [tr('请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。')];
+  if (g.year_view) ask.push(tr('也请对照这一年的大运流年：') + g.year_view.year);
+  return {text: [...ask, ...lines].join('\n'), lines};
 }
 function renderGroupResult(g) {
   const ask = append(result, 'div', 'group-ask');
@@ -1974,7 +2024,154 @@ function renderGroupResult(g) {
     masters.forEach((label, k) => {if (k) who.append('、'); append(who, 'span', 'user-text', label);});
   });
   append(result, 'p', 'field-help', '条形是全体成员四柱天干地支的表面五行合计（不含藏干）；右侧是日主属该五行的成员。');
+  groupYearSection(g);
   g.notes.forEach(x => note(result, x));
+}
+// Another year for the same members: the members of the result shown, not the selection being edited, or
+// those of a 对照关系 run still waiting for its reply (this request replaces that run's).
+async function groupYear(year) {
+  const pendingRun = groupRun;
+  if (!groupKey && !pendingRun) return;
+  if (!pendingRun && groupResult && groupResult.year_view && groupResult.year_view.year === year && !groupYearPending) {
+    if (groupYearError) {groupYearError = ''; render();}
+    return;
+  }
+  if (!(Number.isInteger(year) && year >= 1901 && year <= 2099)) {groupYearError = '年份要在 1901 到 2099 之间'; render(); return;}
+  const ticket = ++groupYearTicket;
+  groupDraft.year = year; groupYearPending = true; groupYearError = ''; render();
+  try {
+    const reply = await postJSON('/api/group-relations', {members: pendingRun ? pendingRun.chosen : JSON.parse(groupKey), year});
+    if (ticket !== groupYearTicket) return;
+    groupResult = reply;
+    if (pendingRun) {groupKey = JSON.stringify(pendingRun.chosen); groupResultKeys = pendingRun.keys; groupDraft.focus = null;}
+  } catch (err) {
+    if (ticket !== groupYearTicket) return;
+    groupYearError = '换年失败：' + err.message;
+  }
+  groupRun = null; groupYearPending = false;
+  if (active === 'group') render();
+}
+// The year pillar against one member's chart in chart notation, for the text copy: 年午 同支、相刑, 年丙 相冲,
+// 补成寅午戌三合局, 落日空.
+const yearReadingParts = n => [...n.branch_relations.map(r => nameMap[r.pillar].charAt(0) + r.branch + ' ' + r.labels.join('、')),
+  ...n.stem_relations.map(r => nameMap[r.pillar].charAt(0) + r.stem + ' ' + r.labels.join('、')),
+  ...n.branch_groups.map(x => '补成' + x.branches + (x.kind === '三合' ? '三合局' : '三会方')),
+  ...n.void_of.map(v => v === 'day' ? '落日空' : '落年空')];
+// One luck case in a card row: the pillar, its ten god and the year it begins in.
+function luckLine(parent, l, prefix) {
+  const row = append(parent, 'div', 'group-year-row');
+  append(row, 'span', 'pillar-stage-label', prefix);
+  if (l.status === 'not_started') {
+    const begins = l.start_year ? [l.start_year] : l.start_years || [];
+    const line = append(row, 'span', 'muted');
+    texts(line, '未起运', ' · ', '起运年', ' ' + begins.join(' / '));
+    if (begins.length > 1) texts(line, ' ', '（随时辰而定）');
+    return row;
+  }
+  if (l.status === 'beyond') {append(row, 'span', 'muted', '超出所排的十二步大运'); return row;}
+  const pillar = append(row, 'span', 'group-year-pillar');
+  append(pillar, 'b', stemClass(l.pillar[0]), l.pillar[0]); append(pillar, 'b', branchClass(l.pillar[1]), l.pillar[1]);
+  if (l.ten_god) append(row, 'span', 'group-year-god', l.ten_god);
+  const when = append(row, 'small', 'muted');
+  const starts = l.start_year ? [l.start_year] : l.start_years || [];
+  if (starts.length) texts(when, '交运年', ' ' + starts.join(' / '));
+  if (starts.length > 1) texts(when, ' ', '（随时辰而定）');
+  if (l.changes_this_year) append(row, 'span', 'luck-change', '当年交运');
+  return row;
+}
+function groupYearSection(g) {
+  const v = g.year_view;
+  const box = append(result, 'section', 'group-year'); box.id = 'group-year';
+  append(box, 'h4', 'subheading', '大运流年对照');
+  const nav = append(box, 'div', 'inline-control group-year-nav');
+  // While a request runs, the controls count from the year asked for, not the one still shown.
+  const year = groupYearPending || groupRun || !v ? groupDraft.year : v.year;
+  const prev = append(nav, 'button', 'tiny-button', '‹ 上一年'); prev.type = 'button'; prev.id = 'group-year-prev';
+  const label = append(nav, 'label', 'group-year-label', '公历年');
+  const input = append(label, 'input'); input.type = 'number'; input.id = 'group-year-input';
+  input.min = '1901'; input.max = '2099'; input.step = '1'; input.value = groupYearTyped ?? String(year); input.inputMode = 'numeric';
+  const next = append(nav, 'button', 'tiny-button', '下一年 ›'); next.type = 'button'; next.id = 'group-year-next';
+  const today = append(nav, 'button', 'tiny-button', '今年'); today.type = 'button'; today.id = 'group-year-today';
+  prev.disabled = year <= 1901; next.disabled = year >= 2099;
+  // A step that reaches 1901 or 2099 disables the button it was made with; keyboard focus moves to the year field.
+  prev.dataset.focusFallback = next.dataset.focusFallback = 'group-year-input';
+  prev.addEventListener('click', () => groupYear(year - 1));
+  next.addEventListener('click', () => groupYear(year + 1));
+  today.addEventListener('click', () => groupYear(new Date().getFullYear()));
+  // Rendering removes this field, and a removed field that still holds a typed value fires another change as it
+  // loses focus; running the request after the event keeps that second render from starting inside the first.
+  // A field removed by that render (or by a reply arriving while the user types) is not a request.
+  input.addEventListener('input', () => {groupYearTyped = input.value;});
+  input.addEventListener('change', () => {
+    const value = Number(input.value);
+    setTimeout(() => {if (input.isConnected) {groupYearTyped = null; groupYear(value);}});
+  });
+  const status = append(nav, 'span', 'group-year-status muted'); status.setAttribute('role', 'status');
+  if (groupYearPending) status.textContent = '正在换年…';
+  if (groupYearError) append(box, 'p', 'inline-msg', groupYearError);
+  if (!v) {append(box, 'p', 'field-help', '点「对照关系」重新计算后可以看这一部分。'); return;}
+  const head = append(box, 'p', 'group-year-title');
+  texts(head, String(v.year) + ' ', '流年', ' ');
+  append(head, 'b', stemClass(v.year_pillar[0]), v.year_pillar[0]); append(head, 'b', branchClass(v.year_pillar[1]), v.year_pillar[1]);
+  texts(head, ' · ', ANIMAL_YEARS[BRANCH_ORDER.indexOf(v.year_pillar[1])]);
+  append(box, 'p', 'field-help', '每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。');
+  const cards = append(box, 'div', 'group-year-cards');
+  v.members.forEach((m, i) => {
+    const card = append(cards, 'article', 'group-year-card'); card.id = 'group-year-card-' + i;
+    const member = g.members[i];
+    const top = append(card, 'div', 'group-member-head');
+    append(top, 'span', 'group-dot ' + (member.day_master ? 'bg-' + ELEMENT_CLASS[member.day_master_element] : 'dot-unknown'));
+    append(top, 'strong', 'user-text', m.label);
+    const sub = append(top, 'small', 'muted');
+    texts(sub, GENDER_TEXT[m.gender] || '性别未填');
+    if (m.status === 'not_born') {append(card, 'p', 'muted', '这一年尚未出生'); return;}
+    texts(sub, ' · ', '年龄', ' ' + m.age);
+    const l = m.luck;
+    if (l.status === 'needs_gender') append(append(card, 'div', 'group-year-row'), 'span', 'muted', '未填性别，不排大运');
+    else if (l.status === 'uncertain_pillars') append(append(card, 'div', 'group-year-row'), 'span', 'group-uncertain', '时辰不详且当天交节，月柱不定，大运无法确定');
+    else if (l.status === 'depends_on_hour') {
+      l.options.forEach((option, k) => luckLine(card, option, k ? '或' : '大运'));
+      append(card, 'small', 'group-uncertain', '时辰不详：出生当天早晚不同，大运也不同');
+    } else luckLine(card, l, '大运');
+    const n = m.year_reading;
+    const yearRow = append(card, 'div', 'group-year-row');
+    append(yearRow, 'span', 'pillar-stage-label', '流年');
+    if (!n) {append(yearRow, 'span', 'muted', '原局有不定的柱，不与流年比较'); return;}
+    append(yearRow, 'span', 'group-year-god', n.ten_god_of_stem);
+    yearRow.title = natalText(n);
+    natalMarks(yearRow, n);
+    if (!natalMarkList(n).length && !n.branch_groups.length) append(yearRow, 'small', 'muted', '与原局地支无冲合');
+    // Words in separate text nodes, so each translates on its own: 月柱 辛 丙辛合水, 补成 巳午未 三会方.
+    if (n.stem_relations.length || n.branch_groups.length) {
+      const more = append(card, 'div', 'group-year-extra');
+      n.stem_relations.forEach(r => texts(append(more, 'span', 'relation-chip'), nameMap[r.pillar], ' ' + r.stem + ' ', r.labels.join('、')));
+      n.branch_groups.forEach(x => texts(append(more, 'span', 'relation-chip'), '补成', ' ' + x.branches + ' ', x.kind === '三合' ? '三合局' : '三会方'));
+    }
+    if ((n.shensha || []).length) {
+      const sha = append(card, 'div', 'pillar-shensha');
+      append(sha, 'span', 'pillar-stage-label', '神煞');
+      n.shensha.forEach(x => {const tag = append(sha, 'span', 'shensha-tag', x.name); tag.title = shenshaBasis(x);});
+    }
+  });
+  append(box, 'h4', 'subheading', '大运之间');
+  const marked = v.luck_pairs.filter(p => p.branch_labels.length || p.stem_combination);
+  const list = append(box, 'div', 'group-year-links'); list.id = 'group-year-links';
+  marked.forEach(p => {
+    const row = append(list, 'div', 'group-year-link');
+    [[p.a_label, p.a_pillar], [p.b_label, p.b_pillar]].forEach(([who, pillar], k) => {
+      if (k) row.append(' ↔ ');
+      append(row, 'strong', 'user-text', who);
+      const cell = append(row, 'span', 'group-year-pillar');
+      append(cell, 'b', stemClass(pillar[0]), pillar[0]); append(cell, 'b', branchClass(pillar[1]), pillar[1]);
+    });
+    const tags = append(row, 'span', 'group-tags');
+    if (p.stem_combination) append(tags, 'span', 'relation-chip link-combine', p.stem_combination);
+    p.branch_labels.forEach(x => append(tags, 'span', 'relation-chip link-' + LINK_CLASS[x], x));
+  });
+  if (!v.luck_pairs.length) append(list, 'p', 'field-help', '这一年少于两位成员排出了大运，没有可比较的大运。');
+  else if (!marked.length) append(list, 'p', 'field-help', '这一年成员的大运之间没有天干五合或地支冲合刑害。');
+  if (v.members.some(m => m.status === 'born' && !m.luck.pillar)) append(box, 'p', 'field-help', '未填性别、未起运或大运随时辰而定的成员不参与大运之间的比较。');
+  v.notes.forEach(x => note(box, x));
 }
 // Every labelled branch link between two charts, one row per pair of pillars.
 function branchLinkTable(parent, aLabel, bLabel, links) {
@@ -3045,7 +3242,8 @@ function render() {
   renderView();
   result.querySelectorAll('details').forEach(d => {const key = detailKey(d); if (openState.has(key)) d.open = openState.get(key);});
   if (focusId && !result.contains(document.activeElement)) {
-    const again = document.getElementById(focusId);
+    let again = document.getElementById(focusId);
+    if (again && again.disabled && again.dataset.focusFallback) again = document.getElementById(again.dataset.focusFallback);
     if (again && !again.disabled) {
       again.focus({preventScroll: true});
       if (caret && again.setSelectionRange) try {again.setSelectionRange(caret[0], caret[1]);} catch (_) { /* not a text field */ }
@@ -3174,6 +3372,8 @@ form.addEventListener('submit', async event => {
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
     dayunResult=null;boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
+    // A group reply still on its way belongs to the previous chart.
+    ++groupYearTicket; groupYearPending = false; groupYearError = ''; groupRun = null; groupRunError = ''; groupYearTyped = null;
     horoscopeResult = null; horoscopeKey = null; horoscopeError = ''; horoscopeResultKey = null;
     selectedPalace = '命宫'; ziweiLayer.decade = null; currentHourUnknown = $('#hour_unknown').checked;
     $('#result-subtitle').textContent = data.birth_datetime.replace('T',' ') + ' · ' + data.timezone;

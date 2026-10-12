@@ -241,7 +241,10 @@ def main() -> None:
             page.locator('#group-profile-legacy-1').check()
             page.locator('#group-extra-label').fill('同事')
             page.locator('#group-extra-datetime').fill('1992-06-06T09:00')
+            page.locator('#group-extra-gender').select_option('female')
             page.locator('#group-extra-add').click()
+            assert '女' in page.locator('.group-extra').inner_text()
+            page.evaluate("() => { groupDraft.year = 2026; }")  # the device year would make the luck section vary
             # Member notes: a temporary member's stays on the page; a profile's is stored only on 保存到档案.
             page.locator('#group-extra-note-0').fill('一起做项目')
             page.locator('#group-note-legacy-1').fill('表姐')
@@ -272,7 +275,8 @@ def main() -> None:
             assert page.locator('#group-matrix tbody tr').count() == 3 and page.locator('.group-pair').count() == 3
             # The result copies as text: pillars, the ten-god matrix and every pair, with the names as typed and no notes.
             group_text = page.locator('#group-text-text').text_content()
-            assert group_text.startswith('玄枢 · 多人关系对照\n\n【四柱】\n') and '【日干十神】' in group_text and group_text.count(' ↔ ') == 3, group_text
+            assert group_text.startswith('玄枢 · 多人关系对照\n\n【四柱】\n') and '【日干十神】' in group_text, group_text
+            assert group_text.split('【三合】')[0].count(' ↔ ') == 3, group_text
             labels = page.evaluate("groupResult.members.map(m => m.label)")
             assert all(label + ' ↔ ' in group_text or ' ↔ ' + label in group_text for label in labels), group_text
             assert all(n not in group_text for n in ('表姐', '一起做项目', '本人', '1992-06-06')), group_text
@@ -287,6 +291,61 @@ def main() -> None:
             page.locator('#group-text-copy').click()
             page.locator('#group-text-copy', has_text='已复制').wait_for(timeout=10000)
             assert page.evaluate('window.copiedText') == group_text
+            # Luck and year pillars by year: one card per member; a member without a gender gets the year pillar only.
+            year_text = group_text.split('【2026 丙午年 · 大运流年】')[1]
+            assert '同事（女，34 岁）\n　大运：壬寅 劫财，2022 年交运\n　流年：正财：' in year_text, year_text
+            assert '既有档案（性别未填，26 岁）\n　大运：未填性别，不排大运' in year_text, year_text
+            cards = page.locator('.group-year-card')
+            assert cards.count() == 3 and '2026 流年 丙午' in page.locator('.group-year-title').inner_text()
+            coworker = cards.nth(2).inner_text()
+            assert '壬寅' in coworker.replace('\n', '') and '交运年 2022' in coworker and '咸池' in coworker, coworker
+            assert '未填性别，不排大运' in cards.nth(1).inner_text()
+            page.locator('#group-year-next').click()
+            page.wait_for_function("() => groupResult.year_view.year === 2027 && !groupYearPending", timeout=30000)
+            assert '2027 流年 丁未' in page.locator('.group-year-title').inner_text()
+            assert page.evaluate('document.activeElement.id') == 'group-year-next'
+            assert page.evaluate("groupResult.members.length") == 3 and page.locator('.group-member').count() == 3
+            page.locator('#group-year-input').fill('1800')
+            page.locator('#group-year-input').dispatch_event('change')
+            page.locator('#group-year .inline-msg', has_text='1901 到 2099').wait_for(timeout=10000)
+            assert page.evaluate("groupResult.year_view.year") == 2027
+            page.locator('#group-year').screenshot(path=str(screenshot_dir / '40-group-years.png'))
+            # An unknown hour can leave two possible start years; both are shown, never "null".
+            assert page.evaluate("luckText({status: 'not_started', start_year: null, start_years: [1996, 1997]})") == '未起运，1996 或 1997 年起运'
+            assert page.evaluate("(() => {const box = document.createElement('div'); luckLine(box, {status: 'not_started', start_year: null, start_years: [1996, 1997]}, '大运'); return box.textContent;})()") == '大运未起运 · 起运年 1996 / 1997 （随时辰而定）'
+            # Stepping to 2099 disables the 下一年 button that was used; keyboard focus moves to the year field.
+            page.locator('#group-year-input').fill('2098')
+            page.locator('#group-year-input').dispatch_event('change')
+            page.wait_for_function("() => groupResult.year_view.year === 2098 && !groupYearPending", timeout=30000)
+            page.locator('#group-year-next').click()
+            page.wait_for_function("() => groupResult.year_view.year === 2099 && !groupYearPending", timeout=30000)
+            assert page.locator('#group-year-next').is_disabled() and page.evaluate('document.activeElement.id') == 'group-year-input'
+            # Slow replies. A year switched while 对照关系 runs asks for the run's members, not the ones shown.
+            page.evaluate("() => { window.__post = postJSON; postJSON = async (...args) => { await new Promise(r => setTimeout(r, 800)); return window.__post(...args); }; }")
+            page.locator('#group-current').uncheck()
+            page.locator('#group-run').click()
+            page.locator('#group-year-prev').click()
+            page.wait_for_function("() => groupResult.year_view.year === 2098 && !groupYearPending && !groupRun", timeout=30000)
+            assert page.evaluate("groupResult.members.length") == 2 and '成员已改变' not in page.locator('#result').inner_text()
+            page.locator('#group-current').check()
+            page.locator('#group-run').click()
+            page.wait_for_function("() => !groupRun && groupResult.members.length === 3", timeout=30000)
+            # Two quick steps count from the year asked for, not the one still shown.
+            page.locator('#group-year-prev').click()
+            page.locator('#group-year-prev').click()
+            assert page.locator('#group-year-input').input_value() == '2096' and page.locator('.group-year-status').inner_text() == '正在换年…'
+            page.wait_for_function("() => groupResult.year_view.year === 2096 && !groupYearPending", timeout=30000)
+            # A year being typed when a reply arrives is kept, still focused, with no error.
+            page.locator('#group-year-prev').click()
+            page.locator('#group-year-input').fill('20')
+            page.wait_for_function("() => groupResult.year_view.year === 2095 && !groupYearPending", timeout=30000)
+            page.wait_for_timeout(100)
+            assert page.locator('#group-year-input').input_value() == '20' and page.evaluate('document.activeElement.id') == 'group-year-input'
+            assert page.locator('#group-year .inline-msg').count() == 0
+            page.evaluate("() => { postJSON = window.__post; }")
+            page.locator('#group-year-input').fill('2026')
+            page.locator('#group-year-input').dispatch_event('change')
+            page.wait_for_function("() => groupResult.year_view.year === 2026 && !groupYearPending", timeout=30000)
             page.locator('[data-filter="六冲"]').click()
             page.locator('#group-node-0').focus()
             page.keyboard.press('Enter')
@@ -301,6 +360,7 @@ def main() -> None:
                 page.locator('[data-tab="chat"][aria-selected="true"]').wait_for(timeout=30000)
             draft = page.locator('#chat-input').input_value()
             assert draft.startswith('先前没发的问题\n\n请结合多人关系对照') and draft.count('\n- ') == 3, draft
+            assert '\n也请对照这一年的大运流年：2026\n' in draft and ' · 女' in draft, draft
             assert '- 同事 · 1992-06-06 09:00 · ' in draft and ' · 备注：一起做项目' in draft and ' · 备注：表姐' in draft, draft
             # An edited note replaces the group's earlier block instead of adding the members again.
             page.locator('[data-tab="group"]').click()
