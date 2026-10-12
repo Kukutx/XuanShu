@@ -1183,9 +1183,82 @@ def main() -> None:
                 assert 'No approximate chart was substituted' in page.locator('#result').inner_text()
                 page.screenshot(path=str(screenshot_dir / '22-professional-provider-guard.png'), full_page=True)
             page.locator('[data-tab="qimen-audit"]').click()
-            page.locator('#qimen-audit-input').fill('{"reference_source":"public independent reference","reference_school":"时家拆补转盘","root_fields":{"bureau":9},"palaces":[{"number":1,"star":"天蓬"}]}')
+            # The reference is entered on a nine-palace form; the run button says what is missing until it can run.
+            assert page.locator('#qimen-audit-board-form .qr-cell').count() == 9
+            assert page.locator('#qimen-audit-run').is_disabled() and '至少' in page.locator('#qimen-audit-count').inner_text()
+            page.locator('#qimen-audit-when').fill('2026-10-12T15:30')
+            page.locator('#qimen-audit-zone').select_option('Asia/Shanghai')
+            page.locator('#qimen-audit-late-zi').uncheck()
+            ref_chart = page.evaluate("postJSON('/api/qimen', {moment: qimenAuditMoment(qimenAuditDraft)})")
+            ref_palace = {p['number']: p for p in ref_chart['palaces']}
+            other_door = next(d for d in ('休门', '生门', '伤门', '杜门') if d != ref_palace[2]['door'])
+            page.locator('#qimen-ref-bureau').select_option(str(ref_chart['bureau']))
+            assert '将比较 1 项' in page.locator('#qimen-audit-count').inner_text()
+            # Every palace select is named by its palace as well as its field.
+            assert page.locator('#qimen-ref-4-star').get_attribute('aria-labelledby') == 'qimen-ref-4-legend qimen-ref-4-star-label'
+            page.locator('#qimen-ref-dun').select_option(ref_chart['dun'])
+            page.locator('#qimen-ref-1-star').select_option(ref_palace[1]['star'])
+            page.locator('#qimen-ref-2-door').select_option(other_door)
+            assert page.locator('#qimen-audit-run').is_disabled() and '参考来源' in page.locator('#qimen-audit-count').inner_text()
+            page.locator('#qimen-audit-source').fill('public independent reference')
+            # The school is the reference's own, so it starts empty rather than claiming XuanShu's school.
+            assert page.locator('#qimen-audit-school').input_value() == '' and '参考流派' in page.locator('#qimen-audit-count').inner_text()
+            page.locator('#qimen-audit-school').fill('时家拆补转盘')
+            page.locator('#qimen-audit-when').fill('')
+            assert page.locator('#qimen-audit-run').is_disabled() and '日期与时间' in page.locator('#qimen-audit-count').inner_text()
+            page.locator('#qimen-audit-when').fill('2026-10-12T15:30')
+            assert not page.locator('#qimen-audit-run').is_disabled() and '4' in page.locator('#qimen-audit-count').inner_text()
+            assert page.locator('#qimen-audit-message').get_attribute('role') == 'alert'
             page.locator('#qimen-audit-run').click()
-            page.wait_for_function("() => document.querySelector('#result').textContent.includes('字段一致')", timeout=30000)
+            page.locator('#qimen-audit-result').wait_for(timeout=30000)
+            # The result lays XuanShu's chart for the same moment over the board and marks each compared field.
+            assert page.evaluate("document.activeElement.id") == 'qimen-audit-result'
+            assert page.locator('.qr-big').inner_text().replace(' ', '') == '3/4'
+            # The result states the moment it describes.
+            assert page.locator('.qr-moment').inner_text() == '起局时刻：2026-10-12 15:30 · Asia/Shanghai · 00:00 换日'
+            assert page.evaluate("referenceAuditResult.fields.length") == 4 and page.locator('#qimen-audit-root tbody tr').count() == 2
+            assert 'is-diff' in page.locator('#qimen-audit-palace-2').get_attribute('class')
+            assert other_door in page.locator('#qimen-audit-palace-2 .qr-mark.is-diff').inner_text()
+            assert 'is-ok' in page.locator('#qimen-audit-palace-1').get_attribute('class')
+            assert 'is-none' in page.locator('#qimen-audit-palace-9').get_attribute('class')
+            assert page.locator('#qimen-audit-stale').is_hidden()
+            page.locator('#qimen-ref-1-star').select_option('')
+            assert page.locator('#qimen-audit-stale').is_visible()
+            # Pasted JSON fills the form, keeping fields the form has no select for.
+            page.locator('#qimen-audit-json summary').click()
+            # Values are checked before anything is filled: a yes/no field takes true or false, a palace appears once.
+            for bad, says in (('{"palaces":[{"number":1,"void":"yes"}]}', '需为 true 或 false'),
+                              ('{"palaces":[{"number":1,"star":"天蓬"},{"number":1,"door":"休门"}]}', '宫位重复'),
+                              ('{"root_fields":{"bureau":"x"}}', '需为 1…9 的整数'), ('{"extra":1}', '不认识的字段')):
+                page.locator('#qimen-audit-input').fill(bad)
+                page.locator('#qimen-audit-load').click()
+                assert says in page.locator('#qimen-audit-load-msg').inner_text(), bad
+            page.locator('#qimen-audit-input').fill('{"moment":{"birth_datetime":"2024-02-10T10:00","timezone":"Asia/Shanghai"},"reference_source":"public independent reference","reference_school":"时家拆补转盘","root_fields":{"bureau":9,"zhi_fu_origin":3},"palaces":[{"number":1,"star":"天芮禽","trigram":"坎"},{"number":5,"deity":"值符"}]}')
+            page.locator('#qimen-audit-load').click()
+            page.wait_for_function("document.querySelector('#qimen-ref-bureau').value === '9'", timeout=30000)
+            # The pasted moment fills step 1, a value outside the list stays visible, and the count is announced.
+            assert page.locator('#qimen-audit-when').input_value() == '2024-02-10T10:00'
+            assert page.locator('#qimen-ref-1-star').input_value() == '天芮禽' and page.locator('#qimen-ref-2-door').input_value() == ''
+            assert '天芮禽（JSON）' in page.locator('#qimen-ref-1-star option:checked').inner_text()
+            assert page.locator('#qimen-audit-load-msg').inner_text() == '已填入 5 项'
+            assert page.locator('#qimen-audit-input').input_value().startswith('{"moment"')
+            assert '值符原宫 3' in page.locator('.qr-extra-root').inner_text()
+            assert '值符' in page.locator('#qimen-audit-board-form .qr-cell.center .qr-extra').inner_text()
+            page.locator('#qimen-audit-run').click()
+            page.wait_for_function("referenceAuditResult && referenceAuditResult.fields.some(f => f.field === 'zhi_fu_origin')", timeout=30000)
+            assert '值符' in page.locator('#qimen-audit-palace-5').inner_text()
+            assert page.locator('.qr-moment').inner_text().startswith('起局时刻：2024-02-10 10:00')
+            # A field from JSON can be removed, and a cleared board can be restored.
+            page.locator('.qr-extra-root .qr-extra-remove').click()
+            page.wait_for_function("!document.querySelector('.qr-extra-root')", timeout=30000)
+            assert page.evaluate("!('zhi_fu_origin' in qimenAuditDraft.root)")
+            page.locator('#qimen-audit-clear').click()
+            page.locator('#qimen-audit-undo').wait_for(timeout=30000)
+            assert page.evaluate("document.activeElement.id") == 'qimen-audit-undo' and page.locator('#qimen-ref-bureau').input_value() == ''
+            page.locator('#qimen-audit-undo').click()
+            page.wait_for_function("document.querySelector('#qimen-ref-bureau').value === '9'", timeout=30000)
+            assert page.locator('#qimen-audit-undo').count() == 0
+            assert page.evaluate("UI_EXTRA['参考盘：'][0]") == 'Reference: ' and page.evaluate("UI_EXTRA['将比较 1 项'][0]") == 'Will compare 1 item'
             page.screenshot(path=str(screenshot_dir / '23-qimen-audit.png'), full_page=True)
             page.locator('[data-tab="ziwei"]').click()
             assert page.locator('.palace-btn').count() == 12
