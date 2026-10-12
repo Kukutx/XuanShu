@@ -221,13 +221,15 @@ function translateText(source) {
     .replace(/(\d{1,2})月(\d{1,2})日/g, '$1/$2');
   const gap = uiLang === 'en' ? ' ' : '';
   // Composed text: replace each known phrase; English gets spaces between replaced words and Chinese.
-  return source.replace(uiPhraseRe, (hit, offset, whole) => {
+  const out = source.replace(uiPhraseRe, (hit, offset, whole) => {
     const target = uiPhraseMap[hit][uiLang].trim();
     const before = offset > 0 && /[^\s(（·:：,，、/]/.test(whole[offset - 1]) ? gap : '';
     const next = whole[offset + hit.length];
     const after = next && /[^\s)）·:：,，、。/]/.test(next) ? gap : '';
     return before + target + after;
   });
+  // English lists read "A, B; C" rather than keeping the Chinese enumeration comma and semicolon.
+  return uiLang === 'en' ? out.replace(/\s*、\s*/g, ', ').replace(/\s*；\s*/g, '; ') : out;
 }
 function skipNode(el) {
   return !el || el.closest('script,style,textarea,code,pre,.chat-text,.user-text,[data-no-i18n]') !== null;
@@ -283,7 +285,10 @@ function applyLoadedLanguage(lang) {
         if (record.target.data !== translateText(uiOriginal.get(record.target) || '')) uiOriginal.set(record.target, record.target.data);
         translateNode(record.target);
       } else if (record.type === 'attributes') {
-        record.target.removeAttribute('data-i18n-' + record.attributeName);
+        // The app set a new value; our own translation of the stored source (already applied while handling the
+        // element's insertion earlier in this batch) is not one.
+        const key = 'data-i18n-' + record.attributeName, value = record.target.getAttribute(record.attributeName);
+        if (!record.target.hasAttribute(key) || value !== translateText(record.target.getAttribute(key))) record.target.removeAttribute(key);
         translateAttrs(record.target);
       } else record.addedNodes.forEach(translateNode);
     }

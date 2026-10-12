@@ -25,6 +25,35 @@ TIANYUE_BY_MONTH = (10, 5, 4, 2, 7, 3, 11, 7, 2, 6, 10, 2)
 YINSHA_BY_MONTH = (2, 0, 10, 8, 6, 4)
 TIANWU_BY_MONTH = (5, 8, 2, 11)
 FEILIAN_BY_BRANCH = (8, 9, 10, 5, 6, 7, 2, 3, 4, 11, 0, 1)
+# Brightness by palace branch, 子 to 亥, as indexes into BRIGHTNESS_LEVELS (0 strongest, 6 weakest): the
+# table iztro publishes (data/stars.ts) for the 14 main stars and six minor ones. A dot marks a branch the
+# star never occupies. Schools grade 得, 利 and 平 differently; this is one published table, not the only one.
+# iztro is MIT-licensed (Copyright (c) 2023 All Contributors); its notice is in THIRD_PARTY_NOTICES.md.
+BRIGHTNESS_LEVELS = '庙旺得利平不陷'
+_BRIGHTNESS_CODES = {
+    '紫微': '401121001121',
+    '天机': '062134062134',
+    '太阳': '651011122456',
+    '武曲': '102304102304',
+    '天同': '153440651440',
+    '廉贞': '430436430436',
+    '天府': '000202102102',
+    '太阴': '001666553110',
+    '贪狼': '104306104306',
+    '巨门': '150061150061',
+    '天相': '000622020622',
+    '天梁': '010006016206',
+    '七杀': '100104100104',
+    '破军': '012614012614',
+    '文昌': '206320632063',
+    '文曲': '204120612061',
+    '火星': '620362036203',
+    '铃星': '620362036203',
+    '擎羊': '60.60.60.60.',
+    '陀罗': '.06.06.06.06',
+}
+BRIGHTNESS = {star: tuple(None if code == '.' else BRIGHTNESS_LEVELS[int(code)] for code in codes)
+              for star, codes in _BRIGHTNESS_CODES.items()}
 
 
 def _horse_group(year_branch: int) -> int:

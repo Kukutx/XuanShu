@@ -14,7 +14,33 @@ The project depends on these independently distributed Python packages. They are
 
 Source: https://github.com/SylarLong/iztro · MIT License · documentation https://docs.iztro.com/quick-start.
 
-The application does **not** package, import or depend on the iztro JavaScript library. The evaluation script `scripts/iztro_reference.cjs` (run by `scripts/eval_crosscheck.py`) loads iztro 2.6.1 through Node.js to compare XuanShu's Zi Wei charts with it; the version is pinned in `docs/evals/package.json` and installed only on request with `npm install --prefix docs/evals`. `docs/evals/node_modules` is ignored by Git and left out of the release archive. Expected values copied from iztro's output into tests are used only as a comparator.
+The application does **not** import or depend on the iztro JavaScript library. It does include one table derived from iztro: the star brightness grades (庙旺得利平不陷) in `app/ziwei_extensions.py` (`BRIGHTNESS`), taken from iztro's `src/data/stars.ts` (`STARS_INFO`) and re-indexed by palace branch. That table is distributed under iztro's MIT License, reproduced below.
+
+The evaluation script `scripts/iztro_reference.cjs` (run by `scripts/eval_crosscheck.py`) loads iztro 2.6.1 through Node.js to compare XuanShu's Zi Wei charts with it; the version is pinned in `docs/evals/package.json` and installed only on request with `npm install --prefix docs/evals`. `docs/evals/node_modules` is ignored by Git and left out of the release archive. Expected values copied from iztro's output into tests are used only as a comparator.
+
+```text
+MIT License
+
+Copyright (c) 2023 All Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## External platform interfaces
 

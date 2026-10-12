@@ -286,6 +286,18 @@ a{color:inherit;text-decoration:none}
 .hua{display:inline-block;font-size:11px;line-height:1;font-weight:700;padding:2px 3px;border-radius:3px;margin-left:2px;vertical-align:2px;color:var(--on-hua)}
 .hua-lu{background:var(--lu)}.hua-quan{background:var(--quan)}.hua-ke{background:var(--ke)}.hua-ji{background:var(--ji)}
 .star-label{font-size:11px;color:var(--green);white-space:normal;margin:6px 0 2px}
+/* Star brightness: the text carries the level; weight and tone only echo it. Each language draws its own short form. */
+.bright{font-size:11px;line-height:1;font-weight:400;margin-left:1px;vertical-align:1px;color:var(--muted)}
+.bright::after{content:attr(data-level)}
+.bright-miao,.bright-wang{color:var(--text2);font-weight:600}
+.bright-bu,.bright-xian{color:var(--faint)}
+:lang(zh-TW) .bright-miao::after,:lang(ja) .bright-miao::after{content:'廟'}
+:lang(ja) .bright-xian::after{content:'陥'}
+:lang(en) .bright{margin-left:3px}
+:lang(en) .bright-miao::after{content:'Peak'}:lang(en) .bright-wang::after{content:'High'}:lang(en) .bright-de::after{content:'Good'}
+:lang(en) .bright-li::after{content:'Fair'}:lang(en) .bright-ping::after{content:'Even'}:lang(en) .bright-bu::after{content:'Low'}
+:lang(en) .bright-xian::after{content:'Fall'}
+.bright-legend .bright{margin-right:4px}
 .palace-cycles{font-size:11px;color:var(--faint);margin-top:4px}
 .palace-foot{margin-top:auto;padding-top:6px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:4px;flex-wrap:wrap}
 .palace-foot .decade{color:var(--text2)}

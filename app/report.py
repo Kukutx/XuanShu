@@ -59,7 +59,8 @@ def structured_report(request: ReportRequest) -> dict:
         ], 'provenance': 'app.engines.calculate_bazi / app.reference'},
         {'id': 'ziwei', 'title': '紫微十二宫与四化', 'facts': [
             f"命宫{ziwei['ming_palace']}、身宫{ziwei['shen_palace']}、{ziwei['five_elements_bureau']}",
-            '命宫主星：' + ('、'.join(palace['main_stars']) or '空宫'),
+            '命宫主星：' + ('、'.join(star + (f"（{palace['star_brightness'][star]}）" if star in palace['star_brightness'] else '')
+                                  for star in palace['main_stars']) or '空宫'),
             '生年四化：' + '、'.join(four),
             f"星曜覆盖：{ziwei['star_counts']['main']} 主星 + {ziwei['star_counts']['auxiliary']} 颗已实现辅助/杂曜，非完整专业盘。",
         ], 'provenance': 'app.engines.calculate_ziwei / app.reference'},

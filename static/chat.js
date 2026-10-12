@@ -367,6 +367,7 @@ function miniZiwei(card, z) {
     if (!p.main_stars.length) stars.append('—');
     p.main_stars.forEach(star => {
       const item = append(stars, 'span', null, star);
+      brightMark(item, (p.star_brightness || {})[star]);
       p.birth_year_transformations.filter(t => t.star === star).forEach(t => huaBadge(item, t.type));
     });
   });

@@ -315,9 +315,9 @@
   " implemented auxiliary/minor stars; not a complete professional chart.",
   " 個の実装済み補助星・雑曜。完全な専門盤ではありません。"
  ],
- " 颗选定辅/杂曜、四组十二神（部分依性别）、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。": [
-  " selected minor/miscellaneous stars, four twelve-spirit series (some depend on gender), period stars and longitude time modes; not every school. Nothing shown is a prediction of fate.",
-  " 個の選定補星・雑曜、四組の十二神（一部は性別による）、運限の流曜と経度時制の選択；全流派ではありません。表示はすべて運命の予測ではありません。"
+ " 颗选定辅/杂曜、四组十二神（部分依性别）、主星与昌曲火铃羊陀的庙旺利陷、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。": [
+  " selected minor/miscellaneous stars, four twelve-spirit series (some depend on gender), brightness of the main stars and Chang/Qu, Huo/Ling, Yang/Tuo, period stars and longitude time modes; not every school. Nothing shown is a prediction of fate.",
+  " 個の選定補星・雑曜、四組の十二神（一部は性別による）、主星と昌曲・火鈴・羊陀の廟旺利陥、運限の流曜と経度時制の選択；全流派ではありません。表示はすべて運命の予測ではありません。"
  ],
  "# XuanShu · 问题驱动的可核验咨询工作流": [
   "# XuanShu · Question-driven verifiable consultation workflow",
@@ -1015,6 +1015,10 @@
   "major stars",
   "主星"
  ],
+ "主星与昌曲、火铃、羊陀庙旺利陷": [
+  "Brightness of the main stars, Wen-chang/Wen-qu, Huo/Ling and Qing-yang/Tuo-luo",
+  "主星と昌曲・火鈴・羊陀の廟旺利陥"
+ ],
  "主星：": [
   "Main stars: ",
   "主星："
@@ -1182,6 +1186,42 @@
  "亥时 21–23": [
   "Hai hour 21–23",
   "亥の刻 21–23"
+ ],
+ "亮度：": [
+  "Brightness: ",
+  "明るさ："
+ ],
+ "亮度：不": [
+  "Brightness: Low (bu)",
+  "明るさ：不"
+ ],
+ "亮度：利": [
+  "Brightness: Fair (li)",
+  "明るさ：利"
+ ],
+ "亮度：平": [
+  "Brightness: Even (ping)",
+  "明るさ：平"
+ ],
+ "亮度：庙": [
+  "Brightness: Peak (miao, strongest)",
+  "明るさ：廟（最も強い）"
+ ],
+ "亮度：庙旺得利平不陷，由强到弱": [
+  "Brightness: Peak, High, Good, Fair, Even, Low, Fall, strongest to weakest",
+  "明るさ：廟・旺・得・利・平・不・陥、強い順"
+ ],
+ "亮度：得": [
+  "Brightness: Good (de)",
+  "明るさ：得"
+ ],
+ "亮度：旺": [
+  "Brightness: High (wang)",
+  "明るさ：旺"
+ ],
+ "亮度：陷": [
+  "Brightness: Fall (xian, weakest)",
+  "明るさ：陥（最も弱い）"
  ],
  "亲密关系及伴侣互动": [
   "Intimate relationships and partner interactions",
@@ -4050,6 +4090,14 @@
  "广州": [
   "Guangzhou",
   "広州"
+ ],
+ "庙旺得利平不陷": [
+  "Peak, High, Good, Fair, Even, Low, Fall",
+  "廟・旺・得・利・平・不・陥"
+ ],
+ "庙旺得利平不陷，十四主星与文昌、文曲、火星、铃星、擎羊、陀罗；用 iztro 公开的亮度表，其他流派的得、利、平可能不同": [
+  "Peak, High, Good, Fair, Even, Low, Fall for the 14 main stars and Wen-chang, Wen-qu, Huo-xing, Ling-xing, Qing-yang and Tuo-luo, from the brightness table iztro publishes; other schools may grade Good, Fair and Even differently",
+  "廟・旺・得・利・平・不・陥。十四主星と文昌・文曲・火星・鈴星・擎羊・陀羅。iztro が公開する明るさ表による。他の流派では得・利・平の判定が異なることがある"
  ],
  "廉贞": [
   "Lian Zhen",
@@ -8155,17 +8203,41 @@
   "(second half, counted as ",
   "（後半月、"
  ],
+ "（不）": [
+  "(Low)",
+  "（不）"
+ ],
  "（农历 ": [
   " (lunar ",
   "（旧暦 "
+ ],
+ "（利）": [
+  "(Fair)",
+  "（利）"
  ],
  "（失败：": [
   " (failed: ",
   "（失敗："
  ],
+ "（平）": [
+  "(Even)",
+  "（平）"
+ ],
+ "（庙）": [
+  "(Peak)",
+  "（廟）"
+ ],
+ "（得）": [
+  "(Good)",
+  "（得）"
+ ],
  "（时辰不详，按 12:00 占位）": [
   " (hour unknown, 12:00 used as a placeholder)",
   "（時辰不明のため 12:00 を仮に使用）"
+ ],
+ "（旺）": [
+  "(High)",
+  "（旺）"
  ],
  "（本轮没有调用工具）": [
   "(No tools were called this round)",
@@ -8190,6 +8262,10 @@
  "（自化）": [
   " (self-transformation)",
   "（自化）"
+ ],
+ "（陷）": [
+  "(Fall)",
+  "（陥）"
  ],
  "）· 命盘事实只来自确定性工具，每次调用都可展开查看": [
   ") · chart facts come only from deterministic tools; every call can be expanded for inspection",
