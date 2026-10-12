@@ -137,6 +137,7 @@ let lunarInverseError = '';
 let annualDraft = null;  // today's lunar year, until another one is asked for
 let officerDraft = {start_date:localToday(),days:30,officer:''};
 let timelineDraft = {start_lunar_year:null,years:10,focus_palace:''};  // null: today's lunar year
+let timelineView = 'matrix';  // the palace-by-year grid, or the list by year
 let decisionDraft = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
 let pairDraft = {birth_datetime: '2001-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified', year: new Date().getFullYear()};
 // The year of the pair's luck and year-pillar view; a newer request makes older replies stale, as on the group page.
@@ -1935,6 +1936,26 @@ function renderDateScan() {
   if(!dateScanResult.candidates.length)append(result,'p','feature-note','没有满足全部条件的日子，可以放宽条件或延长扫描天数。');
   dateScanResult.limitations.forEach(x=>note(result,x));
 }
+function timelineList(parent, tl, focusName, nowYear) {
+  const table = append(parent, 'table', 'data-table yt-list');
+  const head = append(append(table, 'thead'), 'tr');
+  ['农历年', '化禄', '化权', '化科', '化忌', ...(focusName ? ['所选宫位'] : [])].forEach(t => append(head, 'th', HUA_CLASS[t] ? 'yt-' + HUA_CLASS[t] : null, t));
+  const tbody = append(table, 'tbody');
+  tl.entries.forEach(year => {
+    const now = year.lunar_year === nowYear, row = append(tbody, 'tr', now ? 'is-now' : null);
+    if (now) row.setAttribute('aria-current', 'date');
+    const first = append(row, 'td', 'yt-list-year'); texts(first, year.lunar_year, ' ');
+    const gz = append(first, 'b', 'yt-gz'); gz.dataset.noI18n = '';
+    append(gz, 'span', stemClass(year.year_pillar[0]), year.year_pillar[0]); append(gz, 'span', branchClass(year.year_pillar[1]), year.year_pillar[1]);
+    if (now) append(first, 'small', 'yt-now', '今年');
+    year.transformations.forEach(t => {
+      const td = append(row, 'td', t.natal_palace === focusName ? 'is-focus' : null);
+      append(td, 'b', null, t.star); texts(td, ' → ', t.natal_palace);
+    });
+    if (focusName) append(row, 'td', null, year.focus_hits.map(t => t.star + t.type).join(' · ') || '—');
+  });
+  return table;
+}
 function renderTimeline() {
   title(result,'连续农历年四化对照','本命盘固定，叠加多个命名农历年的天干四化标签');
   if(!current){append(result,'p','info-inline','请先生成命盘。');return;}
@@ -1942,7 +1963,7 @@ function renderTimeline() {
   ensureTodayLunarYear();
   const start=createInput('起始农历年','number',String(timelineDraft.start_lunar_year ?? defaultLunarYear()),row);start.id='timeline-start';start.min='1901';start.max='2099';
   const years=append(append(row,'label',null,'对照年数'),'select');years.id='timeline-years';
-  [3,5,10,20,30].forEach(x=>{const op=append(years,'option',null,x+' 年');op.value=String(x);});years.value=String(timelineDraft.years);
+  [3,5,10,20,30].forEach(x=>{const op=texts(append(years,'option'),x,' 年');op.value=String(x);});years.value=String(timelineDraft.years);
   const focus=append(append(row,'label',null,'关注宫位'),'select');focus.id='timeline-focus';
   const all=append(focus,'option',null,'全部十二宫');all.value='';
   current.ziwei.palaces.forEach(p=>{const op=append(focus,'option',null,p.name);op.value=p.name;});focus.value=timelineDraft.focus_palace;
@@ -1952,21 +1973,82 @@ function renderTimeline() {
   run.addEventListener('click',async()=>{
     timelineDraft={start_lunar_year:Number(start.value),years:Number(years.value),focus_palace:focus.value};
     run.disabled=true;msg.textContent='';
-    try{const data=await postForChart('/api/annual-timeline',{birth:readInput(),start_lunar_year:timelineDraft.start_lunar_year,years:timelineDraft.years,focus_palace:timelineDraft.focus_palace||null});if(data!==STALE){timelineResult=data;render();}}
+    try{const data=await postForChart('/api/annual-timeline',{birth:currentInput,start_lunar_year:timelineDraft.start_lunar_year,years:timelineDraft.years,focus_palace:timelineDraft.focus_palace||null});if(data!==STALE){timelineResult=data;render();}}
     catch(e){msg.textContent='查询失败：'+e.message;}
     finally{run.disabled=false;}
   });
   if(!timelineResult){append(result,'p','info-inline','选择起始农历年和年数，可按本命宫位查看每年的四化标记。');return;}
-  meta(result,[`起始 ${timelineResult.start_lunar_year}`,`对照 ${timelineResult.years} 年`,timelineResult.school]);
-  const table=append(append(result,'div','table-wrap'),'table','data-table');
-  const head=append(append(table,'thead'),'tr');
-  ['农历年','化禄','化权','化科','化忌',...(timelineDraft.focus_palace?['所选宫位']:[])].forEach(t=>append(head,'th',null,t));
-  const tbody=append(table,'tbody');
-  timelineResult.entries.forEach(year=>{
-    const row=append(tbody,'tr'); append(row,'td',null,year.lunar_year+' · '+year.year_pillar);
-    year.transformations.forEach(t=>append(row,'td',null,t.star+' → '+t.natal_palace));
-    if(timelineDraft.focus_palace)append(row,'td',null,year.focus_hits.map(t=>t.star+t.type).join(' · ')||'—');
+  const tl = timelineResult, focusName = tl.focus_palace || '';
+  const tags = append(result, 'div', 'meta-tags');
+  texts(append(tags, 'span'), '农历年', ' ' + tl.start_lunar_year + '–' + (tl.start_lunar_year + tl.years - 1));
+  append(tags, 'span', null, tl.school);
+  const views = append(result, 'div', 'layer-modes yt-views');
+  views.setAttribute('role', 'group'); views.setAttribute('aria-label', '显示方式');
+  [['matrix', '宫位矩阵'], ['list', '逐年列表']].forEach(([key, name]) => {
+    const button = append(views, 'button', 'layer-btn' + (timelineView === key ? ' active' : ''), name);
+    button.type = 'button'; button.id = 'timeline-view-' + key; button.setAttribute('aria-pressed', String(timelineView === key));
+    button.addEventListener('click', () => {timelineView = key; render();});
   });
+  const nowYear = todayLunarYear;
+  if (timelineView === 'matrix') {
+    // Palaces down the side in their fixed order, lunar years across: each cell holds the transformations of that
+    // year's stem that fall in the palace. A year header opens that year's layer on the Zi Wei chart.
+    const palaces = Object.keys(tl.natal_palace_label_counts);
+    const wrap = append(result, 'div', 'yt-wrap');
+    const table = append(wrap, 'table', 'yt-matrix'); table.id = 'timeline-matrix';
+    append(table, 'caption', 'visually-hidden', '本命十二宫逐年所落的流年四化');
+    const head = append(append(table, 'thead'), 'tr');
+    append(head, 'th', 'yt-corner', '本命宫位').scope = 'col';
+    tl.entries.forEach(year => {
+      const now = year.lunar_year === nowYear;
+      const th = append(head, 'th', 'yt-year-cell' + (now ? ' is-now' : '')); th.scope = 'col';
+      const open = append(th, 'button', 'yt-year'); open.type = 'button'; open.id = 'timeline-year-' + year.lunar_year;
+      open.title = '在紫微盘打开 ' + year.lunar_year + ' 年流年层';
+      if (now) open.setAttribute('aria-current', 'date');
+      append(open, 'small', null, String(year.lunar_year));
+      const gz = append(open, 'b', 'yt-gz'); gz.dataset.noI18n = '';
+      append(gz, 'span', stemClass(year.year_pillar[0]), year.year_pillar[0]); append(gz, 'span', branchClass(year.year_pillar[1]), year.year_pillar[1]);
+      if (now) append(open, 'small', 'yt-now', '今年');
+      open.addEventListener('click', () => {
+        ziweiLayer = {mode: 'year', decade: null, year: year.lunar_year, date: null};
+        activateTab(tabs.find(t => t.dataset.tab === 'ziwei'));
+        announce('紫微盘已切到 ' + year.lunar_year + ' 年流年层');
+      });
+    });
+    // The palace column stays put while the years scroll, so a year reached by the keyboard is brought out from under it.
+    wrap.addEventListener('focusin', e => {
+      const cell = e.target.closest('.yt-year-cell'); if (!cell) return;
+      const left = cell.offsetLeft - table.querySelector('.yt-corner').offsetWidth, right = cell.offsetLeft + cell.offsetWidth - wrap.clientWidth;
+      if (wrap.scrollLeft > left) wrap.scrollLeft = left; else if (wrap.scrollLeft < right) wrap.scrollLeft = right;
+    });
+    const body = append(table, 'tbody');
+    palaces.forEach(name => {
+      const natal = current.ziwei.palaces.find(p => p.name === name);
+      const tr = append(body, 'tr', name === focusName ? 'is-focus' : null);
+      const th = append(tr, 'th', 'yt-palace'); th.scope = 'row';
+      append(th, 'span', 'yt-palace-name', name);
+      // Without the birth hour the palaces stand on a 12:00 stand-in, so their stem and branch are left out.
+      if (natal && !currentHourUnknown) {const at = append(th, 'small', 'yt-branch', natal.stem + natal.branch); at.dataset.noI18n = '';}
+      const count = tl.natal_palace_label_counts[name];
+      if (count) texts(append(th, 'small', 'yt-count'), '×', count);
+      tl.entries.forEach(year => {
+        const td = append(tr, 'td', year.lunar_year === nowYear ? 'is-now' : null);
+        year.transformations.filter(t => t.natal_palace === name).forEach(t => {
+          const item = append(td, 'span', 'yt-hua');
+          huaBadge(item, t.type, 'year').title = year.lunar_year + ' ' + year.year_pillar + ' · ' + t.star + t.type;
+          append(item, 'span', 'yt-star', t.star);
+        });
+      });
+    });
+    const help = append(result, 'p', 'field-help yt-screen');
+    append(help, 'span', null, '一列一个农历年，格子里是该年天干的四化星落在本命哪一宫，宫名下的「×」是这些年里落入该宫的次数；点年份在紫微盘打开该年的流年层。');
+    if (focusName) append(help, 'span', null, '所选宫位整行加框。');
+    // A wide grid cannot fit a printed page, so print carries the same years as the list.
+    timelineList(append(result, 'div', 'table-wrap yt-print-list'), tl, focusName, nowYear);
+  } else {
+    timelineList(append(result, 'div', 'table-wrap'), tl, focusName, nowYear).id = 'timeline-list';
+  }
+  if (currentHourUnknown) append(result, 'p', 'field-help', '时辰不详：宫位按 12:00 占位时辰排出，落宫会随时辰变化。');
   timelineResult.limitations.forEach(x=>note(result,x));
 }
 function numericEntry(input) { return input.value.trim() === '' ? NaN : Number(input.value); }
@@ -3743,7 +3825,7 @@ function renderTimeAudit() {
   if (formLongitude === null) append(result, 'p', 'field-help', '出生资料里没有经度：这里选的城市或经度只用于本页对照，不改出生资料，也不保存。');
   if(timeResult) {
     const used = timeRun ? timeRun.birth : {...inp, longitude: timeResult.longitude};
-    const where = append(result, 'p', 'meta-tags');
+    const where = append(result, 'div', 'meta-tags');
     texts(append(where, 'span'), '出生地经度', ' ' + Math.abs(timeResult.longitude) + '°' + (timeResult.longitude >= 0 ? 'E' : 'W'));
     if (timeRun && timeRun.ownLongitude) append(where, 'span', null, '仅用于本页');
     texts(append(where, 'span'), '时区', ' ' + used.timezone);

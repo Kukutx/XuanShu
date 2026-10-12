@@ -842,6 +842,42 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .tb-shift{margin:0;font-size:13px;color:var(--text2)}
 .tb-parts{margin:-4px 0 0;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 #time-city{min-width:9em}
+/* 年度轨迹: palaces down the side, lunar years across. The palace column stays in view while the years scroll;
+   the current lunar year is tinted and the palace asked about is ruled above and below. */
+.yt-views{margin:2px 0 10px}
+.yt-wrap{overflow-x:auto;margin:0 0 8px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
+.yt-matrix{border-collapse:separate;border-spacing:0;min-width:100%;font-size:12px}
+.yt-matrix th,.yt-matrix td{border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:4px 6px;vertical-align:top}
+.yt-matrix tbody tr:last-child>*{border-bottom:0}
+.yt-matrix tr>:last-child{border-right:0}
+.yt-matrix thead th{background:var(--panel3);vertical-align:bottom}
+.yt-corner,.yt-palace{position:sticky;left:0;z-index:1;text-align:left;white-space:nowrap}
+.yt-corner{background:var(--panel3);font-size:12px;font-weight:600;color:var(--text2)}
+.yt-palace{background:var(--panel2);min-width:6.5em;font-weight:600;color:var(--text)}
+.yt-palace-name{display:block;font-size:13px}
+.yt-branch{margin-right:6px;font-size:11px;font-weight:400;color:var(--muted)}
+.yt-count{font-size:11px;font-weight:600;color:var(--gold2)}
+.yt-year-cell{min-width:66px;padding:3px!important;text-align:center}
+.yt-year{display:flex;flex-direction:column;align-items:center;gap:1px;width:100%;border:0;border-radius:6px;background:transparent;color:var(--text2);padding:4px 2px;font:inherit;cursor:pointer}
+.yt-year:hover,.yt-year:focus-visible{background:var(--accent-soft);color:var(--gold2)}
+.yt-year small{font-size:11px;font-variant-numeric:tabular-nums}
+.yt-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:16px;line-height:1.2}
+.yt-matrix td{min-width:66px;height:34px}
+.yt-matrix .is-now{background:var(--accent-soft)}
+.yt-matrix thead .is-now .yt-year{color:var(--gold2);font-weight:700}
+small.yt-now{font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:.02em}
+.yt-list .yt-now{margin-left:6px}
+.yt-matrix tr.is-focus>*{box-shadow:inset 0 2px 0 var(--gold),inset 0 -2px 0 var(--gold)}
+.yt-matrix tr.is-focus>.yt-palace{color:var(--gold2);box-shadow:inset 3px 0 0 var(--gold),inset 0 2px 0 var(--gold),inset 0 -2px 0 var(--gold)}
+.yt-hua{display:flex;align-items:center;gap:4px;white-space:nowrap;line-height:1.6}
+.yt-hua .hua{margin-left:0;vertical-align:0}
+.yt-star{color:var(--text)}
+.yt-list .is-now>td{background:var(--accent-soft)}
+.yt-list td.is-focus{color:var(--gold2);font-weight:600}
+.yt-list-year{white-space:nowrap}
+.yt-screen span+span{margin-left:.3em}
+.yt-print-list{display:none}
+.yt-list th.yt-lu{color:var(--lu)}.yt-list th.yt-quan{color:var(--quan)}.yt-list th.yt-ke{color:var(--ke)}.yt-list th.yt-ji{color:var(--ji)}
 .today-facts{margin-top:10px}
 .today-empty{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:12px 14px}
 .today-table td,.today-table th{vertical-align:middle}
@@ -1129,6 +1165,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .workspace-top{padding:0 0 10px}
   #result{padding:0}
   .chat-log{max-height:none;overflow:visible}
+  .yt-wrap,.yt-views,.yt-screen{display:none!important}.yt-print-list{display:block}
   details{display:block}
   details>*{display:block}
   .ziwei-board,.pillar,.qimen-cell,.palace,.chat-msg{break-inside:avoid}

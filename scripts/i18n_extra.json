@@ -815,6 +815,10 @@
   "Mon Tue Wed Thu Fri Sat Sun",
   "月火水木金土日"
  ],
+ "一列一个农历年，格子里是该年天干的四化星落在本命哪一宫，宫名下的「×」是这些年里落入该宫的次数；点年份在紫微盘打开该年的流年层。": [
+  "One column per lunar year: each cell shows which of that year's stem transformation stars fall in the natal palace, and the × under a palace name counts how often they do across these years. Click a year to open that year's annual layer on the Zi Wei chart.",
+  "1 列が 1 つの旧暦年で、マスにはその年の天干の四化星が本命のどの宮に入るかを示します。宮名の下の「×」はこれらの年にその宮に入った回数です。年をクリックすると紫微盤でその年の流年層を開きます。"
+ ],
  "一至三十一日 · 以中国标准时间计算": [
   "1 to 31 days · computed in China Standard Time",
   "1〜31日 · 中国標準時で計算"
@@ -4291,6 +4295,10 @@
   "The palace overlay only aligns the two charts by the twelve earthly branches as a structural comparison; it does not evaluate whether the relationship is good or bad and provides no compatibility score.",
   "宮の重ね合わせは二つの命盤を十二地支で揃えた構造的な対照にすぎず、関係の良し悪しは評価せず、相性スコアも提供しません。"
  ],
+ "宫位矩阵": [
+  "Palace grid",
+  "宮位マトリクス"
+ ],
  "宫位详情": [
   "Palace details",
   "宮の詳細"
@@ -5194,6 +5202,10 @@
  "所选宫位": [
   "Selected palace",
   "選択した宮位"
+ ],
+ "所选宫位整行加框。": [
+  "The selected palace's row is outlined.",
+  "選択した宮位の行は枠で囲みます。"
  ],
  "所选时刻 · 历法事实 · 不打吉凶分": [
   "Chosen moment · calendar facts · no luck score",
@@ -6223,6 +6235,10 @@
   "Display count must be an integer from 1–12",
   "表示数は1–12の整数で指定"
  ],
+ "显示方式": [
+  "View",
+  "表示方法"
+ ],
  "显示运柱数量（1–12）": [
   "Number of luck pillars to show (1–12)",
   "表示する運柱の数（1–12）"
@@ -6539,9 +6555,17 @@
   "Natal analysis",
   "本命分析"
  ],
+ "本命十二宫逐年所落的流年四化": [
+  "The annual four transformations falling in each natal palace, year by year",
+  "本命十二宮に毎年入る流年四化"
+ ],
  "本命命宫地支（与公开示例相符）；其他流派可能用生年地支": [
   "Natal Life Palace branch (matches public examples); other schools may use the birth-year branch",
   "本命の命宮の地支（公開例と一致）。他の流派では生年の地支を用いる場合があります"
+ ],
+ "本命宫位": [
+  "Natal palace",
+  "本命の宮位"
  ],
  "本命宫位所列小限虚岁；四化取该宫宫干": [
   "The nominal ages listed for each natal palace's small limit; transformations from that palace's stem",
@@ -9402,6 +9426,10 @@
  "透明多方案决策矩阵": [
   "Transparent multi-option decision matrix",
   "透明な複数案意思決定マトリクス"
+ ],
+ "逐年列表": [
+  "By year",
+  "年ごとの一覧"
  ],
  "逐日对照（每天正午）": [
   "Day by day (noon each day)",
