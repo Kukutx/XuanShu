@@ -61,7 +61,7 @@ TOOL_DEFS = [
     {'name': 'annual_transformations', 'title': '指定农历年干四化', 'description': 'Map a named lunar year stem four-transformations to natal star positions (not a complete annual chart). Also returns gregorian_span (first and last Gregorian day of that lunar year; end is null for 2099), year_branch_palace (the natal palace on the year branch, a position only), natal_type per transformation (the birth-year transformation of the same star, if any) and natal_transformations.', 'inputSchema': AnnualRequest.model_json_schema()},
     {'name': 'time_basis_audit', 'title': '时制敏感性分析', 'description': 'Compare clock, longitude-based mean solar and apparent solar time for a birth with longitude. Each mode returns its effective reading, shift and equation of time, pillars, Life/Body palaces and lunar date; dst_minutes and longitude_vs_standard_meridian_minutes split the solar shift into daylight saving and the longitude offset from the zone standard meridian.', 'inputSchema': TimeAuditRequest.model_json_schema()},
     {'name': 'rule_comparison', 'title': '两套排盘规则对照', 'description': 'Compare BaZi pillars and Zi Wei major natal indices using two parameter configurations.', 'inputSchema': RuleComparisonRequest.model_json_schema()},
-    {'name': 'structured_report', 'title': '跨工具可追溯综合报告', 'description': 'Reproducible BaZi + partial Zi Wei dossier with optional named-year and solar-time audit; tool provenance and downloadable Markdown, no predictions.', 'inputSchema': ReportRequest.model_json_schema()},
+    {'name': 'structured_report', 'title': '跨工具可追溯综合报告', 'description': 'Reproducible BaZi + partial Zi Wei dossier with optional named-year and solar-time audit; tool provenance and downloadable Markdown, no predictions. glossary explains each term the report uses (what it is, how XuanShu computes it, its rule document); the full list is the astro://rules/glossary resource.', 'inputSchema': ReportRequest.model_json_schema()},
     {'name': 'lunar_to_gregorian', 'title': '农历反查公历', 'description': 'Convert a modern China lunar year/month/day with leap-month flag back to Gregorian date; reject invalid leap dates.', 'inputSchema': LunarToGregorianRequest.model_json_schema()},
     {'name': 'birth_time_window', 'title': '出生时间误差区间', 'description': 'Sample BaZi and partial Zi Wei charts across a time uncertainty range, listing distinct observed structures and sampling limitations.', 'inputSchema': BirthWindowRequest.model_json_schema()},
     {'name': 'chart_quality_audit', 'title': '排盘输入与边界审计', 'description': 'Audit birth-time and solar-term boundaries (with the names and instants of the adjacent jie), time-zone assumptions, and published lunar uncertainties without silently changing astronomical data.', 'inputSchema': QualityAuditRequest.model_json_schema()},
@@ -99,6 +99,7 @@ RESOURCE_TEXT = {
     'astro://rules/decision': 'docs/rules/decision.md',
     'astro://rules/dayun': 'docs/rules/dayun.md',
     'astro://rules/boundary-map': 'docs/rules/boundary-map.md',
+    'astro://rules/glossary': 'docs/rules/glossary.md',
 }
 RESOURCES = [
     {'uri': uri, 'name': file.rsplit('/', 1)[-1].removesuffix('.md'), 'description': f'XuanShu rule reference: {uri}', 'mimeType': 'text/markdown'}

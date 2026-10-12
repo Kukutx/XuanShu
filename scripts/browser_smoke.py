@@ -2141,11 +2141,21 @@ def main() -> None:
             assert page.locator('#report-year').input_value() == ''
             # The report as a document: the pillars, the steps run, a contents list that moves the keyboard to its section.
             assert page.locator('.rp-pillar').count() == 4 and page.locator('#report-trace li').count() == 4
-            assert page.locator('#report-toc a').count() == page.locator('.rp-section').count() == 5
+            assert page.locator('#report-toc a').count() == page.locator('.rp-section').count() == 6
             assert page.evaluate("document.activeElement.id") == 'report-doc'
             page.locator('#report-toc a').nth(4).click()
             assert page.evaluate("document.activeElement.id") == 'report-sec-4'
             assert page.evaluate("reportMarkdownSection(reportResult.markdown, '规则证据与跨体系差异复核').startsWith('## 规则证据与跨体系差异复核')")
+            # The terms the report uses close it: what each is, how XuanShu computes it and the rule document, from the
+            # contents list too, and copied as their own section.
+            terms = page.evaluate('reportResult.glossary.length')
+            assert terms >= 8 and page.locator('#report-terms .rp-term').count() == terms
+            assert page.locator('#report-terms .rp-term-how').count() == terms and page.locator('#report-terms .rp-term-doc').count() == terms
+            assert page.locator('#report-terms dt b', has_text='日主').count() == 1
+            page.locator('#report-toc a').last.click()
+            assert page.evaluate("document.activeElement.id") == 'report-glossary'
+            assert page.evaluate("reportMarkdownSection(reportResult.markdown, '术语解释').startsWith('## 术语解释')")
+            assert page.locator('#report-copy-glossary').count() == 1
             page.screenshot(path=str(screenshot_dir / '10-report.png'), full_page=True)
             # The contents list stays in view beside the report while it is read.
             page.evaluate("document.querySelector('#report-sec-2').scrollIntoView()")

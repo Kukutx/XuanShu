@@ -237,7 +237,7 @@ def test_oversized_request_rejected():
 
 def test_mcp_all_tools_and_resources_and_prompts_resolve():
     assert len(TOOL_DEFS)==34
-    assert len(RESOURCES)==17
+    assert len(RESOURCES)==18
     assert len(PROMPTS)==15
     for resource in RESOURCES:
         response=process_rpc({'jsonrpc':'2.0','id':1,'method':'resources/read','params':{'uri':resource['uri']}})

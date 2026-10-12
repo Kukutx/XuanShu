@@ -108,7 +108,7 @@ def test_modern_discovery_list_and_tool_with_real_response():
     assert call.status_code==200 and call.json()['result']['structuredContent']['gregorian_date']=='2024-02-10'
     assert call.json()['result']['resultType']=='complete'
     assert 'io.modelcontextprotocol/serverInfo' in call.json()['result']['_meta']
-    assert len(RESOURCES)==17 and len(PROMPTS)==15
+    assert len(RESOURCES)==18 and len(PROMPTS)==15
     # Modern stdio shares the exact same core and does not need initialize.
     core=process_rpc({'jsonrpc':'2.0','id':1,'method':'tools/list','params':{'_meta':META}})
     assert core['result']['resultType']=='complete'

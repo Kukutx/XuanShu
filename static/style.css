@@ -1769,6 +1769,16 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .rp-source{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:10px 0 0;font-size:12px}
 .rp-source code{font-size:11px;padding:1px 6px;border-radius:4px;background:var(--panel3)}
 .rp-source span.rp-source-part{color:var(--text2)}
+.rp-terms{margin:8px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:8px}
+.rp-term{min-width:0;border:1px solid var(--border);border-radius:8px;background:var(--panel);padding:8px 10px;break-inside:avoid}
+.rp-term dt{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:13.5px}
+.rp-term dt b{color:var(--text)}
+.rp-term-system{font-size:11px;border:1px solid var(--accent-line);border-radius:999px;padding:0 7px;color:var(--gold2);background:var(--accent-soft)}
+.rp-term dd{margin:4px 0 0;font-size:12.5px;line-height:1.65;color:var(--text2)}
+.rp-term dd p{margin:0}
+.rp-term dd p.rp-term-how{margin-top:4px;color:var(--muted)}
+.rp-term-label{font-weight:600;color:var(--text2)}
+.rp-term-doc{margin-left:4px;font-size:11px;padding:0 5px;border-radius:4px;background:var(--panel3);color:var(--text2)}
 .rp-hour-note{grid-column:1/-1;margin:0;font-size:13px;color:var(--warn)}
 .rp-actions{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
 @media(max-width:860px){.rp-layout{grid-template-columns:1fr}.rp-toc{position:static;border-bottom:1px solid var(--border)}.rp-toc ol{display:flex;flex-wrap:wrap;gap:4px 18px;padding-left:0;list-style-position:inside}.rp-body{border-left:0}}
