@@ -141,6 +141,17 @@ let pairDraft = {birth_datetime: '2001-01-01T12:00', timezone: 'Asia/Shanghai', 
 let pairYearTicket = 0, pairYearPending = false, pairYearError = '', pairRunning = false, pairRunError = '';
 // A year typed in a year field but not yet entered, by page, so it survives a re-render.
 let luckYearTyped = {};
+// The button under a pointer that is still down; cleared after its click has run.
+let pressedButton = null;
+document.addEventListener('pointerdown', e => {pressedButton = e.target instanceof Element ? e.target.closest('button') : null;}, true);
+document.addEventListener('pointerup', () => {setTimeout(() => {pressedButton = null;});}, true);
+document.addEventListener('pointercancel', () => {pressedButton = null;}, true);
+// A typed year that is a valid year, taken (and cleared) by a run that starts before it was entered.
+function takeTypedYear(prefix) {
+  const typed = luckYearTyped[prefix], value = Number(typed);
+  luckYearTyped[prefix] = null;
+  return typed != null && typed !== '' && Number.isInteger(value) && value >= 1901 && value <= 2099 ? value : null;
+}
 const nameMap = {year: '年柱', month: '月柱', day: '日柱', hour: '时柱'};
 function elt(tag, cls, text) {
   const node = document.createElement(tag);
@@ -1862,6 +1873,7 @@ function renderGroup() {
     const chosen = groupMembers(), keys = groupMemberKeys();
     if (chosen.length < 2 || chosen.length > 8) {error.textContent = '请选 2 到 8 人'; return;}
     run.disabled = true; error.textContent = ''; groupRunError = '';
+    groupDraft.year = takeTypedYear('group') ?? groupDraft.year;
     const ticket = ++groupYearTicket;
     groupRun = {chosen, keys};
     try {
@@ -2035,15 +2047,17 @@ function renderGroupResult(g) {
 // Another year for the same members: the members of the result shown, not the selection being edited, or
 // those of a 对照关系 run still waiting for its reply (this request replaces that run's).
 async function groupYear(year) {
+  const show = () => {if (active === 'group') render();};
   const pendingRun = groupRun;
   if (!groupKey && !pendingRun) return;
+  luckYearTyped.group = null;
   if (!pendingRun && groupResult && groupResult.year_view && groupResult.year_view.year === year && !groupYearPending) {
-    if (groupYearError) {groupYearError = ''; render();}
+    if (groupYearError) {groupYearError = ''; show();}
     return;
   }
-  if (!(Number.isInteger(year) && year >= 1901 && year <= 2099)) {groupYearError = '年份要在 1901 到 2099 之间'; render(); return;}
+  if (!(Number.isInteger(year) && year >= 1901 && year <= 2099)) {groupYearError = '年份要在 1901 到 2099 之间'; show(); return;}
   const ticket = ++groupYearTicket;
-  groupDraft.year = year; groupYearPending = true; groupYearError = ''; render();
+  groupDraft.year = year; groupYearPending = true; groupYearError = ''; show();
   try {
     const reply = await postJSON('/api/group-relations', {members: pendingRun ? pendingRun.chosen : JSON.parse(groupKey), year});
     if (ticket !== groupYearTicket) return;
@@ -2052,6 +2066,8 @@ async function groupYear(year) {
   } catch (err) {
     if (ticket !== groupYearTicket) return;
     groupYearError = '换年失败：' + err.message;
+    // The next 对照关系 asks for the year still shown, not the one that failed.
+    if (groupResult && groupResult.year_view) groupDraft.year = groupResult.year_view.year;
   }
   groupRun = null; groupYearPending = false;
   if (active === 'group') render();
@@ -2106,16 +2122,19 @@ function luckYearSection(v, {prefix, year: shownYear, pending, error, people, ch
   prev.disabled = year <= 1901; next.disabled = year >= 2099;
   // A step that reaches 1901 or 2099 disables the button it was made with; keyboard focus moves to the year field.
   prev.dataset.focusFallback = next.dataset.focusFallback = prefix + '-year-input';
-  prev.addEventListener('click', () => change(year - 1));
-  next.addEventListener('click', () => change(year + 1));
+  // A year typed but not entered yet is where the steps count from.
+  prev.addEventListener('click', () => change((takeTypedYear(prefix) ?? year) - 1));
+  next.addEventListener('click', () => change((takeTypedYear(prefix) ?? year) + 1));
   today.addEventListener('click', () => change(new Date().getFullYear()));
   // Rendering removes this field, and a removed field that still holds a typed value fires another change as it
   // loses focus; running the request after the event keeps that second render from starting inside the first.
   // A field removed by that render (or by a reply arriving while the user types) is not a request.
   input.addEventListener('input', () => {luckYearTyped[prefix] = input.value;});
+  // A button pressed as the field loses focus (对照关系, 下一年…) acts on its own: committing the typed year here
+  // would redraw the page between press and release and swallow that click. The run buttons take the typed year.
   input.addEventListener('change', () => {
     const value = Number(input.value);
-    setTimeout(() => {if (input.isConnected) {luckYearTyped[prefix] = null; change(value);}});
+    setTimeout(() => {if (input.isConnected && !pressedButton) {luckYearTyped[prefix] = null; change(value);}});
   });
   const status = append(nav, 'span', 'group-year-status muted'); status.setAttribute('role', 'status');
   if (pending) status.textContent = '正在换年…';
@@ -2712,6 +2731,7 @@ function renderPair() {
     pairDraft = {birth_datetime: date.value, timezone: zone.value, gender: gender.value, hour_unknown: unknown.checked, year: pairDraft.year};
     if (!pairDraft.birth_datetime) {error.textContent = '请填写 B 的出生时间'; return;}
     run.disabled = true; error.textContent = ''; pairRunError = '';
+    pairDraft.year = takeTypedYear('pair') ?? pairDraft.year;
     const ticket = ++pairYearTicket;
     pairRunning = true;
     try {
@@ -2771,15 +2791,18 @@ function renderPair() {
 // Another year for the same two people: the request of the result shown, not the form being edited. While
 // 比较两人命盘 runs, only the year asked for changes; that run's reply fetches it for the new pair.
 async function pairYear(year) {
+  // Called from a run's reply too, so another tab being open is not redrawn (it would lose what is typed there).
+  const show = () => {if (active === 'pair') render();};
   if (!pairKey && !pairRunning) return;
+  luckYearTyped.pair = null;
   if (!pairRunning && pairResult && pairResult.year_view && pairResult.year_view.year === year && !pairYearPending) {
-    if (pairYearError) {pairYearError = ''; render();}
+    if (pairYearError) {pairYearError = ''; show();}
     return;
   }
-  if (!(Number.isInteger(year) && year >= 1901 && year <= 2099)) {pairYearError = '年份要在 1901 到 2099 之间'; render(); return;}
-  if (pairRunning) {pairDraft.year = year; pairYearPending = true; pairYearError = ''; render(); return;}
+  if (!(Number.isInteger(year) && year >= 1901 && year <= 2099)) {pairYearError = '年份要在 1901 到 2099 之间'; show(); return;}
+  if (pairRunning) {pairDraft.year = year; pairYearPending = true; pairYearError = ''; show(); return;}
   const ticket = ++pairYearTicket;
-  pairDraft.year = year; pairYearPending = true; pairYearError = ''; render();
+  pairDraft.year = year; pairYearPending = true; pairYearError = ''; show();
   try {
     const reply = await postJSON('/api/pair', {...JSON.parse(pairKey), year});
     if (ticket !== pairYearTicket) return;
@@ -2787,6 +2810,8 @@ async function pairYear(year) {
   } catch (err) {
     if (ticket !== pairYearTicket) return;
     pairYearError = '换年失败：' + err.message;
+    // The next 比较两人命盘 asks for the year still shown, not the one that failed.
+    if (pairResult && pairResult.year_view) pairDraft.year = pairResult.year_view.year;
   }
   pairYearPending = false;
   if (active === 'pair') render();
