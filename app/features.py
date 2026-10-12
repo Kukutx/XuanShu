@@ -31,6 +31,8 @@ class PairInput(BaseModel):
     model_config = ConfigDict(extra='forbid')
     person_a: BirthInput
     person_b: BirthInput
+    person_a_hour_unknown: bool = Field(default=False, description="Person A's birth hour is unknown: the hour pillar is left out, and the Zi Wei overlay is refused")
+    person_b_hour_unknown: bool = Field(default=False, description="Person B's birth hour is unknown: the hour pillar is left out, and the Zi Wei overlay is refused")
 
 
 class PalaceRequest(BaseModel):
@@ -87,32 +89,47 @@ def _branch_relation(left: str, right: str) -> str:
 
 
 def compare_charts(request: PairInput) -> dict:
-    a, b = calculate_bazi(request.person_a), calculate_bazi(request.person_b)
+    # The group reading of two people: ten gods both ways, the day-stem combination and every branch link.
+    from .group import GroupMember, _member, _pair
+    a, b = (_member(GroupMember(label=label, birth=birth, hour_unknown=unknown)) for label, birth, unknown in
+            (('A', request.person_a, request.person_a_hour_unknown), ('B', request.person_b, request.person_b_hour_unknown)))
+    relation = _pair(0, 1, a, b)
     parallels = []
     for key, label in (('year', '年柱'), ('month', '月柱'), ('day', '日柱'), ('hour', '时柱')):
         pa, pb = a['pillars'][key], b['pillars'][key]
+        known = bool(pa and pb)
         parallels.append({
             'pillar': key, 'label': label,
-            'person_a': pa['text'], 'person_b': pb['text'],
-            'branch_relation': _branch_relation(pa['branch'], pb['branch']),
-            'same_stem': pa['stem'] == pb['stem'],
+            'person_a': pa, 'person_b': pb,
+            'branch_relation': _branch_relation(pa[1], pb[1]) if known else '不比较（时辰不详）' if key == 'hour' else '不比较（当天交节或换日）',
+            'labels': next((x['labels'] for x in relation['branch_links'] if x['a_pillar'] == x['b_pillar'] == key), []),
+            'same_stem': known and pa[0] == pb[0],
         })
+    notes = [
+        '仅对两组四柱做结构化对照，不评价关系好坏，不提供匹配分数。',
+        '六合、六冲、六害、相刑与天干五合是传统象征标签，不能据此预测关系结果或替代实际沟通。',
+        '十神是有方向的：A 看 B 与 B 看 A 往往不同，两者都列出。',
+    ]
+    if a['hour_unknown'] or b['hour_unknown']:
+        notes.append('出生时辰不详的一方不参与时柱的比较。')
+    if a['uncertain_pillars'] or b['uncertain_pillars']:
+        notes.append('时辰不详且出生当天交节（或按 23:00 换日）的一方，当天之内会变的年柱、月柱或日柱也不参与比较。')
+    person = lambda m: {'birth_datetime': m['birth_datetime'], 'hour_unknown': m['hour_unknown'], 'uncertain_pillars': m['uncertain_pillars'],
+                        'pillars': m['pillars'], 'day_master': m['day_master'], 'day_master_element': m['day_master_element'],
+                        'zodiac': m['zodiac']}
     return {
         'system': 'pair-comparison',
-        'person_a': {
-            'birth_datetime': a['birth_datetime'], 'pillars': {k: v['text'] for k,v in a['pillars'].items()},
-            'day_master': a['day_master'], 'day_master_element': a['day_master_element'],
-        },
-        'person_b': {
-            'birth_datetime': b['birth_datetime'], 'pillars': {k: v['text'] for k,v in b['pillars'].items()},
-            'day_master': b['day_master'], 'day_master_element': b['day_master_element'],
-        },
+        'person_a': person(a),
+        'person_b': person(b),
         'comparisons': parallels,
-        'rules': {'branches': '传统六合 / 六冲 / 同支标签', 'compatibility_score': None},
-        'notes': [
-            '仅对两组四柱做结构化对照，不评价关系好坏，不提供匹配分数。',
-            '六合、六冲是传统象征标签，不能据此预测关系结果或替代实际沟通。',
-        ],
+        'day_stems': relation['day_stems'],
+        'zodiac': relation['zodiac'],
+        'branch_links': relation['branch_links'],
+        'label_counts': relation['label_counts'],
+        'rules': {'branches': '传统六合 / 六冲 / 同支标签', 'ten_god': '以各自日干为我，看对方日干',
+                  'stem_combination': '甲己、乙庚、丙辛、丁壬、戊癸五合',
+                  'branch_links': '四柱地支两两比较：同支、六合、六冲、六害、相刑', 'compatibility_score': None},
+        'notes': notes,
     }
 
 

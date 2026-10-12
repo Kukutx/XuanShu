@@ -474,6 +474,10 @@ const UI_EXTRA = {
 "A palace",
 "A 宮位"
 ],
+"A 或 B 的资料已改变，下面仍是上一次的结果；点「比较两人命盘」更新。": [
+"A's or B's details have changed; the results below are still from the last run. Click \"Compare both charts\" to update.",
+"A または B の情報が変わりました。下は前回の結果のままです。「二人の命盤を比較」を押すと更新されます。"
+],
 "A 日主 ": [
 "A Day Master ",
 "A 日主 "
@@ -517,6 +521,10 @@ const UI_EXTRA = {
 "Asia/Tokyo · 东京": [
 "Asia/Tokyo · Tokyo",
 "Asia/Tokyo · 東京"
+],
+"B 不知道出生时辰": [
+"B's birth hour unknown",
+"B の出生時刻が不明"
 ],
 "B 主星": [
 "B main stars",
@@ -614,6 +622,10 @@ const UI_EXTRA = {
 "\\nFocus: ",
 "\\n注目点："
 ],
+"group_relations 里这位成员的 hour_unknown，pair_comparison 里对应一方的 person_a_hour_unknown 或 person_b_hour_unknown。": [
+"this member's hour_unknown in group_relations, and person_a_hour_unknown or person_b_hour_unknown for that person in pair_comparison.",
+"group_relations ではこのメンバーの hour_unknown、pair_comparison では該当する側の person_a_hour_unknown または person_b_hour_unknown。"
+],
 "iztro公开安星诀；出生年、本命宫位、农历月日和时辰推导": [
 "iztro public star-placement formulas; derived from birth year, natal palace position, lunar month/day and double-hour",
 "iztro公開の安星訣。出生年、本命宮の位置、旧暦の月日と時辰から導出"
@@ -670,9 +682,33 @@ const UI_EXTRA = {
 "\", first after: ",
 "」の後の最初："
 ],
+"【三合】": [
+"[Three harmonies]",
+"【三合】"
+],
+"【两两关系】": [
+"[Pairwise relations]",
+"【二人ずつの関係】"
+],
+"【五行】": [
+"[Five phases]",
+"【五行】"
+],
+"【四柱】": [
+"[Four pillars]",
+"【四柱】"
+],
 "【四柱八字】": [
 "[BaZi four pillars]",
 "【四柱推命】"
+],
+"【日干十神】从每一行的人看各列的人": [
+"[Day-stem ten gods] from each row's person to each column's person",
+"【日干十神】各行の人から各列の人を見る"
+],
+"【紫微宫位叠盘】": [
+"[Zi Wei palace overlay]",
+"【紫微宮位の重ね合わせ】"
 ],
 "【紫微斗数】": [
 "[Zi Wei Dou Shu]",
@@ -889,6 +925,14 @@ const UI_EXTRA = {
 "不是完整流年运盘，不代表事件预测。": [
 "Not a complete annual fortune chart and not a prediction of events.",
 "完全な流年運盤ではなく、出来事の予測を意味しません。"
+],
+"不比较（当天交节或换日）": [
+"Not compared (a solar term or day change falls on the birth day)",
+"比較しない（当日に節入りまたは日替わりあり）"
+],
+"不比较（时辰不详）": [
+"Not compared (birth hour unknown)",
+"比較しない（出生時刻不明）"
 ],
 "不知道出生时辰": [
 "I don't know the birth hour",
@@ -1870,6 +1914,10 @@ const UI_EXTRA = {
 "Six Combinations",
 "六合"
 ],
+"六合、六冲、六害、相刑与天干五合是传统象征标签，不能据此预测关系结果或替代实际沟通。": [
+"Six harmonies, clashes, harms, punishments and the stem five combinations are traditional symbolic labels; they cannot predict how a relationship turns out or replace real communication.",
+"六合・六冲・六害・相刑と天干五合は伝統的な象徴ラベルであり、関係の結果を予測したり実際のコミュニケーションに代わったりするものではありません。"
+],
 "六合、六冲是传统象征标签，不能据此预测关系结果或替代实际沟通。": [
 "Six Combinations and Six Clashes are traditional symbolic labels; they cannot be used to predict relationship outcomes or replace actual communication.",
 "六合・六冲は伝統的な象徴ラベルであり、これをもとに関係の結果を予測したり実際のコミュニケーションの代わりにしたりすることはできません。"
@@ -2121,6 +2169,10 @@ const UI_EXTRA = {
 "出生时当地实行夏令时：有的软件会先扣除夏令时再排盘。": [
 "Daylight saving time was in force at the birth: some programs remove it before casting the chart.",
 "出生時に現地は夏時間でした：夏時間を差し引いてから命盤を出すソフトもあります。"
+],
+"出生时辰不详的一方不参与时柱的比较。": [
+"A person whose birth hour is unknown is left out of the hour-pillar comparison.",
+"出生時刻が不明な側は時柱の比較に加えません。"
 ],
 "出生时辰不详的成员不参与时柱的比较。": [
 "Members whose birth hour is unknown are left out of hour-pillar comparisons.",
@@ -2806,6 +2858,10 @@ const UI_EXTRA = {
 "The same absolute instant in Beijing time ",
 "同じ絶対時刻を北京時間で "
 ],
+"同位地支": [
+"Same-position branches",
+"同じ位置の地支"
+],
 "同支": [
 "Same branch",
 "同支"
@@ -2958,6 +3014,10 @@ const UI_EXTRA = {
 "four-transformations flying-transformation year-stem",
 "四化 飛化 年干"
 ],
+"四化入对方盘：": [
+"Transformations into the other chart:",
+"四化を相手の盤へ："
+],
 "四化叠加：": [
 "Stacked transformations:",
 "四化の重なり："
@@ -3013,6 +3073,10 @@ const UI_EXTRA = {
 "四柱地支不落日空、年空": [
 "No pillar branch falls in the day or year void",
 "四柱の地支は日空・年空に入りません"
+],
+"四柱地支两两关系": [
+"Branch relations across the four pillars",
+"四柱地支の総当たり関係"
 ],
 "四柱地支两两比较：同支、六合、六冲、六害、相刑": [
 "Branches of all four pillars compared pairwise: same branch, six harmony, six clash, six harm, punishment",
@@ -3249,6 +3313,10 @@ const UI_EXTRA = {
 "复制失败，请手动选中表格": [
 "Copy failed; select the table by hand",
 "コピーできませんでした。表を手動で選択してください"
+],
+"复制成文字": [
+"Copy as text",
+"テキストでコピー"
 ],
 "复制文字盘": [
 "Copy text chart",
@@ -4009,6 +4077,10 @@ const UI_EXTRA = {
 "工作台功能查找": [
 "Find workbench features",
 "ワークベンチ機能を検索"
+],
+"工具有时辰不详开关时要打开：bazi_dayun、ziwei_horoscope、rule_sensitivity_matrix 的 hour_unknown，": [
+"Turn on a tool's unknown-hour switch when it has one: hour_unknown in bazi_dayun, ziwei_horoscope and rule_sensitivity_matrix,",
+"ツールに出生時刻不明のスイッチがあればオンにすること：bazi_dayun、ziwei_horoscope、rule_sensitivity_matrix の hour_unknown、"
 ],
 "工具调用轮次已达上限，请把问题拆小后再问。": [
 "The tool-call round limit has been reached. Please break the question into smaller parts and ask again.",
@@ -4910,6 +4982,10 @@ const UI_EXTRA = {
 "Text chart preview",
 "テキスト命盤のプレビュー"
 ],
+"文字预览": [
+"Text preview",
+"テキストのプレビュー"
+],
 "文昌": [
 "Wen Chang",
 "文昌"
@@ -5061,6 +5137,10 @@ const UI_EXTRA = {
 "日干支": [
 "Day stem-branch",
 "日干支"
+],
+"日干：": [
+"Day stems:",
+"日干："
 ],
 "日支": [
 "Day branch",
@@ -5317,6 +5397,10 @@ const UI_EXTRA = {
 "时辰不详": [
 "Hour unknown",
 "時辰不明"
+],
+"时辰不详且出生当天交节（或按 23:00 换日）的一方，当天之内会变的年柱、月柱或日柱也不参与比较。": [
+"For a person with an unknown hour born on a solar-term day (or a 23:00 day change), a year, month or day pillar that changes during that day is also left out.",
+"出生時刻が不明で、出生日に節入り（または23:00の日替わり）がある側は、その日のうちに変わる年柱・月柱・日柱も比較に加えません。"
 ],
 "时辰不详且出生当天交节（或按 23:00 换日）的成员，当天之内会变的年柱、月柱或日柱也不参与比较。": [
 "For members whose birth hour is unknown and whose birth date has a jie boundary (or a 23:00 day change), the year, month or day pillar that changes within that day is left out too.",
@@ -6170,6 +6254,10 @@ const UI_EXTRA = {
 "Each row recalculates the current birth details under one common alternative rule (or a pair of them) and highlights the cells that differ from the current settings.",
 "各行は現在の出生情報を一般的な別ルール（または 2 つの組み合わせ）で再計算し、現在の設定と異なるセルを示します。"
 ],
+"每一行是 A 的一柱地支与 B 的一柱地支，包括不同位置的柱：同支、六合、六冲、六害、相刑。": [
+"Each row pairs one of A's pillar branches with one of B's, including pillars in different positions: same branch, six harmony, six clash, six harm, punishment.",
+"各行は A の一柱の地支と B の一柱の地支の組み合わせで、位置の異なる柱も含みます：同支・六合・六冲・六害・相刑。"
+],
 "每一行是盘上的同一个宫位：各列写它在这一层叫什么宫，以及这一层的四化有哪几颗落在这里；高亮的格子是各层的命宫。点行首的干支，盘上就选中那一宫。": [
 "Each row is one palace of the chart: each column gives its name in that layer and which of the layer's Four Transformations land there; highlighted cells are each layer's Life Palace. Click the stem-branch at the start of a row to select that palace on the chart.",
 "各行は盤上の同じ宮位です。各列には、その層での宮名と、その層の四化のうちここに入る星を示します。強調されたマスは各層の命宮です。行頭の干支をクリックすると、盤上でその宮を選択します。"
@@ -6614,6 +6702,14 @@ const UI_EXTRA = {
 "XuanShu v.0.1.0 · AGPL-3.0",
 "玄枢 · XuanShu v.0.1.0 · AGPL-3.0"
 ],
+"玄枢 · 双人合盘对照": [
+"XuanShu · Two-person comparison",
+"玄枢 · 二人の合盤対照"
+],
+"玄枢 · 多人关系对照": [
+"XuanShu · Group relations",
+"玄枢 · 複数人の関係対照"
+],
 "玄枢 · 正在回答": [
 "XuanShu · answering",
 "玄枢 · 回答中"
@@ -6725,6 +6821,10 @@ const UI_EXTRA = {
 "生肖不定": [
 "Zodiac uncertain",
 "干支の動物は未確定"
+],
+"生肖：": [
+"Zodiac:",
+"生肖："
 ],
 "生门": [
 "Life Door (Sheng)",
@@ -7089,6 +7189,14 @@ const UI_EXTRA = {
 "紫微四化采用全书系十干四化映射，不是完整流年命盘。": [
 "Zi Wei Four Transformations use the Quan Shu lineage ten-stem mapping; this is not a complete annual chart.",
 "紫微四化は全書系の十干四化マッピングを採用しており、完全な流年命盤ではありません。"
+],
+"紫微宫位叠盘需要两人的出生时辰，有一方时辰不详时不列出。": [
+"The Zi Wei palace overlay needs both birth hours; it is left out when either is unknown.",
+"紫微の宮位重ね合わせには二人の出生時刻が必要です。どちらかが不明な場合は表示しません。"
+],
+"紫微宫位叠盘需要两人的出生时辰：时辰不详时无法安命宫，也就没有宫位可以对齐。": [
+"The Zi Wei palace overlay needs both birth hours: without the hour the Life Palace cannot be placed, so there are no palaces to align.",
+"紫微の宮位重ね合わせには二人の出生時刻が必要です。時刻が不明だと命宮を置けず、合わせる宮位がありません。"
 ],
 "紫微局数：": [
 "Zi Wei bureau number: ",
@@ -7485,6 +7593,10 @@ const UI_EXTRA = {
 "蜚廉": [
 "Fei Lian",
 "蜚廉"
+],
+"表面合计：": [
+"Surface totals:",
+"表面の合計："
 ],
 "衰": [
 "Decline (Shuai)",
@@ -8238,6 +8350,10 @@ const UI_EXTRA = {
 "Day by day (noon each day)",
 "毎日の照合（各日正午）"
 ],
+"通行的中文命盘写法，不含出生日期、时间和备注": [
+"Written in the usual Chinese chart notation, without birth dates, times or notes",
+"一般的な中国語の命盤表記。出生日・時刻・メモは含みません"
+],
 "通过": [
 "Passed",
 "合格"
@@ -8498,6 +8614,10 @@ const UI_EXTRA = {
 "The forward/reverse rule refers to the Yin/Yang of the year pillar as bounded by Start of Spring (Lichun); a user-selected direction_override takes precedence. Different schools may chart with different starting-age and direction rules.",
 "順逆の規則は立春基準の年柱の陰陽を参照します。任意指定の direction_override が優先されます。流派によって起運や順逆の規則が異なる場合があります。"
 ],
+"预览文字": [
+"Preview text",
+"テキストをプレビュー"
+],
 "飞入本宫：": [
 "Flying into this palace:",
 "この宮へ飛び入る四化："
@@ -8597,6 +8717,10 @@ const UI_EXTRA = {
 "（利）": [
 "(Fair)",
 "（利）"
+],
+"（四柱天干地支，不含藏干）": [
+"(stems and branches of the four pillars, hidden stems excluded)",
+"（四柱の天干・地支、蔵干を除く）"
 ],
 "（失败：": [
 " (failed: ",
@@ -8769,5 +8893,9 @@ const UI_EXTRA = {
 "；钦天、北派等流派的合盘规则未实现。": [
 "; synastry rules of the Qintian, Northern school, and other schools are not implemented.",
 "；欽天・北派など流派の合盤ルールは未実装です。"
+],
+"？：这一柱不参与比较（时辰不详；年、月、日柱则是时辰不详且出生当天交节或换日）。": [
+"?: this pillar is not compared (birth hour unknown; for a year, month or day pillar, the hour is unknown and a solar term or day change falls on the birth day).",
+"？：この柱は比較しません（出生時刻が不明。年・月・日柱は、時刻不明かつ出生日に節入りまたは日替わりがある場合）。"
 ]
 };

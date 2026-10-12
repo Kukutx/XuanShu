@@ -423,6 +423,13 @@ def test_openai_stream_is_closed_when_the_user_stops(monkeypatch):
 
 def test_unknown_birth_hour_is_flagged_to_the_model():
     flagged = ChatRequest(messages=[{'role': 'user', 'content': 'x'}], profile={'birth': BIRTH, 'birth_hour_unknown': True})
-    assert '用户不知道出生时辰' in build_system(flagged)[1]
+    prompt = build_system(flagged)[1]
+    assert '用户不知道出生时辰' in prompt
+    # Every tool the prompt names for the flag exists and takes that flag.
+    from app.mcp import TOOLS
+    schemas = {name: json.dumps(tool['inputSchema']) for name, tool in TOOLS.items()}
+    for name, flag in (('bazi_dayun', 'hour_unknown'), ('ziwei_horoscope', 'hour_unknown'), ('rule_sensitivity_matrix', 'hour_unknown'),
+                       ('group_relations', 'hour_unknown'), ('pair_comparison', 'person_a_hour_unknown'), ('pair_comparison', 'person_b_hour_unknown')):
+        assert name in prompt and flag in prompt and f'"{flag}"' in schemas[name]
     plain = ChatRequest(messages=[{'role': 'user', 'content': 'x'}], profile={'birth': BIRTH})
     assert '用户不知道出生时辰' not in build_system(plain)[1]

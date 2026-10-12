@@ -109,6 +109,7 @@ let horoscopeResult = null, horoscopeKey = null, horoscopeError = '', horoscopeR
 let calendarResult = null;
 let pairResult = null;
 let pairZiweiResult = null;
+let pairKey = null;  // the request the pair result belongs to
 let annualResult = null;
 let timeResult = null;
 let reportResult = null;
@@ -1567,6 +1568,96 @@ function pairCount(p, type) {
   if (type === 'combine') return p.day_stems.combination ? 1 : 0;
   return p.label_counts[type];
 }
+// Plain-text copies of the relation pages, laid out for chats and notes. Names the user typed are wrapped in
+// private-use marks while the text is built, so the 繁體 conversion skips them and the padding measures them.
+const NAME_OPEN = '', NAME_CLOSE = '';
+const asName = label => NAME_OPEN + label + NAME_CLOSE;
+const textWidth = text => [...text.replace(/[]/g, '')].reduce((n, ch) => n + (ch.codePointAt(0) > 0xFF ? 2 : 1), 0);
+// Columns padded with full-width spaces (two half-width units each), which keeps CJK columns aligned.
+function textColumns(rows) {
+  const widths = rows[0].map((_, i) => Math.max(...rows.map(row => textWidth(row[i]))) + 2);
+  return rows.map(row => row.map((cell, i) => {
+    if (i === row.length - 1) return cell;
+    const gap = widths[i] - textWidth(cell);
+    return cell + '　'.repeat(Math.floor(gap / 2)) + (gap % 2 ? ' ' : '');
+  }).join('').trimEnd());
+}
+function finishText(lines) {
+  const traditional = typeof uiLang !== 'undefined' && uiLang === 'zh-TW' && typeof toTraditional === 'function';
+  return lines.join('\n').split(/([^]*)/)
+    .map(part => part.startsWith(NAME_OPEN) ? part.slice(1, -1) : traditional ? toTraditional(part) : part).join('');
+}
+const TEXT_FOOTER = ['传统文化符号，未经科学预测效力验证，不作医疗、投资、法律等决策依据。', 'XuanShu · 开源 · 确定性计算，可复现'];
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob); const a = elt('a'); a.href = url; a.download = name;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+// Copy a preview's text. Without clipboard access the preview opens with its text selected for a keyboard copy.
+async function copyPre(pre, button, done) {
+  try {await navigator.clipboard.writeText(pre.textContent); button.textContent = done;}
+  catch (_) {
+    const fold = pre.closest('details'); if (fold) fold.open = true;
+    const range = document.createRange(); range.selectNodeContents(pre);
+    const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
+    button.textContent = '已选中文字，请按 Ctrl+C 复制';
+  }
+}
+// Copy and download buttons with a folded preview. The text is rebuilt on every click and when the
+// interface language changes, so it always matches what the page shows.
+function textExport(parent, id, makeText, fileName) {
+  const box = append(parent, 'div', 'text-export'); box.id = id;
+  const actions = append(box, 'div', 'text-export-actions');
+  const copy = append(actions, 'button', 'tiny-button', '复制成文字'); copy.type = 'button'; copy.id = id + '-copy';
+  const save = append(actions, 'button', 'tiny-button', '下载 TXT'); save.type = 'button'; save.id = id + '-download';
+  append(actions, 'small', 'muted', '通行的中文命盘写法，不含出生日期、时间和备注');
+  const fold = append(box, 'details', 'text-export-preview');
+  append(fold, 'summary', null, '预览文字').id = id + '-summary';
+  // Named by the (translated) summary: the translator leaves pre elements and their attributes alone.
+  const pre = append(fold, 'pre', 'share-text'); pre.id = id + '-text'; pre.tabIndex = 0; pre.setAttribute('aria-labelledby', id + '-summary');
+  box.xsFill = () => {pre.textContent = makeText(); copy.textContent = '复制成文字';};
+  box.xsFill();
+  copy.addEventListener('click', () => {box.xsFill(); copyPre(pre, copy, '已复制');});
+  save.addEventListener('click', () => {box.xsFill(); downloadBlob(new Blob([pre.textContent + '\n'], {type: 'text/plain;charset=utf-8'}), fileName);});
+  return box;
+}
+document.addEventListener('xuanshu-language', () => document.querySelectorAll('.text-export').forEach(box => box.xsFill && box.xsFill()));
+// A labelled branch link across two charts: 年申—年巳 六合、相刑 (the first person's pillar first).
+const linkText = link => nameMap[link.a_pillar].charAt(0) + link.a_branch + '—' + nameMap[link.b_pillar].charAt(0) + link.b_branch + ' ' + link.labels.join('、');
+const UNKNOWN_PILLAR_NOTE = '？：这一柱不参与比较（时辰不详；年、月、日柱则是时辰不详且出生当天交节或换日）。';
+function pillarRows(people) {
+  return textColumns([['', ...PILLAR_KEYS.map(k => nameMap[k]), '日主', '生肖'],
+    ...people.map(([name, p]) => [name, ...PILLAR_KEYS.map(k => p.pillars[k] || '？'),
+      p.day_master ? p.day_master + p.day_master_element : '？', p.zodiac || '？'])]);
+}
+function groupText(g) {
+  const gap = '　', lines = ['玄枢 · 多人关系对照', '', '【四柱】'];
+  lines.push(...pillarRows(g.members.map(m => [asName(m.label), m])));
+  if (g.members.some(m => PILLAR_KEYS.some(k => !m.pillars[k]))) lines.push(UNKNOWN_PILLAR_NOTE);
+  lines.push('', '【日干十神】从每一行的人看各列的人');
+  lines.push(...textColumns([['', ...g.members.map(m => asName(m.label))], ...g.members.map((m, i) => [asName(m.label),
+    ...g.members.map((_, j) => {
+      if (i === j) return '—';
+      const p = pairOf(g, i, j);
+      return (p.a === i ? p.day_stems.a_sees_b : p.day_stems.b_sees_a) || '？';
+    })])]));
+  lines.push('', '【两两关系】');
+  g.pairs.forEach(p => {
+    const a = asName(p.a_label), b = asName(p.b_label);
+    const stems = [a + ' → ' + b + ' ' + (p.day_stems.a_sees_b || '？'), b + ' → ' + a + ' ' + (p.day_stems.b_sees_a || '？')];
+    if (p.day_stems.combination) stems.push(p.day_stems.combination);
+    lines.push(a + ' ↔ ' + b, gap + '日干：' + stems.join('，'),
+      gap + '生肖：' + (p.zodiac.a || '？') + ' / ' + (p.zodiac.b || '？') + (p.zodiac.labels.length ? ' ' + p.zodiac.labels.join('、') : ''),
+      gap + '地支' + '（' + a + '—' + b + '）：' + (p.branch_links.map(linkText).join('；') || '无标记'));
+  });
+  lines.push('', '【三合】');
+  if (!g.triads.length) lines.push('没有成员的年支或日支凑齐申子辰、亥卯未、寅午戌、巳酉丑。');
+  g.triads.forEach(x => lines.push(x.pillar_label + '：' + x.triad + ' ' + x.element + gap + x.members.map(m => asName(m.label) + '（' + m.branch + '）').join('、')));
+  const totals = g.element_overview.surface_totals, masters = g.element_overview.day_masters;
+  lines.push('', '【五行】', '表面合计：' + PHASES.split('').map(e => e + ' ' + totals[e]).join(gap) + '（四柱天干地支，不含藏干）',
+    '日主：' + PHASES.split('').filter(e => masters[e].length).map(e => e + ' ' + masters[e].map(asName).join('、')).join('；'));
+  lines.push('', ...g.notes, ...TEXT_FOOTER);
+  return finishText(lines);
+}
 function renderGroup() {
   title(result, '多人关系', '家人、团队或朋友的四柱并排 · 只标传统标签，不打分');
   append(result, 'p', 'info-inline', '从当前命盘、本机档案和在这里临时添加的成员中选 2 到 8 人。临时成员只留在本页，刷新后消失；服务器不保存。');
@@ -1726,6 +1817,7 @@ function renderGroupResult(g) {
     activateTab(tabs.find(t => t.dataset.tab === 'chat'));
     const box = $('#chat-input'); if (box) {box.focus(); box.setSelectionRange(box.value.length, box.value.length);}
   });
+  textExport(result, 'group-text', () => groupText(g), 'xuanshu-group.txt');
   const cards = append(result, 'div', 'group-members');
   g.members.forEach((m, i) => {
     const card = append(cards, 'article', 'group-member');
@@ -1803,20 +1895,7 @@ function renderGroupResult(g) {
     const zodiac = append(facts, 'span');
     texts(zodiac, '生肖', ' ' + (p.zodiac.a || '?') + ' / ' + (p.zodiac.b || '?'));
     p.zodiac.labels.forEach(x => zodiac.append(' · ', x));
-    if (p.branch_links.length) {
-      const t = append(append(item, 'div', 'table-wrap'), 'table', 'data-table');
-      const h = append(append(t, 'thead'), 'tr');
-      append(h, 'th', 'user-text', p.a_label); append(h, 'th', null, '地支');
-      append(h, 'th', 'user-text', p.b_label); append(h, 'th', null, '地支'); append(h, 'th', null, '标签');
-      const tb = append(t, 'tbody');
-      p.branch_links.forEach(link => {
-        const tr = append(tb, 'tr');
-        append(tr, 'td', null, link.a_label); append(append(tr, 'td'), 'b', branchClass(link.a_branch), link.a_branch);
-        append(tr, 'td', null, link.b_label); append(append(tr, 'td'), 'b', branchClass(link.b_branch), link.b_branch);
-        const tags = append(tr, 'td');
-        link.labels.forEach(x => append(tags, 'span', 'relation-chip link-' + LINK_CLASS[x], x));
-      });
-    }
+    branchLinkTable(item, p.a_label, p.b_label, p.branch_links);
   });
 
   append(result, 'h4', 'subheading', '三合');
@@ -1847,6 +1926,23 @@ function renderGroupResult(g) {
   });
   append(result, 'p', 'field-help', '条形是全体成员四柱天干地支的表面五行合计（不含藏干）；右侧是日主属该五行的成员。');
   g.notes.forEach(x => note(result, x));
+}
+// Every labelled branch link between two charts, one row per pair of pillars.
+function branchLinkTable(parent, aLabel, bLabel, links) {
+  if (!links.length) return null;
+  const t = append(append(parent, 'div', 'table-wrap'), 'table', 'data-table');
+  const h = append(append(t, 'thead'), 'tr');
+  append(h, 'th', 'user-text', aLabel); append(h, 'th', null, '地支');
+  append(h, 'th', 'user-text', bLabel); append(h, 'th', null, '地支'); append(h, 'th', null, '标签');
+  const tb = append(t, 'tbody');
+  links.forEach(link => {
+    const tr = append(tb, 'tr');
+    append(tr, 'td', null, link.a_label); append(append(tr, 'td'), 'b', branchClass(link.a_branch), link.a_branch);
+    append(tr, 'td', null, link.b_label); append(append(tr, 'td'), 'b', branchClass(link.b_branch), link.b_branch);
+    const tags = append(tr, 'td');
+    link.labels.forEach(x => append(tags, 'span', 'relation-chip link-' + LINK_CLASS[x], x));
+  });
+  return t;
 }
 function groupGraph(parent, g) {
   const n = g.members.length, size = 360, c = size / 2, radius = n === 2 ? 110 : 128;
@@ -2296,6 +2392,36 @@ function renderLunarInverseSection(){
   if(lunarInverseResult) append(result,'div','feature-note',
       `公历 ${lunarInverseResult.gregorian_date} · ${lunarInverseResult.lunar_date.is_leap_month?'闰':''}${lunarInverseResult.lunar_date.month}月${lunarInverseResult.lunar_date.day}日`);
 }
+function pairText() {
+  const r = pairResult, z = pairZiweiResult;
+  const lines = ['玄枢 · 双人合盘对照', '', '【四柱】', ...pillarRows([['A', r.person_a], ['B', r.person_b]])];
+  if ([r.person_a, r.person_b].some(p => PILLAR_KEYS.some(k => !p.pillars[k]))) lines.push(UNKNOWN_PILLAR_NOTE);
+  const stems = ['A → B ' + (r.day_stems.a_sees_b || '？'), 'B → A ' + (r.day_stems.b_sees_a || '？')];
+  if (r.day_stems.combination) stems.push(r.day_stems.combination);
+  lines.push('日干：' + stems.join('，'),
+    '生肖：' + (r.zodiac.a || '？') + ' / ' + (r.zodiac.b || '？') + (r.zodiac.labels.length ? ' ' + r.zodiac.labels.join('、') : ''),
+    '地支' + '（A—B）：' + (r.branch_links.map(linkText).join('；') || '无标记'));
+  if (z) {
+    const land = z.ming_shen_landings;
+    const where = x => x.palace_in_other_chart + '（' + [x.branch, ...(x.main_stars_there.length ? [x.main_stars_there.join('、')] : [])].join(' · ') + '）';
+    lines.push('', '【紫微宫位叠盘】', `A 命宫落在 B 的${where(land.person_a_ming_in_b)}`, `B 命宫落在 A 的${where(land.person_b_ming_in_a)}`,
+      `A 身宫落在 B 的${where(land.person_a_shen_in_b)}`, `B 身宫落在 A 的${where(land.person_b_shen_in_a)}`);
+    lines.push(...textColumns([['地支', 'A 宫位', 'A 主星', 'B 宫位', 'B 主星'], ...z.palace_grid.map(row => [row.branch,
+      row.person_a_palace, row.person_a_main_stars.join('、') || '—', row.person_b_palace, row.person_b_main_stars.join('、') || '—'])]));
+    lines.push('四化入对方盘：');
+    [['A → B', z.transformations_a_into_b], ['B → A', z.transformations_b_into_a]].forEach(([label, rows]) => lines.push('　' + `${label}（${rows[0].source_year_stem}年干）` + '：'
+      + rows.map(t => t.star + t.type + ' ' + (t.target_palace ? t.target_palace + '（' + t.target_branch + '）' : '对方盘未安此星')).join('；')));
+  } else lines.push('', PAIR_ZIWEI_NEEDS_HOURS);
+  lines.push('', ...r.notes, ...(z ? z.limitations : []), ...TEXT_FOOTER);
+  return finishText(lines);
+}
+const PAIR_ZIWEI_NEEDS_HOURS = '紫微宫位叠盘需要两人的出生时辰，有一方时辰不详时不列出。';
+// A placeholder noon is not a birth hour: the hour pillar is left out, and Zi Wei needs both hours.
+function pairBody() {
+  const b = pairDraft.hour_unknown && pairDraft.birth_datetime ? pairDraft.birth_datetime.slice(0, 10) + 'T12:00' : pairDraft.birth_datetime;
+  return {person_a: readInput(), person_b: {birth_datetime: b, timezone: pairDraft.timezone, gender: 'unspecified'},
+    person_a_hour_unknown: $('#hour_unknown').checked, person_b_hour_unknown: !!pairDraft.hour_unknown};
+}
 function renderPair() {
   title(result, '双人合盘对照', '八字四柱对照 + 紫微宫位叠盘 · 只做结构对照，不评分关系好坏');
   append(result, 'p', 'info-inline', 'A 使用出生资料里的信息；B 在下方单独填写。对照数据不会自动保存。');
@@ -2306,34 +2432,65 @@ function renderPair() {
   const zone = append(label, 'select'); zone.id = 'pair_timezone';
   [...$('#timezone').options].forEach(opt => {const option = append(zone, 'option', null, opt.textContent); option.value = opt.value;});
   zone.value = pairDraft.timezone;
+  const unknownRow = append(row, 'label', 'check-line');
+  const unknown = append(unknownRow, 'input'); unknown.type = 'checkbox'; unknown.id = 'pair_hour_unknown'; unknown.checked = !!pairDraft.hour_unknown;
+  unknownRow.append('B 不知道出生时辰');
+  // B's details survive a visit to another tab, like the other drafts on the page.
+  date.addEventListener('input', () => {pairDraft.birth_datetime = date.value;});
+  zone.addEventListener('change', () => {pairDraft.timezone = zone.value;});
+  unknown.addEventListener('change', () => {
+    pairDraft.hour_unknown = unknown.checked;
+    if (unknown.checked && date.value) pairDraft.birth_datetime = date.value = date.value.slice(0, 10) + 'T12:00';
+  });
   const run = append(row, 'button', null, '比较两人命盘'); run.type = 'button'; run.id = 'pair-run';
   const error = append(result, 'p', 'inline-msg');
   run.addEventListener('click', async () => {
-    pairDraft = {birth_datetime: date.value, timezone: zone.value, gender: 'unspecified'};
+    pairDraft = {birth_datetime: date.value, timezone: zone.value, gender: 'unspecified', hour_unknown: unknown.checked};
     if (!pairDraft.birth_datetime) {error.textContent = '请填写 B 的出生时间'; return;}
     run.disabled = true; error.textContent = '';
     try {
-      const body = {person_a: readInput(), person_b: pairDraft};
-      [pairResult, pairZiweiResult] = await Promise.all([postJSON('/api/pair', body), postJSON('/api/ziwei-pair', body)]);
+      const body = pairBody(), key = JSON.stringify(body);
+      const skipZiwei = body.person_a_hour_unknown || body.person_b_hour_unknown;
+      [pairResult, pairZiweiResult] = await Promise.all([postJSON('/api/pair', body), skipZiwei ? null : postJSON('/api/ziwei-pair', body)]);
+      pairKey = key;
       render();
     } catch (err) {error.textContent = '比较失败：' + err.message;}
     finally {run.disabled = false;}
   });
   if (!pairResult) return;
-  meta(result, [`A 日主 ${pairResult.person_a.day_master}`, `B 日主 ${pairResult.person_b.day_master}`, '不提供匹配分数']);
-  const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table');
+  if (pairKey !== JSON.stringify(pairBody())) append(result, 'p', 'feature-note', 'A 或 B 的资料已改变，下面仍是上一次的结果；点「比较两人命盘」更新。');
+  const r = pairResult;
+  meta(result, [`A 日主 ${r.person_a.day_master || '?'}`, `B 日主 ${r.person_b.day_master || '?'}`, '不提供匹配分数']);
+  // The day-stem ten god both ways, the five combination and the zodiac pair, as on the group page.
+  const facts = append(result, 'div', 'meta-tags pair-facts'); facts.id = 'pair-facts';
+  texts(append(facts, 'span'), 'A → B', '：', r.day_stems.a_sees_b || '?');
+  texts(append(facts, 'span'), 'B → A', '：', r.day_stems.b_sees_a || '?');
+  if (r.day_stems.combination) append(facts, 'span', 'relation-chip link-combine', r.day_stems.combination);
+  const zodiac = append(facts, 'span');
+  texts(zodiac, '生肖', ' ' + (r.zodiac.a || '?') + ' / ' + (r.zodiac.b || '?'));
+  r.zodiac.labels.forEach(x => zodiac.append(' · ', x));
+  textExport(result, 'pair-text', pairText, 'xuanshu-pair.txt');
+  const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table'); table.id = 'pair-pillars';
   const hr = append(append(table, 'thead'), 'tr');
-  ['位置', 'A 四柱', 'B 四柱', '地支关系'].forEach(text => append(hr, 'th', null, text));
+  ['位置', 'A 四柱', 'B 四柱', '同位地支'].forEach(text => append(hr, 'th', null, text));
   const tbody = append(table, 'tbody');
-  pairResult.comparisons.forEach(row => {
+  r.comparisons.forEach(row => {
     const tr = append(tbody, 'tr');
     append(tr, 'td', null, row.label);
-    append(tr, 'td', null, row.person_a);
-    append(tr, 'td', null, row.person_b);
-    append(tr, 'td', null, row.branch_relation);
+    append(tr, 'td', row.person_a ? null : 'muted', row.person_a || '?');
+    append(tr, 'td', row.person_b ? null : 'muted', row.person_b || '?');
+    const tags = append(tr, 'td');
+    if (row.labels.length) row.labels.forEach(x => append(tags, 'span', 'relation-chip link-' + LINK_CLASS[x], x));
+    else append(tags, 'span', 'muted', row.person_a && row.person_b ? '无标记' : row.branch_relation);
   });
-  note(result, pairResult.notes.join(' '));
+  append(result, 'h4', 'subheading', '四柱地支两两关系');
+  const counts = append(result, 'div', 'group-tags');
+  Object.entries(r.label_counts).forEach(([type, n]) => {if (n) texts(append(counts, 'span', 'relation-chip link-' + LINK_CLASS[type]), type, ' ', String(n));});
+  if (!branchLinkTable(result, 'A', 'B', r.branch_links)) append(counts, 'span', 'muted', '无标记');
+  else append(result, 'p', 'field-help', '每一行是 A 的一柱地支与 B 的一柱地支，包括不同位置的柱：同支、六合、六冲、六害、相刑。');
+  r.notes.forEach(x => note(result, x));
   if (pairZiweiResult) renderZiweiPair(pairZiweiResult);
+  else append(result, 'p', 'feature-note', PAIR_ZIWEI_NEEDS_HOURS);
 }
 function renderZiweiPair(z) {
   append(result, 'h4', 'subheading', '紫微宫位叠盘');
@@ -3356,7 +3513,7 @@ function openShareCard() {
   const canvas = append(dialog, 'canvas', 'share-canvas'); canvas.id = 'share-canvas';
   canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', '命盘卡片预览');
   const textBox = append(dialog, 'pre', 'share-text'); textBox.id = 'share-text'; textBox.tabIndex = 0;
-  textBox.setAttribute('aria-label', '文字盘预览');
+  textBox.setAttribute('aria-labelledby', 'share-view-text');
   const gendered = Boolean(GENDER_CHART[currentInput.gender]);
   [['date', '显示出生日期'], ['time', '显示出生时间与时区'], ['gender', '显示乾造 / 坤造'], ['bazi', '四柱八字'], ['ziwei', '紫微命盘']].forEach(([key, label]) => {
     const line = append(options, 'label', 'check-line');
@@ -3368,11 +3525,7 @@ function openShareCard() {
   const help = append(dialog, 'p', 'field-help');
   const actions = append(dialog, 'div', 'profile-actions share-actions');
   const save = append(actions, 'button', 'primary-btn', '下载 PNG'); save.type = 'button'; save.id = 'share-download';
-  const download = (blob, name) => {
-    const url = URL.createObjectURL(blob); const a = elt('a'); a.href = url; a.download = name;
-    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
-  };
-  save.addEventListener('click', () => canvas.toBlob(blob => {if (blob) download(blob, 'xuanshu-card.png');}, 'image/png'));
+  save.addEventListener('click', () => canvas.toBlob(blob => {if (blob) downloadBlob(blob, 'xuanshu-card.png');}, 'image/png'));
   // The system share sheet (phones, some desktops). The PNG is prepared ahead of the click,
   // because browsers allow navigator.share only while the click still counts as a user gesture.
   let cardFile = null, cardVersion = 0;
@@ -3388,18 +3541,9 @@ function openShareCard() {
     });
   }
   const copy = append(actions, 'button', 'primary-btn', '复制文字盘'); copy.type = 'button'; copy.id = 'share-copy-text';
-  copy.addEventListener('click', async () => {
-    const text = textBox.textContent;
-    try {await navigator.clipboard.writeText(text); copy.textContent = '已复制文字盘';}
-    catch (_) {
-      // No clipboard permission: select the text so a keyboard copy takes it.
-      const range = document.createRange(); range.selectNodeContents(textBox);
-      const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
-      copy.textContent = '已选中文字，请按 Ctrl+C 复制';
-    }
-  });
+  copy.addEventListener('click', () => copyPre(textBox, copy, '已复制文字盘'));
   const saveText = append(actions, 'button', 'tiny-button', '下载 TXT'); saveText.type = 'button'; saveText.id = 'share-download-text';
-  saveText.addEventListener('click', () => download(new Blob([textBox.textContent + '\n'], {type: 'text/plain;charset=utf-8'}), 'xuanshu-chart.txt'));
+  saveText.addEventListener('click', () => downloadBlob(new Blob([textBox.textContent + '\n'], {type: 'text/plain;charset=utf-8'}), 'xuanshu-chart.txt'));
   function refresh() {
     const image = shareView === 'image';
     viewButtons.forEach(chip => chip.setAttribute('aria-pressed', String(chip.dataset.view === shareView)));

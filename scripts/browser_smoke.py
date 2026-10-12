@@ -260,6 +260,23 @@ def main() -> None:
             page.locator('#group-run').click()
             page.wait_for_function("() => ![...document.querySelectorAll('.feature-note')].some(n => n.textContent.includes('成员已改变'))", timeout=30000)
             assert page.locator('#group-matrix tbody tr').count() == 3 and page.locator('.group-pair').count() == 3
+            # The result copies as text: pillars, the ten-god matrix and every pair, with the names as typed and no notes.
+            group_text = page.locator('#group-text-text').text_content()
+            assert group_text.startswith('玄枢 · 多人关系对照\n\n【四柱】\n') and '【日干十神】' in group_text and group_text.count(' ↔ ') == 3, group_text
+            labels = page.evaluate("groupResult.members.map(m => m.label)")
+            assert all(label + ' ↔ ' in group_text or ' ↔ ' + label in group_text for label in labels), group_text
+            assert all(n not in group_text for n in ('表姐', '一起做项目', '本人', '1992-06-06')), group_text
+            matrix = group_text.split('【日干十神】')[1].split('\n')[2:5]
+            assert [row.split()[0] for row in matrix] == labels and all(len(row.split()) == 4 for row in matrix), matrix
+            page.evaluate('''() => {window.copiedText = null; Object.defineProperty(navigator, 'clipboard', {configurable: true,
+              value: {writeText: async () => {throw new Error('denied');}}});}''')
+            page.locator('#group-text-copy').click()
+            page.locator('#group-text-copy', has_text='已选中文字').wait_for(timeout=10000)
+            assert page.locator('#group-text details[open]').count() == 1 and page.evaluate('getSelection().toString()') == group_text
+            page.evaluate("() => {navigator.clipboard.writeText = async text => {window.copiedText = text;};}")
+            page.locator('#group-text-copy').click()
+            page.locator('#group-text-copy', has_text='已复制').wait_for(timeout=10000)
+            assert page.evaluate('window.copiedText') == group_text
             page.locator('[data-filter="六冲"]').click()
             page.locator('#group-node-0').focus()
             page.keyboard.press('Enter')
@@ -632,10 +649,37 @@ def main() -> None:
             page.locator('[data-tab="pair"]').click()
             page.locator('#pair-run').click()
             page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
-            # 4 pillar rows + 12 branch rows + 8 cross-chart transformations.
-            assert page.locator('#result tbody tr').count() == 4 + 12 + 8
-            assert page.get_by_text('A 命宫落在 B 的', exact=False).count() == 1
+            # 4 pillar rows + every labelled branch link + 12 branch rows + 8 cross-chart transformations.
+            links = page.evaluate('pairResult.branch_links.length')
+            assert links >= 1 and page.locator('#result tbody tr').count() == 4 + links + 12 + 8
+            assert page.locator('.meta-tags span', has_text='A 命宫落在 B 的').count() == 1
+            facts = page.locator('#pair-facts').inner_text()
+            assert 'A → B：' + page.evaluate('pairResult.day_stems.a_sees_b') in facts and 'B → A：' in facts, facts
+            pair_text = page.locator('#pair-text-text').text_content()
+            assert pair_text.startswith('玄枢 · 双人合盘对照\n\n【四柱】\n') and '\n【紫微宫位叠盘】\n' in pair_text and '\n　A → B（' in pair_text, pair_text
+            assert pair_text.count('—') >= links and page.evaluate('pairResult.branch_links.map(linkText).join("；")') in pair_text
+            assert sum(1 for line in pair_text.split('\n') if line[:1] in '子丑寅卯辰巳午未申酉戌亥' and '宫' in line) == 12, pair_text
             page.screenshot(path=str(screenshot_dir / '06-pair.png'), full_page=True)
+            # B without a birth hour: no hour pillar, no Zi Wei overlay, and the text says why.
+            page.locator('#pair_hour_unknown').check()
+            page.locator('#pair-run').click()
+            page.wait_for_function("() => !document.getElementById('ziwei-pair-grid') && pairResult.person_b.hour_unknown", timeout=30000)
+            assert page.locator('#pair-pillars tbody tr').nth(3).locator('td').nth(2).inner_text() == '?'
+            assert page.locator('.feature-note', has_text='紫微宫位叠盘需要两人的出生时辰').count() == 1
+            pair_text = page.locator('#pair-text-text').text_content()
+            assert '\n紫微宫位叠盘需要两人的出生时辰，有一方时辰不详时不列出。\n' in pair_text and '【紫微宫位叠盘】' not in pair_text, pair_text
+            assert page.evaluate("pairResult.branch_links.every(l => l.b_pillar !== 'hour')")
+            # Ticking it puts B on a noon placeholder; a draft that no longer matches the result is flagged after a tab visit.
+            assert page.locator('#pair_datetime').input_value().endswith('T12:00')
+            assert page.get_attribute('#pair-text-text', 'aria-labelledby') == 'pair-text-summary'
+            page.locator('#pair_hour_unknown').uncheck()
+            page.locator('[data-tab="bazi"]').click()
+            page.locator('[data-tab="pair"]').click()
+            assert page.locator('#pair_hour_unknown').is_checked() is False
+            assert page.locator('.feature-note', has_text='A 或 B 的资料已改变').count() == 1
+            page.locator('#pair-run').click()
+            page.locator('#ziwei-pair-grid').wait_for(timeout=30000)
+            assert page.locator('.feature-note', has_text='A 或 B 的资料已改变').count() == 0
 
             # 开发阶段 decade cycles and exact modeled birth-time boundaries.
             page.locator('[data-tab="dayun"]').click()
@@ -781,6 +825,9 @@ def main() -> None:
             page.locator('#pair-run').click()
             page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
             assert page.get_by_text('紫微宮位疊盤', exact=True).count() == 1
+            # The copied text follows 繁體 too, but a name the user typed is kept exactly as typed.
+            assert page.locator('#pair-text-text').text_content().startswith('玄樞 · 雙人合盤對照')
+            assert page.evaluate("finishText([asName('妈妈') + ' 对照'])") == '妈妈 對照'
             page.screenshot(path=str(screenshot_dir / '29-ui-traditional.png'), full_page=True)
             # Computed results follow the interface language too: palace names in the overlay grid.
             page.locator('#ui-language').select_option('en')

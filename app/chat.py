@@ -202,7 +202,9 @@ def build_system(req: ChatRequest) -> list[str]:
             lines.append('出生参数：未提供')
         if profile.birth_hour_unknown:
             lines.append('用户不知道出生时辰：出生参数里的钟点只是占位。时柱、紫微命宫、身宫与宫位排布都不能当作结论；'
-                         '只依据年柱、月柱、日柱等不随时辰变化的内容，需要时请用户补充时辰或几件确定发生过的大事。')
+                         '只依据年柱、月柱、日柱等不随时辰变化的内容，需要时请用户补充时辰或几件确定发生过的大事。'
+                         '工具有时辰不详开关时要打开：bazi_dayun、ziwei_horoscope、rule_sensitivity_matrix 的 hour_unknown，'
+                         'group_relations 里这位成员的 hour_unknown，pair_comparison 里对应一方的 person_a_hour_unknown 或 person_b_hour_unknown。')
         if profile.memory:
             lines.append('档案记忆（用户提供，未核实）：')
             lines.extend(f'- {item}' for item in profile.memory)
