@@ -521,6 +521,51 @@ function wuxingDiagram(parent, b, counts) {
   }
   show();
 }
+// Each person's five phases: how many stems and branches of the known pillars belong to each (no hidden stems; a
+// pillar not known is left out), and what each phase is to that person's day master.
+function personElements(p) {
+  const counts = Object.fromEntries(PHASES.split('').map(e => [e, 0]));
+  PILLAR_KEYS.forEach(key => {
+    const text = p.pillars[key];
+    if (!text) return;
+    counts[STEM_ELEMENTS[STEM_ORDER.indexOf(text[0])]] += 1;
+    counts[BRANCH_ELEMENTS[BRANCH_ORDER.indexOf(text[1])]] += 1;
+  });
+  return counts;
+}
+const tenGodGroupOf = (master, element) => TEN_GOD_GROUPS[(PHASES.indexOf(element) - PHASES.indexOf(master) + 5) % 5][0];
+// people: [label, person] pairs. A row per person, a column per phase; the day master's phase is outlined.
+function elementMatrix(parent, people, id) {
+  const table = append(append(parent, 'div', 'table-wrap'), 'table', 'data-table element-matrix'); table.id = id;
+  const head = append(append(table, 'thead'), 'tr');
+  append(head, 'th', null, '成员').scope = 'col';
+  // The phases stay characters in every language, as in the pillars, so that the five columns fit on a phone.
+  // The header's name (title and aria-label) is the translated word, for hover and for screen readers.
+  PHASES.split('').forEach(e => {
+    const th = append(head, 'th'); th.scope = 'col'; th.title = e; th.setAttribute('aria-label', e);
+    append(th, 'b', elementClass(e), e).dataset.noI18n = '';
+  });
+  const body = append(table, 'tbody');
+  people.forEach(([label, p]) => {
+    const tr = append(body, 'tr'), counts = personElements(p);
+    const who = append(tr, 'th'); who.scope = 'row'; append(who, 'span', 'user-text', label);
+    if (!p.day_master_element) append(who, 'small', 'em-note', '日主未定');
+    PHASES.split('').forEach(e => {
+      const n = counts[e], master = e === p.day_master_element;
+      const td = append(tr, 'td', 'em-cell em-' + ELEMENT_CLASS[e] + ' em-' + Math.min(n, 4) + (master ? ' em-master' : ''));
+      append(td, 'b', null, String(n));
+      // 日主 and its group on lines of their own, so that a narrow cell never splits a word.
+      if (master) {append(td, 'small', null, '日主'); append(td, 'small', null, '比劫');}
+      else if (p.day_master_element) append(td, 'small', null, tenGodGroupOf(p.day_master_element, e));
+    });
+  });
+}
+const ELEMENT_MATRIX_HELP = '每格是该成员已知各柱的天干地支属这一五行的个数（不含藏干），小字是这一五行对该成员日主而言的十神类别；日主所在的五行加框。时辰不详不计时柱，当天交节或换日而不定的柱也不计；日柱也不定时写「日主未定」，不标十神。';
+// The five phases of each person as text rows, for the text copy.
+const elementRows = people => textColumns([['', ...PHASES.split('')], ...people.map(([name, p]) => {
+  const counts = personElements(p);
+  return [name, ...PHASES.split('').map(e => String(counts[e]))];
+})]);
 // Decade (大运) and annual (流年) pillars on one strip. A year opens the Zi Wei year layer for the same year.
 const STEM_ELEMENTS = '木木火火土土金金水水', BRANCH_ELEMENTS = '水土木木土火火土金金土水', PHASES = '木火土金水';
 const TEN_GODS = [['比肩', '劫财'], ['食神', '伤官'], ['偏财', '正财'], ['七杀', '正官'], ['偏印', '正印']];
@@ -1897,7 +1942,8 @@ function groupText(g) {
   g.triads.forEach(x => lines.push(x.pillar_label + '：' + x.triad + ' ' + x.element + gap + x.members.map(m => asName(m.label) + '（' + m.branch + '）').join('、')));
   const totals = g.element_overview.surface_totals, masters = g.element_overview.day_masters;
   lines.push('', '【五行】', '表面合计：' + PHASES.split('').map(e => e + ' ' + totals[e]).join(gap) + '（四柱天干地支，不含藏干）',
-    '日主：' + PHASES.split('').filter(e => masters[e].length).map(e => e + ' ' + masters[e].map(asName).join('、')).join('；'));
+    '日主：' + PHASES.split('').filter(e => masters[e].length).map(e => e + ' ' + masters[e].map(asName).join('、')).join('；'),
+    '各人（四柱天干地支，不含藏干）：', ...elementRows(g.members.map(m => [asName(m.label), m])));
   if (g.year_view) lines.push('', ...groupYearText(g.year_view, 'group'));
   lines.push('', ...g.notes, ...TEXT_FOOTER);
   return finishText(lines);
@@ -2272,6 +2318,9 @@ function renderGroupResult(g) {
     masters.forEach((label, k) => {if (k) who.append('、'); append(who, 'span', 'user-text', label);});
   });
   append(result, 'p', 'field-help', '条形是全体成员四柱天干地支的表面五行合计（不含藏干）；右侧是日主属该五行的成员。');
+  append(result, 'h4', 'subheading', '成员五行');
+  elementMatrix(result, g.members.map(m => [m.label, m]), 'group-elements-matrix');
+  append(result, 'p', 'field-help', ELEMENT_MATRIX_HELP);
   groupYearSection(g);
   g.notes.forEach(x => note(result, x));
 }
@@ -3030,6 +3079,7 @@ function pairText() {
   lines.push('日干：' + stems.join('，'),
     '生肖：' + (r.zodiac.a || '？') + ' / ' + (r.zodiac.b || '？') + (r.zodiac.labels.length ? ' ' + r.zodiac.labels.join('、') : ''),
     '地支' + '（A—B）：' + (r.branch_links.map(linkText).join('；') || '无标记'));
+  lines.push('', '【五行】四柱天干地支，不含藏干', ...elementRows([['A', r.person_a], ['B', r.person_b]]));
   if (z) {
     const land = z.ming_shen_landings;
     const where = x => x.palace_in_other_chart + '（' + [x.branch, ...(x.main_stars_there.length ? [x.main_stars_there.join('、')] : [])].join(' · ') + '）';
@@ -3143,6 +3193,9 @@ function renderPair() {
   Object.entries(r.label_counts).forEach(([type, n]) => {if (n) texts(append(counts, 'span', 'relation-chip link-' + LINK_CLASS[type]), type, ' ', String(n));});
   if (!branchLinkTable(result, 'A', 'B', r.branch_links)) append(counts, 'span', 'muted', '无标记');
   else append(result, 'p', 'field-help', '每一行是 A 的一柱地支与 B 的一柱地支，包括不同位置的柱：同支、六合、六冲、六害、相刑。');
+  append(result, 'h4', 'subheading', '两人五行');
+  elementMatrix(result, [['A', r.person_a], ['B', r.person_b]], 'pair-elements');
+  append(result, 'p', 'field-help', ELEMENT_MATRIX_HELP);
   luckYearSection(r.year_view, {prefix: 'pair', year: pairYearPending || pairRunning || !r.year_view ? pairDraft.year : r.year_view.year,
     pending: pairYearPending, error: pairYearError,
     people: [r.person_a, r.person_b], change: pairYear, rerun: '点「比较两人命盘」重新计算后可以看这一部分。'});

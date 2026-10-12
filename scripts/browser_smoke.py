@@ -347,6 +347,11 @@ def main() -> None:
             page.locator('#group-text-copy').click()
             page.locator('#group-text-copy', has_text='已复制').wait_for(timeout=10000)
             assert page.evaluate('window.copiedText') == group_text
+            # Each member's five phases: the table matches the server's counts, and the copy lists them too.
+            assert page.locator('#group-elements-matrix tbody tr').count() == 3 and page.locator('#group-elements-matrix .em-cell').count() == 15
+            assert page.evaluate("groupResult.members.every(m => PHASES.split('').every(e => personElements(m)[e] === m.surface_five_elements[e]))")
+            assert page.locator('#group-elements-matrix .em-master').count() == page.evaluate('groupResult.members.filter(m => m.day_master).length')
+            assert '\n各人（四柱天干地支，不含藏干）：\n' in group_text, group_text
             # Luck and year pillars by year: one card per member; a member without a gender gets the year pillar only.
             year_text = group_text.split('【2026 丙午年 · 大运流年】')[1]
             assert '同事（女，34 岁）\n　大运：壬寅 劫财，2022 年交运\n　流年：正财：' in year_text, year_text
@@ -968,14 +973,19 @@ def main() -> None:
             page.locator('#pair-year-input').fill('2026')
             page.locator('#pair-year-input').dispatch_event('change')
             page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
-            # 4 pillar rows + every labelled branch link + 12 branch rows + 8 cross-chart transformations, besides the luck timeline.
+            # 4 pillar rows + every labelled branch link + 12 branch rows + 8 cross-chart transformations, besides the luck timeline
+            # and the two rows of five phases.
             links = page.evaluate('pairResult.branch_links.length')
-            assert links >= 1 and page.locator('#result tbody tr').count() - page.locator('#pair-timeline tbody tr').count() == 4 + links + 12 + 8
+            assert links >= 1 and page.locator('#result tbody tr').count() - page.locator('#pair-timeline tbody tr').count() == 4 + links + 12 + 8 + 2
+            assert page.locator('#pair-elements tbody tr').count() == 2 and page.locator('#pair-elements .em-master').count() == 2
+            assert page.locator('#pair-elements tbody tr').first.locator('.em-master small').all_inner_texts() == ['日主', '比劫']
+            assert page.locator('#pair-elements th[scope=col]').nth(1).get_attribute('aria-label') == '木'
             assert page.locator('.meta-tags span', has_text='A 命宫落在 B 的').count() == 1
             facts = page.locator('#pair-facts').inner_text()
             assert 'A → B：' + page.evaluate('pairResult.day_stems.a_sees_b') in facts and 'B → A：' in facts, facts
             pair_text = page.locator('#pair-text-text').text_content()
             assert pair_text.startswith('玄枢 · 双人合盘对照\n\n【四柱】\n') and '\n【紫微宫位叠盘】\n' in pair_text and '\n　A → B（' in pair_text, pair_text
+            assert '\n【五行】四柱天干地支，不含藏干\n' in pair_text, pair_text
             assert pair_text.count('—') >= links and page.evaluate('pairResult.branch_links.map(linkText).join("；")') in pair_text
             assert sum(1 for line in pair_text.split('\n') if line[:1] in '子丑寅卯辰巳午未申酉戌亥' and '宫' in line) == 12, pair_text
             page.screenshot(path=str(screenshot_dir / '06-pair.png'), full_page=True)
