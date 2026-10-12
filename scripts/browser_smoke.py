@@ -219,14 +219,30 @@ def main() -> None:
             # Member notes: a temporary member's stays on the page; a profile's is stored only on 保存到档案.
             page.locator('#group-extra-note-0').fill('一起做项目')
             page.locator('#group-note-legacy-1').fill('表姐')
+            page.locator('#group-current-note').fill('本人')
+            # Another current chart starts with an empty note; the first chart's note comes back with it.
+            page.evaluate("() => { window.__chart = currentInput; currentInput = {...currentInput, birth_datetime: '2001-01-01T10:00'}; render(); }")
+            assert page.locator('#group-current-note').input_value() == ''
+            page.evaluate("() => { currentInput = window.__chart; render(); }")
+            assert page.locator('#group-current-note').input_value() == '本人'
             assert page.evaluate("loadProfiles().find(x => x.id === 'legacy-1').note") is None
             page.locator('#group-note-save-legacy-1').click()
             assert page.evaluate("loadProfiles().find(x => x.id === 'legacy-1').note") == '表姐'
             page.locator('#group-run').click()
             page.locator('#group-graph').wait_for(timeout=30000)
             assert page.locator('.group-member').count() == 3 and page.locator('.group-edge').count() == 3
-            assert page.locator('.group-note-text').all_inner_texts() == ['表姐', '一起做项目']
-            assert group_bodies and all('表姐' not in r and '一起做项目' not in r for r in group_bodies), 'Notes must not reach the server'
+            assert page.locator('.group-note-text').all_inner_texts() == ['本人', '表姐', '一起做项目']
+            assert group_bodies and all('表姐' not in r and '一起做项目' not in r and '本人' not in r for r in group_bodies), 'Notes must not reach the server'
+            # A selection changed while the request runs does not move the notes onto other members.
+            page.evaluate("""() => { window.__post = postJSON; postJSON = async (...args) => {
+              const reply = await window.__post(...args); groupDraft.useCurrent = false; postJSON = window.__post; return reply; }; }""")
+            page.locator('#group-run').click()
+            page.locator('#group-current:not(:checked)').wait_for(timeout=30000)
+            assert '成员已改变' in page.locator('#result').inner_text()
+            assert page.locator('.group-note-text').all_inner_texts() == ['本人', '表姐', '一起做项目']
+            page.locator('#group-current').check()
+            page.locator('#group-run').click()
+            page.wait_for_function("() => ![...document.querySelectorAll('.feature-note')].some(n => n.textContent.includes('成员已改变'))", timeout=30000)
             assert page.locator('#group-matrix tbody tr').count() == 3 and page.locator('.group-pair').count() == 3
             page.locator('[data-filter="六冲"]').click()
             page.locator('#group-node-0').focus()
@@ -243,6 +259,14 @@ def main() -> None:
             draft = page.locator('#chat-input').input_value()
             assert draft.startswith('先前没发的问题\n\n请结合多人关系对照') and draft.count('\n- ') == 3, draft
             assert '- 同事 · 1992-06-06 09:00 · ' in draft and ' · 备注：一起做项目' in draft and ' · 备注：表姐' in draft, draft
+            # An edited note replaces the group's earlier block instead of adding the members again.
+            page.locator('[data-tab="group"]').click()
+            page.locator('#group-extra-note-0').fill('一起做项目两年')
+            page.locator('#group-ask-ai:not([disabled])').click()
+            page.locator('[data-tab="chat"][aria-selected="true"]').wait_for(timeout=30000)
+            draft = page.locator('#chat-input').input_value()
+            assert draft.startswith('先前没发的问题\n\n请结合多人关系对照') and draft.count('\n- ') == 3, draft
+            assert ' · 备注：一起做项目两年' in draft and '备注：一起做项目\n' not in draft and not draft.endswith('备注：一起做项目'), draft
             # Other people's birth data is not sent until the consent box is ticked.
             assert page.locator('#chat-send').is_disabled() and page.locator('#chat-consent-needed').is_visible()
             page.evaluate("() => { chatPartnerOK = true; render(); }")

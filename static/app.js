@@ -1207,10 +1207,10 @@ function renderRuleMatrix() {
 }
 // Group relations: two to eight charts from the current form, local profiles and members added here.
 // Members added on this page live only in memory; nothing is stored.
-let groupResult = null, groupKey = null, groupResultKeys = [];
+let groupResult = null, groupKey = null, groupResultKeys = [], groupChatBlock = null;
 // Member notes stay on this page: the current chart's and temporary members' are never stored, a saved
 // profile's only after 「保存到档案」. Notes never go to the server; only the chat draft the user sends carries them.
-let groupDraft = {useCurrent: true, currentLabel: '我', currentNote: '', profiles: [], profileNotes: {}, extras: [], filter: 'all', focus: null,
+let groupDraft = {useCurrent: true, currentLabel: '我', currentNote: {key: '', text: ''}, profiles: [], profileNotes: {}, extras: [], filter: 'all', focus: null,
   extra: {label: '', birth_datetime: '1990-01-01T12:00', timezone: 'Asia/Shanghai', hour_unknown: false}};
 const NOTE_MAX = 120;
 function profileNote(entry) {return entry && typeof entry.note === 'string' ? entry.note.slice(0, NOTE_MAX) : '';}
@@ -1222,15 +1222,17 @@ function saveProfileNote(id, note) {
   localStorage.setItem(profileKey, JSON.stringify(profiles));
   return true;
 }
+// The current chart's note belongs to that birth: generating another chart starts with an empty note.
+function currentNoteKey() {return 'current:' + JSON.stringify([birthOf(currentInput || {}), currentHourUnknown]);}
 // One key per member, in the same order as groupMembers(), so notes follow the member rather than the position.
 function groupMemberKeys() {
   const saved = loadProfiles();
-  return [...(groupDraft.useCurrent && currentInput ? ['current'] : []),
+  return [...(groupDraft.useCurrent && currentInput ? [currentNoteKey()] : []),
     ...groupDraft.profiles.filter(id => saved.some(x => x.id === id)).map(id => 'profile:' + id),
     ...groupDraft.extras.map(x => 'extra:' + x.id)];
 }
 function groupNote(key) {
-  if (key === 'current') return groupDraft.currentNote.trim();
+  if (key.startsWith('current:')) return groupDraft.currentNote.key === key ? groupDraft.currentNote.text.trim() : '';
   if (key.startsWith('profile:')) {
     const id = key.slice(8);
     return (groupDraft.profileNotes[id] ?? profileNote(loadProfiles().find(x => x.id === id))).trim();
@@ -1294,7 +1296,8 @@ function renderGroup() {
   currentLabel.maxLength = 50; currentLabel.value = groupDraft.currentLabel; currentLabel.setAttribute('aria-label', '当前命盘的称呼');
   currentBox.addEventListener('change', () => {groupDraft.useCurrent = currentBox.checked; render();});
   currentLabel.addEventListener('input', () => {groupDraft.currentLabel = currentLabel.value;});
-  if (currentBox.checked) noteInput(current, groupDraft.currentNote, '当前命盘', value => {groupDraft.currentNote = value;}).id = 'group-current-note';
+  if (currentBox.checked) noteInput(current, groupDraft.currentNote.key === currentNoteKey() ? groupDraft.currentNote.text : '', '当前命盘',
+    value => {groupDraft.currentNote = {key: currentNoteKey(), text: value};}).id = 'group-current-note';
   const saved = loadProfiles();
   groupDraft.profiles = groupDraft.profiles.filter(id => saved.some(x => x.id === id));
   if (saved.length) {
@@ -1387,12 +1390,13 @@ function renderGroup() {
   if (members.length > 8) error.textContent = '最多 8 人，请取消一些勾选';
   run.addEventListener('click', async () => {
     // Read the selection again: a label typed since the last render is not in `members` yet.
-    const chosen = groupMembers();
+    // The note keys are taken with it, so a change made while the request runs cannot shift the notes.
+    const chosen = groupMembers(), keys = groupMemberKeys();
     if (chosen.length < 2 || chosen.length > 8) {error.textContent = '请选 2 到 8 人'; return;}
     run.disabled = true; error.textContent = '';
     try {
       groupResult = await postJSON('/api/group-relations', {members: chosen});
-      groupKey = JSON.stringify(chosen); groupResultKeys = groupMemberKeys(); groupDraft.focus = null;
+      groupKey = JSON.stringify(chosen); groupResultKeys = keys; groupDraft.focus = null;
       render();
     } catch (err) {error.textContent = '对照失败：' + err.message; run.disabled = false;}
   });
@@ -1428,10 +1432,14 @@ function renderGroupResult(g) {
   append(ask, 'small', 'muted', chatStatus.pending ? '正在检查对话服务…' : chatReady ? '把成员的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。'
     : 'AI 对话尚未启用，配置语言模型后可以把这些成员带进对话。');
   askButton.addEventListener('click', () => {
-    // Keep anything the user had already typed; clicking again does not add the members twice.
+    // Keep anything the user had already typed; clicking again does not add the members twice, and the same
+    // group with edited notes replaces its earlier block instead of adding a second one.
     const {text: draft, lines} = groupChatDraft(g, JSON.parse(groupKey || '[]'));
     chatThirdPartyLines = [...new Set([...chatThirdPartyLines, ...lines])];
-    if (!chatDraft.includes(draft)) chatDraft = chatDraft.trim() ? chatDraft.trimEnd() + '\n\n' + draft : draft;
+    const previous = groupChatBlock && groupChatBlock.key === groupKey ? groupChatBlock.text : null;
+    if (previous && chatDraft.includes(previous)) chatDraft = chatDraft.replace(previous, () => draft);
+    else if (!chatDraft.includes(draft)) chatDraft = chatDraft.trim() ? chatDraft.trimEnd() + '\n\n' + draft : draft;
+    groupChatBlock = {key: groupKey, text: draft};
     activateTab(tabs.find(t => t.dataset.tab === 'chat'));
     const box = $('#chat-input'); if (box) {box.focus(); box.setSelectionRange(box.value.length, box.value.length);}
   });
