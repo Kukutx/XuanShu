@@ -1560,7 +1560,17 @@ def main() -> None:
             page.locator('#dayun-periods').fill('10')
             page.locator('#dayun-run').click()
             page.wait_for_function("() => document.querySelectorAll('#dayun-table tbody tr').length === 10", timeout=30000)
-            page.get_by_text('投影起始时间',exact=False).first.wait_for(timeout=30000)
+            # The starting age is worked out step by step; the axis has a band per decade, opens on the current one
+            # and a band opens its own decade with its years, keeping the focus on the band.
+            assert '÷ 3' in page.locator('.dy-start').inner_text() and page.locator('.dy-start .dy-node').count() == 2
+            assert page.locator('#dayun-axis .dy-decade').count() == 10 and page.locator('#dayun-axis .dy-decade.is-now').count() == 1
+            assert page.locator('#dayun-axis .dy-decade.is-now').get_attribute('aria-pressed') == 'true'
+            assert page.locator('#dayun-years tbody tr').count() == 10 and page.locator('#dayun-detail .dy-hidden').count() >= 1
+            page.locator('#dayun-band-5').click()
+            page.wait_for_function("() => document.querySelector('#dayun-band-5').getAttribute('aria-pressed') === 'true' && document.activeElement.id === 'dayun-band-5'", timeout=30000)
+            assert page.locator('#dayun-detail .dy-detail-gz').inner_text() == page.locator('#dayun-band-5 .dy-band-gz').inner_text()
+            assert page.locator('#dayun-axis [aria-pressed="true"]').count() == 1
+            assert any(t.count(':') == 3 for t in page.locator('.dy-start .dy-node small').all_inner_texts())  # the solar term to the second, with its offset
             assert page.locator('#result thead th').last.inner_text() == '神煞'
             page.screenshot(path=str(screenshot_dir / '17-dayun-desktop.png'), full_page=True)
             page.locator('[data-tab="boundaries"]').click()
