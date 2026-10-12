@@ -215,7 +215,7 @@ def main() -> None:
             assert page.locator('#luck-decade-4 .luck-mark').all_inner_texts() == ['害年', '日空']  # 己卯
             # 五行生克: five phases, the 生 circle and the 克 star; the day master's phase is open first.
             assert page.locator('#wuxing .wx-node').count() == 5 and page.locator('#wuxing .wx-edge').count() == 10
-            assert page.locator('#wuxing-fire').get_attribute('aria-pressed') == 'true' and 'is-master' in page.locator('#wuxing-fire').get_attribute('class')
+            assert page.locator('#wuxing-fire').get_attribute('aria-checked') == 'true' and 'is-master' in page.locator('#wuxing-fire').get_attribute('class')
             assert [page.locator(f'#wuxing-{e} .wx-count').text_content() for e in ('wood', 'fire', 'earth', 'metal', 'water')] == ['2', '2', '1', '3', '0']
             detail = page.locator('#wuxing-detail').inner_text()
             assert '比劫' in detail and '日主 丙' in detail and '日干丙、日支午' in detail and '丙（时支寅）' in detail, detail
@@ -224,12 +224,17 @@ def main() -> None:
             assert '比肩 1 丙（时支寅）' in flat and '劫财 1 丁（日支午）' in flat, detail
             page.locator('#wuxing-water').click()
             detail = page.locator('#wuxing-detail').inner_text()
-            assert page.locator('#wuxing-water').get_attribute('aria-pressed') == 'true' and '官杀' in detail, detail
+            assert page.locator('#wuxing-water').get_attribute('aria-checked') == 'true' and '官杀' in detail, detail
             assert '癸（年支辰）、壬（月支申）' in detail and page.locator('#wuxing .wx-edge.is-on').count() == 4, detail
             page.locator('#wuxing-water').focus()
             page.keyboard.press('ArrowRight')
-            assert page.evaluate('document.activeElement.id') == 'wuxing-wood' and page.locator('#wuxing-wood').get_attribute('aria-pressed') == 'true'
+            assert page.evaluate('document.activeElement.id') == 'wuxing-wood' and page.locator('#wuxing-wood').get_attribute('aria-checked') == 'true'
             assert '食伤' not in page.locator('#wuxing-detail').inner_text() and '印星' in page.locator('#wuxing-detail').inner_text()
+            # One choice among five: a single tab stop, which End, Home and the up arrow move too.
+            assert page.locator('#wuxing [role=radio][tabindex="0"]').count() == 1 and page.locator('#wuxing svg').get_attribute('role') == 'radiogroup'
+            for key, phase in (('End', 'water'), ('Home', 'wood'), ('ArrowUp', 'water'), ('ArrowDown', 'wood')):
+                page.keyboard.press(key)
+                assert page.evaluate('document.activeElement.id') == f'wuxing-{phase}' and page.locator(f'#wuxing-{phase}').get_attribute('tabindex') == '0', key
             page.locator('#wuxing').screenshot(path=str(screenshot_dir / '46-wuxing.png'))
             page.locator('#wuxing-fire').click()
             page.screenshot(path=str(screenshot_dir / '01-bazi-desktop.png'), full_page=True)
@@ -760,7 +765,7 @@ def main() -> None:
             assert page.locator('.luck-mark').count() > 0 and not any(t.endswith('时') for t in page.locator('.luck-mark').all_inner_texts())
             # The five phases count the three known pillars only; a new chart opens its own day master's phase.
             assert sum(int(page.locator(f'#wuxing-{e} .wx-count').text_content()) for e in ('wood', 'fire', 'earth', 'metal', 'water')) == 6
-            assert page.locator('#wuxing-water').get_attribute('aria-pressed') == 'true' and '时柱' not in page.locator('#wuxing-detail').inner_text()
+            assert page.locator('#wuxing-water').get_attribute('aria-checked') == 'true' and '时柱' not in page.locator('#wuxing-detail').inner_text()
             assert '时辰不详，时柱按 12:00 占位，不计入。' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '32-hour-unknown.png'), full_page=True)
             # Without the hour there is no decade: not as a layer, and not in the year layer's stacked transformations.
@@ -780,6 +785,17 @@ def main() -> None:
             cells = [page.locator('.pillar').nth(i).locator('.pillar-shensha').inner_text().replace('\n', '') for i in range(4)]
             assert cells == ['神煞随时辰而定'] * 3 + ['神煞时辰不详'], cells
             assert page.locator('#shensha-rules').count() == 0 and '神煞也随之不同，这里不列' in page.locator('#result').inner_text()
+            # The five phases count only the day pillar then; the day master is settled, so the ten gods stay.
+            assert sum(int(page.locator(f'#wuxing-{e} .wx-count').text_content()) for e in ('wood', 'fire', 'earth', 'metal', 'water')) == 2
+            assert page.locator('#wuxing .is-master').count() == 1 and '出生当天立春，年柱、月柱随时辰而定。这三柱都不计入。' in page.locator('#result').inner_text()
+            assert '藏干元素出现次数（不加权）：木1 · 火0 · 土1 · 金0 · 水1' in page.locator('#result').inner_text()  # 戊乙癸 of 壬辰
+            # With the 23:00 day change the day pillar is open as well: nothing is counted and no day master names ten gods.
+            page.evaluate("document.querySelector('#late_zi_day_rollover').checked = true")
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => document.querySelector('#wuxing') && !document.querySelector('#wuxing .is-master')", timeout=30000)
+            assert page.locator('#wuxing .wx-group').count() == 0 and '比肩' not in page.locator('#wuxing-detail').inner_text()
+            assert '这四柱都不计入，日主未定，也不标十神。' in page.locator('#result').inner_text()
+            page.evaluate("document.querySelector('#late_zi_day_rollover').checked = false")
             page.locator('#hour_unknown').uncheck()
             page.locator('#lunar-entry summary').click()
             page.locator('#birth_datetime').fill('2000-08-16T04:00')

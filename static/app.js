@@ -372,12 +372,13 @@ function elementBars(parent, primary, secondary) {
 }
 // 五行生克: the five phases on the 相生 circle (木→火→土→金→水→木) with the 相克 star inside (木→土→水→火→金→木).
 // Each node is sized by how many stems and main branch qi of the chart belong to it and names the ten gods it stands
-// for from the day master. With the hour unknown the noon placeholder's hour pillar is not counted.
+// for from the day master. With the hour unknown the pillars that time could change are not counted, and with the
+// day pillar among them there is no day master to name the ten gods from.
 const TEN_GOD_GROUPS = [['比劫', '比肩、劫财'], ['食伤', '食神、伤官'], ['财星', '偏财、正财'], ['官杀', '七杀、正官'], ['印星', '偏印、正印']];
 const tenGodsOf = members => members.split('、');
 let wuxingFocus = null, wuxingChart = null;  // the phase selected, kept while the same chart is shown
 function chartElementCounts(b) {
-  const keys = currentHourUnknown ? PILLAR_KEYS.slice(0, 3) : PILLAR_KEYS;
+  const unsettled = unsettledPillars(b), keys = PILLAR_KEYS.filter(k => !unsettled.has(k)), master = !unsettled.has('day');
   const surface = {}, hidden = {}, places = {}, hiddenPlaces = {}, gods = {};
   for (const e of PHASES) {surface[e] = 0; hidden[e] = 0; places[e] = []; hiddenPlaces[e] = [];}
   TEN_GOD_GROUPS.forEach(([, members]) => tenGodsOf(members).forEach(god => {gods[god] = [];}));
@@ -387,23 +388,26 @@ function chartElementCounts(b) {
     surface[p.stem_element] += 1; places[p.stem_element].push(stemAt[key] + p.stem);
     surface[p.branch_element] += 1; places[p.branch_element].push(branchAt[key] + p.branch);
     // The ten gods of the stems (the day stem is the day master itself) and of the hidden stems.
-    if (gods[p.ten_god_of_stem]) gods[p.ten_god_of_stem].push(stemAt[key] + p.stem);
+    if (master && gods[p.ten_god_of_stem]) gods[p.ten_god_of_stem].push(stemAt[key] + p.stem);
     p.hidden_stems.forEach(h => {
       const at = h.stem + '（' + branchAt[key] + p.branch + '）';
       hidden[h.element] += 1; hiddenPlaces[h.element].push(at);
-      if (gods[h.ten_god]) gods[h.ten_god].push(at);
+      if (master && gods[h.ten_god]) gods[h.ten_god].push(at);
     });
   });
-  return {surface, hidden, places, hiddenPlaces, gods};
+  return {surface, hidden, places, hiddenPlaces, gods, unsettled, master: master ? b.day_master_element : null};
 }
 function wuxingDiagram(parent, b, counts) {
-  const master = b.day_master_element;
-  if (wuxingChart !== b) {wuxingChart = b; wuxingFocus = master;}
-  const wrap = append(parent, 'div', 'wuxing'); wrap.id = 'wuxing';
-  const W = 520, H = 380, cx = 260, cy = 192, R = 124;
+  const master = counts.master;  // null when the day pillar, and so the day master, depends on the unknown hour
+  if (wuxingChart !== b) {wuxingChart = b; wuxingFocus = master || PHASES[0];}
+  // The box is a size container, so that the picture and the panel stack whenever the result column is narrow.
+  const wrap = append(append(parent, 'div', 'wuxing-box'), 'div', 'wuxing'); wrap.id = 'wuxing';
+  // Room on both sides for the captions beside the left and right nodes, which run outwards from them, and above
+  // the top node for a two-line 日主 caption.
+  const W = 580, H = 410, cx = 260, cy = 220, R = 124;
   const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'wuxing-svg');
-  svg.setAttribute('role', 'group'); svg.setAttribute('aria-label', '五行生克图');
+  svg.setAttribute('viewBox', `-30 0 ${W} ${H}`); svg.setAttribute('class', 'wuxing-svg');
+  svg.setAttribute('role', 'radiogroup'); svg.setAttribute('aria-label', '五行生克图');
   wrap.append(svg);
   const make = (tag, attrs, parentNode = svg) => {
     const node = document.createElementNS(SVG_NS, tag);
@@ -418,8 +422,8 @@ function wuxingDiagram(parent, b, counts) {
   });
   const angle = i => -Math.PI / 2 + 2 * Math.PI * i / 5;
   const pos = i => [cx + R * Math.cos(angle(i)), cy + R * Math.sin(angle(i))];
-  const radius = e => 25 + Math.min(counts.surface[e], 5) * 3.4;
-  const group = e => TEN_GOD_GROUPS[(PHASES.indexOf(e) - PHASES.indexOf(master) + 5) % 5];
+  const radius = e => 27 + Math.min(counts.surface[e], 5) * 3.4;
+  const group = e => master ? TEN_GOD_GROUPS[(PHASES.indexOf(e) - PHASES.indexOf(master) + 5) % 5] : null;
   // Points on two nodes' rims facing each other, so that the arrows start and end at the discs.
   const ends = (i, j, bend = 0) => {
     const [x1, y1] = pos(i), [x2, y2] = pos(j), dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy);
@@ -445,45 +449,57 @@ function wuxingDiagram(parent, b, counts) {
       edges.push(edge);
     });
   }
+  // One choice among five: a radio group with a single tab stop that the arrow keys, Home and End move.
+  const select = (e, focus) => {
+    wuxingFocus = e; show();
+    if (focus) wrap.querySelector('#wuxing-' + ELEMENT_CLASS[e]).focus();
+  };
   const nodes = PHASES.split('').map((e, i) => {
-    const [x, y] = pos(i), r = radius(e), [name] = group(e);
-    const node = make('g', {class: 'wx-node wx-el-' + ELEMENT_CLASS[e] + (e === master ? ' is-master' : '') + (counts.surface[e] ? '' : ' is-empty'), tabindex: 0, role: 'button', id: 'wuxing-' + ELEMENT_CLASS[e]});
+    const [x, y] = pos(i), r = radius(e), named = group(e);
+    // A phase with none of the counted stems and branches gets a dashed rim, never a faded one.
+    const node = make('g', {class: 'wx-node wx-el-' + ELEMENT_CLASS[e] + (e === master ? ' is-master' : '') + (counts.surface[e] ? '' : ' is-empty'), role: 'radio', id: 'wuxing-' + ELEMENT_CLASS[e]});
     node.dataset.element = e;
     make('title', {}, node).textContent = e;  // the name read out, translated as a word; the panel below says the rest
+    make('circle', {cx: x, cy: y, r: r + (e === master ? 10 : 6), class: 'wx-focus-ring'}, node);
     if (e === master) make('circle', {cx: x, cy: y, r: r + 5, class: 'wx-master-ring'}, node);
     make('circle', {cx: x, cy: y, r, class: 'wx-disc'}, node);
     // The phase is drawn as its character in every language, like the pillars; the label carries the word.
     make('text', {x, y: y + 3, 'text-anchor': 'middle', class: 'wx-char ' + elementClass(e), 'data-no-i18n': ''}, node).textContent = e;
-    make('text', {x, y: y + 19, 'text-anchor': 'middle', class: 'wx-count'}, node).textContent = String(counts.surface[e]);
-    // The ten-god group (and 日主) outside the disc, away from the centre.
-    const out = r + 13, ox = x + Math.cos(angle(i)) * out, oy = y + Math.sin(angle(i)) * out;
-    const anchor = Math.cos(angle(i)) > 0.3 ? 'start' : Math.cos(angle(i)) < -0.3 ? 'end' : 'middle';
-    const top = Math.sin(angle(i)) < -0.5;
-    const lines = e === master ? ['日主', name] : [name];
-    const first = top ? oy - 6 - (lines.length - 1) * 16 : oy + (Math.sin(angle(i)) > 0.5 ? 14 : 4) - (lines.length - 1) * 8;
-    const caption = make('text', {x: ox, y: first, 'text-anchor': anchor, class: 'wx-group'}, node);
-    lines.forEach((text, n) => {const span = make('tspan', {x: ox, dy: n ? 16 : 0}, caption); span.textContent = text;});
-    node.addEventListener('click', () => {wuxingFocus = e; show();});
+    make('text', {x, y: y + 20, 'text-anchor': 'middle', class: 'wx-count'}, node).textContent = String(counts.surface[e]);
+    // The ten-god group (and 日主) outside the disc, away from the centre; none without a day master.
+    if (named) {
+      const out = r + 13, ox = x + Math.cos(angle(i)) * out, oy = y + Math.sin(angle(i)) * out;
+      const anchor = Math.cos(angle(i)) > 0.3 ? 'start' : Math.cos(angle(i)) < -0.3 ? 'end' : 'middle';
+      const top = Math.sin(angle(i)) < -0.5;
+      const lines = e === master ? ['日主', named[0]] : [named[0]];
+      const first = top ? oy - 7 - (lines.length - 1) * 20 : oy + (Math.sin(angle(i)) > 0.5 ? 15 : 4) - (lines.length - 1) * 10;
+      const caption = make('text', {x: ox, y: first, 'text-anchor': anchor, class: 'wx-group'}, node);
+      lines.forEach((text, n) => {const span = make('tspan', {x: ox, dy: n ? 20 : 0}, caption); span.textContent = text;});
+    }
+    node.addEventListener('click', () => select(e, false));
     node.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); wuxingFocus = e; show();}
-      else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-        event.preventDefault();
-        wuxingFocus = PHASES[(PHASES.indexOf(e) + (event.key === 'ArrowRight' ? 1 : 4)) % 5]; show();
-        wrap.querySelector('#wuxing-' + ELEMENT_CLASS[wuxingFocus]).focus();
-      }
+      const k = PHASES.indexOf(e);
+      const to = {ArrowRight: k + 1, ArrowDown: k + 1, ArrowLeft: k + 4, ArrowUp: k + 4, Home: 0, End: 4}[event.key];
+      if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); select(e, false);}
+      else if (to !== undefined) {event.preventDefault(); select(PHASES[to % 5], true);}
     });
     return node;
   });
   const legend = append(wrap, 'div', 'wuxing-legend');
-  [['wx-key-sheng', '相生'], ['wx-key-ke', '相克'], ['wx-key-master', '日主']].forEach(([cls, text]) => {const item = append(legend, 'span'); append(item, 'i', cls); item.append(text);});
+  [['wx-key-sheng', '相生'], ['wx-key-ke', '相克'], ...(master ? [['wx-key-master', '日主']] : [])]
+    .forEach(([cls, text]) => {const item = append(legend, 'span'); append(item, 'i', cls); item.append(text);});
   const detail = append(wrap, 'div', 'wuxing-detail'); detail.id = 'wuxing-detail'; detail.setAttribute('aria-live', 'polite');
   function show() {
-    const e = wuxingFocus, k = PHASES.indexOf(e), [name, members] = group(e);
-    nodes.forEach(node => {const on = node.dataset.element === e; node.classList.toggle('is-focus', on); node.setAttribute('aria-pressed', String(on));});
+    const e = wuxingFocus, k = PHASES.indexOf(e), named = group(e);
+    nodes.forEach(node => {
+      const on = node.dataset.element === e;
+      node.classList.toggle('is-focus', on); node.setAttribute('aria-checked', String(on)); node.setAttribute('tabindex', on ? '0' : '-1');
+    });
     edges.forEach(edge => edge.classList.toggle('is-on', edge.dataset.from === e || edge.dataset.to === e));
     detail.replaceChildren();
     const head = append(detail, 'h5');
-    append(head, 'b', elementClass(e), e); append(head, 'span', null, name); append(head, 'small', 'muted', members);
+    append(head, 'b', elementClass(e), e);
+    if (named) {append(head, 'span', null, named[0]); append(head, 'small', 'muted', named[1]);}
     if (e === master) append(head, 'span', 'wuxing-master', '日主 ' + b.day_master);
     const line = (label, items) => {
       const row = append(detail, 'p', 'wuxing-line');
@@ -492,12 +508,13 @@ function wuxingDiagram(parent, b, counts) {
     };
     line('明干与地支本气', counts.places[e]);
     line('藏干', counts.hiddenPlaces[e]);
-    tenGodsOf(members).forEach(god => line(god, counts.gods[god]));
+    if (named) tenGodsOf(named[1]).forEach(god => line(god, counts.gods[god]));
     // Each phase in its own element, so that it is translated as a word.
     const cycle = (label, chain) => {
       const row = append(detail, 'p', 'wuxing-line wuxing-cycle');
       append(row, 'span', 'wuxing-label', label);
-      chain.forEach((x, n) => {if (n) row.append(' → '); append(row, 'b', elementClass(x), x);});
+      const flow = append(row, 'span', 'wuxing-flow');
+      chain.forEach((x, n) => {if (n) flow.append(' → '); append(flow, 'b', elementClass(x), x);});
     };
     cycle('相生', [PHASES[(k + 4) % 5], e, PHASES[(k + 1) % 5]]);
     cycle('相克', [PHASES[(k + 3) % 5], e, PHASES[(k + 2) % 5]]);
@@ -681,8 +698,8 @@ function renderBazi(b) {
   const counts = chartElementCounts(b);
   append(result, 'h4', 'subheading', '五行生克');
   wuxingDiagram(result, b, counts);
-  append(result, 'p', 'field-help', '外圈箭头是相生，内圈虚线是相克；圆的大小和其中的数字是明干与地支本气的个数，圆外是该五行对日主而言的十神类别。点一个五行看它在四柱里的位置和生克关系，方向键可以逐个切换。'
-    + (currentHourUnknown ? '时辰不详，时柱按 12:00 占位，不计入。' : ''));
+  append(result, 'p', 'field-help', '外圈箭头是相生，内圈虚线是相克；圆的大小和其中的数字是明干与地支本气的个数，圆外是该五行对日主而言的十神类别。点一个五行看它在四柱里的位置和生克关系，方向键可以逐个切换。');
+  if (currentHourUnknown) append(result, 'p', 'field-help', wuxingUnsettledNote(counts.unsettled));
   append(result, 'h4', 'subheading', '五行分布');
   elementBars(result, counts.surface, counts.hidden);
   append(result, 'h4', 'subheading', '地支关系标签与藏干统计');
@@ -693,7 +710,8 @@ function renderBazi(b) {
   if (!relationBox.childElementCount) append(relationBox, 'p', 'info-inline', '当前四柱无所列特定关系标签');
   append(result, 'p', 'info-inline', '星运是日主在各柱地支的十二长生，自坐是各柱天干在本柱地支的十二长生（阳干顺行、阴干逆行，火土同宫）；空亡是各柱所在旬余下的两个地支，地支上的「日空」「年空」表示它落在日柱或年柱的旬空里。');
   renderShenshaRules(result, b);
-  const cnt = Object.entries(b.hidden_stem_elements_unweighted || {}).map(([n,v]) => `${n}${v}`).join(' · ');
+  // From the same pillars as the picture and the bars, so that an unknown hour leaves the same pillars out here too.
+  const cnt = PHASES.split('').map(e => `${e}${counts.hidden[e]}`).join(' · ');
   append(result, 'p', 'info-inline', '藏干元素出现次数（不加权）：' + cnt);
   meta(result, [
     `日主 ${b.day_master} · ${b.day_master_element}`,
@@ -710,13 +728,32 @@ function renderBazi(b) {
 // 神煞: which natal values place a star on a pillar, and a table of the rule and source of each star the chart shows.
 const SHENSHA_BASIS = {day_stem: '日干', year_stem: '年干', day_branch: '日支', year_branch: '年支', month_branch: '月支', day_pillar: '日柱'};
 const shenshaBasis = star => '查法起点：' + star.by.map(x => SHENSHA_BASIS[x.basis] + ' ' + x.value).join('、');
-// With the hour unknown, a jie inside the birth day can change the year and month pillars, and the 23:00 day change
-// or a solar-time shift can move the day pillar; the stars those pillars place are then not settled either.
-function shenshaUnsettled(b) {
-  if (!currentHourUnknown) return false;
+// With the hour unknown any time of the birth day is possible, so the noon placeholder's hour pillar is not known;
+// a jie inside that day changes the month pillar (立春 the year pillar too), and the 23:00 day change or a solar-time
+// shift can move the day pillar. A cautious reading, off the chart alone, of the first-and-last-minute check in app/group.py.
+function unsettledPillars(b) {
+  const out = new Set();
+  if (!currentHourUnknown) return out;
+  out.add('hour');
   const day = currentInput.birth_datetime.slice(0, 10);
-  return [b.jie_boundaries.previous, b.jie_boundaries.next].some(j => j.instant.slice(0, 10) === day)
-    || Boolean(currentInput.late_zi_day_rollover) || Math.abs(b.time_basis.effective_shift_minutes || 0) > 0;
+  [b.jie_boundaries.previous, b.jie_boundaries.next].filter(j => j.instant.slice(0, 10) === day).forEach(j => {
+    out.add('month');
+    if (j.name === '立春') out.add('year');
+  });
+  if (currentInput.late_zi_day_rollover || Math.abs(b.time_basis.effective_shift_minutes || 0) > 0) out.add('day');
+  return out;
+}
+// The stars those pillars place are then not settled either.
+function shenshaUnsettled(b) {return unsettledPillars(b).size > 1;}
+// Which pillars the five-phase counts leave out with the hour unknown, as one sentence per case (each translated whole).
+function wuxingUnsettledNote(unsettled) {
+  const year = unsettled.has('year'), month = unsettled.has('month'), day = unsettled.has('day');
+  if (day && year) return '时辰不详：时柱按 12:00 占位；出生当天立春，又按 23:00 换日或按太阳时换算，年柱、月柱、日柱都随时辰而定。这四柱都不计入，日主未定，也不标十神。';
+  if (day && month) return '时辰不详：时柱按 12:00 占位；出生当天交节，又按 23:00 换日或按太阳时换算，月柱、日柱随时辰而定。这三柱都不计入，日主未定，也不标十神。';
+  if (day) return '时辰不详：时柱按 12:00 占位；按 23:00 换日或按太阳时换算，日柱也随时辰而定。这两柱都不计入，日主未定，也不标十神。';
+  if (year) return '时辰不详：时柱按 12:00 占位；出生当天立春，年柱、月柱随时辰而定。这三柱都不计入。';
+  if (month) return '时辰不详：时柱按 12:00 占位；出生当天交节，月柱随时辰而定。这两柱都不计入。';
+  return '时辰不详，时柱按 12:00 占位，不计入。';
 }
 function shenshaPillars(b) {
   const keys = currentHourUnknown ? PILLAR_KEYS.slice(0, 3) : PILLAR_KEYS;

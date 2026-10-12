@@ -4079,7 +4079,7 @@ const UI_EXTRA = {
 "官府"
 ],
 "官杀": [
-"Officer and Killings",
+"Officer",
 "官殺"
 ],
 "官禄": [
@@ -5825,6 +5825,26 @@ const UI_EXTRA = {
 "时辰不详：哪些部分不受时辰影响": [
 "Hour unknown: what the hour does not change",
 "時辰不明：時辰に左右されない部分"
+],
+"时辰不详：时柱按 12:00 占位；出生当天交节，又按 23:00 换日或按太阳时换算，月柱、日柱随时辰而定。这三柱都不计入，日主未定，也不标十神。": [
+"The hour is unknown: the hour pillar is a 12:00 placeholder; a solar term (jie) falls on the birth day and the day changes at 23:00 or follows solar time, so the month and day pillars depend on the hour. These three pillars are not counted, and with no settled Day Master the Ten Gods are not shown.",
+"時刻不明：時柱は 12:00 の仮置きです。誕生日に節入りがあり、23:00 で日が替わるか太陽時で換算するため、月柱と日柱は時刻次第です。この三柱は数えず、日主が定まらないので十神も示しません。"
+],
+"时辰不详：时柱按 12:00 占位；出生当天交节，月柱随时辰而定。这两柱都不计入。": [
+"The hour is unknown: the hour pillar is a 12:00 placeholder; a solar term (jie) falls on the birth day, so the month pillar depends on the hour. These two pillars are not counted.",
+"時刻不明：時柱は 12:00 の仮置きです。誕生日に節入りがあるため、月柱は時刻次第です。この二柱は数えません。"
+],
+"时辰不详：时柱按 12:00 占位；出生当天立春，又按 23:00 换日或按太阳时换算，年柱、月柱、日柱都随时辰而定。这四柱都不计入，日主未定，也不标十神。": [
+"The hour is unknown: the hour pillar is a 12:00 placeholder; the Start of Spring (Lichun) falls on the birth day and the day changes at 23:00 or follows solar time, so the year, month and day pillars all depend on the hour. None of the four pillars is counted, and with no settled Day Master the Ten Gods are not shown.",
+"時刻不明：時柱は 12:00 の仮置きです。誕生日に立春があり、23:00 で日が替わるか太陽時で換算するため、年柱・月柱・日柱はどれも時刻次第です。四柱とも数えず、日主が定まらないので十神も示しません。"
+],
+"时辰不详：时柱按 12:00 占位；出生当天立春，年柱、月柱随时辰而定。这三柱都不计入。": [
+"The hour is unknown: the hour pillar is a 12:00 placeholder; the Start of Spring (Lichun) falls on the birth day, so the year and month pillars depend on the hour. These three pillars are not counted.",
+"時刻不明：時柱は 12:00 の仮置きです。誕生日に立春があるため、年柱と月柱は時刻次第です。この三柱は数えません。"
+],
+"时辰不详：时柱按 12:00 占位；按 23:00 换日或按太阳时换算，日柱也随时辰而定。这两柱都不计入，日主未定，也不标十神。": [
+"The hour is unknown: the hour pillar is a 12:00 placeholder; the day changes at 23:00 or follows solar time, so the day pillar depends on the hour too. These two pillars are not counted, and with no settled Day Master the Ten Gods are not shown.",
+"時刻不明：時柱は 12:00 の仮置きです。23:00 で日が替わるか太陽時で換算するため、日柱も時刻次第です。この二柱は数えず、日主が定まらないので十神も示しません。"
 ],
 "时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干、四化星名和本层流曜，不列它们落在哪个本命宫。": [
 "Birth hour unknown: natal palaces and star positions change with the hour, so the small limit and year give only their Life palace branch, stem, transformed stars and period stars, not which natal palace they fall in.",
