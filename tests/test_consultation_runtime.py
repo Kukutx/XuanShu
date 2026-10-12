@@ -177,6 +177,6 @@ def test_web_installable_docs_and_capabilities_wiring():
     assert (root/'docs/rules/consultation.md').exists()
     assert '/api/consultation' in CLIENT.get('/openapi.json').json()['paths']
     counts=CLIENT.get('/api/capabilities').json()['counts']
-    assert counts['mcp_tools']==34 and counts['mcp_resources']==17
+    assert counts['mcp_tools']==34 and counts['mcp_resources']==18
     assert len(CLIENT.post('/mcp',json={'jsonrpc':'2.0','id':1,'method':'resources/read',
                        'params':{'uri':'astro://rules/consultation'}}).json()['result']['contents'][0]['text'])>200

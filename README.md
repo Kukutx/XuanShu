@@ -116,7 +116,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\windows_acceptance.ps1
 | 双人盘 | 四柱同位与交叉地支关系、双向日干十神、日干五合 | 不给虚假关系匹配分数 |
 | Web 工作台 | **29 个视图**（含 AI 对话、择日择时、月历），包含大运与边界地图、十二宫可点击、四化/时制查询、档案管理、JSON 导出与数据浏览器（每个有结果的工具一张卡片，可折叠的树状视图、按字段名或数值筛选、悬停看字段路径、逐节复制或下载）；Agent 接入中心（用两代 MCP 协议实际连接自检、按客户端和系统生成配置、可筛选的工具目录与当场试运行、在页面上读规则资源）；只需当前命盘的工具（大运、年干四化、临界地图、质量审计、深度证据、建除值日等）打开即按默认设置算好 | 无云端账户/云同步 |
 | 浏览器隐私 | 可选 localStorage 保存/删除；WebCrypto AES-256-GCM 加密导出/导入，PBKDF2 口令推导 | **保存到浏览器的记录是明文**；仅加密备份文件，不替代磁盘加密 |
-| MCP / Agent | **30 Tools、17 Resources、15 Prompts、18 Skills**；HTTP+stdio 共用计算函数 | 外部 OAuth JWT 资源服务器；无实际授权服务器、租户隔离、主动 SSE 或公网连接验收 |
+| MCP / Agent | **34 Tools、18 Resources、15 Prompts、18 Skills**；HTTP+stdio 共用计算函数 | 外部 OAuth JWT 资源服务器；无实际授权服务器、租户隔离、主动 SSE 或公网连接验收 |
 | 工程交付 | Docker、Compose、Windows PowerShell 启动、Linux/macOS shell、CLI、GitHub CI、pytest / MCP / HTTP 校验 | 永久公网 HTTPS 部署需使用自己的授权主机及域名 |
 
 ## 问题驱动咨询执行器（已实现，可运行的确定性工作流）
@@ -341,7 +341,7 @@ curl -s http://127.0.0.1:8000/api/combined \
 
 ## ChatGPT / Claude / Codex 与 Skills
 
-- MCP 服务器 **34 个 Tools、17 个 Markdown Resources、15 个 Prompts**，位于 `app/mcp.py`；**18 个 Agent Skills** 在 `skills/`。
+- MCP 服务器 **34 个 Tools、18 个 Markdown Resources、15 个 Prompts**，位于 `app/mcp.py`；**18 个 Agent Skills** 在 `skills/`。
 - `python -m app.stdio` 可作为 Claude Desktop / Codex 的 MCP 子进程。
 - 公网宿主需要**公网 HTTPS URL + 合适鉴权方式 + 用户自行授权连接**。此工程还没有公共服务地址或安装到 ChatGPT / Claude 账户。
 - MCP 支持新版 **`2026-07-28` 无握手元数据机制**和旧版 `2025-03-26`、`2025-06-18`、`2025-11-25` 握手机制（stdio / 无状态 HTTP JSON）。新版校验请求元数据中的版本和 `clientCapabilities` 对象、`MCP-Protocol-Version`、`Mcp-Method` 和必要的 `Mcp-Name` 头；列表与规则读取回复带缓存提示；支持外部 OAuth JWT 资源服务器（需提供商与 HTTPS），不提供内建授权码登录服务、主动 SSE 订阅或需要多轮模型交互的扩展。

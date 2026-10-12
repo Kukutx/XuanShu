@@ -163,7 +163,7 @@ def test_new_mcp_tools_and_resources_prompts():
         assert response['result']['isError'] is False, (name,response)
         assert field in response['result']['structuredContent']
     resources = process_rpc(rpc('resources/list'))['result']['resources']
-    assert len(resources) == 17
+    assert len(resources) == 18
     for res in resources:
         data = process_rpc(rpc('resources/read', {'uri':res['uri']}))['result']['contents'][0]
         assert data['mimeType'] == 'text/markdown'

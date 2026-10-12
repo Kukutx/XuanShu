@@ -14,6 +14,7 @@ from .engines import BirthInput, calculate_bazi, calculate_ziwei
 from .features import AnnualRequest, TimeAuditRequest, annual_transformations, time_audit
 from .quality import QualityAuditRequest, calculation_quality_audit
 from .evidence import DeepReviewRequest, deep_evidence_review
+from .glossary import GLOSSARY_DOC, terms_in
 
 
 class ReportRequest(BaseModel):
@@ -133,6 +134,12 @@ def structured_report(request: ReportRequest) -> dict:
         lines += ['## 深度证据资料与独立验证限制', '']
         lines += ['- ' + x['title'] + '：' + x['reference'] + '（' + x['scope'] + '）' for x in deep_review['references']]
         lines += ['', '注：方法参考文档不能替代该命盘的第三方逐盘认证。', '']
+    # The terms this report uses, explained; matched against the report's own text before this section.
+    glossary = terms_in('\n'.join(lines))
+    if glossary:
+        lines += ['## 术语解释', '']
+        lines += [f"- **{x['term']}**（{x['system']}）：{x['definition']}玄枢：{x['in_xuanshu']}" for x in glossary]
+        lines += ['', '来源：`' + GLOSSARY_DOC + '`', '']
     lines += ['## 适用边界', ''] + ['- ' + item for item in warnings] + ['']
     return {
         'system': 'deterministic-multitool-dossier', 'version': __version__,
@@ -141,6 +148,6 @@ def structured_report(request: ReportRequest) -> dict:
                      'star_counts': ziwei['star_counts']},
         'sections': sections, 'tool_trace': trace,
         'annual': annual, 'time_audit': audit, 'quality_audit': quality,
-        'dayun': dayun, 'birth_boundaries': boundaries, 'deep_evidence': deep_review,
+        'dayun': dayun, 'birth_boundaries': boundaries, 'deep_evidence': deep_review, 'glossary': glossary,
         'limitations': warnings, 'markdown': '\n'.join(lines),
     }
