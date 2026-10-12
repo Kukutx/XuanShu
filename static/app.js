@@ -133,9 +133,9 @@ let reportDraft = {lunar_year: null, include_time_audit: false, include_deep_evi
 let windowDraft = {radius: 30, spacing: 10};
 let lunarInverseDraft = null;  // filled with this lunar year's first day when the calendar first shows it
 let lunarInverseError = '';
-let annualDraft = new Date().getFullYear();  // this year, until another one is asked for
+let annualDraft = null;  // today's lunar year, until another one is asked for
 let officerDraft = {start_date:localToday(),days:30,officer:''};
-let timelineDraft = {start_lunar_year:new Date().getFullYear(),years:10,focus_palace:''};
+let timelineDraft = {start_lunar_year:null,years:10,focus_palace:''};  // null: today's lunar year
 let decisionDraft = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
 let pairDraft = {birth_datetime: '2001-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified', year: new Date().getFullYear()};
 // The year of the pair's luck and year-pillar view; a newer request makes older replies stale, as on the group page.
@@ -1032,7 +1032,8 @@ function ensureTodayLunarYear() {
   todayLunarPending = true;
   postJSON('/api/calendar', {start_date: localToday(), days: 1}).then(data => {
     todayLunarYear = data.days[0].lunar.year;
-    if ((active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) || (active === 'calendar' && lunarInverseDraft && lunarInverseDraft.guessed)) render();
+    if ((active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) || (active === 'calendar' && lunarInverseDraft && lunarInverseDraft.guessed)
+      || (active === 'annual' && annualDraft === null) || (active === 'timeline' && timelineDraft.start_lunar_year === null)) render();
   }).catch(() => { /* keep the estimate below */ }).finally(() => {todayLunarPending = false;});
 }
 function defaultLunarYear() {
@@ -1724,20 +1725,21 @@ function renderDayOfficers() {
     const op=append(select,'option',null,value||'全部');op.value=value;
   } select.value=officerDraft.officer;
   keepTyped(start,count,select);
+  const query=()=>{
+    const draft=officerDraft;
+    officerPending=true;officerError='';
+    postJSON('/api/day-officers',{start_date:draft.start_date,days:draft.days,filter_officers:draft.officer?[draft.officer]:[]})
+      .then(data=>{if(officerDraft===draft)officerResult=data;}).catch(e=>{if(officerDraft===draft)officerError='查询失败：'+e.message;})
+      .finally(()=>{if(officerDraft===draft){officerPending=false;if(active==='officers')render();}});
+  };
+  // Nothing here depends on the chart, so the coming days are listed as soon as the tool opens.
+  if(!officerResult&&!officerPending&&!officerError)query();
   const run=append(row,'button',null,'查询值日');run.id='officer-run';run.type='button';run.disabled=officerPending;
   append(result,'p','inline-msg',officerError);
-  const query=()=>{
-    officerPending=true;officerError='';
-    postJSON('/api/day-officers',{start_date:officerDraft.start_date,days:officerDraft.days,filter_officers:officerDraft.officer?[officerDraft.officer]:[]})
-      .then(data=>{officerResult=data;}).catch(e=>{officerError='查询失败：'+e.message;})
-      .finally(()=>{officerPending=false;if(active==='officers')render();});
-  };
   run.addEventListener('click',()=>{
     officerDraft={start_date:start.value,days:Number(count.value),officer:select.value};
     query();render();
   });
-  // Nothing here depends on the chart, so the coming days are listed as soon as the tool opens.
-  if(!officerResult&&!officerPending&&!officerError)query();
   append(result,'p','field-help','查询按北京时间正午取值；跨交节的日期会显式标记。');
   if(officerPending)append(result,'p','field-help','正在查询…');
   if(!officerResult)return;
@@ -1822,7 +1824,8 @@ function renderTimeline() {
   title(result,'连续农历年四化对照','本命盘固定，叠加多个命名农历年的天干四化标签');
   if(!current){append(result,'p','info-inline','请先生成命盘。');return;}
   const row=append(result,'div','inline-control');
-  const start=createInput('起始农历年','number',String(timelineDraft.start_lunar_year),row);start.id='timeline-start';start.min='1901';start.max='2099';
+  ensureTodayLunarYear();
+  const start=createInput('起始农历年','number',String(timelineDraft.start_lunar_year ?? defaultLunarYear()),row);start.id='timeline-start';start.min='1901';start.max='2099';
   const years=append(append(row,'label',null,'对照年数'),'select');years.id='timeline-years';
   [3,5,10,20,30].forEach(x=>{const op=append(years,'option',null,x+' 年');op.value=String(x);});years.value=String(timelineDraft.years);
   const focus=append(append(row,'label',null,'关注宫位'),'select');focus.id='timeline-focus';
@@ -1834,7 +1837,7 @@ function renderTimeline() {
   run.addEventListener('click',async()=>{
     timelineDraft={start_lunar_year:Number(start.value),years:Number(years.value),focus_palace:focus.value};
     run.disabled=true;msg.textContent='';
-    try{timelineResult=await postJSON('/api/annual-timeline',{birth:readInput(),start_lunar_year:timelineDraft.start_lunar_year,years:timelineDraft.years,focus_palace:timelineDraft.focus_palace||null});render();}
+    try{const data=await postForChart('/api/annual-timeline',{birth:readInput(),start_lunar_year:timelineDraft.start_lunar_year,years:timelineDraft.years,focus_palace:timelineDraft.focus_palace||null});if(data!==STALE){timelineResult=data;render();}}
     catch(e){msg.textContent='查询失败：'+e.message;}
     finally{run.disabled=false;}
   });
@@ -3515,14 +3518,15 @@ function renderAnnual() {
   title(result, '指定农历年干四化', '与本命四化分开显示 · 仅为星曜位置叠加');
   if (!current) {append(result, 'p', 'info-inline', '请先生成出生盘。'); return;}
   const row = append(result, 'div', 'inline-control');
-  const year = createInput('目标农历纪年（1901–2099）', 'number', String(annualDraft), row);
+  ensureTodayLunarYear();
+  const year = createInput('目标农历纪年（1901–2099）', 'number', String(annualDraft ?? defaultLunarYear()), row);
   year.min='1901'; year.max='2099'; year.id='annual-year'; keepTyped(year);
   const button = append(row, 'button', null, '查询年干四化'); button.type='button'; button.id='annual-run';
   const error = append(result, 'p', 'inline-msg');
   button.addEventListener('click', async () => {
     annualDraft = Number(year.value);
     button.disabled=true;
-    try {annualResult=await postJSON('/api/annual',{birth:readInput(),lunar_year:annualDraft}); render();}
+    try {const data=await postForChart('/api/annual',{birth:readInput(),lunar_year:annualDraft}); if (data!==STALE) {annualResult=data; render();}}
     catch(e) {error.textContent='查询失败：'+e.message;}
     finally {button.disabled=false;}
   });
@@ -3576,7 +3580,7 @@ function renderTimeAudit() {
   run.addEventListener('click',async()=>{
     if(readInput().longitude===null){error.textContent='请先在出生资料里填写出生地经度。';return;}
     run.disabled=true;
-    try{timeResult=await postJSON('/api/time-audit',{birth:readInput()});render();}
+    try{const data=await postForChart('/api/time-audit',{birth:readInput()});if(data!==STALE){timeResult=data;render();}}
     catch(e){error.textContent='计算失败：'+e.message;}
     finally{run.disabled=false;}
   });
@@ -3625,8 +3629,8 @@ function renderQualityAudit() {
     try {
       const value = Number(minutes.value);
       qualityMinutesDraft = value;
-      qualityResult = await postJSON('/api/quality-audit', {birth:readInput(), boundary_window_minutes:value});
-      render();
+      const data = await postForChart('/api/quality-audit', {birth:readInput(), boundary_window_minutes:value});
+      if (data !== STALE) {qualityResult = data; render();}
     } catch(e) {msg.textContent = '核验失败：' + e.message;}
     finally {run.disabled = false;}
   });
@@ -3680,9 +3684,9 @@ function renderDeep() {
     deepDraft={focus_palace:palace.value,lunar_year:y,question:question.value.trim()};
     run.disabled=true;msg.textContent='';
     try{
-      deepResult=await postJSON('/api/deep-review',{birth:readInput(),focus_palace:deepDraft.focus_palace,
+      const data=await postForChart('/api/deep-review',{birth:readInput(),focus_palace:deepDraft.focus_palace,
         lunar_year:y?Number(y):null, question:deepDraft.question||null,include_quality:true});
-      render();
+      if(data!==STALE){deepResult=data;render();}
     }catch(e){msg.textContent='分析失败：'+e.message;}
     finally{run.disabled=false;}
   });
@@ -3778,7 +3782,7 @@ function renderDayun() {
   if (!current) {append(result, 'p', 'info-inline', '请先生成出生盘。'); return;}
   // With a gender (or a direction picked) the periods of the chart shown are worked out on opening, and again
   // whenever another chart is cast; the button applies a changed count or direction.
-  const request = () => ({birth: currentInput, periods: dayunDraft.periods, direction_override: dayunDraft.direction_override || null});
+  const request = () => ({birth: currentInput, periods: dayunDraft.periods, direction_override: dayunDraft.direction_override || null, hour_unknown: currentHourUnknown});
   const ready = currentInput.gender !== 'unspecified' || !!dayunDraft.direction_override;
   if (ready && dayunKey !== JSON.stringify(request()) && !dayunPending) {
     const body = request(), key = JSON.stringify(body);
@@ -3840,7 +3844,7 @@ function renderBirthBoundaries(){
   run.addEventListener('click', async()=>{
     const value=Number(radius.value);if(!Number.isInteger(value)||value<1||value>120){error.textContent='误差范围必须是1–120的整数';return;}
     boundaryDraft={uncertainty_minutes:value};run.disabled=true;error.textContent='';
-    try{boundaryResult=await postJSON('/api/birth-boundaries',{birth:readInput(),uncertainty_minutes:value});render();}
+    try{const data=await postForChart('/api/birth-boundaries',{birth:readInput(),uncertainty_minutes:value});if(data!==STALE){boundaryResult=data;render();}}
     catch(e){error.textContent='查询失败：'+e.message;}finally{run.disabled=false;}
   });
   if(!boundaryResult)return;
@@ -3857,16 +3861,17 @@ function renderBirthBoundaries(){
   d.limitations.forEach(x=>note(result,x));
 }
 // The counts on the integration page come from the running server, so they never fall behind a new tool.
-let capabilities = null, capabilitiesPending = false;
+let capabilities = null, capabilitiesPending = false, capabilitiesError = '', capabilitiesToken = '';
 function renderIntegration() {
   title(result,'Agent 接入中心','统一 MCP 服务 / 计算 Tool / 方法资源');
   append(result,'p','info-inline','本项目兼容 MCP 2026-07-28 和旧版 2025 协议的 stdio / Streamable HTTP；本地 Web 运行不等于已上线公网或已登记到 ChatGPT/Claude。');
-  if (capabilities === null && !capabilitiesPending) {
-    capabilitiesPending = true;
-    const token = $('#api_token').value;
+  const token = $('#api_token').value;
+  // A failed lookup is tried again once another access token is entered.
+  if ((capabilities === null || (capabilitiesError && token !== capabilitiesToken)) && !capabilitiesPending) {
+    capabilitiesPending = true; capabilitiesToken = token; capabilities = null;
     fetch('/api/capabilities', {headers: token ? {'Authorization': 'Bearer ' + token} : {}})
       .then(reply => reply.ok ? reply.json() : Promise.reject(new Error('HTTP ' + reply.status)))
-      .then(data => {capabilities = data;}).catch(() => {capabilities = {};})
+      .then(data => {capabilities = data; capabilitiesError = '';}).catch(err => {capabilities = {}; capabilitiesError = err.message;})
       .finally(() => {capabilitiesPending = false; if (active === 'integration') render();});
   }
   const counts = (capabilities && capabilities.counts) || {};
@@ -3878,6 +3883,7 @@ function renderIntegration() {
     {label:'提示模板',value:count('mcp_prompts', 'Prompts'),detail:'可复用计算工作流'},
   ]);
   if (box) box.id = 'integration-counts';
+  if (capabilitiesError) append(result, 'p', 'inline-msg', '读取服务能力失败：' + capabilitiesError + (capabilitiesError === 'HTTP 401' ? '，请检查 API 访问令牌。' : '。')).id = 'integration-error';
   append(result,'h4','subheading','本地 HTTP 端点');
   const origin = location.origin==='null' ? 'http://127.0.0.1:8000' : location.origin;
   append(result,'pre','json-code','POST '+origin+'/mcp\nGET  '+origin+'/docs\nGET  '+origin+'/api/capabilities');
@@ -4033,12 +4039,15 @@ function render() {
   }
   autoOpen();
 }
+// A reply that comes back after another chart was cast belongs to the old chart, so it is dropped (STALE).
+const STALE = Symbol('stale');
+async function postForChart(url, body) {const chart = currentInput, data = await postJSON(url, body); return currentInput === chart ? data : STALE;}
 // Tools that need nothing but the chart shown and their settings show their result as soon as they open, once per
 // chart, by pressing their own button; a changed setting still waits for that button. Nothing runs while the birth
 // form holds edits not yet cast, since the buttons read the form rather than the chart shown.
 const AUTO_OPEN = {
-  annual: ['annual-run', () => annualResult],
-  timeline: ['timeline-run', () => timelineResult],
+  annual: ['annual-run', () => annualResult, () => annualDraft !== null || !todayLunarPending],
+  timeline: ['timeline-run', () => timelineResult, () => timelineDraft.start_lunar_year !== null || !todayLunarPending],
   boundaries: ['boundary-run', () => boundaryResult],
   quality: ['quality-run', () => qualityResult],
   time: ['time-run', () => timeResult, () => readInput().longitude !== null],
@@ -4047,7 +4056,14 @@ const AUTO_OPEN = {
 let autoOpened = new Set();
 function autoOpen() {
   const [button, shown, possible = () => true] = AUTO_OPEN[active] || [];
-  if (!button || !current || shown() || autoOpened.has(active) || !possible()) return;
+  if (!button || !current) return;
+  if (currentHourUnknown) {
+    // A chart cast without the hour stands on a 12:00 placeholder, so nothing hour-bound runs on it by itself.
+    const intro = result.querySelector('.result-intro');
+    if (intro) intro.after(elt('p', 'field-help', '命盘时辰不详：本页按 12:00 占位时辰计算，时柱、宫位和时辰交界都不可靠，所以打开时不自动计算。'));
+    return;
+  }
+  if (shown() || autoOpened.has(active) || !possible()) return;
   if (JSON.stringify(readInput()) !== JSON.stringify(currentInput)) return;
   autoOpened.add(active);
   const tab = active;
@@ -4168,6 +4184,7 @@ function updateStaleBirthNotice() {
 for (const type of ['input','change']) {
   form.addEventListener(type, event => {
     if (event.target.id !== 'api_token') updateStaleBirthNotice();
+    else if (type === 'change' && active === 'integration' && capabilitiesError) render();
   });
 }
 form.addEventListener('submit', async event => {

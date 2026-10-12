@@ -499,10 +499,10 @@ def main() -> None:
             page.screenshot(path=str(screenshot_dir / '37-rule-matrix.png'), full_page=True)
             page.locator('[data-tab="bazi"]').click()
             page.locator('[data-tab="annual"]').click()
-            # A tool that needs only the chart shows its result on opening, for the current year by default.
+            # A tool that needs only the chart shows its result on opening, for the current lunar year by default.
             page.locator('.transform-card').first.wait_for(timeout=30000)
             assert page.locator('.transform-card').count() == 4
-            assert page.locator('#annual-year').input_value() == str(page.evaluate('new Date().getFullYear()'))
+            assert page.locator('#annual-year').input_value() == str(page.evaluate('todayLunarYear'))
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)
             page.locator('[data-tab="time"]').click()
             page.screenshot(path=str(screenshot_dir / '04-time-audit.png'), full_page=True)
@@ -791,6 +791,11 @@ def main() -> None:
             assert '大限' not in page.locator('.hua-overlap').inner_text()
             assert page.locator('#ziwei-layer-table').count() == 0 and '不列各层宫位对照表' in page.locator('#result').inner_text()
             page.locator('#ziwei-layer-natal').click()
+            # Tools that open with a result do not run on the 12:00 placeholder, and say so.
+            page.locator('[data-tab="annual"]').click()
+            assert '命盘时辰不详：本页按 12:00 占位时辰计算' in page.locator('#result').inner_text()
+            page.wait_for_timeout(400)
+            assert page.locator('.transform-card').count() == 0
             page.locator('[data-tab="bazi"]').click()
             # 2000-02-04 has 立春 at 20:40: with the hour unknown the year and month pillars, and so the stars, are open.
             page.locator('#birth_datetime').fill('2000-02-04T12:00')
@@ -1077,7 +1082,7 @@ def main() -> None:
             # With a gender the decades of the chart shown are worked out on opening; the button applies a new count.
             assert page.evaluate('currentInput.gender') != 'unspecified'
             page.locator('#dayun-table').wait_for(timeout=30000)
-            assert page.locator('#dayun-table tbody tr').count() == 10 and page.locator('#dayun-table tr.is-current').count() <= 1
+            assert page.locator('#dayun-table tbody tr').count() == 10 and page.locator('#dayun-table tr.is-current').count() == 1
             page.locator('#dayun-periods').fill('8')
             page.locator('#dayun-run').click()
             page.wait_for_function("() => document.querySelectorAll('#dayun-table tbody tr').length === 8", timeout=30000)
@@ -1090,6 +1095,8 @@ def main() -> None:
             page.locator('[data-tab="boundaries"]').click()
             page.locator('#boundary-radius').fill('8')
             page.locator('#boundary-run').click()
+            # The opening result is for ±60 minutes; wait for the ±8 one the button asked for.
+            page.get_by_text('±8分钟',exact=False).first.wait_for(timeout=30000)
             page.get_by_text('各区间代表命盘',exact=False).first.wait_for(timeout=30000)
             assert page.locator('#result tbody tr').count() >= 1
             page.screenshot(path=str(screenshot_dir / '18-boundaries-desktop.png'), full_page=True)
@@ -1109,10 +1116,11 @@ def main() -> None:
             page.screenshot(path=str(screenshot_dir / '14-day-officers-desktop.png'), full_page=True)
 
             page.locator('[data-tab="timeline"]').click()
-            page.locator('#result tbody tr').first.wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() == 10
-            # A setting typed while the opening result arrives stays in its field, and the button applies it.
+            # A setting picked while the opening result is still on its way stays in its field through the redraw
+            # that result brings, and the button (enabled again once it lands) applies it.
             page.locator('#timeline-years').select_option('5')
+            page.locator('#result tbody tr').first.wait_for(timeout=30000)
+            assert page.locator('#result tbody tr').count() in (5, 10) and page.locator('#timeline-years').input_value() == '5'
             page.locator('#timeline-run').click()
             page.wait_for_function("() => document.querySelectorAll('#result tbody tr').length === 5", timeout=30000)
             assert page.locator('#timeline-years').input_value() == '5'
@@ -1139,9 +1147,12 @@ def main() -> None:
 
             page.locator('[data-tab="quality"]').click()
             assert page.locator('#quality-minutes').input_value() == '15'
+            # The opening result (±15) lands first; the one for ±10 replaces it.
+            page.wait_for_function("() => qualityResult", timeout=30000)
+            page.evaluate("window.openingQuality = qualityResult")
             page.locator('#quality-minutes').fill('10')
             page.locator('#quality-run').click()
-            page.wait_for_function("() => document.querySelector('#result').textContent.includes('有效时间')", timeout=30000)
+            page.wait_for_function("() => qualityResult && qualityResult !== window.openingQuality", timeout=30000)
             assert page.locator('#quality-minutes').input_value() == '10'
             assert '未发现当前规则已知边界问题' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '11-quality-desktop.png'), full_page=True)
@@ -1152,6 +1163,7 @@ def main() -> None:
             page.locator('#deep-year').fill('2026')
             page.locator('#deep-question').fill('请只展示可计算的宫位关联')
             page.locator('#deep-run').click()
+            page.get_by_text('关注 官禄宫', exact=False).first.wait_for(timeout=30000)
             page.get_by_text('内部一致性核查', exact=False).first.wait_for(timeout=30000)
             assert '三方四正' in page.locator('#result').inner_text()
             assert page.locator('#deep-download').is_visible()

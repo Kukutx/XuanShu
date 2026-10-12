@@ -3231,6 +3231,10 @@
   "Chart generated: ",
   "命盤を作成しました："
  ],
+ "命盘时辰不详：本页按 12:00 占位时辰计算，时柱、宫位和时辰交界都不可靠，所以打开时不自动计算。": [
+  "Birth hour unknown: this page would work from the 12:00 placeholder, so the hour pillar, palaces and hour boundaries are unreliable, and nothing is computed on opening.",
+  "出生時刻不明：このページは 12:00 の仮の時刻で計算するため、時柱・宮位・時辰の境目は当てにならず、開いたときに自動では計算しません。"
+ ],
  "命盘没有填性别：选好顺排或逆排后点「计算大运」。": [
   "The chart has no gender: choose forward or reverse, then select “Compute Luck Pillars”.",
   "命盤に性別がありません。順行か逆行を選んでから「大運を計算」を押してください。"
@@ -8659,6 +8663,10 @@
   "Please select a profile to delete",
   "削除するプロフィールを選択してください"
  ],
+ "读取服务能力失败：": [
+  "Could not read the server capabilities: ",
+  "サーバー機能を取得できませんでした："
+ ],
  "读取评测结果失败：": [
   "Could not load the evaluation: ",
   "評価結果を読み込めません："
@@ -9650,6 +9658,10 @@
  "，紫微农历年干支为 ": [
   ", Zi Wei lunar year stem-branch is ",
   "、紫微の旧暦年干支は "
+ ],
+ "，请检查 API 访问令牌。": [
+  ". Check the API access token.",
+  "。API アクセストークンを確認してください。"
  ],
  "：保留前 ": [
   ": keeping first ",
