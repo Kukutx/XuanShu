@@ -353,7 +353,12 @@ def main() -> None:
             assert page.locator(hot).is_visible() and page.locator('.fly-in .fly-item[aria-pressed="true"]').count() == 1
             page.locator('#ziwei-board').screenshot(path=str(screenshot_dir / '43-ziwei-fly-highlight.png'))
             page.locator('.palace-panel').screenshot(path=str(screenshot_dir / '44-ziwei-panel-fly.png'))
-            page.locator('.fly-in .fly-item', has_text='田宅宫').click()
+            # Hiding the curves drops the kept highlight and turns the entries back into text.
+            page.locator('#ziwei-fly-toggle').click()
+            assert page.locator('#ziwei-board.fly-focus').count() == 0 and page.locator('.fly-item').count() == 0
+            assert page.locator('.palace.fly-end').count() == 0 and '田宅宫（乙干）紫微化科' in page.locator('.palace-panel .fly-in').inner_text()
+            page.locator('#ziwei-fly-toggle').click()
+            assert page.locator('.fly-item[aria-pressed="true"]').count() == 0 and page.locator('#ziwei-board.fly-focus').count() == 0
             page.locator('#palace-6').focus()
             assert page.locator('#ziwei-board.fly-focus').count() == 0 and page.locator('.fly-item[aria-pressed="true"]').count() == 0
             page.locator('.fly-out .fly-item', has_text='天梁化禄').focus()
@@ -478,6 +483,15 @@ def main() -> None:
             assert page.locator('.hour-unknown tbody tr').count() == 13
             assert '日柱 壬午 · 全天不变' in page.locator('.stable-list').inner_text()
             page.screenshot(path=str(screenshot_dir / '32-hour-unknown.png'), full_page=True)
+            # Without the hour there is no decade: not as a layer, and not in the year layer's stacked transformations.
+            page.locator('[data-tab="ziwei"]').click()
+            page.locator('#ziwei-layer-decade').click()
+            assert '时辰不详时无法确定' in page.locator('#result').inner_text() and page.locator('.palace-layer').count() == 0
+            page.locator('#ziwei-layer-year').click()
+            page.locator('.hua-overlap').wait_for(timeout=30000)
+            assert '大限' not in page.locator('.hua-overlap').inner_text()
+            page.locator('#ziwei-layer-natal').click()
+            page.locator('[data-tab="bazi"]').click()
             page.locator('#hour_unknown').uncheck()
             page.locator('#lunar-entry summary').click()
             page.locator('#birth_datetime').fill('2000-08-16T04:00')

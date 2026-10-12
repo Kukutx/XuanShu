@@ -617,7 +617,8 @@ function huaOverlaps(z, live) {
   const sets = [['生年', z.birth_year_transformations]];
   if (live.mode === 'decade') sets.push(['大限', live.hua]);
   else if (live.mode === 'year') {
-    if (live.currentDecade) sets.push(['大限', stemHua(live.currentDecade.stem)]);
+    // The decade needs the birth hour; with the hour unknown it is left out, as the decade layer itself is.
+    if (live.currentDecade && !currentHourUnknown) sets.push(['大限', stemHua(live.currentDecade.stem)]);
     sets.push(['流年', live.hua]);
   } else if (live.horoscope && live.horoscope.layers) {
     const order = ['decade', 'year', 'month', 'day'];
@@ -722,6 +723,7 @@ function ziweiLayerInfo(z) {
       hua: stemOwner ? stemOwner.palace_flying_transformations : [], layerName: index => names[(at - index + 12) % 12]};
   }
   if (mode === 'decade') {
+    if (currentHourUnknown) return {mode, unavailable: '大限从命宫起，需要出生时辰；时辰不详时无法确定。'};
     if (!decades.length) return {mode, unavailable: '大限需要性别来定顺行或逆行，请在出生资料里选择性别后重新生成命盘。'};
     const start = ziweiLayer.decade !== null ? ziweiLayer.decade : (currentDecade || decades[0]).decade.start_age;
     const palace = decades.find(p => p.decade.start_age === start) || decades[0];
@@ -958,7 +960,7 @@ function renderZiwei(z) {
   fly.setAttribute('aria-pressed', String(showFlying));
   fly.title = '彩色曲线：所选宫位的宫干四化飞入哪一宫';
   if (layerFlying(z, selected, live)) append(legend, 'span', 'legend-lines', '点线：' + LAYER_NAMES[live.mode] + '四化飞入的宫位');
-  fly.addEventListener('click', () => {showFlying = !showFlying; render();});
+  fly.addEventListener('click', () => {showFlying = !showFlying; if (!showFlying) flyPinned = null; render();});
   if (live) {
     const line = append(result, 'p', 'hua-overlap');
     append(line, 'span', 'hua-overlap-label', '四化叠加：');
@@ -970,8 +972,8 @@ function renderZiwei(z) {
     });
   }
   // A highlight kept from a click lasts while the same palace and layer stay selected.
-  if (flyPinned && (flyPinned.palace !== selected.name || flyPinned.mode !== ziweiLayer.mode)) flyPinned = null;
-  renderPalacePanel(result, selected, live, true);
+  if (flyPinned && (!showFlying || flyPinned.palace !== selected.name || flyPinned.mode !== ziweiLayer.mode)) flyPinned = null;
+  renderPalacePanel(result, selected, live, showFlying);  // with the curves hidden the entries are plain text
   if (flyPinned && !result.querySelector('.fly-item[aria-pressed="true"]')) flyPinned = null;
   flyHighlight(flyPinned);
   if (live) note(result, '运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。');

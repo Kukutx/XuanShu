@@ -3267,6 +3267,10 @@
   "Decade, year, month, day and hour layers each place Kui, Yue, Chang, Qu, Lu, Yang, Tuo, Ma, Luan and Xi from the layer's stem and branch, prefixed 运, 流, 月, 日 and 时; the year adds Nian Jie and the Sui-qian and Jiang-qian twelve spirits; the small limit has no period stars",
   "大限・流年・流月・流日・流時はそれぞれの干支で魁・鉞・昌・曲・禄・羊・陀・馬・鸞・喜を配し、頭字は運・流・月・日・時；流年は年解と歳前・将前十二神も配置；小限には流曜なし"
  ],
+ "大限从命宫起，需要出生时辰；时辰不详时无法确定。": [
+  "The decade starts from the Life palace and needs the birth hour; with the hour unknown it cannot be set.",
+  "大限は命宮から起こすため出生時刻が必要です。時刻不明では決められません。"
+ ],
  "大限流曜": [
   "Decade period stars",
   "大限の流曜"
