@@ -76,6 +76,7 @@ def qimen_reference_audit(req: QimenAuditRequest) -> dict:
             'reference_school':req.reference_school,
             'local_school':calc['method'], 'compared':len(compared),
             'matching':len(compared)-len(mismatches), 'mismatches':mismatches,
+            'fields':compared,
             'matches':not mismatches,
             'comparison_scope': sorted({p['field'].split('.')[-1] for p in compared}),
             'notes':['只校验实际给出的字段；未提供的逐宫字段不计为一致。',

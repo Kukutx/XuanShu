@@ -81,6 +81,10 @@ def test_qimen_comparison_every_available_palace_field():
     changed=qimen_reference_audit(QimenAuditRequest.model_validate(body))
     assert not changed['matches'] and len(changed['mismatches'])==1
     assert changed['mismatches'][0]['field']=='palaces.1.earth_stem'
+    # fields lists every comparison, root fields first, so a client can mark matches as well as differences.
+    assert len(changed['fields'])==changed['compared'] and [f['field'] for f in changed['fields'][:2]]==['bureau','dun']
+    assert [f for f in changed['fields'] if not f['match']]==changed['mismatches']
+    assert {'field':'palaces.1.earth_stem','ours':generated['palaces'][0]['earth_stem'],'reference':'X','match':False} in changed['fields']
     with TestClient(app) as client:
         r=client.post('/api/qimen-reference-audit',json=body)
     assert r.status_code==200 and r.json()==call_tool('qimen_reference_audit',body)

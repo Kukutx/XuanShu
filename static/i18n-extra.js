@@ -834,6 +834,10 @@ const UI_EXTRA = {
 "1 to 31 days · computed in China Standard Time",
 "1〜31日 · 中国標準時で計算"
 ],
+"一致": [
+"Match",
+"一致"
+],
 "一致 ": [
 "Match ",
 "一致 "
@@ -885,6 +889,10 @@ const UI_EXTRA = {
 "三会方": [
 "seasonal trio",
 "三会方"
+],
+"三元": [
+"Yuan",
+"三元"
 ],
 "三十": [
 "Day 30",
@@ -1054,6 +1062,10 @@ const UI_EXTRA = {
 "Unchanged",
 "変化なし"
 ],
+"不同": [
+"Differs",
+"相違"
+],
 "不同 ": [
 "Differ ",
 "不一致 "
@@ -1073,6 +1085,10 @@ const UI_EXTRA = {
 "不同紫微流派会怎样处理同一张命盘？": [
 "How would different Zi Wei schools handle the same chart?",
 "異なる紫微流派は同じ命盤をどう扱うか？"
+],
+"不寄此": [
+"Not lodged here",
+"寄宮しない"
 ],
 "不对日期好坏打分": [
 "Dates are not scored as good or bad",
@@ -1101,6 +1117,10 @@ const UI_EXTRA = {
 "不知道出生时辰": [
 "I don't know the birth hour",
 "出生時辰が分からない"
+],
+"不空": [
+"Not void",
+"空亡でない"
 ],
 "不附带出生信息": [
 "Birth details not included",
@@ -1286,6 +1306,10 @@ const UI_EXTRA = {
 "Center palace lodging",
 "中宮寄宮"
 ],
+"中宫寄此": [
+"Center lodged here",
+"中宮がここに寄宮"
+],
 "临官": [
 "Lin Guan (Prosperity)",
 "臨官"
@@ -1350,6 +1374,10 @@ const UI_EXTRA = {
 "The nine palaces and stars/doors/deities are only traditional cultural labels with no scientifically proven predictive power; no auspiciousness judgments or real-world timing advice are provided.",
 "九宮と星・門・神は伝統文化のラベルにすぎず、科学的に証明された予測力はありません。吉凶や現実の時期選定の助言は提供しません。"
 ],
+"九宫是玄枢按同一时刻排出的盘；你填过的项目标出「一致」或参考盘的写法，没填的项目只作对照，不计入结果。": [
+"The nine palaces are XuanShu's chart for the same moment; each field you filled in is marked Match or shows how the reference writes it. Fields you left empty are shown for comparison only and do not count.",
+"九宮は同じ時刻で玄枢が立てた盤です。入力した項目には「一致」または参照盤の値を示し、未入力の項目は参考表示のみで結果に含めません。"
+],
 "九星": [
 "Star",
 "九星"
@@ -1369,6 +1397,10 @@ const UI_EXTRA = {
 "也请对照这一年的大运流年：": [
 "Please also compare the luck and annual pillars of this year: ",
 "この年の大運・流年もあわせて見てください："
+],
+"书名与页码、软件与版本或公开链接": [
+"Book and page, software and version, or a public link",
+"書名とページ、ソフトとバージョン、または公開リンク"
 ],
 "乾": [
 "Qian",
@@ -1922,6 +1954,18 @@ const UI_EXTRA = {
 "Duty door ",
 "値使 "
 ],
+"值使原始落宫": [
+"Duty door original palace",
+"値使の元の落宮"
+],
+"值使宫": [
+"Duty door palace",
+"値使の宮"
+],
+"值使门": [
+"Duty door",
+"値使門"
+],
 "值使门及宫位": [
 "Zhi Shi (chief door) and palace",
 "値使門と宮位"
@@ -1937,6 +1981,18 @@ const UI_EXTRA = {
 "值符": [
 "Zhi Fu",
 "値符"
+],
+"值符原宫": [
+"Zhi Fu original palace",
+"値符の元の宮"
+],
+"值符宫": [
+"Zhi Fu palace",
+"値符の宮"
+],
+"值符星": [
+"Zhi Fu star",
+"値符星"
 ],
 "值符星及宫位": [
 "Zhi Fu (chief star) and palace",
@@ -1977,6 +2033,10 @@ const UI_EXTRA = {
 "先在左侧「本机档案」保存并选择一个档案。每个档案的记忆、人生事件和对话彼此独立，只保存在这个浏览器。": [
 "First save and select a profile under 'Local profiles' at left. Each profile's memory, life events and chats are independent and stored only in this browser.",
 "まず左側の「ローカルプロフィール」でプロフィールを保存して選択してください。各プロフィールの記憶・人生の出来事・対話は互いに独立し、このブラウザにのみ保存されます。"
+],
+"先在盘面上选至少一项": [
+"Choose at least one field on the chart first",
+"まず盤面で少なくとも1項目を選んでください"
 ],
 "先填写档案标签": [
 "Enter a profile label first",
@@ -2810,6 +2870,10 @@ const UI_EXTRA = {
 "Rob Wealth (Jie Cai)",
 "劫財"
 ],
+"包含 reference_source、reference_school、root_fields 和 palaces，每个宫写 number=1…9 和要对照的字段；填入后可在上面的表单里检查。": [
+"Include reference_source, reference_school, root_fields and palaces; each palace has number=1…9 and the fields to compare. After filling, check the form above.",
+"reference_source、reference_school、root_fields、palaces を含め、各宮は number=1…9 と比較する項目を書きます。入力後は上のフォームで確認できます。"
+],
 "化": [
 "Hua",
 "化"
@@ -3022,6 +3086,10 @@ const UI_EXTRA = {
 "The card is made on this device and is not uploaded. It shows the names, the four pillars and the traditional labels, never birth dates, times or notes; the four pillars themselves still roughly reveal a birth date.",
 "カードはこの端末で作成され、アップロードされません。描くのは呼び名、四柱、伝統的なラベルだけで、生年月日・時刻・メモは描きません。ただし四柱から生年月日はおおよそ逆算できます。"
 ],
+"卦": [
+"Trigram",
+"卦"
+],
 "卯时": [
 "Mao hour",
 "卯の刻"
@@ -3078,6 +3146,10 @@ const UI_EXTRA = {
 "Parameter validation failed:",
 "パラメータ検証に失敗："
 ],
+"参考": [
+"Reference",
+"参照"
+],
 "参考库": [
 "Reference",
 "参照ライブラリ"
@@ -3090,6 +3162,10 @@ const UI_EXTRA = {
 "Reference documents only support the method description and do not mean that XuanShu's chart-by-chart algorithm has passed independent certification.",
 "参考文書は方法の記述を裏付けるのみで、XuanShu の命盤ごとのアルゴリズムが独立した認証を通過したことを意味しません。"
 ],
+"参考来源": [
+"Reference source",
+"参照元"
+],
 "参考来源与适用范围": [
 "References and scope",
 "参考出典と適用範囲"
@@ -3097,6 +3173,26 @@ const UI_EXTRA = {
 "参考来源由用户提供，工具不自动认证该来源的权威性。": [
 "Reference sources are provided by the user; the tool does not automatically certify the authority of the source.",
 "参考出典はユーザーが提供したものであり、ツールはその出典の権威性を自動的に認証しません。"
+],
+"参考流派": [
+"Reference school",
+"参照流派"
+],
+"参考盘": [
+"Reference",
+"参照盤"
+],
+"参考盘的来源": [
+"Where the reference comes from",
+"参照盤の出典"
+],
+"参考盘的盘面": [
+"The reference chart",
+"参照盤の盤面"
+],
+"参考盘的遁局与玄枢不同：地盘干按局数排布，天盘、星、门、神也随之而定，下面各宫的差异多半由此而来。先核对参考盘的定局方法（如拆补、置闰）和所用节气时刻。": [
+"The reference has a different dun or bureau from XuanShu. The earth stems are laid out by the bureau and the heaven stems, stars, doors and deities follow from it, so most of the palace differences below likely come from this. First check the reference's bureau method (such as Chai Bu or Zhi Run) and the solar-term times it uses.",
+"参照盤の遁と局が玄枢と異なります。地盤干は局数で並び、天盤・星・門・神もそれに従うため、下の各宮の差異の多くはここから来ます。まず参照盤の局の定め方（拆補・置閏など）と使った節気時刻を確かめてください。"
 ],
 "及另": [
 "and another",
@@ -3165,6 +3261,10 @@ const UI_EXTRA = {
 "另有未补齐输入": [
 "Other inputs still missing",
 "他にも未入力の項目あり"
+],
+"另有来自 JSON 的字段": [
+"Also from JSON",
+"JSON からの他の項目"
 ],
 "只依据年柱、月柱、日柱等不随时辰变化的内容，需要时请用户补充时辰或几件确定发生过的大事。": [
 "rely only on what does not change with the hour, such as the year, month and day pillars, and when needed ask the user for the hour or a few events that certainly happened.",
@@ -3235,8 +3335,8 @@ const UI_EXTRA = {
 "認識できた項目だけを照合します。認識されなかった項目が一致しているとは限りません。"
 ],
 "只比较用户提供的字段，不把缺失字段计入通过": [
-"Compares only user-provided fields; missing fields do not count as passing",
-"ユーザー提供のフィールドのみ比較し、欠落フィールドは合格に数えない"
+"Only the fields you provide are compared; missing fields never count as a match",
+"入力した項目だけを比較し、欠けている項目は一致に数えません"
 ],
 "只看结果不同的方案": [
 "Only rules that change the result",
@@ -3837,6 +3937,10 @@ const UI_EXTRA = {
 "填入当前命盘的四柱": [
 "Use the current chart's pillars",
 "現在の命盤の四柱を入れる"
+],
+"填入表单": [
+"Fill the form",
+"フォームに入力"
 ],
 "填写出生地经度后，计算钟表时间、地方平太阳时、真太阳时的四柱与命身宫差异。": [
 "After entering the birthplace longitude, computes the differences in Four Pillars and Life/Body Palaces between clock time, local mean solar time and true solar time.",
@@ -4518,6 +4622,10 @@ const UI_EXTRA = {
 "Palace ",
 "宮 "
 ],
+"宫位 number 需为 1…9": [
+"Palace number must be 1…9",
+"宮の number は 1…9 にしてください"
+],
 "宫位主星：每行一个宫名，后接该宫主星，例如「夫妻宫：天机 太阴」；空宫写「空宫」；星名后紧跟庙旺得利平不陷时一并核对亮度，如「紫微庙」「七杀（平）」": [
 "Palace stars: one palace name per line followed by its major stars, e.g. \"夫妻宫：天机 太阴\"; write \"空宫\" for an empty palace; a grade 庙旺得利平不陷 right after a star name is checked too, e.g. \"紫微庙\" or \"七杀（平）\"",
 "宮の主星：1 行に宮名 1 つと主星。例「夫妻宫：天机 太阴」。空宮は「空宫」。星名の直後に廟旺得利平不陥があれば明るさも照合します。例「紫微庙」「七杀（平）」"
@@ -4698,6 +4806,10 @@ const UI_EXTRA = {
 "Jiang Xing",
 "将星"
 ],
+"将比较 ": [
+"Will compare ",
+"比較する項目 "
+],
 "将运行": [
 "Will run",
 "実行予定"
@@ -4765,6 +4877,10 @@ const UI_EXTRA = {
 "局 值符": [
 " bureau, Zhi Fu ",
 "局 値符"
+],
+"局数": [
+"Bureau",
+"局数"
 ],
 "局数、时柱与值符、值使；点时辰起该时辰的盘": [
 "Bureau, hour pillar, duty star and duty door; click an hour to cast it",
@@ -5766,6 +5882,10 @@ const UI_EXTRA = {
 "Extract BaZi and Zi Wei structural evidence via rule chains",
 "規則チェーンにより八字・紫微の構造的根拠を抽出"
 ],
+"按这个时区的钟表时间起局。参考盘若把 23:00 以后算作次日，勾选「23:00 换日」。": [
+"Cast with the clock time in this time zone. If the reference counts times after 23:00 as the next day, tick Day turns at 23:00.",
+"このタイムゾーンの時計時刻で局を立てます。参照盤が 23:00 以降を翌日とする場合は「23:00 で日替わり」にチェックしてください。"
+],
 "换一个时间再排一盘对比一下": [
 "Cast another chart at a different time to compare",
 "別の時刻でもう一度盤を作って比べる"
@@ -5970,6 +6090,10 @@ const UI_EXTRA = {
 "New profile memory",
 "新しいプロファイル記憶"
 ],
+"方位": [
+"Direction",
+"方位"
+],
 "方向": [
 "Direction",
 "方向"
@@ -6037,6 +6161,10 @@ const UI_EXTRA = {
 "无标记": [
 "No labels",
 "ラベルなし"
+],
+"无法填入：": [
+"Could not fill: ",
+"入力できません："
 ],
 "无法自动复制，请手动选中上面的配置文本": [
 "Unable to copy automatically; please manually select the config text above",
@@ -6234,9 +6362,17 @@ const UI_EXTRA = {
 "Void: the two branches left over by each ten-pillar decade; branches inside the day pillar's or year pillar's void are marked",
 "旬空：各旬の十干支に入らない二支。日柱・年柱の旬空に入る地支を表示"
 ],
+"旬首": [
+"Xun head",
+"旬首"
+],
 "旬首 / 六仪": [
 "Xun leader / Six Yi",
 "旬首 / 六儀"
+],
+"旬首六仪": [
+"Xun head instrument",
+"旬首の六儀"
 ],
 "时 ": [
 "Hour ",
@@ -6918,6 +7054,10 @@ const UI_EXTRA = {
 "No gender set, so no luck pillar",
 "性別未入力のため大運なし"
 ],
+"未对照": [
+"Not compared",
+"未比較"
+],
 "未扫描": [
 "Not scanned",
 "未スキャン"
@@ -7210,6 +7350,10 @@ const UI_EXTRA = {
 "Check boundary instants and calendar/time zone ambiguities",
 "境界時刻と暦法・タイムゾーンの曖昧さを確認"
 ],
+"核对哪个时刻": [
+"Which moment to check",
+"どの時刻を確かめるか"
+],
 "核对失败：": [
 "Check failed: ",
 "照合失敗："
@@ -7257,6 +7401,10 @@ const UI_EXTRA = {
 "核验由另一次独立的模型调用完成，只对照本轮工具结果，同样可能出错；排盘置信度只反映出生时间误差的影响。": [
 "Verification is performed by a separate, independent model call that checks only against this round's tool results and can also be wrong; chart confidence reflects only the effect of birth-time error.",
 "検証は別の独立したモデル呼び出しで行い、今回のツール結果とのみ照合するため、同様に誤る可能性があります。命盤の信頼度は出生時刻の誤差の影響のみを反映します。"
+],
+"核验结果": [
+"Verification result",
+"検証結果"
 ],
 "核验结果格式不符合要求": [
 "The verification result format does not meet requirements",
@@ -7381,6 +7529,10 @@ const UI_EXTRA = {
 "正在查询…": [
 "Looking up…",
 "照会しています…"
+],
+"正在核验…": [
+"Verifying…",
+"検証中…"
 ],
 "正在比对…": [
 "Comparing…",
@@ -7902,6 +8054,10 @@ const UI_EXTRA = {
 "Clear this conversation? If this profile saves conversations locally, the saved copy is deleted too.",
 "現在の会話を消去しますか？このプロファイルでローカル保存が有効なら、保存済みの会話も削除されます。"
 ],
+"清空盘面": [
+"Clear the chart",
+"盤面をクリア"
+],
 "温哥华": [
 "Vancouver",
 "バンクーバー"
@@ -7985,6 +8141,10 @@ const UI_EXTRA = {
 "照亮": [
 "Lit",
 "輝面"
+],
+"照参考盘逐项选择，看不清或参考盘没有的项目留「—」，不参与比较。": [
+"Choose each field as the reference shows it. Leave fields you cannot read or the reference lacks at —; they are not compared.",
+"参照盤のとおりに項目を選び、読めない項目や参照盤にない項目は「—」のままにします。比較には含めません。"
 ],
 "父母": [
 "Parents",
@@ -8194,6 +8354,10 @@ const UI_EXTRA = {
 "Life Door (Sheng)",
 "生門"
 ],
+"用 JSON 填写": [
+"Fill in with JSON",
+"JSON で入力"
+],
 "用当前出生资料生成命盘": [
 "Generate the chart from the current birth details",
 "現在の出生情報で命盤を作成"
@@ -8353,6 +8517,10 @@ const UI_EXTRA = {
 "盈凸月": [
 "Waxing gibbous",
 "十三夜月（満ちていく凸月）"
+],
+"盘面字段": [
+"Chart fields",
+"盤面の項目"
 ],
 "目前有并列首位，只列去掉各指标后的首位，不算权重临界点。": [
 "The lead is shared, so only the leader without each criterion is listed; no weight thresholds are worked out.",
@@ -9158,6 +9326,10 @@ const UI_EXTRA = {
 "Completes",
 "補成"
 ],
+"表单已改动，下面仍是上次核验的结果。": [
+"The form has changed; the result below is still from the last verification.",
+"フォームが変更されました。下は前回の検証結果のままです。"
+],
 "表头写评价维度和权重（大于零），每行一个方案，格子里填 0–5 的评分。": [
 "The header holds the criteria and their weights (above zero); each row is an option, rated 0–5 in each cell.",
 "見出しに評価軸と重み（0 より大きい値）を書き、各行が一つの案、マスに 0–5 の評点を入れます。"
@@ -9850,6 +10022,14 @@ const UI_EXTRA = {
 "No memory yet. Content suggested by the AI or background you add manually will appear here and be sent to the model with each question.",
 "まだ記憶はありません。AI が提案した内容や手動で追加した背景がここに表示され、質問のたびにモデルへ送信されます。"
 ],
+"还需填写参考来源（至少 4 个字）": [
+"Still needs a reference source (at least 4 characters)",
+"参照元の入力が必要です（4 文字以上）"
+],
+"还需填写参考流派": [
+"Still needs a reference school",
+"参照流派の入力が必要です"
+],
 "这一天没有可用的钟表时间": [
 "No usable clock time on this day",
 "この日には使える時計の時刻がありません"
@@ -10214,6 +10394,10 @@ const UI_EXTRA = {
 "Yin Dun",
 "陰遁"
 ],
+"阴阳遁": [
+"Yin/Yang Dun",
+"陰陽遁"
+],
 "阿姆斯特丹": [
 "Amsterdam",
 "アムステルダム"
@@ -10249,6 +10433,10 @@ const UI_EXTRA = {
 "需手动改时间": [
 "Edit the time by hand",
 "時刻を手動で修正"
+],
+"需要一个 JSON 对象": [
+"A JSON object is needed",
+"JSON オブジェクトが必要です"
 ],
 "需要出生公历时间、出生地时区与所选排盘口径；不在后台猜测或恢复出生资料": [
 "Requires the Gregorian birth time, the birthplace time zone, and the selected charting convention; birth data is not guessed or recovered in the background",

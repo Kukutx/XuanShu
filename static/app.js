@@ -414,27 +414,247 @@ function renderProfessionalZiwei() {
   append(result,'pre','json-code',JSON.stringify(professionalResult,null,2));
   professionalResult.notes.forEach(x=>note(result,x));
 }
+// The reference chart is entered the way it looks: the root fields, then the nine palaces in board order with a select
+// per field. Only filled fields are sent and compared; JSON stays available for pasting. The result lays XuanShu's own
+// chart for the same moment over the same board and marks every compared field as matching or not.
+const QA_STARS = ['天蓬', '天任', '天冲', '天辅', '天英', '天芮', '天柱', '天心', '天禽'];
+const QA_DOORS = ['休门', '生门', '伤门', '杜门', '景门', '死门', '惊门', '开门'];
+const QA_DEITIES = ['值符', '腾蛇', '太阴', '六合', '白虎', '玄武', '九地', '九天'];
+const QA_STEMS = [...'戊己庚辛壬癸丁丙乙'];
+const QA_NUMBERS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+const QA_TERMS = ['小寒', '大寒', '立春', '雨水', '惊蛰', '春分', '清明', '谷雨', '立夏', '小满', '芒种', '夏至',
+  '小暑', '大暑', '立秋', '处暑', '白露', '秋分', '寒露', '霜降', '立冬', '小雪', '大雪', '冬至'];
+const QA_ROOT = [['solar_term', '节气', QA_TERMS], ['dun', '阴阳遁', ['阳遁', '阴遁']], ['bureau', '局数', QA_NUMBERS],
+  ['yuan', '三元', ['上元', '中元', '下元']], ['day_pillar', '日柱', 'jiazi'], ['hour_pillar', '时柱', 'jiazi'],
+  ['xun_head', '旬首', ['甲子', '甲戌', '甲申', '甲午', '甲辰', '甲寅']], ['xun_instrument', '旬首六仪', [...'戊己庚辛壬癸']],
+  ['zhi_fu_star', '值符星', QA_STARS], ['zhi_fu_palace', '值符宫', QA_NUMBERS],
+  ['zhi_shi_door', '值使门', QA_DOORS], ['zhi_shi_palace', '值使宫', QA_NUMBERS]];
+// The board shows deity, star and door beside the heaven, hidden and earth stems, as on the Qimen page.
+const QA_CELL = [['deity', '八神', QA_DEITIES], ['heaven_stem', '天干', QA_STEMS], ['star', '九星', QA_STARS],
+  ['dark_stem', '暗干', QA_STEMS], ['door', '八门', QA_DOORS], ['earth_stem', '地干', QA_STEMS], ['void', '空亡', [['true', '空亡'], ['false', '不空']]]];
+// Fields the form has no select for are kept from pasted JSON and still compared.
+const QA_LABELS = {zhi_fu_origin: '值符原宫', zhi_shi_raw_palace: '值使原始落宫', trigram: '卦', direction: '方位', center_lodged_here: '中宫寄宫',
+  ...Object.fromEntries([...QA_ROOT, ...QA_CELL].map(([key, label]) => [key, label]))};
+const QA_INT = new Set(['bureau', 'zhi_fu_palace', 'zhi_shi_palace', 'zhi_fu_origin', 'zhi_shi_raw_palace']);
+const QA_BOOL = new Set(['void', 'center_lodged_here']);
+const QA_BOARD = {1: ['坎', '北'], 2: ['坤', '西南'], 3: ['震', '东'], 4: ['巽', '东南'], 5: ['中', '中'], 6: ['乾', '西北'], 7: ['兑', '西'], 8: ['艮', '东北'], 9: ['离', '南']};
+const QA_BOOL_TEXT = {void: ['空亡', '不空'], center_lodged_here: ['中宫寄此', '不寄此']};
+// Palace number, trigram and direction; the direction is its own text node so a one-character direction is translated whole.
+function qaPalaceName(parent, n, trigram, direction) {
+  texts(parent, n + ' · ' + trigram + '宫');
+  if (n !== 5) texts(parent, ' · ', direction);
+  return parent;
+}
+const qaValueText = (key, value) => value === null || value === undefined ? '—'
+  : QA_BOOL.has(key) ? QA_BOOL_TEXT[key][value === true || value === 'true' ? 0 : 1] : String(value);
+let qimenAuditDraft = null, referenceAuditChart = null, referenceAuditSent = null;
+function qimenAuditMoment(d) {
+  const base = readInput();
+  if (d.mode === 'birth') return base;
+  return {...base, birth_datetime: d.custom, timezone: d.zone, time_mode: 'clock', longitude: null, late_zi_day_rollover: d.lateZi};
+}
+// Draft values are the select strings; integers and yes/no fields are converted only for the request.
+function qimenAuditPayload(d) {
+  const cast = (key, value) => QA_INT.has(key) ? Number(value) : QA_BOOL.has(key) ? value === 'true' : value;
+  const root = Object.fromEntries(Object.entries(d.root).filter(([, v]) => v !== '').map(([k, v]) => [k, cast(k, v)]));
+  const palaces = Object.keys(d.palaces).map(Number).sort((a, b) => a - b).map(number =>
+    ({number, ...Object.fromEntries(Object.entries(d.palaces[number]).filter(([, v]) => v !== '').map(([k, v]) => [k, cast(k, v)]))}))
+    .filter(p => Object.keys(p).length > 1);
+  return {moment: qimenAuditMoment(d), reference_source: d.source.trim(), reference_school: d.school.trim(), root_fields: root, palaces};
+}
+const qimenAuditCount = p => Object.keys(p.root_fields).length + p.palaces.reduce((n, x) => n + Object.keys(x).length - 1, 0);
+function qaSelect(parent, id, label, options, value, onChange, cls) {
+  const box = append(parent, 'label', cls || 'qr-field');
+  append(box, 'span', 'qr-label', label);
+  const select = append(box, 'select'); select.id = id;
+  append(select, 'option', null, '—').value = '';
+  if (options === 'jiazi') jiaziOptions(select);
+  else options.forEach(x => {const [value, text] = Array.isArray(x) ? x : [x, x]; append(select, 'option', null, text).value = value;});
+  select.value = value || '';
+  select.addEventListener('change', () => {onChange(select.value); box.classList.toggle('is-set', select.value !== '');});
+  box.classList.toggle('is-set', select.value !== '');
+  return select;
+}
 function renderQimenAudit() {
-  title(result,'奇门外部参考盘逐宫核验','只比较用户提供的字段，不把缺失字段计入通过');
-  note(result,'把独立排盘结果整理为 JSON，包含 reference_source、reference_school、root_fields 和 palaces。每个宫使用 number=1…9；其余只填写需要对照的字段。');
-  const field=append(result,'textarea','json-code');field.id='qimen-audit-input';field.rows=8;
-  field.placeholder=JSON.stringify({reference_source:'公开参考盘链接',reference_school:'时家拆补转盘',root_fields:{bureau:3},palaces:[{number:1,star:'天蓬'}]},null,2);
-  const run=append(result,'button','tiny-button','核验参考盘');run.id='qimen-audit-run';run.type='button';
-  const message=append(result,'p','inline-msg');
-  run.addEventListener('click',async()=>{
-    run.disabled=true;
-    try {
-      const ref=JSON.parse(field.value);
-      referenceAuditResult=await postJSON('/api/qimen-reference-audit',{moment:readInput(),...ref});
-      render();
-    } catch(e){message.textContent='核验失败：'+e.message;}
-    finally{run.disabled=false;}
+  if (!qimenAuditDraft) {
+    const inp = readInput();
+    qimenAuditDraft = {mode: 'custom', custom: localMinute(), zone: browserZone() || inp.timezone, lateZi: !!inp.late_zi_day_rollover,
+      source: '', school: '时家拆补转盘', root: {}, palaces: {}};
+  }
+  const d = qimenAuditDraft;
+  title(result, '奇门外部参考盘逐宫核验', '只比较用户提供的字段，不把缺失字段计入通过');
+  const setup = append(result, 'div', 'qr-setup');
+  // 1. The moment: a chosen clock time in a zone (the usual case for a chart from elsewhere) or the birth moment.
+  const when = append(setup, 'section', 'qr-step'); append(when, 'h3', 'qr-step-head', '核对哪个时刻');
+  const row = append(when, 'div', 'inline-control');
+  const mode = append(append(row, 'label', null, '起局时刻'), 'select'); mode.id = 'qimen-audit-mode';
+  [['custom', '指定时间'], ['birth', '出生时间']].forEach(([value, text]) => {append(mode, 'option', null, text).value = value;});
+  mode.value = d.mode;
+  mode.addEventListener('change', () => {d.mode = mode.value; setTimeout(render);});
+  if (d.mode === 'custom') {
+    const at = createInput('日期与时间', 'datetime-local', d.custom, row); at.id = 'qimen-audit-when';
+    at.addEventListener('input', () => {d.custom = at.value; refreshCount();});
+    const zone = append(append(row, 'label', null, '时区'), 'select'); zone.id = 'qimen-audit-zone';
+    [...$('#timezone').options].forEach(opt => {append(zone, 'option', null, opt.textContent).value = opt.value;});
+    if (![...zone.options].some(o => o.value === d.zone)) append(zone, 'option', null, d.zone).value = d.zone;
+    zone.value = d.zone; zone.addEventListener('change', () => {d.zone = zone.value; refreshCount();});
+    const lateLine = append(row, 'label', 'check-line'); const late = append(lateLine, 'input'); late.type = 'checkbox'; late.id = 'qimen-audit-late-zi';
+    late.checked = d.lateZi; lateLine.append(' 23:00 换日'); late.addEventListener('change', () => {d.lateZi = late.checked; refreshCount();});
+    append(when, 'small', 'field-help', '按这个时区的钟表时间起局。参考盘若把 23:00 以后算作次日，勾选「23:00 换日」。');
+  } else {
+    append(when, 'small', 'field-help', '沿用出生资料里的时区、真太阳时和换日规则。');
+    if ($('#hour_unknown').checked) append(when, 'p', 'inline-msg', '出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。');
+  }
+  // 2. Where the reference came from: the request needs a citation and the school it claims.
+  const from = append(setup, 'section', 'qr-step'); append(from, 'h3', 'qr-step-head', '参考盘的来源');
+  const fromRow = append(from, 'div', 'inline-control qr-source');
+  const source = createInput('参考来源', 'text', d.source, fromRow); source.id = 'qimen-audit-source'; source.maxLength = 512;
+  source.placeholder = '书名与页码、软件与版本或公开链接'; source.addEventListener('input', () => {d.source = source.value; refreshCount();});
+  const school = createInput('参考流派', 'text', d.school, fromRow); school.id = 'qimen-audit-school'; school.maxLength = 120;
+  school.addEventListener('input', () => {d.school = school.value; refreshCount();});
+  // 3. The chart itself: root fields, then the palaces in board order (4 9 2 / 3 5 7 / 8 1 6).
+  const plate = append(setup, 'section', 'qr-step'); append(plate, 'h3', 'qr-step-head', '参考盘的盘面');
+  append(plate, 'small', 'field-help', '照参考盘逐项选择，看不清或参考盘没有的项目留「—」，不参与比较。');
+  const root = append(plate, 'div', 'qr-root'); root.id = 'qimen-audit-root-form';
+  QA_ROOT.forEach(([key, label, options]) => qaSelect(root, 'qimen-ref-' + key, label, options, d.root[key], v => {d.root[key] = v; refreshCount();}));
+  const extraRoot = Object.keys(d.root).filter(k => !QA_ROOT.some(([key]) => key === k) && d.root[k] !== '');
+  if (extraRoot.length) {
+    const box = texts(append(plate, 'p', 'field-help qr-extra-root'), '另有来自 JSON 的字段', '：');
+    extraRoot.forEach((k, i) => texts(box, i ? '、' : '', QA_LABELS[k] || k, ' ', d.root[k]));
+  }
+  const board = append(plate, 'div', 'qr-board'); board.id = 'qimen-audit-board-form';
+  [4, 9, 2, 3, 5, 7, 8, 1, 6].forEach(n => {
+    const cell = append(board, 'fieldset', 'qr-cell' + (n === 5 ? ' center' : ''));
+    qaPalaceName(append(cell, 'legend', 'qr-cell-head'), n, ...QA_BOARD[n]);
+    const fields = d.palaces[n] || (d.palaces[n] = {});
+    const mark = () => cell.classList.toggle('is-filled', Object.values(fields).some(v => v !== ''));
+    const grid = append(cell, 'div', 'qr-fields');
+    QA_CELL.filter(([key]) => n !== 5 || !['deity', 'door'].includes(key)).forEach(([key, label, options]) =>
+      qaSelect(grid, `qimen-ref-${n}-${key}`, label, options, fields[key], v => {fields[key] = v; refreshCount(); mark();}));
+    const extra = Object.keys(fields).filter(k => !QA_CELL.some(([key]) => key === k) && fields[k] !== '');
+    if (extra.length) {const box = append(cell, 'small', 'qr-extra'); extra.forEach((k, i) => texts(box, i ? '、' : '', QA_LABELS[k] || k, ' ', qaValueText(k, fields[k])));}
+    mark();
   });
-  if(!referenceAuditResult)return;
-  const a=referenceAuditResult;
-  meta(result,[`${a.matching}/${a.compared} 字段一致`, a.matches?'全部提供字段一致':'存在差异',a.reference_school]);
-  if(a.mismatches.length)append(result,'pre','json-code',JSON.stringify(a.mismatches,null,2));
-  a.notes.forEach(x=>note(result,x));
+  // JSON for pasting a reference written elsewhere; it fills the form rather than bypassing it.
+  const json = append(setup, 'details', 'qr-json'); json.id = 'qimen-audit-json';
+  append(json, 'summary', null, '用 JSON 填写');
+  append(json, 'p', 'field-help', '包含 reference_source、reference_school、root_fields 和 palaces，每个宫写 number=1…9 和要对照的字段；填入后可在上面的表单里检查。');
+  // The example is data to copy, so its values stay as written in every interface language.
+  const field = append(json, 'textarea', 'json-code'); field.id = 'qimen-audit-input'; field.rows = 8; field.dataset.noI18n = '';
+  field.placeholder = JSON.stringify({reference_source: '公开参考盘链接', reference_school: '时家拆补转盘', root_fields: {bureau: 3}, palaces: [{number: 1, star: '天蓬'}]}, null, 2);
+  const load = append(json, 'button', 'tiny-button', '填入表单'); load.id = 'qimen-audit-load'; load.type = 'button';
+  const loadMsg = append(json, 'p', 'inline-msg');
+  load.addEventListener('click', () => {
+    try {
+      const ref = JSON.parse(field.value);
+      if (!ref || typeof ref !== 'object' || Array.isArray(ref)) throw new Error('需要一个 JSON 对象');
+      const asText = (k, v) => QA_BOOL.has(k) ? String(!!v) : String(v);
+      const next = {...d, root: {}, palaces: {}};
+      if (typeof ref.reference_source === 'string') next.source = ref.reference_source;
+      if (typeof ref.reference_school === 'string') next.school = ref.reference_school;
+      Object.entries(ref.root_fields || {}).forEach(([k, v]) => {if (v !== null && v !== undefined) next.root[k] = asText(k, v);});
+      (ref.palaces || []).forEach(p => {
+        const n = Number(p && p.number);
+        if (!(n >= 1 && n <= 9)) throw new Error('宫位 number 需为 1…9');
+        next.palaces[n] = Object.fromEntries(Object.entries(p).filter(([k, v]) => k !== 'number' && v !== null && v !== undefined).map(([k, v]) => [k, asText(k, v)]));
+      });
+      qimenAuditDraft = next; setTimeout(render);
+    } catch (e) {loadMsg.textContent = '无法填入：' + e.message;}
+  });
+  const runRow = append(setup, 'div', 'qr-run');
+  const run = append(runRow, 'button', 'scan-run', '核验参考盘'); run.id = 'qimen-audit-run'; run.type = 'button';
+  const count = append(runRow, 'span', 'qr-count'); count.id = 'qimen-audit-count'; count.setAttribute('aria-live', 'polite');
+  const clearAll = append(runRow, 'button', 'tiny-button', '清空盘面'); clearAll.id = 'qimen-audit-clear'; clearAll.type = 'button';
+  clearAll.addEventListener('click', () => {d.root = {}; d.palaces = {}; setTimeout(render);});
+  const message = append(result, 'p', 'inline-msg');
+  // The button says what is still missing instead of failing on the server; a result from other inputs says so.
+  function refreshCount() {
+    const payload = qimenAuditPayload(d), n = qimenAuditCount(payload), stale = $('#qimen-audit-stale');
+    if (stale) stale.hidden = referenceAuditSent === JSON.stringify(payload);
+    const missing = !n ? '先在盘面上选至少一项' : d.source.trim().length < 4 ? '还需填写参考来源（至少 4 个字）' : d.school.trim().length < 2 ? '还需填写参考流派' : '';
+    count.textContent = '';
+    if (n) texts(count, '将比较 ', n, ' 项');
+    if (missing) append(count, 'span', 'qr-missing', missing);
+    run.disabled = !!missing;
+    run.dataset.focusFallback = missing && n ? 'qimen-audit-source' : 'qimen-audit-mode';
+  }
+  refreshCount();
+  run.addEventListener('click', async () => {
+    const payload = qimenAuditPayload(d);
+    run.disabled = true; message.className = 'inline-msg progress'; message.textContent = '正在核验…';
+    try {
+      const [audit, chart] = await Promise.all([postJSON('/api/qimen-reference-audit', payload), postJSON('/api/qimen', {moment: payload.moment})]);
+      referenceAuditResult = audit; referenceAuditChart = chart; referenceAuditSent = JSON.stringify(payload);
+      render();
+      const out = $('#qimen-audit-result'); if (out) out.focus();
+    } catch (e) {message.className = 'inline-msg'; message.textContent = '核验失败：' + e.message; refreshCount();}
+  });
+  if (!referenceAuditResult) return;
+  renderQimenAuditResult(referenceAuditResult, referenceAuditChart);
+  refreshCount();
+}
+function renderQimenAuditResult(a, chart) {
+  const out = append(result, 'section', 'qr-result'); out.id = 'qimen-audit-result'; out.tabIndex = -1;
+  append(out, 'h3', 'subheading', '核验结果');
+  const stale = append(out, 'p', 'info-inline', '表单已改动，下面仍是上次核验的结果。'); stale.id = 'qimen-audit-stale'; stale.hidden = true;
+  const fields = a.fields || [];
+  const summary = append(out, 'div', 'qr-summary' + (a.matches ? ' is-ok' : ' is-diff'));
+  const big = append(summary, 'p', 'qr-big'); append(big, 'b', null, String(a.matching)); big.append(' / ' + a.compared);
+  append(summary, 'p', 'qr-verdict', a.matches ? '全部提供字段一致' : '存在差异');
+  const facts = append(summary, 'div', 'qr-facts');
+  const ref = texts(append(facts, 'p'), '参考盘', '：');
+  append(ref, 'span', null, a.reference_school + ' · ' + a.reference_source).dataset.noI18n = '';
+  texts(append(facts, 'p'), '玄枢', '：', a.local_school);
+  if (chart) texts(append(facts, 'p'), (chart.instant || '').replace('T', ' ').slice(0, 16), ' · ', chart.solar_term, ' · ', chart.dun + chart.bureau + '局', ' · ', chart.yuan);
+  const wrong = new Set(a.mismatches.map(x => x.field));
+  // The plate follows from the bureau: a different dun or bureau explains most palace differences that follow.
+  if (wrong.has('dun') || wrong.has('bureau'))
+    append(out, 'p', 'feature-note', '参考盘的遁局与玄枢不同：地盘干按局数排布，天盘、星、门、神也随之而定，下面各宫的差异多半由此而来。先核对参考盘的定局方法（如拆补、置闰）和所用节气时刻。');
+  const rootRows = fields.filter(x => !x.field.startsWith('palaces.'));
+  if (rootRows.length) {
+    const table = append(append(out, 'div', 'table-wrap'), 'table', 'data-table qr-root-table'); table.id = 'qimen-audit-root';
+    append(table, 'caption', 'visually-hidden', '盘面字段');
+    const hr = append(append(table, 'thead'), 'tr');
+    ['项目', '参考盘', '玄枢', '结果'].forEach(x => {const th = append(hr, 'th', null, x); th.scope = 'col';});
+    const body = append(table, 'tbody');
+    rootRows.forEach(x => {
+      const tr = append(body, 'tr', x.match ? 'is-ok' : 'is-diff');
+      const th = append(tr, 'th', null, QA_LABELS[x.field] || x.field); th.scope = 'row';
+      append(tr, 'td', null, qaValueText(x.field, x.reference)); append(tr, 'td', null, qaValueText(x.field, x.ours));
+      append(tr, 'td', 'qr-mark ' + (x.match ? 'is-ok' : 'is-diff'), x.match ? '一致' : '不同');
+    });
+  }
+  if (chart) {
+    const byPalace = {};
+    fields.filter(x => x.field.startsWith('palaces.')).forEach(x => {const [, n, key] = x.field.split('.'); (byPalace[n] = byPalace[n] || {})[key] = x;});
+    const board = append(out, 'div', 'qr-board qr-board-result'); board.id = 'qimen-audit-board';
+    [4, 9, 2, 3, 5, 7, 8, 1, 6].forEach(n => {
+      const p = chart.palaces.find(x => x.number === n), seen = byPalace[n] || {};
+      const rows = Object.values(seen), bad = rows.filter(x => !x.match).length;
+      const cell = append(board, 'div', 'qr-cell' + (n === 5 ? ' center' : '') + (rows.length ? (bad ? ' is-diff' : ' is-ok') : ' is-none'));
+      cell.id = 'qimen-audit-palace-' + n;
+      const head = append(cell, 'div', 'qr-cell-head'); qaPalaceName(append(head, 'span'), n, p.trigram, p.direction);
+      append(head, 'small', 'qr-cell-score', rows.length ? (bad ? '不同 ' + bad + ' / ' + rows.length : '一致 ' + rows.length + ' / ' + rows.length) : '未对照');
+      const list = append(cell, 'dl', 'qr-values');
+      QA_CELL.filter(([key]) => n !== 5 || !['deity', 'door'].includes(key)).forEach(([key, label]) => {
+        const x = seen[key], line = append(list, 'div', 'qr-value' + (x ? (x.match ? ' is-ok' : ' is-diff') : ''));
+        append(line, 'dt', null, label);
+        const dd = append(line, 'dd');
+        const ours = append(dd, 'span', 'qr-ours' + (key.endsWith('_stem') ? ' ' + stemClass(p[key]) : ''), key === 'void' ? (p.void ? '空亡' : '不空') : (p[key] || '—'));
+        if (key.endsWith('_stem')) ours.dataset.noI18n = '';
+        if (x && x.match) append(dd, 'span', 'qr-mark is-ok', '一致');
+        if (x && !x.match) texts(append(dd, 'span', 'qr-mark is-diff'), '参考', ' ', key === 'void' ? (x.reference ? '空亡' : '不空') : qaValueText(key, x.reference));
+      });
+      Object.values(seen).filter(x => !QA_CELL.some(([key]) => x.field.endsWith('.' + key))).forEach(x => {
+        const key = x.field.split('.').pop(), line = append(list, 'div', 'qr-value ' + (x.match ? 'is-ok' : 'is-diff'));
+        append(line, 'dt', null, QA_LABELS[key] || key);
+        const dd = append(line, 'dd'); append(dd, 'span', 'qr-ours', qaValueText(key, x.ours));
+        if (x.match) append(dd, 'span', 'qr-mark is-ok', '一致'); else texts(append(dd, 'span', 'qr-mark is-diff'), '参考', ' ', qaValueText(key, x.reference));
+      });
+    });
+    append(out, 'p', 'field-help', '九宫是玄枢按同一时刻排出的盘；你填过的项目标出「一致」或参考盘的写法，没填的项目只作对照，不计入结果。');
+  }
+  a.notes.forEach(x => note(out, x));
 }
 // Five phases → CSS class; the colours live in style.css for both themes.
 const ELEMENT_CLASS = {'木':'wood','火':'fire','土':'earth','金':'metal','水':'water'};
@@ -5811,7 +6031,7 @@ form.addEventListener('submit', async event => {
     // A pasted-chart check belongs to the chart it ran on, unless this cast is the one its rule or hour asked for.
     if (!importRecheck) {importResult = null; importBirth = null; importHourPick = null; importFocusAfter = false;}
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; timeRun = null; timeLongitude = ''; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
-    dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;qimenTicket++;professionalResult=null;referenceAuditResult=null;
+    dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;qimenTicket++;professionalResult=null;referenceAuditResult=null;referenceAuditChart=null;referenceAuditSent=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
     // A group reply still on its way belongs to the previous chart.
     ++groupYearTicket; groupYearPending = false; groupYearError = ''; groupRun = null; groupRunError = ''; luckYearTyped = {};

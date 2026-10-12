@@ -1390,6 +1390,66 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .rp-actions{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
 @media(max-width:860px){.rp-layout{grid-template-columns:1fr}.rp-toc{position:static;border-bottom:1px solid var(--border)}.rp-toc ol{display:flex;flex-wrap:wrap;gap:4px 18px;padding-left:0;list-style-position:inside}.rp-body{border-left:0}}
 @media(max-width:640px){.rp-head{grid-template-columns:1fr}.rp-pillar{min-width:0;flex:1}.rp-body{padding:12px}.rp-trace{padding:10px 12px}}
+/* Qimen reference audit: the reference entered as root fields and a nine-palace form, the result as XuanShu's board */
+.qr-setup{display:flex;flex-direction:column;gap:12px;margin:6px 0 4px}
+.qr-step{padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel)}
+.qr-step-head{margin:0 0 8px;font-size:14px;color:var(--text)}
+.qr-step .inline-control{margin-bottom:6px}
+.qr-source label{flex:1 1 240px}
+.qr-source input{width:100%}
+.qr-root{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin:10px 0 12px}
+.qr-field{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:12px;color:var(--text2)}
+.qr-field select{width:100%;min-width:0;min-height:34px;padding:5px 6px;border:1px solid var(--border-strong);border-radius:6px;background:var(--panel2);color:var(--text)}
+.qr-field.is-set .qr-label{color:var(--gold2);font-weight:600}
+.qr-field.is-set select{border-color:var(--gold);background:var(--accent-soft)}
+.qr-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qr-cell{min-width:0;margin:0;padding:6px 10px 10px;border:1px solid var(--border-strong);border-radius:10px;background:var(--panel2)}
+.qr-cell.center{background:var(--panel3)}
+.qr-cell.is-filled{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.qr-cell-head{padding:0 4px;font-size:12.5px;font-weight:600;color:var(--gold2)}
+.qr-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 8px}
+.qr-extra{display:block;margin-top:6px;font-size:11px;color:var(--muted)}
+.qr-json summary{cursor:pointer;font-size:13px;color:var(--text2)}
+.qr-json[open] summary{margin-bottom:6px}
+.qr-run{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.qr-run .scan-run{min-height:38px;padding:9px 16px;border:0;border-radius:6px;background:var(--gold);color:var(--on-gold);font-weight:600}
+.qr-run .scan-run:hover:not(:disabled){background:var(--gold2)}
+.qr-run .scan-run:disabled{opacity:.6;cursor:not-allowed}
+.qr-count{font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums}
+.qr-missing{margin-left:6px;color:var(--warn)}
+.qr-count .qr-missing:first-child{margin-left:0}
+.qr-result{margin-top:16px}
+.qr-result:focus{outline:none}
+.qr-summary{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 18px;align-items:center;margin:8px 0 12px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel);box-shadow:inset 3px 0 0 var(--green)}
+.qr-summary.is-diff{box-shadow:inset 3px 0 0 var(--red)}
+.qr-big{grid-row:span 2;margin:0;font-size:15px;color:var(--text2);font-variant-numeric:tabular-nums}
+.qr-big b{font-size:32px;line-height:1;color:var(--text)}
+.qr-verdict{margin:0;font-weight:600;color:var(--green)}
+.qr-summary.is-diff .qr-verdict{color:var(--red)}
+.qr-facts{grid-column:2;font-size:12.5px;color:var(--muted)}
+.qr-facts p{margin:2px 0;overflow-wrap:anywhere}
+.qr-mark{font-size:12px;white-space:nowrap}
+.qr-mark.is-ok{color:var(--green)}
+.qr-mark.is-ok::before{content:'✓ '}
+.qr-mark.is-diff{color:var(--red);font-weight:600}
+.qr-mark.is-diff::before{content:'✗ '}
+.qr-root-table tr.is-diff th{box-shadow:inset 3px 0 0 var(--red)}
+.qr-board-result{margin:12px 0 8px}
+.qr-board-result .qr-cell{display:flex;flex-direction:column;gap:6px;padding:8px 10px 10px}
+.qr-board-result .qr-cell.is-ok{border-color:var(--green)}
+.qr-board-result .qr-cell.is-diff{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.qr-board-result .qr-cell.is-none{border-style:dashed}
+.qr-board-result .qr-cell-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 6px;padding:0}
+.qr-cell-score{font-weight:400;color:var(--muted)}
+.qr-board-result .qr-cell.is-diff .qr-cell-score{color:var(--red);font-weight:600}
+.qr-values{display:grid;gap:3px;margin:0}
+.qr-value{display:grid;grid-template-columns:3.4em minmax(0,1fr);gap:6px;align-items:baseline;font-size:13px}
+html[lang="en"] .qr-value{grid-template-columns:6.6em minmax(0,1fr)}
+.qr-value dt{font-size:12px;color:var(--muted)}
+.qr-value dd{display:flex;flex-wrap:wrap;gap:0 8px;margin:0;color:var(--text)}
+.qr-value:not(.is-ok):not(.is-diff) .qr-ours{color:var(--text2)}
+@media(max-width:860px){.qr-fields{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:640px){.qr-step .inline-control>label:not(.check-line){flex:1 1 100%}.qr-step .inline-control input:not([type=checkbox]),.qr-step .inline-control select{width:100%}.qr-step{padding:10px}.qr-board{gap:4px}.qr-cell{padding:4px 6px 8px}.qr-field{font-size:11px}.qr-field select{padding-left:4px;padding-right:2px;font-size:13px}.qr-cell-head{font-size:11px;padding:0 2px}.qr-value{grid-template-columns:2.3em minmax(0,1fr);gap:4px}html[lang="en"] .qr-value{grid-template-columns:minmax(0,1fr);gap:0}.qr-value dt{font-size:10.5px}.qr-value dd{font-size:12.5px}.qr-board-result .qr-cell{padding:6px}.qr-summary{grid-template-columns:1fr}.qr-big{grid-row:auto}.qr-facts{grid-column:auto}}
 
 /* Theme toggle icon drawn in CSS so it never depends on a font having the glyph. */
 .theme-icon{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor;flex:0 0 auto}
@@ -1534,7 +1594,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .yt-wrap,.yt-views,.yt-screen{display:none!important}.yt-print-list{display:block}.fh-wrap{overflow:visible}.fh-corner,.fh-palace{position:static}
   .fh-table,.fh-matrix{min-width:0;width:100%;table-layout:fixed}.fh-matrix td{min-width:0;padding:3px!important}
   .fh-cell,.fh-hua,.fh-pick,:is(.fh-table,.fh-matrix) thead th{white-space:normal}.fh-pick,.fh-hua{flex-wrap:wrap}
-  .rp-setup,.rp-toc,.rp-actions{display:none!important}.rp-step.is-done .rp-step-n{background:none;color:var(--green);border:1px solid currentColor}.rp-layout{display:block}.rp-body{border-left:0}.rp-section,.rp-head{break-inside:avoid}
+  .rp-setup,.rp-toc,.rp-actions,.qr-setup{display:none!important}.rp-step.is-done .rp-step-n{background:none;color:var(--green);border:1px solid currentColor}.qr-board-result .qr-cell{break-inside:avoid}.rp-layout{display:block}.rp-body{border-left:0}.rp-section,.rp-head{break-inside:avoid}
   details{display:block}
   details>*{display:block}
   .ziwei-board,.pillar,.qimen-cell,.palace,.chat-msg{break-inside:avoid}
