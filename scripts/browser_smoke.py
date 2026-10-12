@@ -677,6 +677,18 @@ def main() -> None:
             page.locator('#qimen-run').click()
             page.locator('.qimen-cell').first.wait_for(timeout=30000)
             assert '芒种' in page.locator('#result').inner_text()
+            # The day of the chart, once per double hour: its own hour shows its own moment; a click casts another
+            # hour (as a custom moment in the same zone) and keeps focus there; the arrows move a day at that hour.
+            assert page.locator('#qimen-hours .qh-hour').count() == 13
+            own = page.locator('#qimen-hours .qh-hour.is-current')
+            assert own.get_attribute('id') == 'qimen-hour-7' and '14:30' in own.inner_text() and own.get_attribute('aria-current') == 'true'
+            assert page.locator('.qimen-cell .q-stem [class^="el-"]').count() == 27  # heaven, dark and earth stems coloured by element
+            page.locator('#qimen-hour-10').click()
+            page.wait_for_function("() => document.querySelector('#qimen-hour-10.is-current') !== null", timeout=30000)
+            assert page.locator('#qimen-moment').input_value() == 'custom' and page.locator('#qimen-when').input_value() == '2024-06-15T20:00'
+            assert page.evaluate('document.activeElement.id') == 'qimen-hour-10' and '时 丙戌' in page.locator('.meta-tags').first.inner_text()
+            page.locator('#qimen-next-day').click()
+            page.wait_for_function("() => document.getElementById('qimen-when').value === '2024-06-16T20:00' && document.querySelector('#qimen-hour-10.is-current')", timeout=30000)
             # A chart cast for another moment is discarded when the moment changes.
             page.locator('#qimen-moment').select_option('now')
             assert page.locator('.qimen-cell').count() == 0, 'Qimen chart survived a change of moment'

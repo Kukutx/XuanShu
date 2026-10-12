@@ -194,7 +194,7 @@ def test_hour_alternatives_land_in_their_hour_under_solar_time_and_daylight_savi
     slot = lambda reading: 0 if reading[11:13] == '00' else 12 if reading[11:13] == '23' else (int(reading[11:13]) + 1) // 2
     cases = [dict(birth_datetime='1990-05-17T00:10', timezone='Asia/Shanghai', longitude=75.99, time_mode='apparent_solar'),
              dict(birth_datetime='2024-03-10T01:30', timezone='America/New_York', longitude=-74.0, time_mode='apparent_solar'),
-             dict(birth_datetime='2024-03-10T01:30', timezone='America/New_York')]
+             dict(birth_datetime='2024-03-10T12:00', timezone='America/New_York')]
     for birth in cases:
         hours = chart_import_check(ChartImportRequest(birth=birth, text=tiger_hour(birth)))['hour_alternatives']
         assert len(hours) == 13 and sum(h['current'] for h in hours) == 1
@@ -206,6 +206,10 @@ def test_hour_alternatives_land_in_their_hour_under_solar_time_and_daylight_savi
         assert len(days) == 1  # every hour of the same (effective) day
     # 2024-03-10 02:00 does not exist in New York: 丑 is tried in the middle of what is left of it, before the gap.
     assert hours[1]['birth_datetime'] == '2024-03-10T01:30'
+    # The chart's own hour is its own moment, not the middle of the hour.
+    late_noon = dict(BIRTH, birth_datetime='2000-08-16T12:50')
+    own = chart_import_check(ChartImportRequest(birth=late_noon, text=tiger_hour(late_noon)))['hour_alternatives']
+    assert [h['birth_datetime'] for h in own if h['current']] == ['2000-08-16T12:50']
 
 
 def test_daylight_saving_days_keep_every_hour_that_exists_and_name_the_ones_that_do_not():

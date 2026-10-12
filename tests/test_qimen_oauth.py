@@ -183,3 +183,23 @@ def test_oauth_not_enabled_by_default(monkeypatch):
     for key in ('ASTRO_OAUTH_ISSUER','ASTRO_OAUTH_JWKS_URL','ASTRO_OAUTH_AUDIENCE','ASTRO_PUBLIC_BASE_URL'):
         monkeypatch.delenv(key,raising=False)
     assert client.get('/.well-known/oauth-protected-resource').status_code==404
+
+
+def test_qimen_day_hours_summarize_each_double_hour_of_the_same_day():
+    moment = {'birth_datetime': '2026-10-08T15:20', 'timezone': 'Asia/Shanghai'}
+    assert 'day_hours' not in qimen_chart(QimenRequest(moment=moment))
+    chart = qimen_chart(QimenRequest(moment=moment, include_day_hours=True))
+    hours = chart['day_hours']
+    assert [h['label'] for h in hours] == ['早子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '晚子']
+    own = [h for h in hours if h['current']]
+    # The chart's own hour is the chart's own moment and shows the same bureau and duty star and door.
+    assert len(own) == 1 and own[0]['moment'] == '2026-10-08T15:20'
+    assert {k: own[0][k] for k in ('hour_pillar', 'dun', 'bureau', 'zhi_fu_star', 'zhi_shi_door')} == \
+        {k: chart[k] for k in ('hour_pillar', 'dun', 'bureau', 'zhi_fu_star', 'zhi_shi_door')}
+    for h in hours:
+        alone = qimen_chart(QimenRequest(moment={**moment, 'birth_datetime': h['moment']}))
+        assert (h['hour_pillar'], h['bureau'], h['zhi_fu_star'], h['zhi_shi_door']) == \
+            (alone['hour_pillar'], alone['bureau'], alone['zhi_fu_star'], alone['zhi_shi_door'])
+        assert h['hour_pillar'][1] == h['branch']
+    # 寒露 falls that afternoon, so the bureau changes within the day.
+    assert len({(h['solar_term'], h['bureau']) for h in hours}) == 2

@@ -79,6 +79,14 @@
   " is not within the tools available to this school's expert",
   " はこの流派の専門家が使えるツールの範囲外です"
  ],
+ " 与平太阳时起局。": [
+  " and mean solar time.",
+  " と平均太陽時で局を立てます。"
+ ],
+ " 与真太阳时起局。": [
+  " and true solar time.",
+  " と真太陽時で局を立てます。"
+ ],
  " 两种排盘口径不同，需先确认出生地日界与选定传统流派；本工具不自动替换原命盘。": [
   " Different charting conventions apply; first confirm the birthplace day boundary and the chosen traditional school. This tool does not automatically replace the original chart.",
   " 二つの排盤基準が異なるため、まず出生地の日界と選択した伝統流派を確認してください。本ツールは元の命盤を自動的に置き換えません。"
@@ -690,6 +698,10 @@
  "‹ 早五年": [
   "‹ 5 years earlier",
   "‹ 5年前へ"
+ ],
+ "← 前一天": [
+  "← Previous day",
+  "← 前日"
  ],
  "← 左右滑动查看完整十二宫 →": [
   "← Swipe sideways to see all twelve palaces →",
@@ -3351,6 +3363,10 @@
   "Next day",
   "翌日"
  ],
+ "后一天 →": [
+  "Next day →",
+  "翌日 →"
+ ],
  "后辈、教养与创造性表达": [
   "Juniors, upbringing and creative expression",
   "後輩、養育と創造的な表現"
@@ -4651,6 +4667,14 @@
   " bureau, Zhi Fu ",
   "局 値符"
  ],
+ "局数、时柱与值符、值使；点时辰起该时辰的盘": [
+  "Bureau, hour pillar, duty star and duty door; click an hour to cast it",
+  "局数・時柱と値符・値使。時辰をクリックするとその時辰の盤を出します"
+ ],
+ "局数与上一时辰不同": [
+  "Bureau differs from the previous hour",
+  "局数が前の時辰と異なる"
+ ],
  "局限：": [
   "Limitations:",
   "制限："
@@ -5203,6 +5227,14 @@
   "That day",
   "当日"
  ],
+ "当日十二时辰": [
+  "Hours of the day",
+  "当日の十二時辰"
+ ],
+ "当日各时辰": [
+  "Each hour of the day",
+  "当日の各時辰"
+ ],
  "彩色曲线：所选宫位的宫干四化飞入哪一宫": [
   "Coloured curves: which palace each stem transformation of the selected palace flies into",
   "色付きの曲線：選んだ宮の宮干四化がどの宮へ飛ぶか"
@@ -5554,6 +5586,10 @@
  "按日期排列": [
   "Sorted by date",
   "日付順"
+ ],
+ "按时区 ": [
+  "Cast with the time zone ",
+  "タイムゾーン "
  ],
  "按本机时区 ": [
   "Cast with this device's time zone ",
@@ -7410,6 +7446,10 @@
  "没有需要补齐的必需输入": [
   "No required inputs need to be filled in",
   "補う必要のある必須入力はありません"
+ ],
+ "沿用出生资料的时区 ": [
+  "Cast with the birth details' time zone ",
+  "出生情報のタイムゾーン "
  ],
  "沿用出生资料里的时区、真太阳时和换日规则。": [
   "Uses the time zone, solar-time and day-change rules from the birth details.",
