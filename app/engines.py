@@ -20,6 +20,7 @@ from .astronomy import chinese_lunar_date, from_jd, solar_term_jd, solar_month_o
 from .reference import (HIDDEN_STEMS, NAYIN_NAMES, FOUR_TRANSFORMATIONS, FOUR_TYPES, TRANSFORMATION_SCHOOL, BRANCH_HARMONY, BRANCH_CLASH, BRANCH_HARM, BRANCH_PUNISH,
                         BRANCH_SEASONS, BRANCH_TRIADS, GROWTH_START, STEM_CLASHES, STEM_COMBINATIONS)
 from .timebasis import time_basis
+from .shensha import natal_bases, natal_shensha, rule_notes, stars_on
 from .ziwei_extensions import (BRIGHTNESS, CHANGSHENG, adjunct_stars, cycle_positions, nominal_small_limit_ages,
                                LIFEMASTER_BY_BRANCH, BODYMASTER_BY_YEAR_BRANCH)
 
@@ -137,6 +138,8 @@ def natal_interactions(pillar: str, natal: dict, pillar_keys: tuple[str, ...] = 
         'growth_stage': growth_stage(master, branch),
         'self_stage': growth_stage(stem, branch),
         'void_of': [key for key in ('day', 'year') if key in natal_pillars and pillar[1] in natal_pillars[key]['xun_kong']],
+        # Stars this pillar carries by the natal day stem, year stem, year and day branches and month branch.
+        'shensha': stars_on(pillar, natal_bases({key: p['text'] for key, p in natal['pillars'].items()})),
         'stem_relations': [{'pillar': key, 'stem': p['stem'], 'labels': labels}
                            for key, p in natal_pillars.items() if (labels := stem_labels(pillar[0], p['stem']))],
         'branch_relations': [{'pillar': key, 'branch': p['branch'], 'labels': labels}
@@ -232,6 +235,12 @@ def calculate_bazi(inp: BirthInput) -> dict:
             for hidden in HIDDEN_STEMS[pillar['branch']]
         ]
 
+    # Traditional auxiliary stars on each pillar, read from the day stem, year stem, year and day branches and month
+    # branch; the hour pillar can carry stars but is never the basis of one.
+    for name, stars in natal_shensha({key: p['text'] for key, p in pillars.items()}).items():
+        pillars[name]['shensha'] = stars
+    shensha_names = {star['name'] for p in pillars.values() for star in p['shensha']}
+
     # Visible stems/branches only — NOT a seasonal strength or hidden-stem analysis.
     surface_elements = Counter({e: 0 for e in ELEMENTS})
     for pillar in pillars.values():
@@ -279,6 +288,7 @@ def calculate_bazi(inp: BirthInput) -> dict:
         'branch_relations': relations,
         'stem_relations': stem_relations,
         'branch_groups': branch_groups,
+        'shensha_rules': rule_notes(shensha_names),
         'time_basis': time_meta,
         'lunar_date': chinese_lunar_date(effective.date()),
         'jie_boundaries': nearest_jie(dt),
@@ -292,6 +302,7 @@ def calculate_bazi(inp: BirthInput) -> dict:
             'growth_stage': '十二长生：阳干顺行、阴干逆行；长生位甲亥、乙午、丙戊寅、丁己酉、庚巳、辛子、壬申、癸卯（火土同宫）',
             'xun_kong': '旬空：每旬十个干支余下的两个地支；标出落在日柱旬空、年柱旬空里的地支',
             'stem_relations': '天干五合（甲己、乙庚、丙辛、丁壬、戊癸）与四冲（甲庚、乙辛、丙壬、丁癸），只作标签，不判断合化成败',
+            'shensha': '神煞：只收能在古籍里查到安法的十六种，以日干、年干、年支、日支、月支查四柱，时柱不作查法起点；每种附查法与出处，只作标签，不断吉凶',
         },
         'notes': ['五行计数仅包含四柱明干与地支本气，不代表旺衰或缺失判定', '传统历法模型，不构成可验证的人生预测'],
     }

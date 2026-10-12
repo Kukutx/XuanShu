@@ -12,14 +12,15 @@ The reference libraries are not XuanShu dependencies. Install the pinned set in
 a separate environment, then run the script:
 
     pip install -r requirements.txt -r docs/evals/requirements.txt
-    npm install --prefix docs/evals              # iztro, the original JavaScript library
+    npm install --prefix docs/evals              # iztro and @soul-atelier/bazi (JavaScript)
     python scripts/eval_crosscheck.py            # full run
     python scripts/eval_crosscheck.py --quick    # every tenth year, smaller Zi Wei sample, build/evals-quick/
 
 References: sxtwl (寿星天文历 by 许剑伟), lunar_python (6tail), lunardate
 (table based), PyEphem (libastro, VSOP87), iztro-py (port of iztro) and iztro
 itself, run through Node.js (scripts/iztro_reference.cjs) for the stars and
-period stars iztro-py does not provide.
+period stars iztro-py does not provide, and @soul-atelier/bazi through Node.js
+(scripts/bazi_shensha_reference.mjs) for the BaZi auxiliary stars (神煞).
 """
 from __future__ import annotations
 
@@ -50,6 +51,7 @@ from lunar_python import Solar  # noqa: E402
 from app.almanac import moon_phases  # noqa: E402
 from app.astronomy import TERMS, _new_moons_between, calendar_zone, chinese_lunar_date, from_jd, solar_term_jd, to_jd  # noqa: E402
 from app.engines import ZIWEI_STARS, TIANFU_STARS, BirthInput, calculate_ziwei, growth_stage, pillar_indices, xun_kong  # noqa: E402
+from app.shensha import RULES as SHENSHA_RULES, SEASONS, natal_bases, natal_shensha, stars_on  # noqa: E402
 from app.ziwei_horoscope import ZiweiHoroscopeRequest, ziwei_horoscope  # noqa: E402
 
 UTC = timezone.utc
@@ -211,6 +213,65 @@ def compare_days(years) -> dict:
     return {'lunar_dates': lunar.report(), 'lunar_month_differences': runs, 'pillars_at_noon': pillars.report()}
 
 
+# Names @soul-atelier/bazi gives the stars XuanShu lists under another name.
+SHENSHA_ALIASES = {'桃花': '咸池'}
+
+
+def shensha_js(queries: list[dict]) -> list[dict]:
+    """神煞 from @soul-atelier/bazi for a batch of charts; see scripts/bazi_shensha_reference.mjs."""
+    run = subprocess.run(['node', str(ROOT / 'scripts' / 'bazi_shensha_reference.mjs')], input='\n'.join(map(json.dumps, queries)),
+                         capture_output=True, text=True, check=True, env=dict(os.environ, NODE_PATH=str(EVAL_NODE_MODULES)))
+    return [json.loads(line) for line in run.stdout.splitlines()]
+
+
+def _season(branch: str) -> str:
+    return next(group for group in SEASONS if branch in group)
+
+
+def compare_shensha(years) -> dict:
+    """XuanShu's 神煞 against @soul-atelier/bazi, one chart a day: the noon year, month and day pillars, an hour pillar
+    that steps through the twelve branches from day to day, and a luck or year pillar that steps through all sixty.
+
+    Both read the same bases, so the comparison covers the tables and which pillars carry each star. Where the two
+    follow different rules the star is not compared: @soul-atelier/bazi also gives the five yin stems a 羊刃 (阴刃),
+    reads 孤辰 and 寡宿 from the day branch as well as the year branch, and also puts 魁罡 on luck and year pillars.
+    """
+    charts, ours = [], []
+    for day in all_days(years):
+        (y, m, d, _), _, _ = pillar_indices(datetime(day.year, day.month, day.day, 12, tzinfo=CHINA))
+        branch = day.toordinal() % 12
+        hour = GZ_INDEX[STEMS[(2 * (d % 5) + branch) % 10] + BRANCHES[branch]]
+        pillars = {'year': gz(y), 'month': gz(m), 'day': gz(d), 'hour': gz(hour)}
+        fortune = gz(day.toordinal() * 7 % 60)
+        natal = {}
+        for key, stars in natal_shensha(pillars).items():
+            for star in stars:
+                natal.setdefault(star['name'], []).append(key)
+        charts.append({'pillars': pillars, 'fortune': fortune})
+        ours.append((natal, {star['name'] for star in stars_on(fortune, natal_bases(pillars))}))
+    tally, skipped, others = Tally(), Counter(), set()
+    for chart, (natal, fortune), theirs in zip(charts, ours, shensha_js(charts)):
+        others |= {*theirs['natal'], *theirs['fortune']}
+        reference = {SHENSHA_ALIASES.get(name, name): where for name, where in theirs['natal'].items()}
+        reference_fortune = {SHENSHA_ALIASES.get(name, name) for name in theirs['fortune']}
+        p = chart['pillars']
+        for rule in SHENSHA_RULES:
+            name = rule['name']
+            if name == '羊刃' and STEMS.index(p['day'][0]) % 2:
+                skipped['羊刃'] += 1
+                continue
+            if name in ('孤辰', '寡宿') and _season(p['day'][1]) != _season(p['year'][1]):
+                skipped[name] += 1
+                continue
+            example = {'pillars': p, 'star': name}
+            tally.check('natal.' + name, natal.get(name, []), reference.get(name, []), example)
+            if name != '魁罡':
+                tally.check('fortune.' + name, name in fortune, name in reference_fortune, {**example, 'fortune': chart['fortune']})
+    # Stars only the reference lists: XuanShu leaves out those it has no citable table for.
+    return {'charts': len(charts), 'results': tally.report(), 'not_compared': dict(skipped),
+            'reference_only': sorted({SHENSHA_ALIASES.get(n, n) for n in others} - {rule['name'] for rule in SHENSHA_RULES})}
+
+
 def compare_jie_boundaries(years, offset_seconds: int = 120) -> dict:
     """Month pillar just before and just after each of the twelve jie, versus lunar_python."""
     tally = Tally()
@@ -354,7 +415,7 @@ def _xuanshu_values(birth: datetime, gender: str, rollover: bool = False) -> dic
             'transformations': dict(sorted((t['star'], t['type'][1]) for t in chart['birth_year_transformations']))}
 
 
-IZTRO_NODE_MODULES = ROOT / 'docs' / 'evals' / 'node_modules'
+EVAL_NODE_MODULES = ROOT / 'docs' / 'evals' / 'node_modules'
 MAIN_STARS = {name for name, _ in ZIWEI_STARS + TIANFU_STARS}
 IZTRO_ALIASES = {'解神': '月解'}  # iztro's 解神 is the month-based 月解; its 年解 is separate
 CYCLE_KEYS = (('changsheng', 'changsheng'), ('boshi', 'boshi'), ('natal_suiqian', 'suiqian'), ('natal_jiangqian', 'jiangqian'))
@@ -363,7 +424,7 @@ CYCLE_KEYS = (('changsheng', 'changsheng'), ('boshi', 'boshi'), ('natal_suiqian'
 def iztro_js(queries: list[dict]) -> list[dict]:
     """Charts from iztro (JavaScript) for a batch of queries; see scripts/iztro_reference.cjs."""
     run = subprocess.run(['node', str(ROOT / 'scripts' / 'iztro_reference.cjs')], input='\n'.join(map(json.dumps, queries)),
-                         capture_output=True, text=True, check=True, env=dict(os.environ, NODE_PATH=str(IZTRO_NODE_MODULES)))
+                         capture_output=True, text=True, check=True, env=dict(os.environ, NODE_PATH=str(EVAL_NODE_MODULES)))
     return [json.loads(line) for line in run.stdout.splitlines()]
 
 
@@ -538,7 +599,8 @@ def references() -> dict:
     names = {'sxtwl': 'sxtwl', 'lunar_python': 'lunar_python', 'lunardate': 'lunardate', 'ephem': 'ephem',
              'iztro_py': 'iztro-py', 'pyswisseph': 'pyswisseph'}
     found = {key: version(dist) for key, dist in names.items()}
-    found['iztro'] = json.loads((IZTRO_NODE_MODULES / 'iztro' / 'package.json').read_text(encoding='utf-8'))['version']
+    for name in ('iztro', '@soul-atelier/bazi'):
+        found[name] = json.loads((EVAL_NODE_MODULES / name / 'package.json').read_text(encoding='utf-8'))['version']
     return found
 
 
@@ -587,6 +649,12 @@ def write_markdown(result: dict, path: Path) -> None:
 
     lunar, pillars = days['lunar_dates'], days['pillars_at_noon']
     zr = ziwei['results']
+    shensha = result['shensha']
+
+    def shensha_row(name):
+        natal, fortune = shensha['results']['natal.' + name], shensha['results'].get('fortune.' + name)
+        tail = f"{fortune['checked']:,} | {fortune['mismatches']:,}" if fortune else '— | —'
+        return f"| {name} | {natal['checked']:,} | {natal['mismatches']:,} | {tail} |"
     lines = [
         '# 玄枢计算交叉核验评测',
         '',
@@ -597,7 +665,8 @@ def write_markdown(result: dict, path: Path) -> None:
         '参考库：' + '，'.join(f'{k} {v}' for k, v in result['references'].items()) + '。'
         '玄枢自己用 Swiss Ephemeris（Moshier 星历）计算天象，sxtwl 和 lunar_python 源自许剑伟的寿星天文历，'
         'PyEphem 基于 libastro，lunardate 是查表实现，iztro-py 是 iztro 的 Python 移植；iztro-py 没有的辅星、杂曜、十二神和流曜'
-        '直接对照 iztro 原版（JavaScript，经 Node.js 运行 `scripts/iztro_reference.cjs`）。',
+        '直接对照 iztro 原版（JavaScript，经 Node.js 运行 `scripts/iztro_reference.cjs`）；八字神煞对照 @soul-atelier/bazi'
+        '（JavaScript，经 Node.js 运行 `scripts/bazi_shensha_reference.mjs`）。',
         '',
         '这只核验“算得对不对”，不评价命理解读是否应验；玄枢不对吉凶、预测准确率做任何声明。',
         '',
@@ -628,6 +697,20 @@ def write_markdown(result: dict, path: Path) -> None:
         '| --- | ---: | ---: | ---: |',
         row('交节前后月柱', total(jie['results'], 'month')),
         row('立春前后年柱', total(jie['results'], 'year')),
+        '',
+        '## 八字神煞对照 @soul-atelier/bazi',
+        '',
+        f"每天一张盘，共 {shensha['charts']:,} 张：当天正午的年、月、日柱，时柱逐日轮换十二个时辰，另配一个逐日轮换六十甲子的大运或流年干支。"
+        '两边按同样的原局日干、年干、年支、日支、月支查，比较每种神煞在原局落在哪几柱（柱位完全相同才算一致），以及大运流年干支带不带它。'
+        '参考库在三处与玄枢所引规则不同，这些盘上该星不比较：五阴干的羊刃（阴刃，'
+        f"{shensha['not_compared'].get('羊刃', 0):,} 张盘），孤辰、寡宿兼以日支查（日支与年支不在同一方的 {shensha['not_compared'].get('孤辰', 0):,} 张盘），"
+        '大运流年上的魁罡（玄枢只看原局日柱）。',
+        '',
+        '| 神煞 | 原局核对 | 不一致 | 大运流年核对 | 不一致 |',
+        '| --- | ---: | ---: | ---: | ---: |',
+    ] + [shensha_row(rule['name']) for rule in SHENSHA_RULES] + [
+        '',
+        '参考库另列、玄枢暂未收录的神煞（找到可引用的统一安法前不收）：' + '、'.join(shensha['reference_only']) + '。',
         '',
         '## 节气与月相时刻',
         '',
@@ -734,6 +817,9 @@ def findings(result: dict) -> list[str]:
     for item in result['solar_terms']['china_date_differs_from_sxtwl']:
         out.append(f"- {item['year']} 年{item['term']}：玄枢 {item['xuanshu_china'][:19].replace('T', ' ')}，"
                    f"sxtwl {item['sxtwl_china'][:19].replace('T', ' ')}，落在午夜两侧，同样是 ΔT 预报不同。")
+    shensha = sum(item['mismatches'] for item in result['shensha']['results'].values())
+    if shensha:
+        out.append(f'- 八字神煞：{shensha} 处与 @soul-atelier/bazi 不同，尚未解释，清单见 JSON。')
     return out
 
 
@@ -784,6 +870,10 @@ def summary(result: dict) -> dict:
                       'calendar_differs': sum(result['horoscope']['lunar_python_calendar_differs'].values()),
                       'unexplained': sum(item['mismatches'] for item in result['horoscope']['results'].values())
                       - sum(result['horoscope']['lunar_python_calendar_differs'].values())},
+        'shensha': {'charts': result['shensha']['charts'], 'stars': len(SHENSHA_RULES),
+                    **{part: {'checked': sum(v['checked'] for k, v in result['shensha']['results'].items() if k.startswith(part + '.')),
+                              'mismatches': sum(v['mismatches'] for k, v in result['shensha']['results'].items() if k.startswith(part + '.'))}
+                       for part in ('natal', 'fortune')}},
         'differences': [{'first': run['first'], 'last': run['last'], 'references': run['references'],
                          'minutes_from_midnight': run['minutes_from_midnight'], 'cause': _cause(run)}
                         for run in days['lunar_month_differences']],
@@ -811,6 +901,8 @@ def main() -> None:
     result['solar_terms'] = compare_solar_terms(years)
     print('moon phases…', flush=True)
     result['moon_phases'] = compare_moon_phases(years)
+    print('shensha…', flush=True)
+    result['shensha'] = compare_shensha(years)
     print('zi wei…', flush=True)
     result['ziwei'] = compare_ziwei(300 if args.quick else 3000, 50 if args.quick else 300)
     print('zi wei periods…', flush=True)

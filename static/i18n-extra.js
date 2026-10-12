@@ -670,6 +670,50 @@ const UI_EXTRA = {
 ". Today's date: ",
 "。今日の日付："
 ],
+"《三命通会》卷三·论劫煞亡神": [
+"San Ming Tong Hui, vol. 3: On Jie Sha and Wang Shen",
+"『三命通会』巻三・論劫煞亡神"
+],
+"《三命通会》卷三·论十干禄": [
+"San Ming Tong Hui, vol. 3: On the Lu of the ten stems",
+"『三命通会』巻三・論十干禄"
+],
+"《三命通会》卷三·论天乙贵人": [
+"San Ming Tong Hui, vol. 3: On the Tian Yi Noble",
+"『三命通会』巻三・論天乙貴人"
+],
+"《三命通会》卷三·论天月德": [
+"San Ming Tong Hui, vol. 3: On Tian De and Yue De",
+"『三命通会』巻三・論天月徳"
+],
+"《三命通会》卷三·论天月德（原文举正月丁、二月坤、三月壬、四月辛，其余各月按通行表）": [
+"San Ming Tong Hui, vol. 3: On Tian De and Yue De (the text gives month 1 丁, month 2 Kun, month 3 壬 and month 4 辛; the other months follow the common table)",
+"『三命通会』巻三・論天月徳（原文は正月丁・二月坤・三月壬・四月辛を挙げ、他の月は通行の表による）"
+],
+"《三命通会》卷三·论孤辰寡宿": [
+"San Ming Tong Hui, vol. 3: On Gu Chen and Gua Su",
+"『三命通会』巻三・論孤辰寡宿"
+],
+"《三命通会》卷三·论羊刃": [
+"San Ming Tong Hui, vol. 3: On Yang Ren",
+"『三命通会』巻三・論羊刃"
+],
+"《三命通会》卷三·论驿马": [
+"San Ming Tong Hui, vol. 3: On Yi Ma",
+"『三命通会』巻三・論駅馬"
+],
+"《三命通会》卷二·论咸池": [
+"San Ming Tong Hui, vol. 2: On Xian Chi",
+"『三命通会』巻二・論咸池"
+],
+"《三命通会》卷二·论将星华盖": [
+"San Ming Tong Hui, vol. 2: On Jiang Xing and Hua Gai",
+"『三命通会』巻二・論将星華蓋"
+],
+"《三命通会》卷六·魁罡": [
+"San Ming Tong Hui, vol. 6: Kui Gang",
+"『三命通会』巻六・魁罡"
+],
 "《全书》系公开十干四化表 · 流派差异需核对": [
 "Quan Shu (Complete Book) public Ten Stems Four Transformations table · school differences must be checked",
 "『全書』系の公開十干四化表 · 流派差は要確認"
@@ -762,9 +806,21 @@ const UI_EXTRA = {
 "Three harmony",
 "三合"
 ],
+"三合中位：申子辰见子，寅午戌见午，巳酉丑见酉，亥卯未见卯；以年支、日支查": [
+"Middle branch of the three-harmony group: 申子辰 → 子, 寅午戌 → 午, 巳酉丑 → 酉, 亥卯未 → 卯; read from the year and day branches",
+"三合の中位：申子辰は子、寅午戌は午、巳酉丑は酉、亥卯未は卯。年支・日支から求める"
+],
+"三合之库：申子辰见辰，寅午戌见戌，巳酉丑见丑，亥卯未见未；以年支、日支查": [
+"Store branch of the three-harmony group: 申子辰 → 辰, 寅午戌 → 戌, 巳酉丑 → 丑, 亥卯未 → 未; read from the year and day branches",
+"三合の庫：申子辰は辰、寅午戌は戌、巳酉丑は丑、亥卯未は未。年支・日支から求める"
+],
 "三合局": [
 "three-harmony frame",
 "三合局"
+],
+"三合长生后一位（沐浴）：申子辰见酉，寅午戌见卯，巳酉丑见午，亥卯未见子，俗称桃花；以年支、日支查": [
+"One branch after the group's Growth branch (Bathing): 申子辰 → 酉, 寅午戌 → 卯, 巳酉丑 → 午, 亥卯未 → 子, commonly called Peach Blossom; read from the year and day branches",
+"三合の長生の次（沐浴）：申子辰は酉、寅午戌は卯、巳酉丑は午、亥卯未は子。俗に桃花。年支・日支から求める"
 ],
 "三合：": [
 "Three Harmonies: ",
@@ -1233,6 +1289,10 @@ const UI_EXTRA = {
 "五行计数仅包含四柱明干与地支本气，不代表旺衰或缺失判定": [
 "Element counts include only the visible stems of the four pillars and the main qi of the branches; they do not indicate strength/weakness or missing-element judgments",
 "五行の計数は四柱の表に出た天干と地支の本気のみを含み、旺衰や欠落の判定を示すものではありません"
+],
+"五阳干有刃，在禄前一位：甲卯，丙戊午，庚酉，壬子；阴干不取；以日干查": [
+"The five yang stems have a Yang Ren, one branch after their Lu: 甲 卯, 丙 and 戊 午, 庚 酉, 壬 子; yin stems take none; read from the day stem",
+"五陽干に刃があり、禄の一つ先：甲は卯、丙・戊は午、庚は酉、壬は子。陰干は取らない。日干から求める"
 ],
 "亚太": [
 "Asia-Pacific",
@@ -1842,6 +1902,10 @@ const UI_EXTRA = {
 "BaZi month pillar",
 "八字の月柱"
 ],
+"八字神煞对照": [
+"BaZi Shen Sha cross-check",
+"八字神煞の照合"
+],
 "八字立春年柱为 ": [
 "BaZi Lichun-based year pillar is ",
 "八字の立春基準の年柱は "
@@ -1933,6 +1997,10 @@ const UI_EXTRA = {
 "兰州": [
 "Lanzhou",
 "蘭州"
+],
+"共": [
+"In total",
+"計"
 ],
 "关注 ": [
 "Focus ",
@@ -2086,6 +2154,10 @@ const UI_EXTRA = {
 "Feng Ge",
 "鳳閣"
 ],
+"出处": [
+"Source",
+"出典"
+],
 "出生信息未填写": [
 "Birth details not entered",
 "出生情報が未入力です"
@@ -2177,6 +2249,10 @@ const UI_EXTRA = {
 "出生时辰不详的成员不参与时柱的比较。": [
 "Members whose birth hour is unknown are left out of hour-pillar comparisons.",
 "出生時刻が不明なメンバーは時柱の比較に含めません。"
+],
+"出生时辰不详，而出生当天交节、按 23:00 换日或按太阳时换算，年柱、月柱或日柱可能随时辰变化，神煞也随之不同，这里不列；确定时辰后再看。": [
+"The birth hour is unknown and the birth day has a jie, a 23:00 day change or a solar-time shift, so the year, month or day pillar may change with the hour and the stars with it; they are not listed until the hour is known.",
+"出生時刻が不明で、誕生日に節入り・23時の日替わり・太陽時の換算があるため、年柱・月柱・日柱が時刻で変わりうり、神煞もそれに伴って変わります。時刻が分かるまで表示しません。"
 ],
 "出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。": [
 "Birth hour unknown: 12:00 is only a placeholder, so a Qimen chart cast from it means nothing.",
@@ -2494,6 +2570,10 @@ const UI_EXTRA = {
 "Day 16",
 "16日"
 ],
+"十六种神煞逐柱比较": [
+"sixteen Shen Sha compared pillar by pillar",
+"十六種の神煞を柱ごとに比較"
+],
 "十四": [
 "Day 14",
 "14日"
@@ -2526,9 +2606,9 @@ const UI_EXTRA = {
 "Ten gods are read from the stem against the day master. Decade start years come from the three-days-per-year rule and are approximate; annual pillars change at Lichun. Click a year to open the same year layer on the Zi Wei chart.",
 "十神は日主から見た天干です。交運年は三日一歳の換算による概算で、流年は立春で替わります。流年をクリックすると紫微盤で同じ年の流年層を開きます。"
 ],
-"十神按日主看天干，下面的小字是日主在该支的星运。格子底部是与原局地支的关系：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空。所选大运的天干关系、三合三会写在上方一行，流年的写在悬停说明里。只列关系，不判断吉凶。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。": [
-"Ten Gods are read from the day master against the stem; the small text below is the day master's growth stage at that branch. Marks at the bottom of a cell are relations with the natal branches, in chart notation: 冲月 means it clashes with the month branch, 合 (combination), 刑 (punishment) and 害 (harm) likewise, 同 means the same branch; 日空 and 年空 mean it falls in the day or year pillar's void. The selected luck period's stem relations and three-harmony or seasonal groups are listed in the line above; for a year they are in its hover text. Relations only, no fortune judgement. Luck start years use three days per year and are approximate; years change at Li Chun. Click a year to open the same year's annual layer in the Zi Wei chart.",
-"十神は日主から天干を見たもの、その下の小さな文字は日主のその支での星運です。マスの下部は原局の地支との関係を命盤の記法で示します：冲月は月柱と六冲、合・刑・害も同様、同は同じ支、日空・年空は日柱・年柱の旬空に入ることを表します。選択した大運の天干関係と三合・三会は上の行に、流年の分はホバー説明に記載します。関係を示すだけで吉凶は判断しません。交運年は三日を一年に換算した近似値で、流年は立春で切り替わります。流年をクリックすると紫微盤で同じ年の流年層を開きます。"
+"十神按日主看天干，下面的小字是日主在该支的星运。格子底部是与原局地支的关系：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空。所选大运的天干关系、三合三会和神煞写在上方一行，流年的写在悬停说明里。只列关系与标签，不判断吉凶。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。": [
+"Ten gods are the stems seen from the day master; the small text below is the day master's growth stage at that branch. The bottom of each cell shows relations with the natal branches: 冲月 is a six-clash with the month pillar, and likewise 合, 刑 and 害; 同 is the same branch; 日空 and 年空 mean it falls in the day or year pillar's void. Stem relations, three-harmony and seasonal groups and Shen Sha of the selected decade are on the line above; those of a year are in its hover text. Relations and labels only, no good-or-bad reading. Decade change years use three days per year and are approximate; years change at Start of Spring. Click a year to open the same year's layer on the Zi Wei chart.",
+"十神は日主から見た天干、下の小さな字は日主のその支での星運です。マスの下部は原局の地支との関係：冲月は月柱との六冲、合・刑・害も同様、同は同じ支。日空・年空は日柱・年柱の旬空に入ること。選んだ大運の天干関係、三合・三会と神煞は上の行に、流年のものはホバー説明にあります。関係とラベルのみで吉凶は判断しません。交運の年は三日を一年に換算した概算、流年は立春で切り替わります。流年を押すと紫微盤で同じ年の流年層を開きます。"
 ],
 "十神是有方向的：A 看 B 与 B 看 A 往往不同，两者都列出。": [
 "Ten-god names have a direction: how A sees B usually differs from how B sees A, so both are listed.",
@@ -2594,6 +2674,10 @@ const UI_EXTRA = {
 "Calendar calculation and explanation of traditional divination symbols (not scientific prediction)",
 "暦法計算と伝統術数の記号の説明（科学的予測ではない）"
 ],
+"原局四柱神煞": [
+"Shen Sha on the natal pillars",
+"原局四柱の神煞"
+],
 "厦门": [
 "Xiamen",
 "アモイ"
@@ -2609,6 +2693,10 @@ const UI_EXTRA = {
 "参考库": [
 "Reference",
 "参照ライブラリ"
+],
+"参考库给阴干也排羊刃、孤辰寡宿兼以日支查、大运流年也标魁罡，与玄枢所引规则不同，这几处不比较。": [
+"The reference library also gives yin stems a Yang Ren, reads Gu Chen and Gua Su from the day branch as well, and marks Kui Gang on luck and year pillars; these differ from the rules XuanShu cites and are not compared.",
+"参照ライブラリは陰干にも羊刃を置き、孤辰・寡宿を日支からも求め、大運・流年にも魁罡を付けます。玄枢が引く規則と異なるため、これらは比較しません。"
 ],
 "参考文档只支持方法描述，不意味着 XuanShu 的逐盘算法通过独立认证。": [
 "Reference documents only support the method description and do not mean that XuanShu's chart-by-chart algorithm has passed independent certification.",
@@ -3086,6 +3174,10 @@ const UI_EXTRA = {
 "Void branches of the four pillars",
 "四柱の旬空"
 ],
+"四柱没有所收十六种神煞。": [
+"None of the sixteen listed Shen Sha falls on the four pillars.",
+"収録している十六種の神煞は四柱にありません。"
+],
 "四柱（年/月/日/时）": [
 "Four Pillars (year/month/day/hour)",
 "四柱（年/月/日/時）"
@@ -3422,6 +3514,14 @@ const UI_EXTRA = {
 "The decade periods could not be calculated here; try the Decade Pillars tool.",
 "大運を計算できませんでした。「大運干支」で個別に計算できます。"
 ],
+"大运流年干支神煞": [
+"Shen Sha on luck and year pillars",
+"大運・流年干支の神煞"
+],
+"大运流年的神煞按原局日干、年干、年支、日支、月支查，只列名称与查法出处，不断吉凶。": [
+"Shen Sha on luck and year pillars are read from the natal day stem, year stem, year branch, day branch and month branch; only names, rules and sources are given, with no good-or-bad reading.",
+"大運・流年の神煞は原局の日干・年干・年支・日支・月支から求め、名称と求め方・出典だけを示し、吉凶は判断しません。"
+],
 "大运：正在排…": [
 "Luck periods: calculating…",
 "大運：計算中…"
@@ -3473,6 +3573,10 @@ const UI_EXTRA = {
 "天上火": [
 "Heavenly Fire",
 "天上火"
+],
+"天乙贵人": [
+"Tian Yi Noble",
+"天乙貴人"
 ],
 "天任": [
 "Tian Ren",
@@ -3553,6 +3657,10 @@ const UI_EXTRA = {
 "天德": [
 "Tian De",
 "天徳"
+],
+"天德贵人": [
+"Tian De Noble",
+"天徳貴人"
 ],
 "天心": [
 "Tian Xin",
@@ -3766,6 +3874,10 @@ const UI_EXTRA = {
 "Children Palace",
 "子女宮"
 ],
+"子年在卯，逆行十二支（丑年在寅，寅年在丑……亥年在辰）；以年支查": [
+"子 year at 卯, counting the twelve branches backwards (丑 year at 寅, 寅 year at 丑 … 亥 year at 辰); read from the year branch",
+"子年は卯、十二支を逆にたどる（丑年は寅、寅年は丑……亥年は辰）。年支から求める"
+],
 "存在差异": [
 "Differences found",
 "差異あり"
@@ -3866,9 +3978,21 @@ const UI_EXTRA = {
 "Yin–Wu–Xu",
 "寅午戌"
 ],
+"寅午戌月丙，申子辰月壬，亥卯未月甲，巳酉丑月庚；以月支查四柱天干": [
+"Months 寅午戌 → 丙, 申子辰 → 壬, 亥卯未 → 甲, 巳酉丑 → 庚; the month branch is looked up in the four stems",
+"寅午戌の月は丙、申子辰の月は壬、亥卯未の月は甲、巳酉丑の月は庚。月支から四柱の天干を見る"
+],
 "寅卯辰": [
 "Yin–Mao–Chen",
 "寅卯辰"
+],
+"寅卯辰见丑，巳午未见辰，申酉戌见未，亥子丑见戌；以年支查": [
+"寅卯辰 → 丑, 巳午未 → 辰, 申酉戌 → 未, 亥子丑 → 戌; read from the year branch",
+"寅卯辰は丑、巳午未は辰、申酉戌は未、亥子丑は戌。年支から求める"
+],
+"寅卯辰见巳，巳午未见申，申酉戌见亥，亥子丑见寅；以年支查": [
+"寅卯辰 → 巳, 巳午未 → 申, 申酉戌 → 亥, 亥子丑 → 寅; read from the year branch",
+"寅卯辰は巳、巳午未は申、申酉戌は亥、亥子丑は寅。年支から求める"
 ],
 "寅时 03–05": [
 "Yin hour 03–05",
@@ -4166,6 +4290,10 @@ const UI_EXTRA = {
 "AES-256-GCM encrypted backup created; the passphrase is neither saved nor uploaded to the server.",
 "AES-256-GCM 暗号化バックアップを作成しました。パスフレーズは保存もサーバーへのアップロードもされません。"
 ],
+"已知的年、月、日三柱没有所收十六种神煞。": [
+"None of the sixteen stars falls on the known year, month and day pillars.",
+"判明している年・月・日の三柱には、収録した十六種の神煞がありません。"
+],
 "已获对方同意使用其出生资料（双人或多人）": [
 "The other person or people agreed to use their birth data",
 "相手（複数可）の出生データ使用に同意を得ている"
@@ -4289,6 +4417,10 @@ const UI_EXTRA = {
 "年份按农历命名年，不从公历一月一日开始；春节、节令附近须核对时间归属。": [
 "Years follow the named lunar year and do not start on Gregorian January 1; near Chinese New Year and solar-term changes, verify which period a time belongs to.",
 "年は旧暦の命名年に従い、西暦1月1日からは始まりません。春節や節気の前後では時刻の帰属を確認してください。"
+],
+"年干": [
+"Year stem",
+"年干"
 ],
 "年干支 ": [
 "Year stem-branch ",
@@ -4465,6 +4597,10 @@ const UI_EXTRA = {
 "引擎版本：": [
 "Engine version: ",
 "エンジンバージョン："
+],
+"张盘（每天一张）": [
+"charts (one per day)",
+"枚の盤（一日一枚）"
 ],
 "当前 ": [
 "Current ",
@@ -4649,6 +4785,10 @@ const UI_EXTRA = {
 "所取节令：": [
 "Solar term used: ",
 "採用した節気："
+],
+"所在": [
+"Where",
+"所在"
 ],
 "所有数值来自用户输入的主观评分与权重；排序不是客观真理、概率或现实结果预测。": [
 "All values come from the user's subjective scores and weights; the ranking is not objective truth, a probability, or a prediction of real-world outcomes.",
@@ -5130,6 +5270,10 @@ const UI_EXTRA = {
 "Xi (day)",
 "日の喜"
 ],
+"日干": [
+"Day stem",
+"日干"
+],
 "日干十神（行看列）": [
 "Day-stem ten gods (row sees column)",
 "日干の十神（行から列を見る）"
@@ -5173,6 +5317,10 @@ const UI_EXTRA = {
 "日柱": [
 "Day pillar",
 "日柱"
+],
+"日柱为庚辰、壬辰、戊戌、庚戌": [
+"Day pillar 庚辰, 壬辰, 戊戌 or 庚戌",
+"日柱が庚辰・壬辰・戊戌・庚戌"
 ],
 "日柱日期界": [
 "Day pillar date boundary",
@@ -5626,6 +5774,10 @@ const UI_EXTRA = {
 "Xi (month)",
 "月の喜"
 ],
+"月德贵人": [
+"Yue De Noble",
+"月徳貴人"
+],
 "月支": [
 "Month branch",
 "月支"
@@ -5938,6 +6090,14 @@ const UI_EXTRA = {
 "Berlin",
 "ベルリン"
 ],
+"查法": [
+"Rule",
+"求め方"
+],
+"查法起点：": [
+"Read from: ",
+"起点："
+],
 "查看": [
 "View",
 "表示"
@@ -6198,6 +6358,10 @@ const UI_EXTRA = {
 "Month 1",
 "正月"
 ],
+"正月丁，二月坤，三月壬，四月辛，五月乾，六月甲，七月癸，八月艮，九月丙，十月乙，十一月巽，十二月庚；坤乾艮巽按通行做法取申亥寅巳；以月支查四柱干支": [
+"Month 1 丁, 2 Kun, 3 壬, 4 辛, 5 Qian, 6 甲, 7 癸, 8 Gen, 9 丙, 10 乙, 11 Xun, 12 庚; Kun, Qian, Gen and Xun are taken as 申, 亥, 寅 and 巳 by the common convention; the month branch is looked up in the stems and branches of the four pillars",
+"正月丁、二月坤、三月壬、四月辛、五月乾、六月甲、七月癸、八月艮、九月丙、十月乙、十一月巽、十二月庚。坤・乾・艮・巽は通行の扱いで申・亥・寅・巳とする。月支から四柱の干支を見る"
+],
 "正财": [
 "Direct Wealth (Zheng Cai)",
 "正財"
@@ -6265,6 +6429,10 @@ const UI_EXTRA = {
 "每个命盘事实可追溯到工具调用": [
 "Every chart fact traces back to a tool call",
 "命盤の各事実はツール呼び出しまで遡れます"
+],
+"每天一张盘": [
+"One chart a day",
+"一日一盤"
 ],
 "每段按中点计算代表盘，边界端点附近应使用原始出生记录重新核对。": [
 "Each segment's representative chart is computed at its midpoint; near boundary endpoints, re-check using the original birth record.",
@@ -6722,9 +6890,9 @@ const UI_EXTRA = {
 "XuanShu chart · local deterministic calculation",
 "玄枢の命盤 · ローカルの決定論的計算"
 ],
-"玄枢把农历、四柱、节气、月相和紫微排盘与独立的开源库逐项对照。脚本、固定版本的参考库和原始数据都在仓库里，任何人都能重跑。": [
-"XuanShu compares its lunar dates, four pillars, solar terms, moon phases and Zi Wei charts item by item with independent open-source libraries. The script, pinned reference versions and raw data are in the repository, so anyone can rerun it.",
-"玄枢は旧暦日・四柱・二十四節気・月相・紫微命盤を、独立したオープンソースのライブラリと項目ごとに照合しています。スクリプト、固定バージョンの参照ライブラリ、生データはリポジトリにあり、誰でも再実行できます。"
+"玄枢把农历、四柱、神煞、节气、月相和紫微排盘与独立的开源库逐项对照。脚本、固定版本的参考库和原始数据都在仓库里，任何人都能重跑。": [
+"XuanShu compares its lunar dates, four pillars, Shen Sha, solar terms, moon phases and Zi Wei charts item by item with independent open-source libraries. The scripts, pinned reference libraries and raw data are all in the repository, so anyone can rerun them.",
+"玄枢は旧暦、四柱、神煞、節気、月相、紫微の命盤を独立したオープンソースライブラリと項目ごとに照合しています。スクリプト、固定版の参照ライブラリ、元データはすべてリポジトリにあり、誰でも再実行できます。"
 ],
 "玄武": [
 "Xuan Wu (Black Tortoise)",
@@ -6878,9 +7046,29 @@ const UI_EXTRA = {
 "Jia–Ji combine (Earth)",
 "甲己合土"
 ],
+"甲戊庚见丑未，乙己见子申，丙丁见亥酉，辛见寅午，壬癸见卯巳；以日干、年干查四柱地支": [
+"甲戊庚 → 丑未, 乙己 → 子申, 丙丁 → 亥酉, 辛 → 寅午, 壬癸 → 卯巳; the day and year stems are looked up in the four branches",
+"甲戊庚は丑未、乙己は子申、丙丁は亥酉、辛は寅午、壬癸は卯巳。日干・年干から四柱の地支を見る"
+],
+"甲禄寅，乙禄卯，丙戊禄巳，丁己禄午，庚禄申，辛禄酉，壬禄亥，癸禄子；以日干查": [
+"Lu of 甲 at 寅, 乙 卯, 丙 and 戊 巳, 丁 and 己 午, 庚 申, 辛 酉, 壬 亥, 癸 子; read from the day stem",
+"甲の禄は寅、乙は卯、丙・戊は巳、丁・己は午、庚は申、辛は酉、壬は亥、癸は子。日干から求める"
+],
 "申子辰": [
 "Shen–Zi–Chen",
 "申子辰"
+],
+"申子辰以亥，寅午戌以巳，巳酉丑以申，亥卯未以寅为亡神；以年支、日支查": [
+"Wang Shen: 申子辰 → 亥, 寅午戌 → 巳, 巳酉丑 → 申, 亥卯未 → 寅; read from the year and day branches",
+"亡神：申子辰は亥、寅午戌は巳、巳酉丑は申、亥卯未は寅。年支・日支から求める"
+],
+"申子辰以巳，寅午戌以亥，巳酉丑以寅，亥卯未以申为劫煞；以年支、日支查": [
+"Jie Sha: 申子辰 → 巳, 寅午戌 → 亥, 巳酉丑 → 寅, 亥卯未 → 申; read from the year and day branches",
+"劫煞：申子辰は巳、寅午戌は亥、巳酉丑は寅、亥卯未は申。年支・日支から求める"
+],
+"申子辰马在寅，寅午戌马在申，巳酉丑马在亥，亥卯未马在巳；以年支、日支查": [
+"Yi Ma: 申子辰 → 寅, 寅午戌 → 申, 巳酉丑 → 亥, 亥卯未 → 巳; read from the year and day branches",
+"駅馬：申子辰は寅、寅午戌は申、巳酉丑は亥、亥卯未は巳。年支・日支から求める"
 ],
 "申时 15–17": [
 "Shen hour 15–17",
@@ -7006,6 +7194,30 @@ const UI_EXTRA = {
 "Check the birth details and generate the chart; BaZi, Zi Wei and the four transformations are computed together.",
 "出生情報を確認して命盤を作成すると、八字・紫微・四化がまとめて計算されます。"
 ],
+"神煞": [
+"Shen Sha",
+"神煞"
+],
+"神煞与查法出处": [
+"Shen Sha: rules and sources",
+"神煞の求め方と出典"
+],
+"神煞是传统标签：只收能在古籍里查到安法的十六种，以日干、年干、年支、日支、月支查四柱，时柱不作查法起点；同一种神煞各家表格不尽相同（如阴干是否有羊刃），这里按所列出处。只列名称，不断吉凶。": [
+"Shen Sha are traditional labels. Only the sixteen whose placement can be found in a classical text are included, read from the day stem, year stem, year branch, day branch and month branch against the four pillars; the hour pillar is never a starting point. Tables for the same star differ between schools (for example whether yin stems have a Yang Ren); these follow the sources listed. Names only, with no good-or-bad reading.",
+"神煞は伝統的なラベルです。古典で配置法を確認できる十六種だけを収め、日干・年干・年支・日支・月支から四柱を見ます。時柱は起点にしません。同じ神煞でも流派により表が異なり（陰干に羊刃があるか等）、ここでは掲げた出典に従います。名称のみで吉凶は判断しません。"
+],
+"神煞：": [
+"Shen Sha: ",
+"神煞："
+],
+"神煞：只收能在古籍里查到安法的十六种，以日干、年干、年支、日支、月支查四柱，时柱不作查法起点；每种附查法与出处，只作标签，不断吉凶": [
+"Shen Sha: only the sixteen whose placement can be found in a classical text, read from the day stem, year stem, year branch, day branch and month branch against the four pillars, never from the hour pillar; each with its rule and source, as labels only, with no good-or-bad reading",
+"神煞：古典で配置法を確認できる十六種のみ。日干・年干・年支・日支・月支から四柱を見て、時柱は起点にしない。各々に求め方と出典を付け、ラベルとしてのみ扱い吉凶は判断しない"
+],
+"神煞：随时辰而定": [
+"Auxiliary stars: depend on the hour",
+"神煞：時刻次第"
+],
 "禄入": [
 "Lu in",
 "禄入"
@@ -7013,6 +7225,10 @@ const UI_EXTRA = {
 "禄存": [
 "Lu Cun",
 "禄存"
+],
+"禄神": [
+"Lu Shen",
+"禄神"
 ],
 "福州": [
 "Fuzhou",
@@ -7222,6 +7438,14 @@ const UI_EXTRA = {
 "Zi Wei Dou Shu expert",
 "紫微斗数エキスパート"
 ],
+"紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）": [
+"Zi Wei Dou Shu star placement, the same table as this site's Zi Wei chart (checked chart by chart against iztro)",
+"紫微斗数の安星法。本サイトの紫微盤と同じ表（iztro と一盤ずつ照合済み）"
+],
+"紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）；八字按立春年支查，紫微盘按农历年支，立春到春节之间出生的两处会差一支": [
+"Zi Wei Dou Shu placement, the same table as this site's Zi Wei chart (checked chart by chart against iztro); BaZi reads the year branch from Li Chun, the Zi Wei chart from the lunar year, so births between Li Chun and the lunar new year differ by one branch",
+"紫微斗数の安星法で、本サイトの紫微盤と同じ表（iztro と一盤ずつ照合済み）。八字は立春の年支、紫微盤は旧暦の年支で数えるため、立春から旧正月までの出生では一支ずれる"
+],
 "紫微斗数对照": [
 "Zi Wei Dou Shu comparison",
 "紫微斗数の照合"
@@ -7269,6 +7493,10 @@ const UI_EXTRA = {
 "红鸾": [
 "Hong Luan",
 "紅鸞"
+],
+"红鸾对宫：子年在酉，逆行十二支；以年支查": [
+"Opposite Hong Luan: 子 year at 酉, counting the twelve branches backwards; read from the year branch",
+"紅鸞の対宮：子年は酉、十二支を逆にたどる。年支から求める"
 ],
 "约 ": [
 "approx. ",
@@ -7377,6 +7605,10 @@ const UI_EXTRA = {
 "置信度只衡量出生时间误差会不会让这项排盘结果改变，不衡量传统解释是否正确。": [
 "Confidence measures only whether birth-time error could change this chart result, not whether the traditional interpretation is correct.",
 "信頼度は出生時刻の誤差によってこの命盤結果が変わり得るかのみを測るもので、伝統的解釈が正しいかどうかは測りません。"
+],
+"羊刃": [
+"Yang Ren",
+"羊刃"
 ],
 "羊年": [
 "Year of the Goat",
@@ -8538,6 +8770,10 @@ const UI_EXTRA = {
 "Chu (Remove)",
 "除"
 ],
+"随时辰而定": [
+"Depends on the hour",
+"時刻次第"
+],
 "随机出生与目标时刻": [
 "Random birth and target times",
 "ランダムな出生時刻と対象時刻"
@@ -8658,6 +8894,10 @@ const UI_EXTRA = {
 "Madrid",
 "マドリード"
 ],
+"驿马": [
+"Yi Ma",
+"駅馬"
+],
 "高": [
 "High",
 "高"
@@ -8669,6 +8909,10 @@ const UI_EXTRA = {
 "高雄": [
 "Kaohsiung",
 "高雄"
+],
+"魁罡": [
+"Kui Gang",
+"魁罡"
 ],
 "鸡年": [
 "Year of the Rooster",

@@ -46,7 +46,7 @@ def test_committed_report_matches_its_data():
     late = data['ziwei']['late_zi']
     assert all(item['mismatches'] == 0 for item in late['rollover_vs_iztro_late_zi'].values())
     assert late['rollover_vs_iztro_late_zi']['stars']['checked'] + late['iztro_keeps_month']['births'] == late['births']
-    assert set(data['references']) == {'sxtwl', 'lunar_python', 'lunardate', 'ephem', 'iztro_py', 'pyswisseph', 'iztro'}
+    assert set(data['references']) == {'sxtwl', 'lunar_python', 'lunardate', 'ephem', 'iztro_py', 'pyswisseph', 'iztro', '@soul-atelier/bazi'}
     # Every other star, the four twelve-god cycles and every star's brightness agree with iztro itself.
     assert all(data['ziwei']['results'][key]['mismatches'] == 0 for key in ('other_stars', 'cycles', 'brightness'))
     assert data['ziwei']['other_stars'] == {'star_count': 44, 'mismatching_stars': {}}
@@ -80,11 +80,23 @@ def test_committed_report_matches_its_data():
         (key, horoscope['results'][key]['mismatches']) for key in ('decade', 'small_limit', 'year', 'month', 'day', 'hour')]
     assert [row['field'] for row in page['horoscope']['flow_rows']] == ['flow_decade', 'flow_year', 'flow_month', 'flow_day', 'flow_hour', 'year_twelve']
     assert '| 主星与昌曲、火铃、羊陀庙旺利陷（iztro） | 3,000 | 0 | 100.000% |' in readme
+    # 神煞: every one of the sixteen stars on one chart a day agrees with @soul-atelier/bazi wherever both follow the same rule.
+    from app.shensha import RULES
+    shensha = data['shensha']
+    assert shensha['charts'] == days['pillars_at_noon']['lunar_python.day']['checked']
+    assert {k.split('.', 1)[1] for k in shensha['results']} == {rule['name'] for rule in RULES}
+    assert all(item['mismatches'] == 0 for item in shensha['results'].values())
+    assert shensha['results']['natal.天乙贵人']['checked'] == shensha['charts'] and 'fortune.魁罡' not in shensha['results']
+    assert shensha['results']['natal.羊刃']['checked'] + shensha['not_compared']['羊刃'] == shensha['charts']
+    assert page['shensha'] == {'charts': shensha['charts'], 'stars': 16, 'natal': {'checked': sum(v['checked'] for k, v in shensha['results'].items() if k.startswith('natal.')), 'mismatches': 0},
+                               'fortune': {'checked': sum(v['checked'] for k, v in shensha['results'].items() if k.startswith('fortune.')), 'mismatches': 0}}
+    assert '## 八字神煞对照 @soul-atelier/bazi' in readme and '| 天乙贵人 | 72,684 | 0 | 72,684 | 0 |' in readme
     assert '## 紫微运限对照 iztro' in readme and '| 流年流曜（流魁至流喜、年解） | 1,000 | 0 |' in readme
     app_js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     assert "fetch('/static/crosscheck-summary.json')" in app_js and 'id="crosscheck-open"' in (ROOT / 'static/index.html').read_text(encoding='utf-8')
     pins = (ROOT / 'docs/evals/requirements.txt').read_text(encoding='utf-8')
-    assert json.loads((ROOT / 'docs/evals/package.json').read_text(encoding='utf-8'))['dependencies'] == {'iztro': data['references']['iztro']}
+    node = ('iztro', '@soul-atelier/bazi')
+    assert json.loads((ROOT / 'docs/evals/package.json').read_text(encoding='utf-8'))['dependencies'] == {n: data['references'][n] for n in node}
     for name, version in data['references'].items():
-        if name not in ('pyswisseph', 'iztro'):
+        if name not in ('pyswisseph', *node):
             assert f"{name.replace('_', '-') if name == 'iztro_py' else name}=={version}" in pins

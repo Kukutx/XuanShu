@@ -7,7 +7,7 @@ license: AGPL-3.0
 
 ## When to use
 
-Use for questions about 四柱八字、日主、地支藏干、十神、纳音 and 节令/月柱切换. Do not use the model's internal memory to invent exact calendrical values.
+Use for questions about 四柱八字、日主、地支藏干、十神、纳音、神煞 and 节令/月柱切换. Do not use the model's internal memory to invent exact calendrical values.
 
 ## Procedure
 
@@ -16,7 +16,8 @@ Use for questions about 四柱八字、日主、地支藏干、十神、纳音 a
 3. Present year, month, day, hour pillars first; then day master, hidden stems, and the nearest jie from `jie_boundaries`.
 4. Explain each ten-god label as a relationship between **stems**, not as a personality fact. Note that apparent element counts use visible stems and branch primary elements only.
 5. When the user asks why one app gives a different chart, compare timezone, local/true solar time, 23:00 day change, leap month handling and exact solar-term instant. Request a reference output instead of assuming the other app is wrong.
-6. For the source calculation rules, request MCP `resources/read` with URI `astro://rules/bazi`.
+6. Each pillar's `shensha` lists traditional auxiliary stars with the natal values that place them; `shensha_rules` gives each star's rule and classical source. Present them as labels with their rule and source only: do not call a star lucky or unlucky, and do not add stars the tool does not list.
+7. For the source calculation rules, request MCP `resources/read` with URI `astro://rules/bazi`.
 
 ## Example arguments
 

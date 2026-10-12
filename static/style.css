@@ -267,6 +267,14 @@ a{color:inherit;text-decoration:none}
 .link-group{--link:var(--gold)}
 .link-clash .pillar-link-arc{border-style:dashed}
 .pillar-nayin{font-size:12px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--border);padding-top:7px}
+/* 神煞: one neutral style for every star, since the labels carry no good-or-bad reading here. */
+.pillar-shensha{font-size:12px;color:var(--text2);margin-top:7px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px 4px}
+.shensha-tag{padding:0 6px;border:1px solid var(--border);border-radius:999px;background:var(--panel);line-height:1.6;white-space:nowrap;cursor:help}
+.shensha-table td{vertical-align:top}
+.shensha-table .shensha-name{white-space:nowrap;font-weight:500}
+.shensha-where{display:table;cursor:help;border-bottom:1px dotted var(--border-strong);white-space:nowrap}
+.shensha-where + .shensha-where{margin-top:3px}
+.shensha-table td.muted{font-size:12px}
 .five-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
 .five-box{border:1px solid var(--border);padding:12px 6px;text-align:center;background:var(--panel2);border-radius:6px}
 .five-box strong{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:22px;font-weight:500;display:block}
@@ -770,7 +778,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ziwei-wrap{overflow-x:auto;margin:0 -16px;padding:0 16px 6px}
   .ziwei-board{min-width:580px;gap:4px}
   .ziwei-scroll-hint{display:block}
-  .pillar-god,.pillar-sub,.pillar-nayin{font-size:11px}
+  .pillar-god,.pillar-sub,.pillar-nayin,.pillar-shensha{font-size:11px}
+  .shensha-tag{padding:0 4px}
+  .pillar-shensha .pillar-stage-label{flex-basis:100%}  /* narrow columns: the label on its own line above the stars */
 }
 
 /* ---- print: a clean report on paper ---- */

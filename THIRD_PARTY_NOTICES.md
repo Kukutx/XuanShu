@@ -42,6 +42,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## @soul-atelier/bazi (evaluation only)
+
+Source: https://github.com/soul-atelier/sdks (package `packages/bazi`) · MIT License.
+
+The application does **not** import or depend on it, and no table or code is taken from it: XuanShu's 神煞 tables in `app/shensha.py` follow the classical sources named in each rule. The evaluation script `scripts/bazi_shensha_reference.mjs` (run by `scripts/eval_crosscheck.py`) loads @soul-atelier/bazi 0.9.1 and its dependencies (@soul-atelier/calendar, @soul-atelier/core, tyme4ts; all MIT) through Node.js only to compare results; the version is pinned in `docs/evals/package.json` and installed on request with `npm install --prefix docs/evals`, like iztro above.
+
 ## External platform interfaces
 
 No private APIs, accounts, credentials, code, or branding assets from tianfu-ai.com are included.
