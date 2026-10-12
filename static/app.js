@@ -131,6 +131,7 @@ let boundaryResult = null;
 let dayunDraft = {periods: 10, direction_override: ''};
 let dayunPick = null;  // the decade shown in detail on the luck-pillar page; null: the one today falls in
 let dayunKey = null, dayunPending = false, dayunError = '';  // the request the shown periods belong to
+let dayunAxisScroll = null;  // {key, left}: where the luck axis was scrolled to, kept while the same decade is shown
 let boundaryDraft = {uncertainty_minutes: 60};
 let qualityMinutesDraft = 15;
 let qualityRun = null;  // the birth and window the shown audit was asked for
@@ -998,7 +999,7 @@ function natalMarks(parent, n) {
   marks.forEach(([text, kind]) => append(line, 'span', 'luck-mark link-' + kind, text));
 }
 function natalText(n) {
-  const parts = ['星运 ' + n.growth_stage, '自坐 ' + n.self_stage, '纳音 ' + n.na_yin];
+  const parts = [n.growth_stage && '星运 ' + n.growth_stage, '自坐 ' + n.self_stage, '纳音 ' + n.na_yin].filter(Boolean);
   n.void_of.forEach(v => parts.push(v === 'day' ? '落日空' : '落年空'));
   n.stem_relations.forEach(r => parts.push(nameMap[r.pillar] + r.stem + '：' + r.labels.map(l => l === '相冲' ? n.pillar[0] + r.stem + l : l).join('·')));
   n.branch_relations.forEach(r => parts.push(nameMap[r.pillar] + r.branch + '：' + n.pillar[1] + r.branch + r.labels.join('·')));
@@ -4235,7 +4236,8 @@ function durationText(parent, minutes) {
   return parent;
 }
 // A count and its unit. One day and one hour are a single text, so English reads "1 day", not "1 days".
-function countText(parent, n, unit) {return n === 1 && (unit === ' 天' || unit === ' 小时') ? texts(parent, '1' + unit) : texts(parent, n, unit);}
+const WHOLE_COUNTS = [' 天', ' 小时', ' 岁', ' 个月'];  // '1 天' and the like have whole-string translations (1 day, 1 yr)
+function countText(parent, n, unit) {return n === 1 && WHOLE_COUNTS.includes(unit) ? texts(parent, '1' + unit) : texts(parent, n, unit);}
 function renderToday() {
   title(result, '今日历法', todayPick ? '所选时刻 · 历法事实 · 不打吉凶分' : '本机时间 · 历法事实 · 不打吉凶分');
   todayPicker(result);
@@ -5778,50 +5780,87 @@ function renderDayun() {
   if (!ready) {append(result, 'p', 'field-help', '命盘没有填性别：选好顺排或逆排后点「计算大运」。'); return;}
   if (dayunPending) append(result, 'p', 'field-help', '正在按当前命盘计算大运…');
   if(!dayunResult || dayunKey !== JSON.stringify(request()))return;
-  const d=dayunResult;
-  meta(result,[`年柱 ${d.natal_year_pillar}`,`月柱 ${d.natal_month_pillar}`,`方向 ${d.direction==='forward'?'顺排':'逆排'}`,`起运约 ${d.start_age_traditional_parts.years}岁 ${d.start_age_traditional_parts.months}月`]);
-  // The period the device date falls in, by the projected dates. Those are an average-year approximation, so the
-  // dates are given to the day; the first start keeps the projected minute.
-  const now=localToday(), live=d.periods.findIndex(x=>x.approx_start_local.slice(0,10)<=now&&now<x.approx_end_local_exclusive.slice(0,10));
+  const d=dayunResult, o=dayunOpenness(), parts=startAgeParts(d);
+  meta(result,[`年柱 ${d.natal_year_pillar}`,`月柱 ${d.natal_month_pillar}`,`方向 ${d.direction==='forward'?'顺排':'逆排'}`,o.sequence?'起运随时辰而定':`起运约 ${parts.years}岁 ${parts.months}月`]);
+  // The decade this civil year belongs to, by the usual listing (the years under each decade, and the BaZi page's
+  // luck strip, count it the same way): the year a decade begins in belongs to it whole.
+  const now=localToday(), thisYear=Number(now.slice(0,4)), yearOf=s=>Number(s.slice(0,4));
+  const live=d.periods.findIndex(x=>yearOf(x.approx_start_local)<=thisYear&&thisYear<yearOf(x.approx_end_local_exclusive));
   const pick = d.periods.find(x => x.sequence === dayunPick) || d.periods[Math.max(live, 0)];
-  dayunStart(d);
-  dayunAxis(d, live, pick, now);
-  dayunDetail(d, pick, pick === d.periods[live]);
+  dayunStart(d, o, parts);
+  // With the month pillar open the sequence itself is one of two, so only the table below is shown, said to be so.
+  if (!o.sequence) {dayunAxis(d, live, pick, now); dayunDetail(d, pick, pick === d.periods[live], o, now);}
   append(result, 'h4', 'subheading', '全部大运');
+  if (o.sequence) append(result, 'p', 'field-help', '这张表按 12:00 占位排出，只是其中一种可能。');
+  if (o.day) append(result, 'p', 'field-help', '日柱随时辰而定，日主未定，十神和星运暂不标注。');
   const table=append(append(result,'div','table-wrap'),'table','data-table dayun-table'); table.id='dayun-table';
   append(table, 'caption', 'visually-hidden', '全部大运');
-  const head=append(append(table,'thead'),'tr');['次序','十年干支','十神','星运','名义起始年龄','近似起始公历','与原局','神煞'].forEach(x=>{append(head,'th',null,x).scope='col';});
+  const head=append(append(table,'thead'),'tr');['次序','十年干支',...(o.day?[]:['十神','星运']),'名义起始年龄','近似起始公历','与原局','神煞'].forEach(x=>{append(head,'th',null,x).scope='col';});
   const body=append(table,'tbody');
   d.periods.forEach((x,i)=>{
-    const n=x.natal_interactions;
+    const n=settledInteractions(x.natal_interactions, o);
     const tr=append(body,'tr',i===live?'is-current':null);append(tr,'td',null,x.sequence);
     if(i===live)tr.setAttribute('aria-current','date');
     const cell=append(tr,'td'),pillar=append(cell,'span','pillar-cell');append(pillar,'span',stemClass(x.pillar[0]),x.pillar[0]);append(pillar,'span',branchClass(x.pillar[1]),x.pillar[1]);
     if(i===live)append(cell,'span','dayun-now','约当前');
-    append(tr,'td',null,n?n.ten_god_of_stem:'—');append(tr,'td',null,n?n.growth_stage:'—');
+    if(!o.day){append(tr,'td',null,n?n.ten_god_of_stem:'—');append(tr,'td',null,n?n.growth_stage:'—');}
     append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td','nowrap',x.approx_start_local.slice(0,10));
     const marks=append(tr,'td');if(n){natalMarks(marks,n);marks.title=natalText(n);}if(!marks.childNodes.length)marks.textContent='—';
-    append(tr,'td',null,(n&&n.shensha||[]).map(s=>s.name).join('、')||'—');});
+    append(tr,'td',null,o.stars?'随时辰而定':(n&&n.shensha||[]).map(s=>s.name).join('、')||'—');});
   d.limitations.forEach(x=>note(result,x));
+}
+// With the hour unknown, which pillars the noon placeholder leaves open (unsettledPillars) and what follows for the
+// decades: a jie that day changes the month pillar (立春 the year pillar too) and with it the whole sequence; a day
+// that can change takes the day master, and with it the ten gods, the growth stages and the day-based stars.
+function dayunOpenness() {
+  const open = currentHourUnknown ? unsettledPillars(current.bazi) : new Set();
+  return {open, sequence: open.has('month') || open.has('year'), day: open.has('day'), stars: shenshaUnsettled(current.bazi)};
+}
+// A luck or year pillar's facts kept to what the hour does not change: relations with open pillars are left out.
+function settledInteractions(n, o) {
+  if (!n || !o.open.size) return n;
+  return {...n, growth_stage: o.day ? null : n.growth_stage, void_of: n.void_of.filter(k => !o.open.has(k)),
+    stem_relations: n.stem_relations.filter(r => !o.open.has(r.pillar)), branch_relations: n.branch_relations.filter(r => !o.open.has(r.pillar)),
+    branch_groups: n.branch_groups.filter(g => !g.pillars.some(k => o.open.has(k))), shensha: o.stars ? [] : n.shensha};
+}
+// The starting age in years, months and whole days: 30 days carry into a month, as 12 months carry into a year.
+function startAgeParts(d) {
+  const raw = d.start_age_traditional_parts;
+  let {years, months} = raw, days = Math.round(raw.days_nominal_30_day_month);
+  if (days >= 30) {days = 0; months += 1;}
+  if (months >= 12) {months = 0; years += 1;}
+  return {years, months, days};
 }
 // How the starting age comes about: the birth and the month-boundary solar term it is counted to (back to the last
 // one when the decades run in reverse, on to the next when forward), the days between, and three days to a year.
-function dayunStart(d) {
+function dayunStart(d, o, parts) {
   const box = append(result, 'section', 'dy-start');
   append(box, 'h4', 'subheading', '起运怎么算');
+  if (o.sequence) {
+    const b = current.bazi, day = currentInput.birth_datetime.slice(0, 10);
+    const jie = [b.jie_boundaries.previous, b.jie_boundaries.next].find(j => j.instant.slice(0, 10) === day);
+    const warn = append(box, 'div', 'dy-warn'); warn.id = 'dayun-open'; warn.setAttribute('role', 'note');
+    if (jie) {const line = append(warn, 'p'); texts(line, '出生当天交节', '：', jie.name, ' '); append(line, 'b', null, jie.instant.slice(11, 19));}
+    append(warn, 'p', null, o.open.has('year')
+      ? '时辰不详：生在交节之前或之后，年柱和月柱都不同，大运的顺逆、干支和起运岁数也都跟着变。下面的大运表按 12:00 占位排出，只是其中一种可能；补上出生时辰后才有起运推算和人生时间轴。'
+      : '时辰不详：生在交节之前或之后，月柱不同，大运的干支和起运岁数也都跟着变。下面的大运表按 12:00 占位排出，只是其中一种可能；补上出生时辰后才有起运推算和人生时间轴。');
+    return;
+  }
   const reverse = d.direction !== 'forward';
   // To the second, with the zone offset each was given in (a daylight-saving year shows +09:00 in China).
   const node = (name, at) => {const n = elt('div', 'dy-node'); append(n, 'b', null, name); append(n, 'small', null, at.replace('T', ' ').replace(/\.\d+/, '')); return n;};
   const birth = node('出生', d.birth_datetime), jie = node(d.nearest_jie_used.name, d.nearest_jie_used.instant);
+  if (currentHourUnknown) {const at = birth.querySelector('small'); at.textContent = ''; texts(at, d.birth_datetime.slice(0, 10), ' ', '时辰不详（按 12:00）');}
   const calc = append(box, 'div', 'dy-calc');
   const gap = elt('div', 'dy-gap');
   append(gap, 'span', null, reverse ? '逆排：往前数到上一个节' : '顺排：往后数到下一个节');
   countText(append(gap, 'b'), d.birth_to_jie_days.toFixed(2), ' 天');
   calc.append(...(reverse ? [jie, gap, birth] : [birth, gap, jie]));
-  const parts = d.start_age_traditional_parts, f = append(box, 'p', 'dy-formula');
+  const f = append(box, 'p', 'dy-formula');
   countText(f, d.birth_to_jie_days.toFixed(2), ' 天'); f.append(' ÷ 3 = '); texts(f, d.start_age_years_nominal.toFixed(2), ' 年', ' ≈ ');
-  texts(append(f, 'b'), parts.years, ' 岁', ' ', parts.months, ' 个月', ' ', Math.round(parts.days_nominal_30_day_month), ' 天');
-  f.append(' → '); texts(f, '起运约', ' ', d.approx_first_start_local.slice(0, 16).replace('T', ' '));
+  const age = append(f, 'b');
+  countText(age, parts.years, ' 岁'); age.append(' '); countText(age, parts.months, ' 个月'); age.append(' '); countText(age, parts.days, ' 天');
+  f.append(' → '); texts(f, '起运约', ' '); append(f, 'span', 'nowrap', d.approx_first_start_local.slice(0, 16).replace('T', ' '));
   append(box, 'p', 'field-help', '三日折一岁：出生到节令每 3 天算 1 年，1 天算 4 个月，1 个时辰算 10 天；公历日期按每年 365.2425 天推算，是近似值。');
   if (currentHourUnknown) append(box, 'p', 'field-help', '时辰不详：按 12:00 占位计算；出生时间前后差 12 小时，起运最多差约 2 个月。');
 }
@@ -5834,6 +5873,11 @@ function dayunAxis(d, live, pick, now) {
   const wrap = append(result, 'div', 'dy-axis-wrap');
   const axis = append(wrap, 'div', 'dy-axis'); axis.id = 'dayun-axis';
   axis.setAttribute('role', 'group'); axis.setAttribute('aria-label', '大运时间轴');
+  if (now >= d.birth_datetime.slice(0, 10) && now < d.periods[d.periods.length - 1].approx_end_local_exclusive.slice(0, 10)) {
+    // Drawn above and below the bands only, so the labels of the decade it falls in stay readable.
+    const mark = append(axis, 'div', 'dy-today'); mark.style.left = at(now);
+    texts(append(mark, 'small'), '今天');
+  }
   const before = append(axis, 'div', 'dy-band dy-before');
   before.style.left = '0'; before.style.width = at(d.periods[0].approx_start_local);
   append(before, 'small', null, '起运前');
@@ -5848,21 +5892,28 @@ function dayunAxis(d, live, pick, now) {
     append(gz, 'span', stemClass(x.pillar[0]), x.pillar[0]); append(gz, 'span', branchClass(x.pillar[1]), x.pillar[1]);
     append(band, 'small', null, x.approx_start_local.slice(0, 4));
     texts(append(band, 'small', 'dy-band-age'), x.approx_start_age_years.toFixed(1), ' 岁');
-    band.addEventListener('click', () => {dayunPick = x.sequence; render(); const back = $('#dayun-band-' + x.sequence); if (back) back.focus();});
+    band.addEventListener('click', () => {
+      dayunPick = x.sequence; render();
+      const back = $('#dayun-band-' + x.sequence); if (back) back.focus();
+      announce(x.pillar + ' 大运 · ' + x.approx_start_local.slice(0, 4) + '–' + x.approx_end_local_exclusive.slice(0, 4));
+    });
   });
-  // On a narrow screen the axis scrolls sideways; bring the decade shown below into view.
-  const shown = $('#dayun-band-' + pick.sequence);
-  if (shown && wrap.scrollWidth > wrap.clientWidth) wrap.scrollLeft = shown.offsetLeft + shown.offsetWidth / 2 - wrap.clientWidth / 2;
-  if (now >= d.birth_datetime.slice(0, 10) && now < d.periods[d.periods.length - 1].approx_end_local_exclusive.slice(0, 10)) {
-    const mark = append(axis, 'div', 'dy-today'); mark.style.left = at(now);
-    append(mark, 'small', null, '今天');
+  // On a narrow screen the axis scrolls sideways: a newly picked decade is brought into view, and a redraw with the
+  // same one keeps where the reader scrolled to.
+  const key = dayunKey + '#' + pick.sequence, shown = $('#dayun-band-' + pick.sequence);
+  if (shown && wrap.scrollWidth > wrap.clientWidth) {
+    wrap.scrollLeft = dayunAxisScroll && dayunAxisScroll.key === key ? dayunAxisScroll.left : shown.offsetLeft + shown.offsetWidth / 2 - wrap.clientWidth / 2;
   }
+  wrap.addEventListener('scroll', () => {dayunAxisScroll = {key, left: wrap.scrollLeft};}, {passive: true});
 }
 // One decade in full: its stem and the stems hidden in its branch with their ten gods, the growth stages, the
 // relations it forms with the natal pillars, its stars with the rule they come from, and its years one by one.
-function dayunDetail(d, x, isNow) {
-  const n = x.natal_interactions, b = current.bazi;
+function dayunDetail(d, x, isNow, o, now) {
+  const n = settledInteractions(x.natal_interactions, o), b = current.bazi;
   const box = append(result, 'section', 'dy-detail'); box.id = 'dayun-detail';
+  box.setAttribute('aria-labelledby', 'dayun-detail-title');
+  const heading = append(box, 'h4', 'visually-hidden'); heading.id = 'dayun-detail-title';
+  texts(heading, '所选大运', ' ', x.pillar);
   const head = append(box, 'div', 'dy-detail-head');
   const gz = append(head, 'b', 'dy-detail-gz'); gz.dataset.noI18n = '';
   append(gz, 'span', stemClass(x.pillar[0]), x.pillar[0]); append(gz, 'span', branchClass(x.pillar[1]), x.pillar[1]);
@@ -5872,15 +5923,19 @@ function dayunDetail(d, x, isNow) {
   if (isNow) append(order, 'small', 'dayun-now', '约当前');
   fact('名义年龄', x.approx_start_age_years.toFixed(1), ' – ', x.approx_end_age_years.toFixed(1), ' 岁');
   fact('近似公历', x.approx_start_local.slice(0, 10), ' – ', x.approx_end_local_exclusive.slice(0, 10));
+  // This civil year is listed under the decade it begins in; before the change date it is still the previous one.
+  const change = x.approx_start_local.slice(0, 10);
+  if (isNow && now < change) texts(append(box, 'p', 'field-help dy-change'), '交运约在', ' ', change, '：', '按常见排法，交运当年整年记在这步大运下；在这之前的几个月实际仍在上一步大运。');
   if (!n) return;
-  fact('十神', n.ten_god_of_stem);
+  if (!o.day) fact('十神', n.ten_god_of_stem);
   const hidden = fact('藏干');
   n.hidden_stems.forEach((h, i) => {
     if (i) hidden.append(' ');
     const item = append(hidden, 'span', 'dy-hidden');
-    append(item, 'b', stemClass(h.stem), h.stem).dataset.noI18n = ''; append(item, 'small', null, h.ten_god);
+    append(item, 'b', stemClass(h.stem), h.stem).dataset.noI18n = ''; if (!o.day) append(item, 'small', null, h.ten_god);
   });
-  fact('星运', n.growth_stage); fact('自坐', n.self_stage); fact('纳音', n.na_yin);
+  if (!o.day) fact('星运', n.growth_stage);
+  fact('自坐', n.self_stage); fact('纳音', n.na_yin);
   const chips = append(box, 'div', 'dy-chips');
   const chip = (kind, ...parts) => texts(append(chips, 'span', 'dy-chip link-' + kind), ...parts);
   n.stem_relations.forEach(r => chip(r.labels.includes('相冲') ? 'clash' : 'combine', nameMap[r.pillar], ' ', r.stem, '：', r.labels.map(l => l === '相冲' ? x.pillar[0] + r.stem + l : l).join('·')));
@@ -5888,23 +5943,24 @@ function dayunDetail(d, x, isNow) {
   n.branch_groups.forEach(g => chip('combine', g.branches, ' ', g.kind === '三合' ? '三合局' : '三会方', '（', g.element, '）'));
   n.void_of.forEach(v => chip('void', v === 'day' ? '落日空' : '落年空'));
   if (!chips.childNodes.length) append(chips, 'span', 'muted', '与原局没有冲合刑害');
-  if ((n.shensha || []).length) {
+  if (o.stars) {const stars = append(box, 'p', 'dy-stars'); append(stars, 'span', 'muted', '神煞'); append(stars, 'span', null, '随时辰而定');}
+  else if ((n.shensha || []).length) {
     const rules = new Map((d.shensha_rules || []).map(r => [r.name, r]));
     const stars = append(box, 'p', 'dy-stars');
     append(stars, 'span', 'muted', '神煞');
     n.shensha.forEach(sh => {
       const item = append(stars, 'span', 'dy-star', sh.name);
       const rule = rules.get(sh.name); if (rule) item.title = rule.rule + ' · ' + rule.source;
-      sh.by.forEach(by => {const why = append(item, 'small'); why.append(' '); texts(why, {day_stem: '日干', year_stem: '年干', year_branch: '年支', day_branch: '日支', month_branch: '月支'}[by.basis] || by.basis, by.value);});
+      sh.by.forEach(by => {const why = append(item, 'small'); why.append(' '); texts(why, SHENSHA_BASIS[by.basis] || by.basis, ' ', by.value);});
     });
   }
   if (!(x.years || []).length) return;
-  const birthYear = b.lunar_date ? b.lunar_date.year : Number(d.birth_datetime.slice(0, 4)), thisYear = new Date().getFullYear();
+  const birthYear = b.lunar_date ? b.lunar_date.year : Number(d.birth_datetime.slice(0, 4)), thisYear = Number(now.slice(0, 4));
   const wrap = append(box, 'div', 'table-wrap');
   const table = append(wrap, 'table', 'data-table dy-years'); table.id = 'dayun-years';
   append(table, 'caption', 'visually-hidden', '这步大运里的流年');
   const th = append(append(table, 'thead'), 'tr');
-  ['流年', '干支', '十神', '虚龄', '星运', '与原局', '神煞'].forEach(t => {append(th, 'th', null, t).scope = 'col';});
+  ['流年', '干支', ...(o.day ? [] : ['十神']), '虚龄', ...(o.day ? [] : ['星运']), '与原局', '神煞'].forEach(t => {append(th, 'th', null, t).scope = 'col';});
   const tbody = append(table, 'tbody');
   x.years.forEach(y => {
     const tr = append(tbody, 'tr', y.year === thisYear ? 'is-current' : null);
@@ -5912,11 +5968,12 @@ function dayunDetail(d, x, isNow) {
     const first = append(tr, 'th', null, String(y.year)); first.scope = 'row';
     const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
     append(pair, 'span', stemClass(y.pillar[0]), y.pillar[0]); append(pair, 'span', branchClass(y.pillar[1]), y.pillar[1]);
-    append(tr, 'td', null, y.ten_god_of_stem);
+    const ys = settledInteractions(y, o);
+    if (!o.day) append(tr, 'td', null, ys.ten_god_of_stem);
     append(tr, 'td', null, String(y.year - birthYear + 1));
-    append(tr, 'td', null, y.growth_stage);
-    const marks = append(tr, 'td'); natalMarks(marks, y); marks.title = natalText(y); if (!marks.childNodes.length) marks.textContent = '—';
-    append(tr, 'td', null, (y.shensha || []).map(s => s.name).join('、') || '—');
+    if (!o.day) append(tr, 'td', null, ys.growth_stage);
+    const marks = append(tr, 'td'); natalMarks(marks, ys); marks.title = natalText(ys); if (!marks.childNodes.length) marks.textContent = '—';
+    append(tr, 'td', null, o.stars ? '随时辰而定' : (ys.shensha || []).map(s => s.name).join('、') || '—');
   });
   append(box, 'p', 'field-help', '与原局一栏：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空，悬停可看全部关系。流年以立春换年，虚龄从农历出生年起算。只列关系与标签，不判断吉凶。');
 }

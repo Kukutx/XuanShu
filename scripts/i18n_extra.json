@@ -439,6 +439,10 @@
   "1 interval",
   "1 件の時間帯"
  ],
+ "1 个月": [
+  "1 month",
+  "1 か月"
+ ],
  "1 天": [
   "1 day",
   "1 日"
@@ -446,6 +450,10 @@
  "1 小时": [
   "1 hour",
   "1 時間"
+ ],
+ "1 岁": [
+  "1 yr",
+  "1 歳"
  ],
  "1 种": [
   "1 way",
@@ -1587,6 +1595,10 @@
   "Luck change",
   "交運年"
  ],
+ "交运约在": [
+  "The change comes around",
+  "交運はおよそ"
+ ],
  "亥卯未": [
   "Hai–Mao–Wei",
   "亥卯未"
@@ -2642,6 +2654,10 @@
  "出生年地支": [
   "Birth year branch",
   "出生年の地支"
+ ],
+ "出生当天交节": [
+  "A jie term begins on the birth day",
+  "出生日に節入り"
  ],
  "出生当天在农历年的交界，日子随时辰而定，生年天干可能不同，四化星暂不列出。": [
   "The birth day sits at the turn of the lunar year and depends on the hour, so the birth year's stem may differ and the transformation stars are not listed.",
@@ -5771,6 +5787,10 @@
   "All values come from the user's subjective scores and weights; the ranking is not objective truth, a probability, or a prediction of real-world outcomes.",
   "すべての数値はユーザーが入力した主観的な評価と重みに基づきます。順位は客観的な真実、確率、現実の結果予測ではありません。"
  ],
+ "所选大运": [
+  "Selected Luck Pillar",
+  "選んだ大運"
+ ],
  "所选宫位": [
   "Selected palace",
   "選択した宮位"
@@ -5970,6 +5990,10 @@
  "按宫列表": [
   "By palace",
   "宮ごとの一覧"
+ ],
+ "按常见排法，交运当年整年记在这步大运下；在这之前的几个月实际仍在上一步大运。": [
+  "by the usual listing the whole year of the change counts under this Luck Pillar; the months before it still belong to the previous one.",
+  "一般的な並べ方では交運の年は丸ごとこの大運に入れますが、それより前の数か月は実際にはまだ前の大運です。"
  ],
  "按年干阴阳与性别（或手动指定）定顺逆，报告列出起运年龄和前六步大运干支。": [
   "Sets the direction from the year stem's yin or yang and the gender (or by hand); the report lists the starting age and the first six luck pillars.",
@@ -6423,6 +6447,10 @@
   "The day pillar depends on the hour, so the day master is open and ten gods are not marked.",
   "日柱は時刻次第のため日主が定まらず、十神は付けていません。"
  ],
+ "日柱随时辰而定，日主未定，十神和星运暂不标注。": [
+  "The day pillar depends on the hour, so the Day Master is not settled; ten gods and growth stages are not marked.",
+  "日柱は時辰しだいで日主が定まらないため、十神と星運は表示しません。"
+ ],
  "日柱随时辰而定，日主未定，十神暂不标注。": [
   "The day pillar depends on the hour, so the Day Master is unsettled and no ten gods are given.",
   "日柱が時刻次第のため日主が定まらず、十神は示しません。"
@@ -6703,6 +6731,10 @@
   "For a member with an unknown hour, luck is computed for the first and the last minute of the birth day; when they differ both are listed, and the annual pillar is not compared with the hour pillar.",
   "時刻不明のメンバーは誕生日の最も早い時刻と遅い時刻でそれぞれ大運を出し、異なる場合は両方を並べます。流年も時柱とは比べません。"
  ],
+ "时辰不详（按 12:00）": [
+  "hour unknown (12:00 used)",
+  "時辰不明（12:00 で計算）"
+ ],
  "时辰不详，不列换算后的时刻": [
   "Hour unknown, so no converted time is listed",
   "時辰不明のため、換算後の時刻は示しません"
@@ -6762,6 +6794,14 @@
  "时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干、四化星名和本层流曜，不列它们落在哪个本命宫。": [
   "Birth hour unknown: natal palaces and star positions change with the hour, so the small limit and year give only their Life palace branch, stem, transformed stars and period stars, not which natal palace they fall in.",
   "生時不明：本命の宮と星の位置は時刻で変わるため、小限・流年は命宮の地支、天干、四化の星名とその層の流曜だけを示し、どの本命宮に当たるかは示しません。"
+ ],
+ "时辰不详：生在交节之前或之后，年柱和月柱都不同，大运的顺逆、干支和起运岁数也都跟着变。下面的大运表按 12:00 占位排出，只是其中一种可能；补上出生时辰后才有起运推算和人生时间轴。": [
+  "Birth hour unknown: born before or after the term, the year and month pillars differ, and so do the direction, the pillars and the starting age of the Luck Pillars. The table below is cast on the 12:00 placeholder and is only one of the possibilities; the start calculation and the life timeline appear once the birth hour is filled in.",
+  "時辰不明：節入りの前か後かで年柱と月柱が異なり、大運の順逆・干支・起運年齢もすべて変わります。下の大運表は 12:00 の仮の時刻で排した可能性の一つにすぎません。出生時辰を入力すると起運の計算と人生の時間軸を表示します。"
+ ],
+ "时辰不详：生在交节之前或之后，月柱不同，大运的干支和起运岁数也都跟着变。下面的大运表按 12:00 占位排出，只是其中一种可能；补上出生时辰后才有起运推算和人生时间轴。": [
+  "Birth hour unknown: born before or after the term, the month pillar differs, and so do the pillars and the starting age of the Luck Pillars. The table below is cast on the 12:00 placeholder and is only one of the possibilities; the start calculation and the life timeline appear once the birth hour is filled in.",
+  "時辰不明：節入りの前か後かで月柱が異なり、大運の干支と起運年齢も変わります。下の大運表は 12:00 の仮の時刻で排した可能性の一つにすぎません。出生時辰を入力すると起運の計算と人生の時間軸を表示します。"
  ],
  "时辰交界": [
   "Double-hour boundary",
@@ -10007,6 +10047,10 @@
   "Luck Pillars start at about ",
   "起運 約 "
  ],
+ "起运随时辰而定": [
+  "Start depends on the birth hour",
+  "起運は時辰しだい"
+ ],
  "起（含）": [
   "From (inclusive)",
   "始（含む）"
@@ -10271,14 +10315,6 @@
   "A daylight-saving switch leaves the chosen hour without an unambiguous clock time on this day, so the nearest hour is cast instead:",
   "この日は夏時間の切り替えで選んだ時辰に一意の時計時刻がないため、最も近い時辰で局を立てました："
  ],
- "这一天没有可用的钟表时间": [
-  "No usable clock time on this day",
-  "この日には使える時計の時刻がありません"
- ],
- "这一天的夏令时切换使所选时辰没有能唯一确定的钟表时间，改起最近的时辰：": [
-  "A daylight-saving switch leaves the chosen hour without an unambiguous clock time on this day, so the nearest hour is cast instead:",
-  "この日は夏時間の切り替えで選んだ時辰に一意の時計時刻がないため、最も近い時辰で局を立てました："
- ],
  "这一天的运限": [
   "Periods in force on this day",
   "この日の運限"
@@ -10334,6 +10370,10 @@
  "这天的夏令时切换跳过或重复了一段钟表时间，没有能唯一确定的时刻落在这些时辰里，未列出：": [
   "A daylight-saving switch skips or repeats part of the clock on this day, so no unambiguous moment falls in these hours, which are not listed:",
   "この日は夏時間の切り替えで時計の一部が飛ぶか重なるため、これらの時辰には一意に決まる時刻がなく、表示していません："
+ ],
+ "这张表按 12:00 占位排出，只是其中一种可能。": [
+  "This table is cast on the 12:00 placeholder and is only one of the possibilities.",
+  "この表は 12:00 の仮の時刻で排したもので、可能性の一つにすぎません。"
  ],
  "这是一份确定性多工具计算报告，未运行外部大语言模型，不是自主推理结果。": [
   "This is a deterministic multi-tool calculation report; no external large language model was run, and it is not the result of autonomous reasoning.",

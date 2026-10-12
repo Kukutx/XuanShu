@@ -86,7 +86,9 @@ def dayun_sequence(request: DayunRequest) -> dict:
             # begins in. The year that straddles a change is listed whole under the new period, so consecutive
             # periods share no year and skip none; the pillar is the one that 立春 opens in that year.
             first, last = begin.astimezone(birthday.tzinfo).year, finish.astimezone(birthday.tzinfo).year
-            periods[-1]['years'] = [{'year': y, **natal_interactions(STEMS[(y - 4) % 10] + BRANCHES[(y - 4) % 12], natal, keys)}
+            # The hidden stems stay with the decade: per year they would add a quarter to the reply for nothing shown.
+            periods[-1]['years'] = [{'year': y, **{k: v for k, v in natal_interactions(STEMS[(y - 4) % 10] + BRANCHES[(y - 4) % 12], natal, keys).items()
+                                                   if k != 'hidden_stems'}}
                                     for y in range(first, last)]
     months_float = traditional_years * 12
     months_whole = floor(months_float)

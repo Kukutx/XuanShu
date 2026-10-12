@@ -285,19 +285,26 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .dy-gap span{transform:translateY(-10px)}.dy-gap b{transform:translateY(10px);color:var(--text);font-size:14px}
 .dy-formula{margin:0 0 6px;font-size:14px;color:var(--text);font-variant-numeric:tabular-nums}
 .dy-formula b{color:var(--gold2)}
+.dy-formula .nowrap{white-space:nowrap}
+.dy-warn{margin:0 0 10px;padding:10px 14px;border:1px solid var(--warn-line);border-left:4px solid var(--warn);border-radius:8px;background:var(--warn-soft);color:var(--text);font-size:13px}
+.dy-warn p{margin:0 0 4px}.dy-warn p:last-child{margin:0}
 .dy-axis-wrap{overflow-x:auto;margin:4px 0 14px;padding-bottom:4px}
-.dy-axis{position:relative;height:96px;min-width:680px}
-.dy-band{position:absolute;top:18px;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:6px 2px 4px;border:1px solid var(--border);border-top:4px solid var(--band,var(--border));border-radius:6px;background:var(--panel2);color:var(--text);font:inherit;min-width:0;overflow:hidden}
+/* Wide enough to read on a phone, where the axis scrolls sideways; a desktop panel shows it whole. */
+.dy-axis{position:relative;height:104px;min-width:600px}
+.dy-band{position:absolute;top:18px;bottom:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:6px 2px 4px;border:1px solid var(--border);border-top:4px solid var(--band,var(--border));border-radius:6px;background:var(--panel2);color:var(--text);font:inherit;min-width:0;overflow:hidden}
 .dy-before{border-top-color:var(--border);border-style:dashed;color:var(--muted);justify-content:center;font-size:11px}
-.dy-before small{writing-mode:vertical-rl;max-height:100%;overflow:hidden;text-overflow:ellipsis}
+.dy-before small{writing-mode:vertical-rl;height:100%;max-height:100%;overflow:hidden;text-overflow:ellipsis}
 .dy-decade{cursor:pointer}
 .dy-decade:hover{border-color:var(--gold);border-top-color:var(--band)}
 .dy-decade:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .dy-decade.is-picked{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--gold)}
 .dy-band-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.2}
 .dy-band small{font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
-.dy-decade.is-now .dy-band-age::after{content:' ●';color:var(--gold2)}
-.dy-today{position:absolute;top:0;bottom:-2px;border-left:2px solid var(--gold2);pointer-events:none}
+.dy-decade.is-now .dy-band-age::after{content:' ●';content:' ●' / '';color:var(--gold2)}
+/* Today: a line in the gutter above the bands and a tick below them, never across a decade's labels. */
+.dy-today{position:absolute;top:0;bottom:0;width:0;z-index:1;pointer-events:none}
+.dy-today::before,.dy-today::after{content:'';position:absolute;left:-1px;border-left:2px solid var(--gold2)}
+.dy-today::before{top:0;height:24px}.dy-today::after{bottom:0;height:12px}
 .dy-today small{position:absolute;top:0;left:3px;font-size:11px;font-weight:700;color:var(--gold2);white-space:nowrap}
 .dy-detail{margin:0 0 18px;padding:14px 16px;border:1px solid var(--gold);border-radius:10px}
 .dy-detail-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
@@ -316,6 +323,8 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .dy-years{margin-top:6px}
 .dy-years tr.is-current td,.dy-years tr.is-current th{background:var(--accent-soft)}
 .dy-years .pillar-cell,.dy-years th[scope=row]{white-space:nowrap}
+.dy-years td,.dy-years th{vertical-align:top}
+.dy-change{margin:8px 0 0}
 @media(max-width:640px){
   .dy-calc{flex-direction:column;align-items:stretch}
   .dy-gap{min-height:54px}
@@ -1694,7 +1703,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ev-card,.tb-card{break-inside:avoid}
   .dm-wrap{display:none}.dm-option-card{break-inside:avoid}  /* the cards repeat every rating */
   .ay-board,.ay-head{break-inside:avoid}.ay-actions{display:none!important}
-  .dy-axis-wrap{overflow:visible}.dy-axis{min-width:0}.dy-start,.dy-detail{break-inside:avoid}
+  .dy-axis-wrap{overflow:visible}.dy-axis{min-width:0}.dy-start,.dy-detail-head,.dy-years tr{break-inside:avoid}
   a[href^="http"]::after{content:' (' attr(href) ')';font-size:10px;color:#555}
 }
 /* Calculation cross-check dialog */
