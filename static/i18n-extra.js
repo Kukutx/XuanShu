@@ -3354,6 +3354,10 @@ const UI_EXTRA = {
 "The decade periods could not be calculated here; try the Decade Pillars tool.",
 "大運を計算できませんでした。「大運干支」で個別に計算できます。"
 ],
+"大运：正在排…": [
+"Luck periods: calculating…",
+"大運：計算中…"
+],
 "大阪": [
 "Osaka",
 "大阪"
