@@ -498,6 +498,8 @@ def main() -> None:
             page.wait_for_function("() => document.querySelectorAll('#rule-matrix tbody tr').length === 1", timeout=30000)
             page.screenshot(path=str(screenshot_dir / '37-rule-matrix.png'), full_page=True)
             page.locator('[data-tab="bazi"]').click()
+            # As on a fresh page, today's lunar year is not known yet: the result still comes once it is.
+            page.evaluate("todayLunarYear = null")
             page.locator('[data-tab="annual"]').click()
             # A tool that needs only the chart shows its result on opening, for the current lunar year by default.
             page.locator('.transform-card').first.wait_for(timeout=30000)

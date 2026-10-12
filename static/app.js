@@ -1026,15 +1026,18 @@ const FLY_MARKS = {'化禄': ['禄入', '自化禄'], '化权': ['权入', '自�
 let showFlying = true;
 const STEM_ORDER = '甲乙丙丁戊己庚辛壬癸', BRANCH_ORDER = '子丑寅卯辰巳午未申酉戌亥';
 // Today's lunar year comes from the calendar engine, so the default 流年 changes on the real Chinese New Year.
-let todayLunarYear = null, todayLunarPending = false;
+let todayLunarYear = null, todayLunarPending = false, todayLunarFailed = false;
 function ensureTodayLunarYear() {
-  if (todayLunarYear !== null || todayLunarPending) return;
+  if (todayLunarYear !== null || todayLunarPending || todayLunarFailed) return;  // a failed lookup is not retried in a loop
   todayLunarPending = true;
-  postJSON('/api/calendar', {start_date: localToday(), days: 1}).then(data => {
-    todayLunarYear = data.days[0].lunar.year;
-    if ((active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) || (active === 'calendar' && lunarInverseDraft && lunarInverseDraft.guessed)
-      || (active === 'annual' && annualDraft === null) || (active === 'timeline' && timelineDraft.start_lunar_year === null)) render();
-  }).catch(() => { /* keep the estimate below */ }).finally(() => {todayLunarPending = false;});
+  postJSON('/api/calendar', {start_date: localToday(), days: 1}).then(data => {todayLunarYear = data.days[0].lunar.year;})
+    .catch(() => {todayLunarFailed = true;})  // keep the estimate below
+    .finally(() => {
+      // Redraw only once nothing is pending, so a tool waiting for the year (annual, timeline) can run itself.
+      todayLunarPending = false;
+      if ((active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) || (active === 'calendar' && lunarInverseDraft && lunarInverseDraft.guessed)
+        || (active === 'annual' && annualDraft === null) || (active === 'timeline' && timelineDraft.start_lunar_year === null)) render();
+    });
 }
 function defaultLunarYear() {
   if (todayLunarYear !== null) return todayLunarYear;
