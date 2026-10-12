@@ -56,7 +56,7 @@ def test_mcp_valid_json_is_unchanged():
     c = TestClient(app)
     result = c.post('/mcp',json={'jsonrpc':'2.0','id':1,'method':'tools/list'})
     assert result.status_code == 200
-    assert len(result.json()['result']['tools']) == 33
+    assert len(result.json()['result']['tools']) == 34
 
 
 def test_stdio_uses_same_json_rules():

@@ -26,6 +26,7 @@ from .chart_import import ChartImportRequest, chart_import_check
 from .almanac import DailyAlmanacRequest, daily_almanac
 from .group import GroupRequest, group_relations
 from .rule_matrix import RuleMatrixRequest, rule_matrix
+from .ziwei_horoscope import ZiweiHoroscopeRequest, ziwei_horoscope
 from .professional_ziwei import ProfessionalZiweiRequest, professional_ziwei_chart
 from .chart_audit import QimenAuditRequest, qimen_reference_audit
 from .extended import LunarToGregorianRequest, BirthWindowRequest, lunar_to_gregorian, birth_window
@@ -76,6 +77,7 @@ TOOL_DEFS = [
     {'name': 'daily_almanac', 'title': '今日历法卡片', 'description': 'Calendar facts for a moment (default now): the four pillars, lunar date, current and next solar term, twelve day officer and moon phase; with an optional birth, the ten-god names and six-clash/six-harmony relations of the current pillars against the natal chart and the decade period in force. No luck score, do-and-avoid list or forecast; birth data not stored.', 'inputSchema': DailyAlmanacRequest.model_json_schema()},
     {'name': 'group_relations', 'title': '多人关系对照', 'description': 'Two to eight birth charts side by side (family, team or friends): for every pair, the day-stem ten-god name in both directions, the traditional day-stem five combinations and each labelled branch link across the four pillars (same branch, six harmony, six clash, six harm, punishment); for the group, complete three-harmony triads formed by different members\' year or day branches. Members with an unknown birth hour are left out of hour-pillar comparisons. Symbolic labels only: no compatibility score, ranking or forecast; birth data not stored.', 'inputSchema': GroupRequest.model_json_schema()},
     {'name': 'rule_sensitivity_matrix', 'title': '规则差异对照表', 'description': 'Recompute one birth record under every common rule choice and each pair of them: 23:00 day change, leap-month half assignment, clock versus mean or apparent solar time (when a longitude is given) and removing daylight saving time. Returns, field by field (four pillars, lunar date, life and body palace, five-element bureau, life-palace major stars, birth-year transformations), which values stay the same and which rule changes them, plus context hints such as a nearby jie boundary. Does not say which rule is correct; birth data not stored.', 'inputSchema': RuleMatrixRequest.model_json_schema()},
+    {'name': 'ziwei_horoscope', 'title': '紫微运限（大限到流时）', 'description': 'Zi Wei period layers for one date: decade, small limit, year, month (斗君 rule), day and, with a clock time, hour. For each layer: the palace serving as that period\'s Life palace, the names it gives the twelve palaces, and the four transformations of the period\'s stem placed on the natal stars. The month, day and hour layers depend on the birth hour and are left out when it is unknown. Traditional symbolic labels only: no flowing stars, no event forecast; birth data not stored.', 'inputSchema': ZiweiHoroscopeRequest.model_json_schema()},
     {'name': 'palace_detail', 'title': '十二宫重点查看', 'description': 'Get a selected palace, included stars, natal transformation markers, flying mappings and traditional topic.', 'inputSchema': PalaceRequest.model_json_schema()},
 ]
 TOOLS = {item['name']: item for item in TOOL_DEFS}
@@ -161,6 +163,7 @@ def call_tool(name: str, args: dict) -> Any:
         'daily_almanac': (DailyAlmanacRequest, daily_almanac),
         'group_relations': (GroupRequest, group_relations),
         'rule_sensitivity_matrix': (RuleMatrixRequest, rule_matrix),
+        'ziwei_horoscope': (ZiweiHoroscopeRequest, ziwei_horoscope),
     }
     model, function = mapping[name]
     return function(model.model_validate(args))

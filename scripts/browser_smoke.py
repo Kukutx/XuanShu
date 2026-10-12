@@ -283,6 +283,20 @@ def main() -> None:
             assert page.evaluate('document.activeElement.id') == 'ziwei-layer-next'
             assert '流年四化' in page.locator('.palace-panel').inner_text()
             page.screenshot(path=str(screenshot_dir / '31-ziwei-annual-layer.png'), full_page=True)
+            # Month and day layers come from the engine for any date; the stack lists every layer in force that day.
+            page.locator('#ziwei-layer-month').click()
+            page.locator('#ziwei-layer-date').fill('2026-10-11')
+            page.locator('.layer-label', has_text='2026年九月 · 戊戌月').wait_for(timeout=30000)
+            assert page.locator('#palace-10.layer-anchor').count() == 1 and page.locator('#ziwei-layer-stack .layer-stack-row').count() == 5
+            assert page.locator('#ziwei-board .hua.layer').count() == 4 and '流月四化（戊干）' in page.locator('.palace-panel').inner_text()
+            page.locator('#ziwei-layer-next').click()
+            page.locator('.layer-label', has_text='十月').wait_for(timeout=30000)
+            assert page.evaluate('document.activeElement.id') == 'ziwei-layer-next'
+            page.locator('#ziwei-layer-day').click()
+            page.locator('#ziwei-layer-prev').click()
+            page.locator('.layer-label', has_text='2026-11-08 · 九月三十').wait_for(timeout=30000)
+            assert page.locator('#ziwei-layer-date').input_value() == '2026-11-08'
+            page.screenshot(path=str(screenshot_dir / '40-ziwei-day-layer.png'), full_page=True)
             page.locator('#ziwei-layer-natal').click()
 
             # Share card: drawn locally; birth date and time stay off unless ticked.
@@ -297,7 +311,7 @@ def main() -> None:
             # Calculation cross-check: the committed evaluation summary in a dialog.
             page.locator('#crosscheck-open').click()
             page.locator('#crosscheck-differences li').first.wait_for(timeout=30000)
-            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 22
+            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 28
             assert '100.000%' in page.locator('#crosscheck-dialog').inner_text()
             page.locator('#crosscheck-dialog').screenshot(path=str(screenshot_dir / '38-crosscheck.png'))
             page.locator('#crosscheck-close').click()

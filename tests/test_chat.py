@@ -37,7 +37,7 @@ def scripted_loop(calls):
 
 def test_tool_specs_cover_every_mcp_tool_and_memory_proposal():
     names = [t['name'] for t in tool_specs()]
-    assert len(names) == len(set(names)) == 34
+    assert len(names) == len(set(names)) == 35
     assert 'bazi_chart' in names and 'propose_memory' in names
 
 

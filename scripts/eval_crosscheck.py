@@ -44,6 +44,7 @@ from lunar_python import Solar  # noqa: E402
 from app.almanac import moon_phases  # noqa: E402
 from app.astronomy import TERMS, _new_moons_between, calendar_zone, chinese_lunar_date, from_jd, solar_term_jd, to_jd  # noqa: E402
 from app.engines import BirthInput, calculate_ziwei, pillar_indices  # noqa: E402
+from app.ziwei_horoscope import ZiweiHoroscopeRequest, ziwei_horoscope  # noqa: E402
 
 UTC = timezone.utc
 CHINA = timezone(timedelta(hours=8))
@@ -383,12 +384,68 @@ def compare_ziwei(count: int, late_count: int) -> dict:
     }
 
 
+HOROSCOPE_LAYERS = {'decade': 'decadal', 'small_limit': 'age', 'year': 'yearly', 'month': 'monthly', 'day': 'daily', 'hour': 'hourly'}
+STEM_KEYS = {key + 'Heavenly': STEMS[i] for i, key in enumerate(('jia', 'yi', 'bing', 'ding', 'wu', 'ji', 'geng', 'xin', 'ren', 'gui'))}
+
+
+def compare_horoscope(count: int) -> dict:
+    """Period layers (decade to hour) for random birth and target pairs: Life palace, stem and the four stars."""
+    rng = random.Random(20261012)
+    tally, explained = Tally(), Counter()
+    pairs = 0
+    while pairs < count:
+        day = date(1930, 1, 1) + timedelta(days=rng.randrange((date(2049, 12, 31) - date(1930, 1, 1)).days))
+        birth = datetime(day.year, day.month, day.day, rng.randrange(23), rng.randrange(60))
+        gender = rng.choice(('male', 'female'))
+        target = day + timedelta(days=rng.randrange(1, 100 * 365))
+        hour = rng.randrange(23)
+        if target.year > 2099:
+            continue
+        pairs += 1
+        chart = astro.by_solar(f'{birth.year}-{birth.month}-{birth.day}', (birth.hour + 1) // 2, '男' if gender == 'male' else '女',
+                               True, 'zh-CN')
+        theirs = chart.horoscope(f'{target.year}-{target.month}-{target.day}', (hour + 1) // 2).model_dump(mode='json')
+        ours = ziwei_horoscope(ZiweiHoroscopeRequest(birth=BirthInput(birth_datetime=birth.isoformat(timespec='minutes'), gender=gender),
+                                                     target_date=target, target_time=f'{hour:02d}:30'))
+        # iztro takes its lunar dates from lunar_python; in the months where that calendar differs, the day layers do too.
+        lunar = chinese_lunar_date(target)
+        calendar_differs = lunar_python_values(datetime(target.year, target.month, target.day, 12))[0] != (
+            lunar['year'], lunar['month'], lunar['day'], lunar['is_leap_month'])
+        example = {'birth': birth.isoformat(timespec='minutes'), 'gender': gender, 'target': f'{target.isoformat()}T{hour:02d}:30'}
+        for key, name in HOROSCOPE_LAYERS.items():
+            item, layer = theirs[name], ours['layers'][key]
+            # iztro's index -1 means no palace; XuanShu lists no childhood limit (童限) either.
+            reference = None if item['index'] == -1 or item['name'] == '童限' else (
+                BRANCHES[(item['index'] + 2) % 12], STEM_KEYS[item['heavenly_stem']],
+                [STAR_KEYS.get(star) or TRANSFORMED_MINOR.get(star, star) for star in item['mutagen']])
+            value = (layer['ming_branch'], layer['stem'], [t['star'] for t in layer['transformations']]) if layer['available'] else None
+            tally.check(key, value, reference, example)
+            if value != reference and calendar_differs:
+                explained[key] += 1
+    return {'sample': {'pairs': count, 'birth_years': '1930–2049', 'targets': 'up to 100 years after birth, through 2099',
+                       'hours': '00:00–22:59', 'seed': 20261012},
+            'results': tally.report(), 'lunar_python_calendar_differs': dict(explained)}
+
+
 # ---------------------------------------------------------------- report
 
 def references() -> dict:
     names = {'sxtwl': 'sxtwl', 'lunar_python': 'lunar_python', 'lunardate': 'lunardate', 'ephem': 'ephem',
              'iztro_py': 'iztro-py', 'pyswisseph': 'pyswisseph'}
     return {key: version(dist) for key, dist in names.items()}
+
+
+HOROSCOPE_LABELS = {'decade': '大限', 'small_limit': '小限', 'year': '流年', 'month': '流月（斗君）', 'day': '流日', 'hour': '流时'}
+
+
+def horoscope_note(horoscope: dict) -> str:
+    mismatches = sum(item['mismatches'] for item in horoscope['results'].values())
+    explained = sum(horoscope['lunar_python_calendar_differs'].values())
+    if not mismatches:
+        return '各层全部一致。'
+    text = (f'共 {mismatches} 处不一致，其中 {explained} 处的目标日期落在玄枢与 lunar_python 农历日期不同的月份'
+            '（iztro 的农历取自 lunar_python，见上文“逐日对照”），流日、流时随农历日数相差一宫')
+    return text + ('；没有其他不一致。' if explained == mismatches else f'；另有 {mismatches - explained} 处尚未解释，清单见 JSON。')
 
 
 def total(section: dict, key: str) -> tuple[int, int]:
@@ -399,6 +456,7 @@ def total(section: dict, key: str) -> tuple[int, int]:
 def write_markdown(result: dict, path: Path) -> None:
     days, jie, terms, moons, ziwei = (result['days'], result['jie_boundaries'], result['solar_terms'],
                                       result['moon_phases'], result['ziwei'])
+    horoscope = result['horoscope']
     observed, forecast = f'through_{LAST_OBSERVED_DELTA_T_YEAR}', f'after_{LAST_OBSERVED_DELTA_T_YEAR}'
 
     def agree(section, key):
@@ -498,6 +556,18 @@ def write_markdown(result: dict, path: Path) -> None:
         f"这些出生里命宫不同的有 {ziwei['late_zi']['iztro_keeps_month']['comparison']['ming']['mismatches']} 个。"
         '晚子时算当日还是次日是流派规则的不同，两种规则玄枢都支持。',
         '',
+        '## 紫微运限对照 iztro-py',
+        '',
+        f"随机抽取 {horoscope['sample']['pairs']:,} 组出生时刻与目标时刻（出生 {horoscope['sample']['birth_years']}，"
+        f"目标在出生后 100 年内且不晚于 2099 年，时刻 {horoscope['sample']['hours']}，种子 {horoscope['sample']['seed']}），"
+        '逐层比较运限命宫所在地支、运限天干和四化星。样本都选了性别（大限、小限的顺逆取决于性别）；未到第一个大限的童限两边都不列。',
+        '',
+        '| 运限层 | 核对数 | 不一致 | 一致率 |',
+        '| --- | ---: | ---: | ---: |',
+    ] + [row(label, total(horoscope['results'], key)) for key, label in HOROSCOPE_LABELS.items()] + [
+        '',
+        horoscope_note(horoscope),
+        '',
         '## 不一致的原因',
         '',
     ]
@@ -582,6 +652,11 @@ def summary(result: dict) -> dict:
                   'late_zi_same_day': counts(late['default_vs_iztro_same_day_zi']['stars']),
                   'late_zi_next_day': counts(late['rollover_vs_iztro_late_zi']['stars']),
                   'late_zi_month_kept': late['iztro_keeps_month']['births']},
+        'horoscope': {'pairs': result['horoscope']['sample']['pairs'],
+                      'rows': [{'field': key, **counts(result['horoscope']['results'][key])} for key in HOROSCOPE_LAYERS],
+                      'calendar_differs': sum(result['horoscope']['lunar_python_calendar_differs'].values()),
+                      'unexplained': sum(item['mismatches'] for item in result['horoscope']['results'].values())
+                      - sum(result['horoscope']['lunar_python_calendar_differs'].values())},
         'differences': [{'first': run['first'], 'last': run['last'], 'references': run['references'],
                          'minutes_from_midnight': run['minutes_from_midnight'], 'cause': _cause(run)}
                         for run in days['lunar_month_differences']],
@@ -611,6 +686,8 @@ def main() -> None:
     result['moon_phases'] = compare_moon_phases(years)
     print('zi wei…', flush=True)
     result['ziwei'] = compare_ziwei(300 if args.quick else 3000, 50 if args.quick else 300)
+    print('zi wei periods…', flush=True)
+    result['horoscope'] = compare_horoscope(100 if args.quick else 1000)
     result['findings'] = findings(result)
     output.mkdir(parents=True, exist_ok=True)
     (output / 'crosscheck.json').write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')

@@ -732,3 +732,11 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
 .crosscheck-dialog .docs-link{display:inline-block;margin-top:10px}
 @media(max-width:600px){.crosscheck-dialog{padding:14px 12px}.crosscheck-table th,.crosscheck-table td{padding:8px 6px;font-size:12px}.crosscheck-table td:first-child{white-space:nowrap}}
 .group-ask{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.layer-date{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:8px;background:var(--panel);color:var(--text)}
+.layer-stack{border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin:0 0 12px;background:var(--panel2)}
+.layer-stack h4{margin:0 0 6px;font-size:13px;color:var(--text2)}
+.layer-stack-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:4px 0;font-size:13px;border-top:1px dashed var(--border)}
+.layer-stack-row:first-of-type{border-top:0}
+.layer-stack-row>b{min-width:2.5em;color:var(--gold2)}
+.layer-stack-row.active>b{text-decoration:underline;text-underline-offset:3px}
+.layer-stack-hua{display:inline-flex;flex-wrap:wrap;gap:2px 8px;align-items:center}
