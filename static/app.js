@@ -131,6 +131,7 @@ let reportDraft = {lunar_year: null, include_time_audit: false, include_deep_evi
   include_dayun:false, dayun_direction_override:'', birth_boundary_minutes:''};
 let windowDraft = {radius: 30, spacing: 10};
 let lunarInverseDraft = null;  // filled with this lunar year's first day when the calendar first shows it
+let lunarInverseError = '';
 let annualDraft = 2026;
 let officerDraft = {start_date:localToday(),days:30,officer:''};
 let timelineDraft = {start_lunar_year:2024,years:10,focus_palace:''};
@@ -1029,7 +1030,7 @@ function ensureTodayLunarYear() {
   todayLunarPending = true;
   postJSON('/api/calendar', {start_date: localToday(), days: 1}).then(data => {
     todayLunarYear = data.days[0].lunar.year;
-    if (active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) render();
+    if ((active === 'ziwei' && ziweiLayer.mode === 'year' && ziweiLayer.year === null) || (active === 'calendar' && lunarInverseDraft && lunarInverseDraft.guessed)) render();
   }).catch(() => { /* keep the estimate below */ }).finally(() => {todayLunarPending = false;});
 }
 function defaultLunarYear() {
@@ -1476,7 +1477,11 @@ function ensureCalendarMonth(year, month) {
     .catch(err => {calendarMonths[key] = {error: err.message};})
     .finally(() => {
       calendarPending.delete(key);
-      if (active === 'calendar' && calendarMonth && monthKey(calendarMonth.year, calendarMonth.month) === key) render();
+      if (active !== 'calendar' || !calendarMonth || monthKey(calendarMonth.year, calendarMonth.month) !== key) return;
+      // The redraw empties the page first, so whether focus went elsewhere while the month loaded is decided here.
+      const focused = document.activeElement;
+      if (focused && focused !== document.body && focused.id !== 'calendar-loading') calendarFocus = false;
+      render();
     });
 }
 // Shows a month with one day picked; focus follows the pick when it came from the keyboard.
@@ -1586,7 +1591,19 @@ function renderCalendar() {
   moonIcs.addEventListener('click', event => {event.preventDefault(); downloadIcs(year, true, message);});
   const data = calendarMonths[key];
   if (!data || data.error) {
-    if (!data) {ensureCalendarMonth(year, month); append(result, 'p', 'field-help', '正在排出这个月的农历、日柱和节气…');}
+    if (!data) {
+      ensureCalendarMonth(year, month);
+      // While the month loads, keyboard focus waits here, so Page Up / Page Down keep paging instead of scrolling.
+      const wait = append(result, 'p', 'field-help', '正在排出这个月的农历、日柱和节气…'); wait.id = 'calendar-loading'; wait.tabIndex = -1;
+      wait.addEventListener('keydown', event => {
+        if (event.key !== 'PageUp' && event.key !== 'PageDown') return;
+        event.preventDefault();
+        const index = year * 12 + month - 1 + (event.key === 'PageUp' ? -1 : 1), y = Math.floor(index / 12), m = index % 12 + 1;
+        const day = Math.min(Number((calendarSelected || '').slice(8)) || 1, monthLength(y, m));
+        showCalendarDay(monthKey(y, m) + '-' + String(day).padStart(2, '0'), true);
+      });
+      if (calendarFocus) wait.focus();
+    }
     else {
       append(result, 'p', 'inline-msg', '这个月暂时算不出来：' + data.error);
       const retry = append(result, 'button', 'tiny-button', '重试'); retry.type = 'button'; retry.id = 'calendar-retry';
@@ -1622,7 +1639,7 @@ function renderCalendar() {
   WEEKDAY_NAMES.forEach((full, i) => {
     const th = append(hr, 'th', i > 4 ? 'is-weekend' : null); th.scope = 'col'; th.title = full;
     const short = append(th, 'abbr', null, lang === 'en' ? CAL_WEEKDAYS_EN[i] : (CAL_WEEKDAYS[lang] || CAL_WEEKDAYS['zh-CN'])[i]);
-    short.dataset.noI18n = ''; short.title = full;
+    short.dataset.noI18n = ''; short.title = calT(full);
   });
   const body = append(table, 'tbody');
   const lead = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
@@ -1635,8 +1652,8 @@ function renderCalendar() {
     const words = calendarCellText(d), weekend = (lead + i) % 7 > 4;
     const button = append(cell, 'button', 'cal-day cal-' + words.kind + (weekend ? ' is-weekend' : '') + (d.date === today ? ' is-today' : '')
       + (d.date === calendarSelected ? ' is-selected' : '')); button.type = 'button'; button.id = 'calendar-day-' + d.date;
-    button.tabIndex = d.date === calendarSelected ? 0 : -1;
-    button.setAttribute('aria-pressed', String(d.date === calendarSelected));
+    button.tabIndex = d.date === calendarSelected ? 0 : -1; button.dataset.noI18n = '';
+    cell.setAttribute('aria-selected', String(d.date === calendarSelected));
     if (d.date === today) button.setAttribute('aria-current', 'date');
     button.setAttribute('aria-label', [d.date, calT('星期' + d.weekday), calT('农历') + ' ' + lunarDateText(d.lunar), calT('日柱') + ' ' + d.day_pillar,
       ...d.solar_terms.map(t => termText(t.name) + ' ' + t.time_china.slice(11, 16))].join(' · '));
@@ -2930,7 +2947,7 @@ function todayPicker(parent) {
   }
   const month = append(nav, 'button', 'tiny-button', '在月历中查看'); month.type = 'button'; month.id = 'today-calendar';
   month.addEventListener('click', () => {
-    const day = date.value || localToday();
+    const typed = date.value, day = /^\d{4}-\d{2}-\d{2}$/.test(typed) && typed >= '1901-01-01' && typed <= '2099-12-31' ? typed : localToday();
     calendarMonth = {year: Number(day.slice(0, 4)), month: Number(day.slice(5, 7))}; calendarSelected = day; calendarFocus = true;
     activateTab(tabs.find(t => t.dataset.tab === 'calendar'));
   });
@@ -3243,10 +3260,10 @@ function renderImportCheck() {
 // Lunar to Gregorian: the date found is picked on the month calendar above.
 function renderLunarInverseSection() {
   append(result, 'h4', 'subheading', '农历 → 公历反查（支持闰月）');
-  if (!lunarInverseDraft) {
-    const today = localToday(), month = calendarMonths[today.slice(0, 7)];
-    const known = month && month.days && month.days.find(d => d.date === today);
-    lunarInverseDraft = {lunar_year: known ? known.lunar.year : defaultLunarYear(), lunar_month: 1, lunar_day: 1, is_leap_month: false};
+  // Until the person edits it, the default year is this lunar year as the calendar engine gives it.
+  ensureTodayLunarYear();
+  if (!lunarInverseDraft || (lunarInverseDraft.guessed && todayLunarYear !== null)) {
+    lunarInverseDraft = {lunar_year: defaultLunarYear(), lunar_month: 1, lunar_day: 1, is_leap_month: false, guessed: todayLunarYear === null};
   }
   const row = append(result, 'div', 'inline-control lunar-inverse');
   const y = createInput('农历年份', 'number', String(lunarInverseDraft.lunar_year), row); y.min = '1901'; y.max = '2099'; y.id = 'lunar-inverse-year';
@@ -3258,15 +3275,15 @@ function renderLunarInverseSection() {
   const leap = append(check, 'input'); leap.type = 'checkbox'; leap.id = 'lunar-inverse-leap'; leap.checked = lunarInverseDraft.is_leap_month;
   check.append(' 闰月');
   const go = append(row, 'button', null, '换算公历'); go.type = 'button'; go.id = 'lunar-inverse-run';
-  const error = append(result, 'p', 'inline-msg');
+  const error = append(result, 'p', 'inline-msg', lunarInverseError);
   // Kept as typed, so a month calendar that finishes loading meanwhile does not reset the fields.
   const keep = () => {lunarInverseDraft = {lunar_year: Number(y.value) || lunarInverseDraft.lunar_year, lunar_month: Number(m.value), lunar_day: Number(d.value), is_leap_month: leap.checked};};
   [y, m, d, leap].forEach(control => control.addEventListener(control === y ? 'input' : 'change', keep));
   go.addEventListener('click', async () => {
     keep(); lunarInverseDraft.lunar_year = Number(y.value);
-    go.disabled = true; error.textContent = '';
+    go.disabled = true; error.textContent = ''; lunarInverseError = '';
     try {lunarInverseResult = await postJSON('/api/lunar-to-gregorian', lunarInverseDraft); showCalendarDay(lunarInverseResult.gregorian_date);}
-    catch (e) {lunarInverseResult = null; error.textContent = '换算失败：' + e.message;}
+    catch (e) {lunarInverseResult = null; lunarInverseError = '换算失败：' + e.message; render();}
     finally {go.disabled = false;}
   });
   if (!lunarInverseResult) return;

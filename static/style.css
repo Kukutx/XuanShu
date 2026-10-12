@@ -901,11 +901,11 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .element-bar{grid-template-columns:24px minmax(0,1fr) 64px}
 }
 @media(max-width:510px){
-  .cal-nav{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) auto;gap:6px}.cal-nav .cal-field select{width:100%;min-width:0}
+  .cal-nav{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) auto;gap:6px}.cal-nav>label{min-width:0}.cal-nav .cal-field select{width:100%;min-width:0}
   .cal-nav .cal-step-words,.cal-nav .cal-caption{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .inline-control button.cal-step{min-height:42px;padding:0 15px}.cal-nav #calendar-today{grid-column:1/-1;justify-self:start}
   .cal-grid{width:calc(100% + 4px);border-spacing:2px;margin:2px -2px 8px}.cal-day{min-height:60px;padding:5px 1px;gap:1px;border-radius:7px}
-  .cal-num{font-size:15px}.cal-lunar{font-size:10px}.cal-day .cal-gz{font-size:10px;letter-spacing:0}.cal-title{font-size:20px}
+  .cal-num{font-size:15px}.cal-lunar{font-size:10px}:lang(en) .cal-day:is(.cal-month,.cal-term) .cal-lunar{white-space:normal;line-height:1.15;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}.cal-day .cal-gz{font-size:10px;letter-spacing:0}.cal-title{font-size:20px}
   .brand-en,.brand small,.ui-lang span,.theme-toggle .theme-label{display:none}
   .header .brand-mark{width:38px;height:38px;font-size:22px}
   .header .brand strong{font-size:16px}
@@ -933,7 +933,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
 @media print{
   :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--panel3:#f4f1ea;--border:#d9d2c3;--border-strong:#c9bfa9;--text:#111;--text2:#222;--muted:#555;--faint:#777;--gold:#8a6428;--gold2:#6d4c16;--accent-soft:#faf7f0;--accent-line:#d9c7a3;--code-bg:#f7f5f0;--code-text:#111;--shadow:none;--wood:#2f8a54;--fire:#c4452c;--earth:#a26b1e;--metal:#6d6656;--water:#2a6bb0;--lu:#24864f;--quan:#7a48b8;--ke:#2a6db8;--ji:#c63a2c}
   body{background:#fff;font-size:12px}
-  .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,button:not(.palace-btn){display:none!important}
+  .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip){display:none!important}
   .shell{max-width:none;padding:0}
   .main-grid{display:block}
   .panel{border:0;box-shadow:none}
