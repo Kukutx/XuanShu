@@ -81,7 +81,9 @@ def dayun_sequence(request: DayunRequest) -> dict:
             'natal_interactions': natal_interactions(STEMS[cycle % 10] + BRANCHES[cycle % 12], natal, keys),
         })
         if request.include_years:
-            # Civil years that start inside the period; the year pillar changes at 立春 (Li Chun).
+            # The common 交运年 listing: from the civil year the period begins in up to the year the next one
+            # begins in. The year that straddles a change is listed whole under the new period, so consecutive
+            # periods share no year and skip none; the pillar is the one that 立春 opens in that year.
             first, last = begin.astimezone(birthday.tzinfo).year, finish.astimezone(birthday.tzinfo).year
             periods[-1]['years'] = [{'year': y, **natal_interactions(STEMS[(y - 4) % 10] + BRANCHES[(y - 4) % 12], natal, keys)}
                                     for y in range(first, last)]
@@ -108,13 +110,15 @@ def dayun_sequence(request: DayunRequest) -> dict:
         'method': {'direction': 'year stem yin/yang + gender, or explicit override',
                    'jie': '12 month-boundary jie, not 24 solar terms',
                    'age_conversion': 'three exact elapsed days per nominal traditional year',
-                   'civil_projection': '365.2425 days per nominal age-year; approximate, not a calendar school standard'},
+                   'civil_projection': '365.2425 days per nominal age-year; approximate, not a calendar school standard',
+                   'annual_pillars': 'with include_years: the civil years from the one each period begins in to the one the next begins in; the year of a change is listed under the new period'},
         'limitations': [
             '大运是传统十年干支标签，本工具不据此预测真实事件、吉凶、健康、财运或关系。',
             '起运年龄按三日折一岁；起始公历时间采用365.2425日近似年投影，非各流派统一精确交运日。',
             '顺逆规则参考立春年柱阴阳；自选 direction_override 优先。不同流派可按不同起运和顺逆规则排盘。',
             '时制模式用于出生时辰；交节间隔始终按实际UTC瞬间计算，不能把钟表偏移伪装为时间流逝。',
             '与原局的星运、空亡和合冲刑害只是传统标签，不判断合化成败，也不据此断吉凶。',
+            '流年按常见排法从交运那一年列起：交运当年整年记在新大运下，交运日之前的几个月实际仍属上一步大运。',
         ],
     }
 

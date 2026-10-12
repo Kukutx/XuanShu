@@ -43,6 +43,13 @@ def test_dayun_periods_and_years():
     assert [y['year'] for y in years] == list(range(2023, 2033)) and years[3]['pillar'] == '丙午'
     assert years[3]['branch_relations'] == [{'pillar': 'day', 'branch': '午', 'labels': ['同支', '相刑']}]
     assert all(r['pillar'] != 'hour' for p in full['periods'] for item in [p['natal_interactions'], *p['years']] for r in item['branch_relations'])
+    # The 辛巳 period begins in July 2023: 2023 is its first year and 2033, when 庚辰 begins, is the next period's.
+    assert full['periods'][2]['approx_start_local'].startswith('2023-07') and full['periods'][2]['approx_end_local_exclusive'].startswith('2033-07')
+    listed = [y['year'] for p in full['periods'] for y in p['years']]
+    assert listed == list(range(2003, 2033))
+    # The page labels each period from its start year to the year before the next start: the same years.
+    assert all([y['year'] for y in p['years']] == list(range(int(p['approx_start_local'][:4]), int(p['approx_end_local_exclusive'][:4])))
+               for p in full['periods'])
 
 
 def test_rest_and_mcp_agree():
