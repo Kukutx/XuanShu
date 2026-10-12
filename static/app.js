@@ -521,6 +521,7 @@ function renderBazi(b) {
     append(sha, 'span', 'pillar-stage-label', '神煞');
     // A noon placeholder is not a real hour pillar, so it carries no stars either.
     if (key === 'hour' && currentHourUnknown) append(sha, 'span', 'muted', '时辰不详');
+    else if (shenshaUnsettled(b)) append(sha, 'span', 'muted', '随时辰而定');
     else if (!(p.shensha || []).length) append(sha, 'span', 'muted', '—');
     else p.shensha.forEach(x => {const tag = append(sha, 'span', 'shensha-tag', x.name); tag.title = shenshaBasis(x);});
   }
@@ -559,6 +560,14 @@ function renderBazi(b) {
 // 神煞: which natal values place a star on a pillar, and a table of the rule and source of each star the chart shows.
 const SHENSHA_BASIS = {day_stem: '日干', year_stem: '年干', day_branch: '日支', year_branch: '年支', month_branch: '月支', day_pillar: '日柱'};
 const shenshaBasis = star => '查法起点：' + star.by.map(x => SHENSHA_BASIS[x.basis] + ' ' + x.value).join('、');
+// With the hour unknown, a jie inside the birth day can change the year and month pillars, and the 23:00 day change
+// or a solar-time shift can move the day pillar; the stars those pillars place are then not settled either.
+function shenshaUnsettled(b) {
+  if (!currentHourUnknown) return false;
+  const day = currentInput.birth_datetime.slice(0, 10);
+  return [b.jie_boundaries.previous, b.jie_boundaries.next].some(j => j.instant.slice(0, 10) === day)
+    || Boolean(currentInput.late_zi_day_rollover) || Math.abs(b.time_basis.effective_shift_minutes || 0) > 0;
+}
 function shenshaPillars(b) {
   const keys = currentHourUnknown ? PILLAR_KEYS.slice(0, 3) : PILLAR_KEYS;
   return keys.flatMap(k => (b.pillars[k].shensha || []).map(x => ({...x, pillar: k})));
@@ -566,7 +575,11 @@ function shenshaPillars(b) {
 function renderShenshaRules(parent, b) {
   const found = shenshaPillars(b);
   append(parent, 'h4', 'subheading', '神煞与查法出处');
-  if (!found.length) {append(parent, 'p', 'info-inline', '四柱没有所收十六种神煞。'); return;}
+  if (shenshaUnsettled(b)) {
+    append(parent, 'p', 'info-inline', '出生时辰不详，而出生当天交节、按 23:00 换日或按太阳时换算，年柱、月柱或日柱可能随时辰变化，神煞也随之不同，这里不列；确定时辰后再看。');
+    return;
+  }
+  if (!found.length) {append(parent, 'p', 'info-inline', currentHourUnknown ? '已知的年、月、日三柱没有所收十六种神煞。' : '四柱没有所收十六种神煞。'); return;}
   const table = append(append(parent, 'div', 'table-wrap'), 'table', 'data-table shensha-table'); table.id = 'shensha-rules';
   const head = append(append(table, 'thead'), 'tr');
   ['神煞', '所在', '查法', '出处'].forEach(x => append(head, 'th', null, x));
@@ -2846,7 +2859,7 @@ function renderDayun() {
   const table=append(append(result,'div','table-wrap'),'table','data-table');
   const head=append(append(table,'thead'),'tr');['次序','十年干支','名义起始年龄','近似起始公历','神煞'].forEach(x=>append(head,'th',null,x));
   const body=append(table,'tbody');
-  d.periods.forEach(x=>{const tr=append(body,'tr');append(tr,'td',null,x.sequence);append(tr,'td',null,x.pillar);append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td',null,x.approx_start_local.replace('T',' '));append(tr,'td',null,x.natal_interactions.shensha.map(s=>s.name).join('、')||'—');});
+  d.periods.forEach(x=>{const tr=append(body,'tr');append(tr,'td',null,x.sequence);append(tr,'td',null,x.pillar);append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td',null,x.approx_start_local.replace('T',' '));append(tr,'td',null,(x.natal_interactions.shensha||[]).map(s=>s.name).join('、')||'—');});
   d.limitations.forEach(x=>note(result,x));
 }
 function renderBirthBoundaries(){
@@ -3404,7 +3417,8 @@ function shareChartText() {
     if (listed(links.stems)) lines.push('天干关系：' + listed(links.stems));
     if (listed(links.branches)) lines.push('地支关系：' + listed(links.branches));
     const stars = keys.filter(k => (b.pillars[k].shensha || []).length).map(k => nameMap[k] + ' ' + b.pillars[k].shensha.map(x => x.name).join('、'));
-    if (stars.length) lines.push('神煞：' + stars.join('｜'));
+    if (shenshaUnsettled(b)) lines.push('神煞：随时辰而定');
+    else if (stars.length) lines.push('神煞：' + stars.join('｜'));
     // Luck decades need the gender for their direction; the calendar years would give away the birth year.
     if (gender) {
       if (luckKey !== luckKeyNow()) {ensureLuck(); lines.push('大运：正在排…');}
@@ -3672,7 +3686,7 @@ function renderCrosscheck(dialog) {
   }
   if (d.shensha) {
     append(dialog, 'h4', null, '八字神煞对照');
-    texts(append(dialog, 'p', 'field-help'), '每天一张盘', ' ' + d.shensha.charts.toLocaleString('en-US') + ' · ', '十六种神煞逐柱比较');
+    texts(append(dialog, 'p', 'field-help'), '共', ' ' + d.shensha.charts.toLocaleString('en-US') + ' ', '张盘（每天一张）', ' · ', '十六种神煞逐柱比较');
     countRows(dialog, ['natal', 'fortune'].map(field => ({field, reference: '@soul-atelier/bazi', ...d.shensha[field]})));
     append(dialog, 'p', 'field-help', '参考库给阴干也排羊刃、孤辰寡宿兼以日支查、大运流年也标魁罡，与玄枢所引规则不同，这几处不比较。');
   }

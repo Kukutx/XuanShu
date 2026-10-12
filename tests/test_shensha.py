@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from app.advanced import DayunRequest, dayun_sequence
-from app.engines import BRANCHES, KUI_YUE_BY_STEM, LUCUN_BY_STEM, STEMS, TIANMA_BY_BRANCH, BirthInput, calculate_bazi
+from app.engines import BRANCHES, KUI_YUE_BY_STEM, LUCUN_BY_STEM, STEMS, TIANMA_BY_BRANCH, BirthInput, _star_positions, calculate_bazi
 from app.main import app
 from app.mcp import process_rpc
 from app.shensha import RULE_BY_NAME, RULES, natal_bases, natal_shensha, stars_on
@@ -70,8 +70,10 @@ def test_tables_shared_with_zi_wei_agree():
         for name in ('将星', '华盖', '劫煞', '咸池', '亡神'):
             assert RULE_BY_NAME[name]['table'][branch] == cycle[name], (name, branch)
         assert RULE_BY_NAME['驿马']['table'][branch] == BRANCHES[TIANMA_BY_BRANCH[i]]
-        assert RULE_BY_NAME['红鸾']['table'][branch] == BRANCHES[(3 - i) % 12]
-        assert RULE_BY_NAME['天喜']['table'][branch] == BRANCHES[(9 - i) % 12]
+        # The Zi Wei engine's own placement (day, bureau, month, hour and stem do not move these two).
+        ziwei = _star_positions(1, 2, 1, 0, 0, i)
+        assert RULE_BY_NAME['红鸾']['table'][branch] == BRANCHES[ziwei['红鸾']]
+        assert RULE_BY_NAME['天喜']['table'][branch] == BRANCHES[ziwei['天喜']]
     for i, stem in enumerate(STEMS):
         assert RULE_BY_NAME['禄神']['table'][stem] == BRANCHES[LUCUN_BY_STEM[i]]  # 禄存
         if i % 2 == 0:

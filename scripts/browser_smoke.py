@@ -615,6 +615,13 @@ def main() -> None:
             assert page.locator('#ziwei-layer-table').count() == 0 and '不列各层宫位对照表' in page.locator('#result').inner_text()
             page.locator('#ziwei-layer-natal').click()
             page.locator('[data-tab="bazi"]').click()
+            # 2000-02-04 has 立春 at 20:40: with the hour unknown the year and month pillars, and so the stars, are open.
+            page.locator('#birth_datetime').fill('2000-02-04T12:00')
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => document.querySelector('#result-subtitle').textContent.startsWith('2000-02-04')", timeout=30000)
+            cells = [page.locator('.pillar').nth(i).locator('.pillar-shensha').inner_text().replace('\n', '') for i in range(4)]
+            assert cells == ['神煞随时辰而定'] * 3 + ['神煞时辰不详'], cells
+            assert page.locator('#shensha-rules').count() == 0 and '神煞也随之不同，这里不列' in page.locator('#result').inner_text()
             page.locator('#hour_unknown').uncheck()
             page.locator('#lunar-entry summary').click()
             page.locator('#birth_datetime').fill('2000-08-16T04:00')

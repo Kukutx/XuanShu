@@ -1998,6 +1998,10 @@ const UI_EXTRA = {
 "Lanzhou",
 "蘭州"
 ],
+"共": [
+"In total",
+"計"
+],
 "关注 ": [
 "Focus ",
 "注目 "
@@ -2245,6 +2249,10 @@ const UI_EXTRA = {
 "出生时辰不详的成员不参与时柱的比较。": [
 "Members whose birth hour is unknown are left out of hour-pillar comparisons.",
 "出生時刻が不明なメンバーは時柱の比較に含めません。"
+],
+"出生时辰不详，而出生当天交节、按 23:00 换日或按太阳时换算，年柱、月柱或日柱可能随时辰变化，神煞也随之不同，这里不列；确定时辰后再看。": [
+"The birth hour is unknown and the birth day has a jie, a 23:00 day change or a solar-time shift, so the year, month or day pillar may change with the hour and the stars with it; they are not listed until the hour is known.",
+"出生時刻が不明で、誕生日に節入り・23時の日替わり・太陽時の換算があるため、年柱・月柱・日柱が時刻で変わりうり、神煞もそれに伴って変わります。時刻が分かるまで表示しません。"
 ],
 "出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。": [
 "Birth hour unknown: 12:00 is only a placeholder, so a Qimen chart cast from it means nothing.",
@@ -4282,6 +4290,10 @@ const UI_EXTRA = {
 "AES-256-GCM encrypted backup created; the passphrase is neither saved nor uploaded to the server.",
 "AES-256-GCM 暗号化バックアップを作成しました。パスフレーズは保存もサーバーへのアップロードもされません。"
 ],
+"已知的年、月、日三柱没有所收十六种神煞。": [
+"None of the sixteen stars falls on the known year, month and day pillars.",
+"判明している年・月・日の三柱には、収録した十六種の神煞がありません。"
+],
 "已获对方同意使用其出生资料（双人或多人）": [
 "The other person or people agreed to use their birth data",
 "相手（複数可）の出生データ使用に同意を得ている"
@@ -4585,6 +4597,10 @@ const UI_EXTRA = {
 "引擎版本：": [
 "Engine version: ",
 "エンジンバージョン："
+],
+"张盘（每天一张）": [
+"charts (one per day)",
+"枚の盤（一日一枚）"
 ],
 "当前 ": [
 "Current ",
@@ -7198,6 +7214,10 @@ const UI_EXTRA = {
 "Shen Sha: only the sixteen whose placement can be found in a classical text, read from the day stem, year stem, year branch, day branch and month branch against the four pillars, never from the hour pillar; each with its rule and source, as labels only, with no good-or-bad reading",
 "神煞：古典で配置法を確認できる十六種のみ。日干・年干・年支・日支・月支から四柱を見て、時柱は起点にしない。各々に求め方と出典を付け、ラベルとしてのみ扱い吉凶は判断しない"
 ],
+"神煞：随时辰而定": [
+"Auxiliary stars: depend on the hour",
+"神煞：時刻次第"
+],
 "禄入": [
 "Lu in",
 "禄入"
@@ -7421,6 +7441,10 @@ const UI_EXTRA = {
 "紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）": [
 "Zi Wei Dou Shu star placement, the same table as this site's Zi Wei chart (checked chart by chart against iztro)",
 "紫微斗数の安星法。本サイトの紫微盤と同じ表（iztro と一盤ずつ照合済み）"
+],
+"紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）；八字按立春年支查，紫微盘按农历年支，立春到春节之间出生的两处会差一支": [
+"Zi Wei Dou Shu placement, the same table as this site's Zi Wei chart (checked chart by chart against iztro); BaZi reads the year branch from Li Chun, the Zi Wei chart from the lunar year, so births between Li Chun and the lunar new year differ by one branch",
+"紫微斗数の安星法で、本サイトの紫微盤と同じ表（iztro と一盤ずつ照合済み）。八字は立春の年支、紫微盤は旧暦の年支で数えるため、立春から旧正月までの出生では一支ずれる"
 ],
 "紫微斗数对照": [
 "Zi Wei Dou Shu comparison",
@@ -8745,6 +8769,10 @@ const UI_EXTRA = {
 "除": [
 "Chu (Remove)",
 "除"
+],
+"随时辰而定": [
+"Depends on the hour",
+"時刻次第"
 ],
 "随机出生与目标时刻": [
 "Random birth and target times",

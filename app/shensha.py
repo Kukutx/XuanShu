@@ -2,8 +2,9 @@
 
 Only stars whose placement could be read in a classical text are included; ``source`` names the chapter of
 the 三命通会 (Ming dynasty, 万民英). 红鸾 and 天喜 use the Zi Wei Dou Shu table the Zi Wei chart here already
-applies. Stars with competing tables (文昌, 太极, 福星, 国印, 学堂 and 词馆 by day stem, ...) are left out until
-one table can be cited. These are traditional labels only: no good-or-bad reading and no score.
+applies, read from the 立春 year branch like every BaZi basis (the Zi Wei chart reads the lunar year). Stars
+with competing tables (文昌, 太极, 福星, 国印, 学堂 and 词馆 by day stem, ...) are left out until one table can be
+cited. These are traditional labels only: no good-or-bad reading and no score.
 """
 from __future__ import annotations
 
@@ -70,17 +71,16 @@ RULES = (
     {'name': '红鸾', 'bases': ('year_branch',), 'looks_at': 'branch',
      'table': {b: BRANCH_ORDER[(3 - i) % 12] for i, b in enumerate(BRANCH_ORDER)},
      'rule': '子年在卯，逆行十二支（丑年在寅，寅年在丑……亥年在辰）；以年支查',
-     'source': '紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）'},
+     'source': '紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）；八字按立春年支查，紫微盘按农历年支，立春到春节之间出生的两处会差一支'},
     {'name': '天喜', 'bases': ('year_branch',), 'looks_at': 'branch',
      'table': {b: BRANCH_ORDER[(9 - i) % 12] for i, b in enumerate(BRANCH_ORDER)},
      'rule': '红鸾对宫：子年在酉，逆行十二支；以年支查',
-     'source': '紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）'},
+     'source': '紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）；八字按立春年支查，紫微盘按农历年支，立春到春节之间出生的两处会差一支'},
     {'name': '魁罡', 'bases': ('day_pillar',), 'looks_at': 'pillar', 'table': {p: p for p in KUIGANG},
      'rule': '日柱为庚辰、壬辰、戊戌、庚戌',
      'source': '《三命通会》卷六·魁罡'},
 )
 RULE_BY_NAME = {rule['name']: rule for rule in RULES}
-BASIS_KEYS = ('day_stem', 'year_stem', 'day_branch', 'year_branch', 'month_branch', 'day_pillar')
 
 
 def natal_bases(pillars: dict[str, str]) -> dict[str, str]:
