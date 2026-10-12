@@ -774,6 +774,10 @@ const UI_EXTRA = {
 "[Five phases]",
 "【五行】"
 ],
+"【五行】四柱天干地支，不含藏干": [
+"[Five phases] stems and branches of the four pillars, without hidden stems",
+"【五行】四柱の天干地支（蔵干を除く）"
+],
 "【四柱】": [
 "[Four pillars]",
 "【四柱】"
@@ -1117,6 +1121,10 @@ const UI_EXTRA = {
 "两个方案": [
 "Two options",
 "二つの案"
+],
+"两人五行": [
+"Five phases of the two",
+"二人の五行"
 ],
 "两人四柱结构与传统合冲标签": [
 "Two people's Four Pillars structures and traditional combination/clash labels",
@@ -3001,6 +3009,10 @@ const UI_EXTRA = {
 "右弼": [
 "You Bi",
 "右弼"
+],
+"各人（四柱天干地支，不含藏干）：": [
+"Each person (stems and branches of the four pillars, without hidden stems):",
+"各人（四柱の天干地支、蔵干を除く）："
 ],
 "各区间代表命盘": [
 "Representative chart for each interval",
@@ -4966,6 +4978,10 @@ const UI_EXTRA = {
 "Each pair of members compared by luck pillars: stem five combinations; branch same branch, six harmony, six clash, six harm, punishment",
 "メンバー同士の大運を比較：天干五合、地支の同支・六合・六冲・六害・相刑"
 ],
+"成员五行": [
+"Five phases of each member",
+"メンバーの五行"
+],
 "成员关系图": [
 "Relation map of the members",
 "メンバーの関係図"
@@ -5481,6 +5497,10 @@ const UI_EXTRA = {
 "日主": [
 "Day Master",
 "日主"
+],
+"日主 · 比劫": [
+"Day Master · Peers",
+"日主・比劫"
 ],
 "日主十二长生（星运）": [
 "Day master's growth stage per pillar",
@@ -6769,6 +6789,10 @@ const UI_EXTRA = {
 "每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。": [
 "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
 "各カードはこの年に本人がいる大運と流年です。十神は本人の日主から天干を見ます。流年の後ろの小さな印は原局の地支との関係（冲月は月柱と六冲、合・刑・害も同様、同は同支、日空・年空は旬空に当たる）で、ホバーで全文が見られます。年齢はその年に達する満年齢です。"
+],
+"每格是该成员已知各柱的天干地支属这一五行的个数（不含藏干），小字是这一五行对该成员日主而言的十神类别；日主所在的五行加框。时辰不详不计时柱，当天交节或换日而不定的柱也不计。": [
+"Each cell counts the stems and branches of that member's known pillars belonging to the phase (without hidden stems); the small text is the ten-god group the phase stands for from that member's Day Master, and the Day Master's own phase is outlined. With the hour unknown the hour pillar is not counted, nor a pillar left open by a solar term or day change on the birth day.",
+"各マスはそのメンバーの判明している柱の天干地支のうち、その五行に属する数です（蔵干を除く）。小さい文字はその五行がメンバーの日主から見てどの十神に当たるかで、日主の五行は枠で囲みます。時刻不明なら時柱は数えず、生まれた日に節入りや日替わりがあって決まらない柱も数えません。"
 ],
 "每段按中点计算代表盘，边界端点附近应使用原始出生记录重新核对。": [
 "Each segment's representative chart is computed at its midpoint; near boundary endpoints, re-check using the original birth record.",
