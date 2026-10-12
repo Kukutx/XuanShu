@@ -431,8 +431,8 @@ const UI_EXTRA = {
 "- 同じ入力・同じ暦法依存による一致は、外部の独立検証とはみなされません。"
 ],
 "00:00 换日": [
-"Day changes at 00:00",
-"00:00 に日替わり"
+"Day turns at 00:00",
+"00:00 で日替わり"
 ],
 "1 天": [
 "1 day",
@@ -459,8 +459,8 @@ const UI_EXTRA = {
 "23:00 以降の出生"
 ],
 "23:00 换日": [
-"Day changes at 23:00",
-"23:00 日替わり"
+"Day turns at 23:00",
+"23:00 で日替わり"
 ],
 "23:00 换日（早晚子时）": [
 "Day changes at 23:00 (early/late Zi hour)",
@@ -1237,6 +1237,10 @@ const UI_EXTRA = {
 "个区间": [
 " intervals",
 "個の区間"
+],
+"个时段": [
+"intervals",
+"件の時間帯"
 ],
 "个边界": [
 " boundaries",
@@ -3365,6 +3369,10 @@ const UI_EXTRA = {
 "呢": [
 "(question particle)",
 "（疑問の助詞）"
+],
+"周岁": [
+"years old",
+"歳"
 ],
 "呼和浩特": [
 "Hohhot",
@@ -6070,6 +6078,10 @@ const UI_EXTRA = {
 "Early Zi hour 00–01",
 "早子の刻 00–01"
 ],
+"旬": [
+"decade",
+"旬"
+],
 "旬空": [
 "Xun Kong (void)",
 "旬空"
@@ -6590,6 +6602,10 @@ const UI_EXTRA = {
 "The month stem does not follow the year stem (Five Tigers rule): for a ",
 "月柱の天干が年干の五虎遁に合いません："
 ],
+"月柱天干由年干定（五虎遁），时柱天干由日干定（五鼠遁），所以月柱、时柱只列能对上的十二个。": [
+"The month stem follows from the year stem (Five Tigers rule) and the hour stem from the day stem (Five Rats rule), so only the twelve month and hour pillars that fit are listed.",
+"月柱の天干は年干で決まり（五虎遁）、時柱の天干は日干で決まる（五鼠遁）ため、月柱・時柱は合う12個だけを表示します。"
+],
 "月柱换为": [
 "month pillar becomes",
 "月柱が変わる："
@@ -6769,6 +6785,10 @@ const UI_EXTRA = {
 "未时 13–15": [
 "Wei hour 13–15",
 "未の刻 13–15"
+],
+"未来日期": [
+"Future date",
+"未来の日付"
 ],
 "未标记六合或六冲": [
 "No Six Harmonies or Six Clashes marked",
@@ -8042,6 +8062,18 @@ const UI_EXTRA = {
 "Jia Yi Bing Ding Wu Ji Geng Xin Ren Gui",
 "甲乙丙丁戊己庚辛壬癸"
 ],
+"甲午旬": [
+"甲午 decade",
+"甲午旬"
+],
+"甲子旬": [
+"甲子 decade",
+"甲子旬"
+],
+"甲寅旬": [
+"甲寅 decade",
+"甲寅旬"
+],
 "甲己、乙庚、丙辛、丁壬、戊癸五合": [
 "The five stem combinations: Jia–Ji, Yi–Geng, Bing–Xin, Ding–Ren, Wu–Gui",
 "甲己・乙庚・丙辛・丁壬・戊癸の五合"
@@ -8054,9 +8086,21 @@ const UI_EXTRA = {
 "甲戊庚 → 丑未, 乙己 → 子申, 丙丁 → 亥酉, 辛 → 寅午, 壬癸 → 卯巳; the day and year stems are looked up in the four branches",
 "甲戊庚は丑未、乙己は子申、丙丁は亥酉、辛は寅午、壬癸は卯巳。日干・年干から四柱の地支を見る"
 ],
+"甲戌旬": [
+"甲戌 decade",
+"甲戌旬"
+],
+"甲申旬": [
+"甲申 decade",
+"甲申旬"
+],
 "甲禄寅，乙禄卯，丙戊禄巳，丁己禄午，庚禄申，辛禄酉，壬禄亥，癸禄子；以日干查": [
 "Lu of 甲 at 寅, 乙 卯, 丙 and 戊 巳, 丁 and 己 午, 庚 申, 辛 酉, 壬 亥, 癸 子; read from the day stem",
 "甲の禄は寅、乙は卯、丙・戊は巳、丁・己は午、庚は申、辛は酉、壬は亥、癸は子。日干から求める"
+],
+"甲辰旬": [
+"甲辰 decade",
+"甲辰旬"
 ],
 "申子辰": [
 "Shen–Zi–Chen",
@@ -8341,6 +8385,10 @@ const UI_EXTRA = {
 "立春前后年柱": [
 "Year pillar around Lichun",
 "立春前後の年柱"
+],
+"立春换年": [
+"Year turns at Start of Spring",
+"立春で年替わり"
 ],
 "立春换年，公历年对应的干支": [
 "Year changes at Li Chun: the stem-branch of the civil year",
@@ -8729,6 +8777,10 @@ const UI_EXTRA = {
 "自坐": [
 "Self seat",
 "自坐"
+],
+"至今": [
+"Now",
+"現在"
 ],
 "艮": [
 "Gen",

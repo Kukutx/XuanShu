@@ -291,10 +291,28 @@ def main() -> None:
             # Pillars to dates: prefilled from the chart, every interval listed, one click casts it.
             page.locator('[data-tab="pillar-search"]').click()
             assert page.locator('#pillar-year').input_value() == '庚辰' and page.locator('#pillar-hour').input_value() == '庚寅'
+            # Only the twelve month pillars the year stem allows (五虎遁) and the twelve hours the day stem allows (五鼠遁).
+            assert page.locator('#pillar-month option').count() == 12 and page.locator('#pillar-hour option').count() == 13
+            assert page.locator('#pillar-year optgroup').count() == 6
+            assert page.locator('.ps-col').nth(1).locator('.ps-preview small').inner_text() == '立秋 – 白露'
+            assert page.locator('.ps-col').nth(3).locator('.ps-preview small').inner_text() == '03–05'
+            # A new year stem moves the month stems and keeps the month branch.
+            page.locator('#pillar-year').select_option('甲子')
+            assert page.locator('#pillar-month').input_value() == '壬申'
+            page.locator('#pillar-year').select_option('庚辰')
+            assert page.locator('#pillar-month').input_value() == '甲申'
             page.locator('#pillar-search-run').click()
             page.locator('#pillar-use-1').wait_for(timeout=30000)
-            assert page.locator('#result tbody tr').count() == 2
-            assert '2000-08-16 03:00:00' in page.locator('#result').inner_text()
+            assert page.locator('#pillar-matches > li').count() == 2
+            # The year pillar returns every sixty years: one mark per year on the axis, and a card per interval.
+            assert page.locator('#pillar-axis .ps-mark').all_inner_texts() == ['1940', '2000']
+            card = page.locator('#pillar-match-1')
+            assert card.locator('.ps-date').inner_text() == '2000-08-16' and card.locator('.ps-weekday').inner_text() == '星期三'
+            assert card.locator('.ps-when').inner_text().startswith('03:00:00 – 05:00:00')
+            assert '庚辰 · 七月十七' in card.inner_text() and '2 小时' in card.inner_text()
+            assert 'UTC+09:00' in page.locator('#pillar-match-0').inner_text()
+            page.locator('#pillar-axis .ps-mark').nth(1).click()
+            assert page.evaluate("document.activeElement.id") == 'pillar-match-1'
             page.screenshot(path=str(screenshot_dir / '33-pillar-search.png'), full_page=True)
             page.locator('#pillar-use-1').click()
             assert page.locator('#birth_datetime').input_value() == '2000-08-16T04:00'
