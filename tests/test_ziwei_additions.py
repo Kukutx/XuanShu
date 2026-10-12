@@ -69,3 +69,14 @@ def test_late_zi_rollover_takes_the_next_lunar_date():
     # Only 23:00-23:59 changes day.
     before = calculate_ziwei(BirthInput(birth_datetime='2026-03-18T22:59', gender='female', late_zi_day_rollover=True))
     assert before['lunar_date']['day'] == 30
+
+
+def test_late_zi_rollover_on_the_last_supported_day():
+    import pytest
+    from datetime import date
+    from app.astronomy import chinese_lunar_date
+    # 2099-12-31 23:30 with the 23:00 day change reads 2100-01-01, still inside lunar year 2099.
+    chart = calculate_ziwei(BirthInput(birth_datetime='2099-12-31T23:30', gender='male', late_zi_day_rollover=True))
+    assert (chart['lunar_date']['year'], chart['lunar_date']['month'], chart['lunar_date']['day']) == (2099, 11, 21)
+    with pytest.raises(ValueError):
+        chinese_lunar_date(date(2100, 1, 1))

@@ -18,6 +18,10 @@ let chatMode = 'single';   // 'panel': one specialist per school, then a synthes
 let chatVerify = true;     // second, independent model call that checks claims against tool results
 let chatUncertainty = 15;  // minutes the recorded birth time may be off
 let chatPartnerOK = false;  // the user's own consent tick; never set by the model
+// Lines with other people's birth data that the group page put into the draft: a message containing any of
+// them is not sent until the consent box is ticked.
+let chatThirdPartyLines = [];
+const needsPartnerConsent = text => !chatPartnerOK && chatThirdPartyLines.some(line => text.includes(line));
 let chatOwner = null;      // profile id the current conversation belongs to
 let chatTokenWatch = false;
 let chatController = null;  // aborts the request in flight
@@ -246,6 +250,11 @@ function announce(text) {const box = $('#live-status'); if (box) box.textContent
 async function sendChat(text) {
   const content = text.trim();
   if (!content || chatBusy || !chatStatus || chatStatus.enabled !== true) return;
+  if (needsPartnerConsent(content)) {
+    render();
+    const box = $('#chat-partner-ok'); if (box) box.focus();
+    return;
+  }
   syncChatOwner();
   const owner = chatOwner, convo = chatMessages;
   convo.push({role:'user', content: content.slice(0, 4000)});
@@ -602,7 +611,11 @@ function renderComposer(area, enabled) {
   input.value = chatDraft; input.disabled = !enabled;
   input.setAttribute('aria-label', '对话输入');
   const grow = () => {input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 240) + 'px';};
-  input.addEventListener('input', () => {chatDraft = input.value; grow();});
+  input.addEventListener('input', () => {
+    const blocked = needsPartnerConsent(chatDraft);
+    chatDraft = input.value; grow();
+    if (blocked !== needsPartnerConsent(chatDraft)) render();  // show or clear the consent notice
+  });
   input.addEventListener('keydown', event => {
     // Never send while an input method is still composing (Chinese, Japanese).
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
@@ -620,7 +633,11 @@ function renderComposer(area, enabled) {
     stop.addEventListener('click', stopChat);
   }
   const send = append(actions, 'button', 'primary-btn', '发送'); send.type = 'button'; send.id = 'chat-send';
-  send.disabled = chatBusy || !enabled;
+  send.disabled = chatBusy || !enabled || needsPartnerConsent(chatDraft);
+  if (enabled && needsPartnerConsent(chatDraft)) {
+    const notice = append(composer, 'p', 'inline-msg', '输入框里有其他人的出生资料：请先在对话设置里勾选「已获对方同意使用其出生资料（双人或多人）」再发送，或删掉这些资料。');
+    notice.id = 'chat-consent-needed';
+  }
   send.addEventListener('click', () => sendChat(input.value));
 }
 function renderMessage(log, message, index) {

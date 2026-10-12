@@ -285,7 +285,7 @@ def calculate_ziwei(inp: BirthInput) -> dict:
     # With the 23:00 day change, 23:00-23:59 takes the next day's whole lunar date, as the
     # bazi day pillar does. (iztro's late-Zi hour adds a day but keeps the month; see docs/evals.)
     late_zi = inp.late_zi_day_rollover and effective.hour == 23
-    lunar = chinese_lunar_date(effective.date() + (timedelta(days=1) if late_zi else timedelta()))
+    lunar = chinese_lunar_date(effective.date() + (timedelta(days=1) if late_zi else timedelta()), allow_rollover_day=late_zi)
     month = lunar['month']
     if lunar['is_leap_month'] and inp.leap_month_second_half_as_next and lunar['day'] > 15:
         month = month % 12 + 1

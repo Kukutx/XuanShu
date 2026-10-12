@@ -6427,6 +6427,10 @@
   "The number on a line counts that label (or all labels). Click a member to show only their lines; click a line to open that pair's details.",
   "線上の数字はそのラベル（または全ラベル）の件数です。メンバーをクリックするとその人の線だけを表示し、線をクリックするとそのペアの明細を開きます。"
  ],
+ "经度": [
+  "longitude",
+  "経度"
+ ],
  "经度与时制核对": [
   "Longitude and time-system check",
   "経度と時刻制度の確認"
@@ -7198,6 +7202,10 @@
  "辅星：": [
   "Auxiliary stars: ",
   "輔星："
+ ],
+ "输入框里有其他人的出生资料：请先在对话设置里勾选「已获对方同意使用其出生资料（双人或多人）」再发送，或删掉这些资料。": [
+  "The input contains other people's birth data: tick \"The other person or people agreed to use their birth data\" in the chat settings before sending, or delete that data.",
+  "入力欄に他の人の出生データがあります。送信する前に会話設定で「相手（複数可）の出生データ使用に同意を得ている」にチェックを入れるか、そのデータを削除してください。"
  ],
  "输入问题，Enter 发送，Shift+Enter 换行": [
   "Type a question; Enter sends, Shift+Enter adds a line",

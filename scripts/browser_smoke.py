@@ -225,6 +225,11 @@ def main() -> None:
             draft = page.locator('#chat-input').input_value()
             assert draft.startswith('先前没发的问题\n\n请结合多人关系对照') and draft.count('\n- ') == 3, draft
             assert '- 同事 · 1992-06-06 09:00 · ' in draft, draft
+            # Other people's birth data is not sent until the consent box is ticked.
+            assert page.locator('#chat-send').is_disabled() and page.locator('#chat-consent-needed').is_visible()
+            page.evaluate("() => { chatPartnerOK = true; render(); }")
+            assert not page.locator('#chat-send').is_disabled() and page.locator('#chat-consent-needed').count() == 0
+            page.evaluate("() => { chatPartnerOK = false; render(); }")
             page.screenshot(path=str(screenshot_dir / '39-group-to-chat.png'), full_page=True)
             page.evaluate("() => { chatStatus.enabled = false; chatDraft = ''; }")
 

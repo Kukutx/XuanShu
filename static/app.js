@@ -1169,22 +1169,34 @@ function renderGroup() {
   renderGroupResult(groupResult);
 }
 // The members of a group result as a chat question; birth data goes to the model only when the user sends it.
-function groupChatDraft(g) {
+// Each line carries the member's own rule choices, so the model's group_relations call reproduces this result.
+function groupChatDraft(g, inputs) {
   const tr = text => typeof translateText === 'function' ? translateText(text) : text;
-  const lines = g.members.map(m => '- ' + m.label + ' · ' + m.birth_datetime.slice(0, 10) + ' '
-    + (m.hour_unknown ? tr('时辰不详') : m.birth_datetime.slice(11, 16)) + ' · ' + m.timezone);
-  return [tr('请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。'), ...lines].join('\n');
+  const lines = g.members.map((m, i) => {
+    const birth = (inputs[i] || {}).birth || {};
+    const rules = [];
+    if (birth.late_zi_day_rollover) rules.push(tr('23:00 换日'));
+    if (birth.leap_month_second_half_as_next === false) rules.push(tr('闰月整月按本月'));
+    if (birth.time_mode === 'mean_solar') rules.push(tr('平太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
+    if (birth.time_mode === 'apparent_solar') rules.push(tr('真太阳时') + ' ' + tr('经度') + ' ' + birth.longitude);
+    return ['- ' + m.label, m.birth_datetime.slice(0, 10) + ' ' + (m.hour_unknown ? tr('时辰不详') : m.birth_datetime.slice(11, 16)),
+      m.timezone, ...rules].join(' · ');
+  });
+  return {text: [tr('请结合多人关系对照，帮我看看下面几位之间的关系，只解释传统标签的含义，不要打分。'), ...lines].join('\n'), lines};
 }
 function renderGroupResult(g) {
   const ask = append(result, 'div', 'group-ask');
   const askButton = append(ask, 'button', 'tiny-button', '带进 AI 对话'); askButton.type = 'button'; askButton.id = 'group-ask-ai';
-  const chatReady = Boolean(chatStatus && chatStatus.enabled);
+  // The chat status is normally read by the chat tab; a page opened straight at #group asks for it here.
+  if (chatStatus === null) {chatStatus = {pending: true}; fetchChatStatus().then(() => {if (active === 'group') render();});}
+  const chatReady = Boolean(chatStatus && chatStatus.enabled === true);
   askButton.disabled = !chatReady;
-  append(ask, 'small', 'muted', chatReady ? '把成员的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。'
+  append(ask, 'small', 'muted', chatStatus.pending ? '正在检查对话服务…' : chatReady ? '把成员的出生资料放进对话输入框，你确认后再发送；发送前需在对话设置里勾选已获对方同意。'
     : 'AI 对话尚未启用，配置语言模型后可以把这些成员带进对话。');
   askButton.addEventListener('click', () => {
     // Keep anything the user had already typed; clicking again does not add the members twice.
-    const draft = groupChatDraft(g);
+    const {text: draft, lines} = groupChatDraft(g, JSON.parse(groupKey || '[]'));
+    chatThirdPartyLines = [...new Set([...chatThirdPartyLines, ...lines])];
     if (!chatDraft.includes(draft)) chatDraft = chatDraft.trim() ? chatDraft.trimEnd() + '\n\n' + draft : draft;
     activateTab(tabs.find(t => t.dataset.tab === 'chat'));
     const box = $('#chat-input'); if (box) {box.focus(); box.setSelectionRange(box.value.length, box.value.length);}
