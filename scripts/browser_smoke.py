@@ -504,6 +504,20 @@ def main() -> None:
             assert page.locator('.transform-card').count() == 4
             assert page.locator('#annual-year').input_value() == str(page.evaluate('todayLunarYear'))
             page.screenshot(path=str(screenshot_dir / '03-annual.png'), full_page=True)
+            # The reading page states the chart in two cards that open the full pages, and points on to related tools.
+            page.locator('[data-tab="reading"]').click()
+            page.locator('#reading-bazi').wait_for(timeout=30000)
+            assert page.locator('#reading-bazi .reading-pillar').count() == 4 and page.locator('#reading-bazi .is-master').count() == 1
+            assert '?' not in page.locator('#reading-bazi .reading-pillars').inner_text()
+            assert page.locator('#reading-ziwei .reading-label', has_text='命宫').count() == 1
+            assert page.locator('#reading-ziwei [class*="reading-hua-"]').count() == 4
+            assert page.locator('#reading-ziwei [class*="reading-hua-"] small').count() == 4
+            assert page.locator('.reading-link').count() == 4
+            page.locator('#reading-bazi-open').click()
+            assert page.locator('[data-tab="bazi"]').get_attribute('aria-selected') == 'true'
+            page.locator('[data-tab="reading"]').click()
+            page.locator('#reading-next-dayun').click()
+            assert page.locator('[data-tab="dayun"]').get_attribute('aria-selected') == 'true'
             page.locator('[data-tab="time"]').click()
             page.screenshot(path=str(screenshot_dir / '04-time-audit.png'), full_page=True)
 
@@ -808,12 +822,31 @@ def main() -> None:
             assert sum(int(page.locator(f'#wuxing-{e} .wx-count').text_content()) for e in ('wood', 'fire', 'earth', 'metal', 'water')) == 2
             assert page.locator('#wuxing .is-master').count() == 1 and '出生当天立春，年柱、月柱随时辰而定。这三柱都不计入。' in page.locator('#result').inner_text()
             assert '藏干元素出现次数（不加权）：木1 · 火0 · 土1 · 金0 · 水1' in page.locator('#result').inner_text()  # 戊乙癸 of 壬辰
+            # The reading page marks the same open pillars and lists no Zi Wei palace, only the birth-year stars.
+            page.locator('[data-tab="reading"]').click()
+            page.locator('#reading-bazi').wait_for(timeout=30000)
+            open_cells = page.locator('#reading-bazi .reading-pillar .muted').all_inner_texts()
+            assert open_cells == ['随时辰而定', '随时辰而定', '时辰不详'], open_cells
+            assert page.locator('#reading-bazi .is-master').count() == 1
+            assert page.locator('#reading-ziwei .reading-label').all_inner_texts() == ['生年四化']
+            assert page.locator('#reading-ziwei [class*="reading-hua-"]').count() == 4
+            assert page.locator('#reading-ziwei [class*="reading-hua-"] small').count() == 0
+            assert page.locator('#reading-next-annual').count() == 0 and page.locator('.reading-link').count() == 3
+            page.locator('[data-tab="bazi"]').click()
             # With the 23:00 day change the day pillar is open as well: nothing is counted and no day master names ten gods.
             page.evaluate("document.querySelector('#late_zi_day_rollover').checked = true")
             page.locator('#run-btn').click()
             page.wait_for_function("() => document.querySelector('#wuxing') && !document.querySelector('#wuxing .is-master')", timeout=30000)
             assert page.locator('#wuxing .wx-group').count() == 0 and '比肩' not in page.locator('#wuxing-detail').inner_text()
             assert '这四柱都不计入，日主未定，也不标十神。' in page.locator('#result').inner_text()
+            page.locator('[data-tab="reading"]').click()
+            page.locator('#reading-bazi').wait_for(timeout=30000)
+            assert page.locator('#reading-bazi .reading-pillar .muted').count() == 4 and page.locator('#reading-bazi .is-master').count() == 0
+            assert '日柱随时辰而定，日主未定，十神暂不标注。' in page.locator('#reading-bazi').inner_text()
+            # 2000-02-04 is the last day of the twelfth lunar month, so a 23:00 birth would fall in the new lunar year.
+            assert page.locator('#reading-ziwei [class*="reading-hua-"]').count() == 0
+            assert page.locator('#reading-ziwei .reading-value').inner_text() == '随时辰而定'
+            page.locator('[data-tab="bazi"]').click()
             page.evaluate("document.querySelector('#late_zi_day_rollover').checked = false")
             page.locator('#hour_unknown').uncheck()
             page.locator('#lunar-entry summary').click()

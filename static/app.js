@@ -1439,10 +1439,86 @@ function renderTransform(z) {
   renderPalacePanel(result, findPalace(z, selectedPalace));
   note(result, '四化是星曜的传统标识，不是新增星曜；宫干飞化仅列出四化星所在宫，尚未实施完整飞星断法。');
 }
+// 透明的文化解释: what the chart shows, field by field, in two cards that open the pages with the full detail. With
+// the hour unknown nothing that depends on it is stated as known: the pillars the day could change are marked, and
+// the Zi Wei palaces, all placed from the hour, are left out.
 function renderReading(reading) {
   title(result, '透明的文化解释', '计算字段 → 传统标签 → 适用范围');
-  const ul = append(result, 'ul', 'reading-list');
-  reading.points.forEach(x => append(ul, 'li', null, x));
+  const b = current.bazi, z = current.ziwei, counts = chartElementCounts(b), unsettled = counts.unsettled;
+  const grid = append(result, 'div', 'reading-grid');
+  const card = (id, heading, tab, label, before) => {
+    const box = append(grid, 'section', 'reading-card'); box.id = id;
+    const head = append(box, 'div', 'reading-head'); append(head, 'h4', null, heading);
+    const go = append(head, 'button', 'reading-go', label); go.type = 'button'; go.id = id + '-open';
+    go.addEventListener('click', () => {if (before) before(); activateTab(tabs.find(t => t.dataset.tab === tab));});
+    return box;
+  };
+  // A labelled row whose value is built from separate nodes, so that fixed words and chart values translate apart.
+  const row = (box, label) => {const line = append(box, 'div', 'reading-row'); append(line, 'span', 'reading-label', label); return append(line, 'span', 'reading-value');};
+  const bazi = card('reading-bazi', '八字四柱', 'bazi', '打开四柱八字');
+  const pillars = append(bazi, 'div', 'reading-pillars');
+  PILLAR_KEYS.forEach(key => {
+    const cell = append(pillars, 'div', 'reading-pillar' + (key === 'day' && counts.master ? ' is-master' : '')), p = b.pillars[key];
+    append(cell, 'small', null, nameMap[key]);
+    const text = append(cell, 'b', 'reading-gz'); text.dataset.noI18n = '';
+    if (unsettled.has(key)) {text.textContent = '?'; append(cell, 'small', 'muted', key === 'hour' ? '时辰不详' : '随时辰而定');}
+    else {append(text, 'span', stemClass(p.stem), p.stem); append(text, 'span', branchClass(p.branch), p.branch);}
+  });
+  const master = row(bazi, '日主');
+  if (counts.master) {append(master, 'b', elementClass(b.day_master_element), b.day_master + ' · ' + b.day_master_element); append(master, 'span', 'muted', '十神都以日主为参照，不是对个人特征的科学判断。');}
+  else append(master, 'span', 'muted', '日柱随时辰而定，日主未定，十神暂不标注。');
+  const phases = row(bazi, '明干与地支本气');
+  PHASES.split('').forEach(e => {const chip = append(phases, 'span', 'reading-chip'); append(chip, 'b', elementClass(e), e); chip.append(' ' + counts.surface[e]);});
+  if (currentHourUnknown) append(bazi, 'p', 'field-help', wuxingUnsettledNote(unsettled));
+  const ziwei = card('reading-ziwei', '紫微斗数', 'ziwei', '打开紫微斗数', () => {selectedPalace = '命宫';});
+  // The four transformations follow the lunar year's stem. With the day depending on the hour, the year is open when
+  // the day can move across the lunar new year: forward from the last day of the twelfth month (the 23:00 day change
+  // or a solar time ahead of the clock), back from the first day of the first month (a solar time behind it).
+  const lunar = z.lunar_date, shift = b.time_basis.effective_shift_minutes || 0;
+  const yearOpen = unsettled.has('day') && (
+    ((currentInput.late_zi_day_rollover || shift > 0) && lunar.month === 12 && lunar.day === lunar.month_days)
+    || (shift < 0 && lunar.month === 1 && lunar.day === 1 && !lunar.is_leap_month));
+  const hua = (box, withPalace) => {
+    const value = row(box, '生年四化');
+    if (yearOpen) {
+      append(value, 'span', 'muted', '随时辰而定');
+      append(box, 'p', 'field-help', '出生当天在农历年的交界，日子随时辰而定，生年天干可能不同，四化星暂不列出。');
+      return;
+    }
+    z.birth_year_transformations.forEach(t => {
+      const chip = append(value, 'span', 'reading-chip reading-hua-' + {化禄: 'lu', 化权: 'quan', 化科: 'ke', 化忌: 'ji'}[t.type]);
+      append(chip, 'b', null, t.star); append(chip, 'span', null, t.type);
+      if (withPalace) append(chip, 'small', null, t.palace_name);
+    });
+  };
+  if (currentHourUnknown) {
+    append(ziwei, 'p', 'field-help', yearOpen ? '紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列。'
+      : '紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列；下面只有按生年天干定的四化星。');
+    hua(ziwei, false);
+  } else {
+    const palace = flag => z.palaces.find(p => p[flag]);
+    [['命宫', palace('is_ming')], ['身宫', palace('is_shen')]].forEach(([label, p]) => {
+      const value = row(ziwei, label);
+      append(value, 'b', null, p.name + ' · ' + p.branch);
+      if (!p.main_stars.length) append(value, 'span', 'muted', '空宫');
+      p.main_stars.forEach(star => {const chip = append(value, 'span', 'reading-chip'); append(chip, 'b', null, star); brightMark(chip, (p.star_brightness || {})[star]);});
+    });
+    append(row(ziwei, '五行局'), 'b', null, z.five_elements_bureau);
+    hua(ziwei, true);
+    append(row(ziwei, '命主'), 'b', null, z.ming_master);
+    append(row(ziwei, '身主'), 'b', null, z.shen_master);
+    append(ziwei, 'p', 'field-help', z.transformation_school);
+  }
+  // Where to go next from here, among the pages that read this same chart.
+  append(result, 'h4', 'subheading', '接着看');
+  const next = append(result, 'div', 'reading-next');
+  [['dayun', '大运十年干支', '十步大运与起运年龄'], ['today', '今日历法', '今天的四柱与命盘的关系'], ['annual', '指定农历年干四化', '今年的四化落在哪些宫'], ['pair', '双人对照', '与另一个人的命盘对照']]
+    .filter(([tab]) => !(tab === 'annual' && currentHourUnknown))
+    .forEach(([tab, name, what]) => {
+      const go = append(next, 'button', 'reading-link'); go.type = 'button'; go.id = 'reading-next-' + tab;
+      append(go, 'b', null, name); append(go, 'small', null, what);
+      go.addEventListener('click', () => activateTab(tabs.find(t => t.dataset.tab === tab)));
+    });
   append(result, 'h4', 'subheading', '规则限制');
   reading.limitations.forEach(x => append(result, 'div', 'feature-note', x));
 }

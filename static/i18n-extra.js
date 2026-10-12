@@ -1074,6 +1074,10 @@ const UI_EXTRA = {
 "Growth stages, voids and combinations, clashes, punishments and harms against the natal chart are traditional labels only; whether a combination transforms is not judged, and nothing here predicts fortune.",
 "原局との星運・空亡・合沖刑害は伝統的なラベルにすぎず、合化の成否は判断せず、吉凶も断じません。"
 ],
+"与另一个人的命盘对照": [
+"Compare with another person's chart",
+"別の人の命盤と照合"
+],
 "与大运页相同：三日折一岁，顺逆按年干阴阳与性别": [
 "Same as the Luck page: three days count as one year; direction by year-stem yin/yang and gender",
 "大運ページと同じ：三日を一年に換算し、順逆は年干の陰陽と性別で決める"
@@ -1538,6 +1542,10 @@ const UI_EXTRA = {
 "A solar term begins today; the day officer differs before and after it",
 "今日は節入りの日で、節入りの前後で十二直が異なります"
 ],
+"今天的四柱与命盘的关系": [
+"Today's pillars against the chart",
+"今日の四柱と命盤の関係"
+],
 "今年": [
 "This year",
 "今年"
@@ -1545,6 +1553,10 @@ const UI_EXTRA = {
 "今年流年和我的八字有什么关系？": [
 "How does this year relate to my BaZi chart?",
 "今年の流年は私の八字とどう関係しますか？"
+],
+"今年的四化落在哪些宫": [
+"Where this year's transformations fall",
+"今年の四化が入る宮"
 ],
 "今年的流年四化落在哪些宫？": [
 "Which palaces do this year's four transformations fall in?",
@@ -1974,6 +1986,10 @@ const UI_EXTRA = {
 "Where do the BaZi and Zi Wei readings agree, and where do they differ?",
 "八字と紫微の結論はどこが一致し、どこが違いますか？"
 ],
+"八字四柱": [
+"BaZi four pillars",
+"八字四柱"
+],
 "八字四柱对照 + 紫微宫位叠盘 · 只做结构对照，不评分关系好坏": [
 "BaZi Four Pillars comparison + Zi Wei palace overlay · structural comparison only; relationships are not scored",
 "八字四柱の対照 + 紫微宮位の重ね盤 · 構造の対照のみで関係の良し悪しは採点しない"
@@ -2337,6 +2353,10 @@ const UI_EXTRA = {
 "出生年地支": [
 "Birth year branch",
 "出生年の地支"
+],
+"出生当天在农历年的交界，日子随时辰而定，生年天干可能不同，四化星暂不列出。": [
+"The birth day sits at the turn of the lunar year and depends on the hour, so the birth year's stem may differ and the transformation stars are not listed.",
+"生まれた日は旧暦の年の変わり目にあり、日付が時刻次第のため生年の天干が変わり得ます。四化星はまだ示しません。"
 ],
 "出生当天的不同时刻这些字段也会不同（当天交节、按 23:00 换日或换用太阳时），同样不参与对照：": [
 "These fields also differ at different times of the birth date (a solar term that day, the 23:00 day change or solar time), so they are left out too: ",
@@ -2730,6 +2750,10 @@ const UI_EXTRA = {
 "Month 10",
 "十月"
 ],
+"十步大运与起运年龄": [
+"Ten luck pillars and the starting age",
+"十の大運と起運年齢"
+],
 "十神": [
 "Ten Gods",
 "十神"
@@ -2749,6 +2773,10 @@ const UI_EXTRA = {
 "十神是有方向的：A 看 B 与 B 看 A 往往不同，两者都列出。": [
 "Ten-god names have a direction: how A sees B usually differs from how B sees A, so both are listed.",
 "十神には方向があります。A から見た B と B から見た A は多くの場合異なるため、両方を示します。"
+],
+"十神都以日主为参照，不是对个人特征的科学判断。": [
+"Every ten god is read from the Day Master; it is not a scientific judgement of anyone's character.",
+"十神はすべて日主を基準にしたもので、個人の性格を科学的に判断するものではありません。"
 ],
 "升职": [
 "promotion",
@@ -3398,6 +3426,10 @@ const UI_EXTRA = {
 "Earth",
 "土"
 ],
+"土五局": [
+"Earth Bureau 5",
+"土五局"
+],
 "圣保罗": [
 "São Paulo",
 "サンパウロ"
@@ -3701,6 +3733,10 @@ const UI_EXTRA = {
 "大运区间是名义起运年龄的公历近似投影，交运日前后的事件归属可能有误差。": [
 "Luck Pillar intervals are approximate Gregorian projections of the nominal starting age; attribution of events around the transition date may be inaccurate.",
 "大運の区間は名目上の起運年齢を西暦に近似投影したもので、交運日前後の出来事の帰属には誤差が生じることがあります。"
+],
+"大运十年干支": [
+"Ten-year luck pillars",
+"大運の十年干支"
 ],
 "大运干支排法": [
 "Luck Pillar stem-branch arrangement",
@@ -5114,6 +5150,14 @@ const UI_EXTRA = {
 "Open reference ↗",
 "参考出典を開く ↗"
 ],
+"打开四柱八字": [
+"Open BaZi",
+"四柱八字を開く"
+],
+"打开紫微斗数": [
+"Open Zi Wei",
+"紫微斗数を開く"
+],
 "扣除夏令时（按标准时）": [
 "Daylight saving removed (standard time)",
 "夏時間を除く（標準時）"
@@ -5341,6 +5385,10 @@ const UI_EXTRA = {
 "接着": [
 "Next",
 "続いて"
+],
+"接着看": [
+"Next",
+"続けて見る"
 ],
 "推理过程 · ": [
 "Reasoning · ",
@@ -5625,6 +5673,10 @@ const UI_EXTRA = {
 "日柱日期界": [
 "Day pillar date boundary",
 "日柱の日付境界"
+],
+"日柱随时辰而定，日主未定，十神暂不标注。": [
+"The day pillar depends on the hour, so the Day Master is unsettled and no ten gods are given.",
+"日柱が時刻次第のため日主が定まらず、十神は示しません。"
 ],
 "日界": [
 "Day boundary",
@@ -6290,6 +6342,10 @@ const UI_EXTRA = {
 "Wood",
 "木"
 ],
+"木三局": [
+"Wood Bureau 3",
+"木三局"
+],
 "木木火火土土金金水水": [
 "Wood Wood Fire Fire Earth Earth Metal Metal Water Water",
 "木木火火土土金金水水"
@@ -6914,6 +6970,10 @@ const UI_EXTRA = {
 "Water",
 "水"
 ],
+"水二局": [
+"Water Bureau 2",
+"水二局"
+],
 "水土木木土火火土金金土水": [
 "Water Earth Wood Wood Earth Fire Fire Earth Metal Metal Earth Water",
 "水土木木土火火土金金土水"
@@ -7229,6 +7289,10 @@ const UI_EXTRA = {
 "火": [
 "Fire",
 "火"
+],
+"火六局": [
+"Fire Bureau 6",
+"火六局"
 ],
 "火星": [
 "Huo Xing",
@@ -7965,6 +8029,14 @@ const UI_EXTRA = {
 "紫微星曜和四化按选定公开流派规则，仅部分实现；不同流派可能不一致。": [
 "Zi Wei stars and Four Transformations follow selected public school rules and are only partially implemented; different schools may disagree.",
 "紫微の星と四化は選定した公開流派の規則に従い、一部のみ実装されています。流派によって一致しない場合があります。"
+],
+"紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列。": [
+"Zi Wei's Life and Body palaces, bureau and the stars of the twelve palaces are all placed from the birth hour, so with the hour unknown they are not listed.",
+"紫微の命宮・身宮・五行局と十二宮の星はすべて生まれた時刻で決まるため、時刻不明のときは示しません。"
+],
+"紫微的命宫、身宫、五行局和十二宫星曜都由出生时辰排定，时辰不详时不列；下面只有按生年天干定的四化星。": [
+"Zi Wei's Life and Body palaces, bureau and the stars of the twelve palaces are all placed from the birth hour, so with the hour unknown they are not listed; below are only the transformation stars set by the birth year's stem.",
+"紫微の命宮・身宮・五行局と十二宮の星はすべて生まれた時刻で決まるため、時刻不明のときは示しません。以下は生年の天干で決まる四化星だけです。"
 ],
 "紫微盘已切到 ": [
 "Zi Wei chart switched to ",
@@ -8859,7 +8931,7 @@ const UI_EXTRA = {
 "身体や生活習慣の文化的象徴であり、医学的判断は行いません"
 ],
 "身宫": [
-"Body palace",
+"Body Palace",
 "身宮"
 ],
 "身宫 ": [
@@ -9217,6 +9289,10 @@ const UI_EXTRA = {
 "金": [
 "Metal",
 "金"
+],
+"金四局": [
+"Metal Bureau 4",
+"金四局"
 ],
 "金火木土金火水土金木水土火木水金火木土金火水土金木水土火木水": [
 "Metal Fire Wood Earth Metal Fire Water Earth Metal Wood Water Earth Fire Wood Water Metal Fire Wood Earth Metal Fire Water Earth Metal Wood Water Earth Fire Wood Water",

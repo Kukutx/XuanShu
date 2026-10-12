@@ -193,6 +193,36 @@ a{color:inherit;text-decoration:none}
 .reading-list{list-style:none;margin:0;padding:0}
 .reading-list li{border-bottom:1px solid var(--border);padding:14px 0;font-size:13px;line-height:1.8;color:var(--text2)}
 .reading-list li:before{content:'◆';font-size:11px;color:var(--gold);margin-right:12px}
+/* 文化解释: two cards (八字, 紫微), each opening its page, then links to the pages that read the same chart. */
+.reading-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px;margin:4px 0 8px}
+.reading-card{border:1px solid var(--border);border-radius:10px;background:var(--panel2);padding:14px 16px}
+.reading-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}
+.reading-head h4{margin:0;font-size:15px}
+.reading-go{appearance:none;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--gold2);border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer;white-space:nowrap}
+.reading-go:hover{border-color:var(--gold)}
+.reading-go:focus-visible,.reading-link:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.reading-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.reading-pillar{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--border);border-radius:8px;background:var(--panel);padding:8px 4px;text-align:center}
+.reading-pillar.is-master{border-color:var(--gold)}
+.reading-pillar small{font-size:11px;color:var(--muted)}
+.reading-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:24px;line-height:1.2;font-weight:600}
+.reading-row{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:4px 10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--border);font-size:13px;line-height:1.7}
+.reading-label{color:var(--muted)}
+html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
+.reading-value{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;color:var(--text2)}
+.reading-value>b{color:var(--text)}
+.reading-chip{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:0 4px;max-width:100%;border:1px solid var(--border);border-radius:999px;padding:0 9px;background:var(--panel);font-size:12px}
+.reading-chip>*{white-space:nowrap}
+.reading-chip .bright{margin-left:0}
+.reading-chip b{font-size:13px}
+.reading-chip small{color:var(--muted);font-size:11px}
+.reading-hua-lu b{color:var(--lu)}.reading-hua-quan b{color:var(--quan)}.reading-hua-ke b{color:var(--ke)}.reading-hua-ji b{color:var(--ji)}
+.reading-card .field-help{margin:8px 0 0}
+.reading-next{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:10px;margin:0 0 8px}
+.reading-link{appearance:none;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);padding:10px 12px;cursor:pointer;font:inherit}
+.reading-link:hover{border-color:var(--gold)}
+.reading-link b{font-size:13px}
+.reading-link small{font-size:12px;color:var(--muted)}
 .code-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .code-header h3{margin:0;font-size:13px;font-weight:500}
 .json-code{white-space:pre;overflow:auto;max-height:620px;font-size:12px;padding:16px;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;color:var(--code-text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2;width:100%}
