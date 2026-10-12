@@ -590,6 +590,14 @@ const UI_EXTRA = {
 "Agent integration",
 "エージェント連携"
 ],
+"Agent 看到的说明": [
+"What the agent sees:",
+"エージェントに見える説明："
+],
+"Agent 通过 tools/list 看到的就是这些": [
+"Exactly what an agent sees through tools/list",
+"エージェントが tools/list で見るものそのまま"
+],
 "America/Los_Angeles · 洛杉矶": [
 "America/Los_Angeles · Los Angeles",
 "America/Los_Angeles · ロサンゼルス"
@@ -670,6 +678,10 @@ const UI_EXTRA = {
 "Europe/Rome · Rome",
 "Europe/Rome · ローマ"
 ],
+"HTTP 直连": [
+"Direct HTTP",
+"HTTP 直接接続"
+],
 "Interface language / 界面语言": [
 "Interface language / 界面语言",
 "Interface language / 表示言語"
@@ -693,6 +705,18 @@ const UI_EXTRA = {
 "MCP 工具": [
 "MCP tools",
 "MCP ツール"
+],
+"MCP 连接自检 · 工具目录 · 客户端配置": [
+"MCP connection check · tool catalogue · client setup",
+"MCP 接続チェック · ツール一覧 · クライアント設定"
+],
+"MCP 连接自检有步骤没有通过": [
+"Some MCP connection check steps failed",
+"MCP 接続チェックで失敗したステップがあります"
+],
+"MCP 连接自检通过": [
+"MCP connection check passed",
+"MCP 接続チェックに合格しました"
 ],
 "Optional focus, e.g. 藏干 / 节气": [
 "Optional focus, e.g. 藏干 / 节气",
@@ -754,9 +778,21 @@ const UI_EXTRA = {
 "palaces must be a list",
 "palaces はリストにしてください"
 ],
+"prompts/list：客户端可直接选用的工作流提示": [
+"prompts/list: workflow prompts a client can pick directly",
+"prompts/list：クライアントがそのまま選べるワークフロー用プロンプト"
+],
+"resources/list：Agent 可读取的方法规则与限制": [
+"resources/list: method rules and limitations an agent can read",
+"resources/list：エージェントが読める手法ルールと制限"
+],
 "root_fields 需为对象": [
 "root_fields must be an object",
 "root_fields はオブジェクトにしてください"
+],
+"skills/list：可导入客户端的工作流说明": [
+"skills/list: workflow instructions a client can import",
+"skills/list：クライアントに取り込めるワークフロー説明"
 ],
 "“＝”表示与当前设置相同；标色的格子是换用这条规则后不同的结果。套用会把这条规则写进出生资料并重新排盘。扣除夏令时改的是出生时间本身的读法，不能直接套用；确认出生记录用的是夏令时后，请手动改出生时间。": [
 "“＝” means the same as the current settings; highlighted cells are results that change under that rule. Apply writes the rule into the birth details and recalculates. Removing daylight saving time changes how the birth time itself is read, so it cannot be applied directly; once you have confirmed the record used summer time, edit the birth time by hand.",
@@ -1382,9 +1418,21 @@ const UI_EXTRA = {
 " intervals",
 "個の区間"
 ],
+"个工具": [
+"tools",
+"件のツール"
+],
+"个提示模板": [
+"prompt templates",
+"件のプロンプトテンプレート"
+],
 "个时段": [
 "intervals",
 "件の時間帯"
+],
+"个规则资源": [
+"rule resources",
+"件のルールリソース"
 ],
 "个计算步骤": [
 "calculation steps",
@@ -1853,6 +1901,10 @@ const UI_EXTRA = {
 "代表本地时刻": [
 "Representative local time",
 "代表ローカル時刻"
+],
+"令牌写成环境变量 MCP_BEARER_TOKEN 的占位（与服务端令牌同名），不会把你填写的令牌放进这段文本。": [
+"The token is written as a placeholder for the MCP_BEARER_TOKEN environment variable (the same name as the server's token); the token you entered is never put into this text.",
+"トークンは環境変数 MCP_BEARER_TOKEN（サーバー側のトークンと同じ名前）のプレースホルダーとして書かれ、入力したトークンがこのテキストに入ることはありません。"
 ],
 "以「那」「然后」「再看」等开头续问时，沿用本次的场景": [
 "A follow-up starting with 那, 然后 or 再看 keeps this scenario: ",
@@ -2506,6 +2558,10 @@ const UI_EXTRA = {
 "Focus palace: ",
 "注目する宮："
 ],
+"关系": [
+"Relations",
+"関係"
+],
 "关系与决策": [
 "Relationships & decisions",
 "関係と意思決定"
@@ -2538,6 +2594,10 @@ const UI_EXTRA = {
 "of which",
 "うち"
 ],
+"其他": [
+"Other",
+"その他"
+],
 "其他权重不变时，每个指标的权重在区间内变动，首位都不变；越过边界时领先的方案写在箭头后。最后一列是完全去掉该指标后的首位。": [
 "With the other weights unchanged, the leader holds while a criterion's weight stays inside its range; the option that leads past each edge follows the arrow. The last column is the leader with the criterion left out entirely.",
 "ほかの重みを変えないとき、各指標の重みがこの範囲内なら首位は変わりません。境界を越えたときに首位になる案は矢印の後に書きます。最後の列は、その指標を完全に外したときの首位です。"
@@ -2565,6 +2625,14 @@ const UI_EXTRA = {
 "再看": [
 "look again",
 "もう一度見る"
+],
+"写进 Claude Desktop 的配置文件（设置 → 开发者 → 编辑配置），保存后完全退出并重新打开 Claude Desktop。": [
+"Add it to Claude Desktop's configuration file (Settings → Developer → Edit Config), save, then quit Claude Desktop completely and open it again.",
+"Claude Desktop の設定ファイル（設定 → 開発者 → 設定を編集）に書き込み、保存後に Claude Desktop を完全に終了して開き直してください。"
+],
+"写进 Codex 的配置文件，然后重新启动 Codex。": [
+"Add it to Codex's configuration file, then restart Codex.",
+"Codex の設定ファイルに書き込み、Codex を再起動してください。"
 ],
 "农历": [
 "Lunar calendar",
@@ -3254,6 +3322,10 @@ const UI_EXTRA = {
 "Hua Gai",
 "華蓋"
 ],
+"协商版本": [
+"Negotiated version",
+"合意したバージョン"
+],
 "单独换一条规则": [
 "One rule changed at a time",
 "規則を一つだけ変えた場合"
@@ -3317,6 +3389,10 @@ const UI_EXTRA = {
 "历法与排盘逐日交叉核验": [
 "Calendar and charts cross-checked day by day",
 "暦と命盤を毎日クロスチェック"
+],
+"历法择日": [
+"Calendar and date selection",
+"暦と日取り"
 ],
 "历法计算与传统术数符号说明（非科学预测）": [
 "Calendar calculation and explanation of traditional divination symbols (not scientific prediction)",
@@ -3537,6 +3613,10 @@ const UI_EXTRA = {
 "只显示前": [
 "showing the first",
 "表示は最初の"
+],
+"只显示前 4000 个字符；完整结果请在工作台页面或你的客户端里查看。": [
+"Only the first 4,000 characters are shown; see the full result on the workbench page or in your client.",
+"最初の 4000 文字のみ表示しています。全体はワークベンチのページかクライアントで確認してください。"
 ],
 "只有 lunardate 不同；旧历书的算法容易把这样的朔算到午夜另一侧。": [
 "Only lunardate differs; older almanac methods easily put such a new moon on the other side of midnight.",
@@ -4106,6 +4186,10 @@ const UI_EXTRA = {
 "Open this year's layer on the Zi Wei chart",
 "紫微盤でこの年の流年層を開く"
 ],
+"在终端运行这条命令；加 --scope project 会写进项目的 .mcp.json，便于团队共享。": [
+"Run this command in a terminal; add --scope project to write it to the project's .mcp.json for sharing with a team.",
+"ターミナルでこのコマンドを実行します。--scope project を付けるとプロジェクトの .mcp.json に書き込まれ、チームで共有できます。"
+],
 "地劫": [
 "Di Jie",
 "地劫"
@@ -4298,6 +4382,10 @@ const UI_EXTRA = {
 "Copy JSON",
 "JSON をコピー"
 ],
+"复制全文": [
+"Copy full text",
+"全文をコピー"
+],
 "复制全文 Markdown": [
 "Copy all as Markdown",
 "全文を Markdown でコピー"
@@ -4337,6 +4425,14 @@ const UI_EXTRA = {
 "复制表格": [
 "Copy table",
 "表をコピー"
+],
+"复制请求": [
+"Copy request",
+"リクエストをコピー"
+],
+"复制配置": [
+"Copy configuration",
+"設定をコピー"
 ],
 "夏令时": [
 "Daylight saving",
@@ -4762,6 +4858,10 @@ const UI_EXTRA = {
 "Failed: ",
 "失敗："
 ],
+"奇门": [
+"Qimen",
+"奇門"
+],
 "奇门 核验 参考盘": [
 "qimen verification reference-chart",
 "奇門 検証 参考盤"
@@ -4905,6 +5005,10 @@ const UI_EXTRA = {
 "定位临界时刻": [
 "Locate boundary moments",
 "境界時刻を特定"
+],
+"客户端": [
+"Client",
+"クライアント"
 ],
 "宫": [
 "Palace",
@@ -5210,6 +5314,10 @@ const UI_EXTRA = {
 "Rooftop Earth",
 "屋上土"
 ],
+"展开全文": [
+"Show all",
+"全文を表示"
+],
 "展开全部 ": [
 "Expand all ",
 "すべて展開 "
@@ -5246,13 +5354,33 @@ const UI_EXTRA = {
 "Find workbench features",
 "ワークベンチ機能を検索"
 ],
+"工作流与报告": [
+"Workflows and reports",
+"ワークフローとレポート"
+],
+"工具数与 /api/capabilities 的计数一致": [
+"The tool count matches /api/capabilities",
+"ツール数は /api/capabilities の件数と一致"
+],
+"工具数与 /api/capabilities 的计数不一致": [
+"The tool count does not match /api/capabilities",
+"ツール数が /api/capabilities の件数と一致しません"
+],
 "工具有时辰不详开关时要打开：bazi_dayun、ziwei_horoscope、rule_sensitivity_matrix 的 hour_unknown，": [
 "Turn on a tool's unknown-hour switch when it has one: hour_unknown in bazi_dayun, ziwei_horoscope and rule_sensitivity_matrix,",
 "ツールに出生時刻不明のスイッチがあればオンにすること：bazi_dayun、ziwei_horoscope、rule_sensitivity_matrix の hour_unknown、"
 ],
+"工具目录": [
+"Tool catalogue",
+"ツール一覧"
+],
 "工具调用轮次已达上限，请把问题拆小后再问。": [
 "The tool-call round limit has been reached. Please break the question into smaller parts and ask again.",
 "ツール呼び出しの回数上限に達しました。質問を小分けにして再度お尋ねください。"
+],
+"工具返回错误": [
+"The tool returned an error",
+"ツールがエラーを返しました"
 ],
 "左辅": [
 "Zuo Fu",
@@ -5378,6 +5506,10 @@ const UI_EXTRA = {
 "Profile loaded; calculating.",
 "プロフィールを読み込みました。計算中です。"
 ],
+"已运行的 HTTP 服务": [
+"A running HTTP server",
+"起動中の HTTP サーバー"
+],
 "已返回 ": [
 "Returned ",
 "返却 "
@@ -5385,6 +5517,10 @@ const UI_EXTRA = {
 "已返回结果": [
 "Result returned",
 "結果を返しました"
+],
+"已连上": [
+"Connected to",
+"接続済み："
 ],
 "已选 ": [
 "Selected ",
@@ -6018,6 +6154,10 @@ const UI_EXTRA = {
 "Open BaZi",
 "四柱八字を開く"
 ],
+"打开工作台页面": [
+"Open workbench page",
+"ワークベンチのページを開く"
+],
 "打开紫微斗数": [
 "Open Zi Wei",
 "紫微斗数を開く"
@@ -6182,6 +6322,10 @@ const UI_EXTRA = {
 "XuanShu casts its own chart from the birth details and compares. The pasted text is used only for this check; the server keeps nothing.",
 "出生情報から玄枢の命盤を出して比較します。貼り付けた内容はこの照合にだけ使い、サーバーには保存しません。"
 ],
+"按名称、用途或参数筛选": [
+"Filter by name, purpose or parameter",
+"名前・用途・パラメータで絞り込み"
+],
 "按宫列表": [
 "By palace",
 "宮ごとの一覧"
@@ -6225,6 +6369,10 @@ const UI_EXTRA = {
 "按用户权重计算的方案得分": [
 "Option scores computed from user weights",
 "ユーザーの重みで計算した案のスコア"
+],
+"按用途": [
+"By purpose",
+"用途別"
 ],
 "按规则链提取八字、紫微结构证据": [
 "Extract BaZi and Zi Wei structural evidence via rule chains",
@@ -6286,6 +6434,10 @@ const UI_EXTRA = {
 "Lay out Nine Palaces",
 "九宮を配置"
 ],
+"排盘": [
+"Charts",
+"命盤作成"
+],
 "排盘、择日、报告等全部工具都能直接使用，不需要语言模型。AI 对话需要运行这个服务的人配置一个语言模型。": [
 "Charts, date selection, reports and every other tool work without a language model. The AI chat needs whoever runs this service to configure one.",
 "盤の作成・日選び・レポートなどのツールはすべて言語モデルなしで使えます。AI チャットには、このサービスの運営者が言語モデルを設定する必要があります。"
@@ -6321,6 +6473,10 @@ const UI_EXTRA = {
 "排除：值日 ": [
 "Excluded: day officer ",
 "除外：値日 "
+],
+"接入配置": [
+"Client setup",
+"接続設定"
 ],
 "接着": [
 "Next",
@@ -6361,6 +6517,10 @@ const UI_EXTRA = {
 "攀鞍": [
 "Pan An",
 "攀鞍"
+],
+"支持 Streamable HTTP 的客户端直接连这个地址；公网使用要另行部署 HTTPS 和鉴权。": [
+"Clients that support Streamable HTTP connect to this address directly; public use needs a separate HTTPS deployment and authentication.",
+"Streamable HTTP に対応したクライアントはこのアドレスに直接接続します。公開利用には HTTPS と認証を別途用意する必要があります。"
 ],
 "支持简体或繁体的命盘文字；没识别到的部分会略过。": [
 "Chart text in simplified or traditional Chinese is accepted; anything not recognized is skipped.",
@@ -6541,6 +6701,10 @@ const UI_EXTRA = {
 "无法填入：": [
 "Could not fill: ",
 "入力できません："
+],
+"无法自动复制，请手动选中": [
+"Could not copy automatically; select it by hand",
+"自動でコピーできません。手動で選択してください"
 ],
 "无法自动复制，请手动选中上面的配置文本": [
 "Unable to copy automatically; please manually select the config text above",
@@ -7150,6 +7314,10 @@ const UI_EXTRA = {
 "Spring Equinox (Chunfen)",
 "春分"
 ],
+"显示": [
+"Showing",
+"表示中"
+],
 "显示乾造 / 坤造": [
 "Show 乾造 / 坤造 (gender)",
 "乾造／坤造（性別）を表示"
@@ -7398,6 +7566,14 @@ const UI_EXTRA = {
 "The server does not store this data",
 "サーバーは今回のデータを保存しません"
 ],
+"服务拒绝了本页的来源（Origin），请检查允许的来源设置。": [
+"The server refused this page's origin; check the allowed origins setting.",
+"サーバーがこのページのオリジンを拒否しました。許可するオリジンの設定を確認してください。"
+],
+"服务支持的协议版本": [
+"Protocol versions the server supports",
+"サーバーが対応するプロトコルバージョン"
+],
 "服务返回了无法解析的响应（HTTP ": [
 "Service returned an unparseable response (HTTP ",
 "サービスが解析できない応答を返しました（HTTP "
@@ -7510,6 +7686,10 @@ const UI_EXTRA = {
 "Not selected",
 "未選択"
 ],
+"未通过": [
+"failed",
+"失敗"
+],
 "未配置语言模型。设置 ANTHROPIC_API_KEY，或 XUANSHU_LLM_PROVIDER=openai 加 XUANSHU_LLM_MODEL 与 API Key 后重启。": [
 "No language model is configured. Set ANTHROPIC_API_KEY, or XUANSHU_LLM_PROVIDER=openai plus XUANSHU_LLM_MODEL and an API Key, then restart.",
 "言語モデルが設定されていません。ANTHROPIC_API_KEY を設定するか、XUANSHU_LLM_PROVIDER=openai と XUANSHU_LLM_MODEL および API Key を設定してから再起動してください。"
@@ -7586,6 +7766,10 @@ const UI_EXTRA = {
 "This month",
 "今月"
 ],
+"本机 stdio": [
+"Local stdio",
+"ローカル stdio"
+],
 "本机时间 · 历法事实 · 不打吉凶分": [
 "Device clock · calendar facts · no luck scores",
 "端末の時刻 · 暦の事実 · 吉凶の点数なし"
@@ -7617,6 +7801,14 @@ const UI_EXTRA = {
 "本盘": [
 "This chart",
 "この盤"
+],
+"本页内容": [
+"On this page",
+"このページの内容"
+],
+"本页刚刚用两代协议实际调用了这台服务": [
+"This page just called this server in both protocol generations",
+"このページが両世代のプロトコルで実際にこのサーバーを呼び出した結果です"
 ],
 "本页面不调用大模型预测，只展示八字、部分紫微的可计算结构与规则差异。方法参考链接不能代表对这张盘的外部验算。": [
 "This page does not call a large language model to make predictions; it only shows the computable structures and rule differences of BaZi and part of Zi Wei. Method reference links do not represent external verification of this chart.",
@@ -7814,6 +8006,10 @@ const UI_EXTRA = {
 "Verification failed: ",
 "検証失敗："
 ],
+"核验审计": [
+"Checks and audits",
+"検証と監査"
+],
 "核验开": [
 "verification on",
 "検証オン"
@@ -7982,9 +8178,17 @@ const UI_EXTRA = {
 "Calculating the period layers…",
 "運限を計算中…"
 ],
+"正在读取…": [
+"Reading…",
+"読み込み中…"
+],
 "正在读取评测结果…": [
 "Loading the evaluation…",
 "評価結果を読み込み中…"
+],
+"正在调用…": [
+"Calling…",
+"呼び出し中…"
 ],
 "正在起局…": [
 "Casting…",
@@ -7997,6 +8201,10 @@ const UI_EXTRA = {
 "正在逐年反查…": [
 "Searching year by year…",
 "年ごとに逆引き中…"
+],
+"正在通过 POST /mcp 检测…": [
+"Checking through POST /mcp…",
+"POST /mcp で確認中…"
 ],
 "正官": [
 "Direct Officer (Zheng Guan)",
@@ -8041,6 +8249,14 @@ const UI_EXTRA = {
 "此结果由用户选择安装的独立 iztro-py 引擎生成，与 XuanShu 原生子集分开输出。": [
 "This result was generated by the independent iztro-py engine that the user chose to install, and is output separately from the XuanShu native subset.",
 "この結果はユーザーがインストールを選択した独立した iztro-py エンジンにより生成され、XuanShu のネイティブサブセットとは別に出力されます。"
+],
+"步没有通过，原因写在对应一行": [
+"steps failed; the reason is on each row",
+"件のステップが失敗しました。理由は各行にあります"
+],
+"步通过": [
+"steps passed",
+"件のステップに合格"
 ],
 "武曲": [
 "Wu Qu",
@@ -8230,6 +8446,10 @@ const UI_EXTRA = {
 "No days meet all conditions; relax the conditions or extend the scan period.",
 "すべての条件を満たす日はありません。条件を緩めるかスキャン日数を延ばしてください。"
 ],
+"没有符合条件的工具。": [
+"No tool matches.",
+"条件に合うツールはありません。"
+],
 "没有触发本工具已知边界标记；不代表专业命盘获得认证。": [
 "No known boundary flags from this tool were triggered; this does not mean a professional chart has been certified.",
 "本ツールの既知の境界フラグは発生しませんでした。専門的な命盤が認証されたことを意味しません。"
@@ -8237,6 +8457,22 @@ const UI_EXTRA = {
 "没有识别到可以比对的字段。支持的写法：": [
 "No comparable fields were recognized. Accepted formats:",
 "照合できる項目を認識できませんでした。対応する書き方："
+],
+"没有读到 Skills，见上方连接自检。": [
+"Skills could not be read; see the connection check above.",
+"Skills を読み込めませんでした。上の接続チェックを参照してください。"
+],
+"没有读到工具列表，见上方连接自检。": [
+"The tool list could not be read; see the connection check above.",
+"ツール一覧を読み込めませんでした。上の接続チェックを参照してください。"
+],
+"没有读到提示模板，见上方连接自检。": [
+"The prompt templates could not be read; see the connection check above.",
+"プロンプトテンプレートを読み込めませんでした。上の接続チェックを参照してください。"
+],
+"没有读到规则资源，见上方连接自检。": [
+"The rule resources could not be read; see the connection check above.",
+"ルールリソースを読み込めませんでした。上の接続チェックを参照してください。"
 ],
 "没有质量提示并不代表源数据准确或经过专业流派认证。": [
 "The absence of quality warnings does not mean the source data is accurate or certified by a professional school.",
@@ -9086,6 +9322,10 @@ const UI_EXTRA = {
 "Check the birth details and generate the chart; BaZi, Zi Wei and the four transformations are computed together.",
 "出生情報を確認して命盤を作成すると、八字・紫微・四化がまとめて計算されます。"
 ],
+"示例用固定的演示出生资料，不读取你填写的出生信息。": [
+"Examples use a fixed demonstration birth and never read the birth details you entered.",
+"例は固定のデモ用出生データを使い、入力した出生情報は読み取りません。"
+],
 "神煞": [
 "Shen Sha",
 "神煞"
@@ -9242,6 +9482,10 @@ const UI_EXTRA = {
 "Start of Autumn (Liqiu)",
 "立秋"
 ],
+"端点": [
+"Endpoint",
+"エンドポイント"
+],
 "第二个人（或多人）的出生资料只有在用户勾选「已获对方同意」后才能使用；未勾选时 pair_comparison、ziwei_pair_overlay、group_relations 和带 partner 的 consultation_execute 会被拒绝，请提示用户先勾选。": [
 "Another person's (or several people's) birth data may be used only after the user ticks “consent obtained”; until then pair_comparison, ziwei_pair_overlay, group_relations and consultation_execute with a partner are refused, so ask the user to tick it first.",
 "第二の人物（または複数人）の出生情報は、ユーザーが「相手の同意を得た」にチェックした後でのみ使えます。未チェックの間は pair_comparison・ziwei_pair_overlay・group_relations と partner 付きの consultation_execute は拒否されるので、先にチェックするよう案内してください。"
@@ -9289,6 +9533,10 @@ const UI_EXTRA = {
 "粘贴的命盘": [
 "Pasted chart",
 "貼り付けた命盤"
+],
+"系统": [
+"System",
+"システム"
 ],
 "紫 微 斗 数": [
 "Zi Wei Dou Shu",
@@ -9469,6 +9717,14 @@ const UI_EXTRA = {
 "线上的数字是该标签（或全部标签）的条数；点成员只看与他相关的线，点线打开这一对的明细。": [
 "The number on a line counts that label (or all labels). Click a member to show only their lines; click a line to open that pair's details.",
 "線上の数字はそのラベル（または全ラベル）の件数です。メンバーをクリックするとその人の線だけを表示し、線をクリックするとそのペアの明細を開きます。"
+],
+"终端验证：列出工具": [
+"Check in a terminal: list the tools",
+"ターミナルで確認：ツールを一覧表示"
+],
+"终端验证：列出工具（命令提示符）": [
+"Check in a terminal: list the tools (Command Prompt)",
+"ターミナルで確認：ツールを一覧表示（コマンドプロンプト）"
 ],
 "经历": [
 "Experience",
@@ -10058,6 +10314,10 @@ const UI_EXTRA = {
 "Detects changes of double hour, day boundary, solar term and time zone. Only the numerical segmentation of currently implemented rules is guaranteed, not professional charts of every school.",
 "時辰・日界・節令・タイムゾーンの変化を識別します。保証するのは現在実装済みルールの数値的分割のみで、すべての流派の専門的な命盤は保証しません。"
 ],
+"试运行": [
+"Try it",
+"試しに実行"
+],
 "该信息属于传统命盘符号解释，非事实预测；星曜覆盖未完成。": [
 "This information is a symbolic interpretation of a traditional chart, not a factual prediction; star coverage is incomplete.",
 "この情報は伝統的な命盤の象徴的解釈であり、事実の予測ではありません。星の網羅は未完了です。"
@@ -10170,6 +10430,10 @@ const UI_EXTRA = {
 "Please provide at least two options, verifiable evaluation criteria, criterion weights, and user scores from 0 to 5",
 "少なくとも2つの案、検証可能な評価指標、指標の重み、0〜5のユーザー評価を指定してください"
 ],
+"请检查 API 访问令牌。": [
+"Check the API access token.",
+"API アクセストークンを確認してください。"
+],
 "请检查 API 访问令牌（401）：": [
 "Please check the API access token (401): ",
 "API アクセストークンを確認してください（401）："
@@ -10181,6 +10445,10 @@ const UI_EXTRA = {
 "请比较几个真实可行的方案，列出不同权重下的优缺点。": [
 "Please compare several realistic options and list the pros and cons under different weights.",
 "現実的に可能な案をいくつか比較し、重み別の長所と短所を挙げてください。"
+],
+"请求失败": [
+"Request failed",
+"リクエスト失敗"
 ],
 "请求失败：": [
 "Request failed: ",
@@ -10234,6 +10502,10 @@ const UI_EXTRA = {
 "Please select a profile to delete",
 "削除するプロフィールを選択してください"
 ],
+"读取失败：": [
+"Could not read: ",
+"読み込み失敗："
+],
 "读取字段": [
 "Fields read",
 "読み取ったフィールド"
@@ -10249,6 +10521,14 @@ const UI_EXTRA = {
 "调用参数": [
 "Call parameters",
 "呼び出しパラメータ"
+],
+"调用成功": [
+"Call succeeded",
+"呼び出し成功"
+],
+"调用示例与试运行": [
+"Example call and trial run",
+"呼び出し例と試し実行"
 ],
 "谷雨": [
 "Grain Rain (Guyu)",
@@ -10550,6 +10830,10 @@ const UI_EXTRA = {
 "Tuo (decade)",
 "限の陀"
 ],
+"运限": [
+"Periods",
+"運限"
+],
 "运限层": [
 "Time layer",
 "運限の層"
@@ -10593,6 +10877,10 @@ const UI_EXTRA = {
 "还可以补充哪些人生事件来对照？": [
 "What other life events could I add for comparison?",
 "比較のためにほかにどんな人生の出来事を加えられますか？"
+],
+"还没填项目文件夹，文本里是占位路径；运行 Python 的虚拟环境要先安装项目依赖。": [
+"No project folder yet, so the text uses a placeholder path; the Python virtual environment must have the project's dependencies installed.",
+"プロジェクトフォルダが未入力のため、テキストは仮のパスです。Python の仮想環境には先にプロジェクトの依存関係をインストールしてください。"
 ],
 "还没有任何结果：生成命盘或使用任一工具后，数据会出现在这里。": [
 "No results yet: generate a chart or use any tool and the data appears here.",
@@ -10718,6 +11006,10 @@ const UI_EXTRA = {
 "Connection lost before the full answer arrived",
 "接続が切れ、完全な回答を受け取れませんでした"
 ],
+"连接自检": [
+"Connection check",
+"接続チェック"
+],
 "连接设置": [
 "Connection settings",
 "接続設定"
@@ -10765,6 +11057,10 @@ const UI_EXTRA = {
 "选择城市": [
 "Choose a city",
 "都市を選択"
+],
+"选择客户端和系统，填入项目所在的文件夹": [
+"Pick a client and a system, and enter the project's folder",
+"クライアントとシステムを選び、プロジェクトのフォルダを入力"
 ],
 "选择宫位": [
 "Select palace",
@@ -10814,6 +11110,10 @@ const UI_EXTRA = {
 "Passed",
 "合格"
 ],
+"通过 MCP 导入的目录只放几个高优先级工作流；完整的 Skills 在源码 skills/ 目录，数量见上方计数。": [
+"The catalogue imported over MCP holds only a few high-priority workflows; the full set of Skills is in the source skills/ folder, counted above.",
+"MCP 経由で取り込む一覧には優先度の高いワークフローだけを入れています。全 Skills はソースの skills/ フォルダにあり、件数は上の集計のとおりです。"
+],
 "遁": [
 "Dun",
 "遁"
@@ -10850,6 +11150,10 @@ const UI_EXTRA = {
 "You hour 17–19",
 "酉の刻 17–19"
 ],
+"配置文件": [
+"Configuration file",
+"設定ファイル"
+],
 "配色：": [
 "Theme: ",
 "配色："
@@ -10877,6 +11181,10 @@ const UI_EXTRA = {
 "重新回答": [
 "Answer again",
 "もう一度回答"
+],
+"重新检测": [
+"Check again",
+"再チェック"
 ],
 "重试": [
 "Retry",
@@ -11113,6 +11421,10 @@ const UI_EXTRA = {
 "项目": [
 "Field",
 "項目"
+],
+"项目文件夹（只用于生成下面的文本，不保存、不上传）": [
+"Project folder (used only to build the text below; not saved or uploaded)",
+"プロジェクトフォルダ（下のテキスト生成にのみ使用。保存もアップロードもしません）"
 ],
 "顺排": [
 "Forward",
