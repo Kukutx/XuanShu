@@ -638,9 +638,52 @@ def main() -> None:
             page.locator('[data-tab="rule-matrix"]').click()
             page.locator('#rule-matrix').wait_for(timeout=30000)
             assert page.locator('#rule-matrix tbody tr').count() == 4 and page.locator('.rule-big').inner_text() == '3 / 3'
+            # One card per rule changed alone; with nothing moving there are no field cards.
+            assert page.locator('#rule-singles .rm-single').count() == 2 and page.locator('#rule-singles .rm-same').count() == 2
+            assert page.locator('#rule-fields').count() == 0
             page.locator('#rule-only-diff').check()
             page.wait_for_function("() => document.querySelectorAll('#rule-matrix tbody tr').length === 1", timeout=30000)
+            page.locator('#rule-only-diff').uncheck()
+            # A birth after 23:00 in daylight saving time, with a longitude: many fields move.
+            page.evaluate("() => {window.savedInput = currentInput; currentInput = {...currentInput, birth_datetime: '1990-05-17T23:30', longitude: 116.4}; render();}")
+            page.locator('#rule-fields').wait_for(timeout=30000)
+            singles = page.locator('#rule-singles .rm-single')
+            assert singles.count() == 5 and page.locator('#rule-singles .rm-single.has-diff').count() == 4
+            late = singles.first
+            assert late.locator('.rm-rule').inner_text() == '23:00 换日（早晚子时）' and '时刻不变' in late.inner_text()
+            assert late.locator('.rm-change').first.inner_text().replace('\n', ' ') == '日柱 壬午 → 癸未'
+            assert singles.nth(2).locator('.rm-shift').inner_text() == '−1 小时 15 分'
+            assert '需手动改时间' in singles.nth(4).inner_text() and singles.nth(4).locator('button').count() == 0
+            # Long changes wrap inside their card, and the card and table buttons have their own ids.
+            assert page.evaluate("""() => [...document.querySelectorAll('.rm-change')].every(c => c.getBoundingClientRect().right <= c.closest('.rm-single').getBoundingClientRect().right + 1)""")
+            assert page.evaluate("() => {const ids = [...document.querySelectorAll('#result [id]')].map(e => e.id); return ids.length === new Set(ids).size;}")
+            # A field chip scrolls to its card, keeps #tool=rule-matrix in the address and moves focus there.
+            address = page.evaluate("location.hash")
+            page.locator('.rule-card a.relation-chip').first.click()
+            assert page.evaluate("location.hash") == address and page.evaluate("document.activeElement.classList.contains('rm-field')")
+            # Every value a field takes, the current one marked, named by the single rules that give it.
+            hour = page.locator('#rm-field-pillar-hour')
+            assert [t.replace('\n', ' ') for t in hour.locator('.rm-val').all_inner_texts()] == ['庚子', '壬子', '辛亥']
+            assert hour.locator('.rm-value').first.locator('.rm-tag').inner_text() == '当前'
+            assert hour.locator('li').nth(2).locator('.rm-combo').all_inner_texts() == ['平太阳时', '真太阳时', '扣除夏令时（按标准时）']
+            assert hour.locator('li').nth(2).locator('.rm-more').inner_text() == '及另 8 种组合'
+            # Picking a value highlights the combinations that give it; focus stays on the pressed value.
+            hour.locator('.rm-value').nth(2).click()
+            assert page.locator('#rule-matrix tr.is-lit').count() == 11 and page.locator('#rule-matrix tr.is-dim').count() == 4
+            assert page.evaluate("document.activeElement.getAttribute('aria-pressed')") == 'true'
             page.screenshot(path=str(screenshot_dir / '37-rule-matrix.png'), full_page=True)
+            page.locator('#rule-focus-clear').click()
+            assert page.locator('#rule-matrix tr.is-dim').count() == 0
+            assert page.evaluate("document.activeElement.id") == 'rm-field-pillar-hour-value-2'
+            # With the hour unknown, the converted times come from the placeholder, so none is listed.
+            page.evaluate("() => {currentHourUnknown = true; render();}")
+            page.wait_for_function("() => ruleMatrixResult && ruleMatrixResult.hour_unknown && document.querySelector('#rule-singles')", timeout=30000)
+            assert page.locator('#rule-singles .rm-shift').count() == 0 and '时辰不详，不列换算后的时刻' in page.locator('#rule-singles .rm-single').first.inner_text()
+            assert page.locator('#rule-matrix .rule-time').first.inner_text() == '时辰不详'
+            page.evaluate("() => {currentHourUnknown = false; render();}")
+            page.wait_for_function("() => ruleMatrixResult && !ruleMatrixResult.hour_unknown", timeout=30000)
+            page.evaluate("() => {currentInput = window.savedInput; render();}")
+            page.wait_for_function("() => document.querySelectorAll('#rule-singles .rm-single').length === 2", timeout=30000)
             # The flying table: a row per palace in the usual order with its four transformations, 自化 marked where the star
             # sits in the same palace; the matrix puts each in its landing column, with 自化 on the diagonal.
             page.locator('[data-tab="transform"]').click()
