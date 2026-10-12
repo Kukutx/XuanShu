@@ -394,6 +394,7 @@ function natalText(n) {
   n.stem_relations.forEach(r => parts.push(nameMap[r.pillar] + r.stem + '：' + r.labels.map(l => l === '相冲' ? n.pillar[0] + r.stem + l : l).join('·')));
   n.branch_relations.forEach(r => parts.push(nameMap[r.pillar] + r.branch + '：' + n.pillar[1] + r.branch + r.labels.join('·')));
   n.branch_groups.forEach(g => parts.push(g.branches + (g.kind === '三合' ? '三合局' : '三会方') + '（' + g.element + '）'));
+  if ((n.shensha || []).length) parts.push(['神煞', n.shensha.map(x => x.name).join('、')].join(' '));
   return parts.join(' · ');
 }
 function renderLuckStrip(parent, b) {
@@ -444,7 +445,7 @@ function renderLuckStrip(parent, b) {
       announce('紫微盘已切到 ' + y + ' 年流年层');
     });
   }
-  append(box, 'p', 'field-help', '十神按日主看天干，下面的小字是日主在该支的星运。格子底部是与原局地支的关系：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空。所选大运的天干关系、三合三会写在上方一行，流年的写在悬停说明里。只列关系，不判断吉凶。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。');
+  append(box, 'p', 'field-help', '十神按日主看天干，下面的小字是日主在该支的星运。格子底部是与原局地支的关系：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空。所选大运的天干关系、三合三会和神煞写在上方一行，流年的写在悬停说明里。只列关系与标签，不判断吉凶。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。');
 }
 // Relations between the four pillars as brackets from the centre of one pillar to the centre of another, stems above
 // the pillars and branches below; the shortest brackets sit next to the pillars. Every bracket carries its label.
@@ -516,6 +517,12 @@ function renderBazi(b) {
       append(empty, 'span', 'pillar-stage-label', '空亡'); append(empty, 'b', null, p.xun_kong);
     }
     append(box, 'div', 'pillar-nayin', '纳音：' + p.na_yin);
+    const sha = append(box, 'div', 'pillar-shensha');
+    append(sha, 'span', 'pillar-stage-label', '神煞');
+    // A noon placeholder is not a real hour pillar, so it carries no stars either.
+    if (key === 'hour' && currentHourUnknown) append(sha, 'span', 'muted', '时辰不详');
+    else if (!(p.shensha || []).length) append(sha, 'span', 'muted', '—');
+    else p.shensha.forEach(x => {const tag = append(sha, 'span', 'shensha-tag', x.name); tag.title = shenshaBasis(x);});
   }
   pillarLinks(result, links.branches, true);
   renderLuckStrip(result, b);
@@ -534,6 +541,7 @@ function renderBazi(b) {
   (b.branch_groups || []).forEach(g => append(relationBox, 'div', 'symbol-tag', `${g.pillars.map(k => nameMap[k]).join('·')} ${g.branches} ${g.kind}（${g.element}）`));
   if (!relationBox.childElementCount) append(relationBox, 'p', 'info-inline', '当前四柱无所列特定关系标签');
   append(result, 'p', 'info-inline', '星运是日主在各柱地支的十二长生，自坐是各柱天干在本柱地支的十二长生（阳干顺行、阴干逆行，火土同宫）；空亡是各柱所在旬余下的两个地支，地支上的「日空」「年空」表示它落在日柱或年柱的旬空里。');
+  renderShenshaRules(result, b);
   const cnt = Object.entries(b.hidden_stem_elements_unweighted || {}).map(([n,v]) => `${n}${v}`).join(' · ');
   append(result, 'p', 'info-inline', '藏干元素出现次数（不加权）：' + cnt);
   meta(result, [
@@ -547,6 +555,34 @@ function renderBazi(b) {
     {label: '下一节令', value: b.jie_boundaries.next.name, detail: b.jie_boundaries.next.instant.replace('T', ' ')},
   ]);
   note(result, '藏干顺序为传统本气、中气、余气；计数仅统计明干和地支本气，不判断喜忌、旺衰与命运。颜色只标示五行归属。');
+}
+// 神煞: which natal values place a star on a pillar, and a table of the rule and source of each star the chart shows.
+const SHENSHA_BASIS = {day_stem: '日干', year_stem: '年干', day_branch: '日支', year_branch: '年支', month_branch: '月支', day_pillar: '日柱'};
+const shenshaBasis = star => '查法起点：' + star.by.map(x => SHENSHA_BASIS[x.basis] + ' ' + x.value).join('、');
+function shenshaPillars(b) {
+  const keys = currentHourUnknown ? PILLAR_KEYS.slice(0, 3) : PILLAR_KEYS;
+  return keys.flatMap(k => (b.pillars[k].shensha || []).map(x => ({...x, pillar: k})));
+}
+function renderShenshaRules(parent, b) {
+  const found = shenshaPillars(b);
+  append(parent, 'h4', 'subheading', '神煞与查法出处');
+  if (!found.length) {append(parent, 'p', 'info-inline', '四柱没有所收十六种神煞。'); return;}
+  const table = append(append(parent, 'div', 'table-wrap'), 'table', 'data-table shensha-table'); table.id = 'shensha-rules';
+  const head = append(append(table, 'thead'), 'tr');
+  ['神煞', '所在', '查法', '出处'].forEach(x => append(head, 'th', null, x));
+  const body = append(table, 'tbody');
+  (b.shensha_rules || []).filter(r => found.some(x => x.name === r.name)).forEach(r => {
+    const tr = append(body, 'tr');
+    append(tr, 'td', 'shensha-name', r.name);
+    const where = append(tr, 'td');
+    // One pillar per line, so no list separator needs translating.
+    found.filter(x => x.name === r.name).forEach(x => {
+      const item = append(where, 'span', 'shensha-where', nameMap[x.pillar] + b.pillars[x.pillar].text); item.title = shenshaBasis(x);
+    });
+    append(tr, 'td', null, r.rule);
+    append(tr, 'td', 'muted', r.source);
+  });
+  append(parent, 'p', 'info-inline', '神煞是传统标签：只收能在古籍里查到安法的十六种，以日干、年干、年支、日支、月支查四柱，时柱不作查法起点；同一种神煞各家表格不尽相同（如阴干是否有羊刃），这里按所列出处。只列名称，不断吉凶。');
 }
 function findPalace(z, name) {return z.palaces.find(item => item.name === name) || z.palaces.find(item => item.is_ming);}
 // Transformations listed in the palace panel. On the Zi Wei board each one is a button: pointing at it or focusing it
@@ -2808,9 +2844,9 @@ function renderDayun() {
     {label:'投影起始时间',value:d.approx_first_start_local.replace('T',' ')},
   ]);
   const table=append(append(result,'div','table-wrap'),'table','data-table');
-  const head=append(append(table,'thead'),'tr');['次序','十年干支','名义起始年龄','近似起始公历'].forEach(x=>append(head,'th',null,x));
+  const head=append(append(table,'thead'),'tr');['次序','十年干支','名义起始年龄','近似起始公历','神煞'].forEach(x=>append(head,'th',null,x));
   const body=append(table,'tbody');
-  d.periods.forEach(x=>{const tr=append(body,'tr');append(tr,'td',null,x.sequence);append(tr,'td',null,x.pillar);append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td',null,x.approx_start_local.replace('T',' '));});
+  d.periods.forEach(x=>{const tr=append(body,'tr');append(tr,'td',null,x.sequence);append(tr,'td',null,x.pillar);append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td',null,x.approx_start_local.replace('T',' '));append(tr,'td',null,x.natal_interactions.shensha.map(s=>s.name).join('、')||'—');});
   d.limitations.forEach(x=>note(result,x));
 }
 function renderBirthBoundaries(){
@@ -3367,6 +3403,8 @@ function shareChartText() {
       .map(x => keys.filter(k => x.pillars.includes(k)).map(short).join('') + ' ' + x.label).join(gap);
     if (listed(links.stems)) lines.push('天干关系：' + listed(links.stems));
     if (listed(links.branches)) lines.push('地支关系：' + listed(links.branches));
+    const stars = keys.filter(k => (b.pillars[k].shensha || []).length).map(k => nameMap[k] + ' ' + b.pillars[k].shensha.map(x => x.name).join('、'));
+    if (stars.length) lines.push('神煞：' + stars.join('｜'));
     // Luck decades need the gender for their direction; the calendar years would give away the birth year.
     if (gender) {
       if (luckKey !== luckKeyNow()) {ensureLuck(); lines.push('大运：正在排…');}
@@ -3575,7 +3613,8 @@ const CROSSCHECK_FIELDS = {lunar: '农历日期', day: '日柱', year: '年柱',
   growth_stage: '日主十二长生（星运）', xun_kong: '四柱旬空',
   jie_month: '交节前后月柱', jie_year: '立春前后年柱', solar_terms: '节气时刻', moon_phases: '月相时刻',
   ming: '命宫', shen: '身宫', bureau: '五行局', stars: '十四主星落宫', transformations: '生年四化',
-  other_stars: '其余辅星、杂曜落宫', cycles: '长生、博士、岁前、将前十二神', brightness: '主星与昌曲、火铃、羊陀庙旺利陷'};
+  other_stars: '其余辅星、杂曜落宫', cycles: '长生、博士、岁前、将前十二神', brightness: '主星与昌曲、火铃、羊陀庙旺利陷',
+  natal: '原局四柱神煞', fortune: '大运流年干支神煞'};
 const CROSSCHECK_FLOW_FIELDS = {flow_decade: '大限流曜', flow_year: '流年流曜（含年解）', flow_month: '流月流曜',
   flow_day: '流日流曜', flow_hour: '流时流曜', year_twelve: '流年岁前、将前十二神'};
 const CROSSCHECK_CAUSES = {
@@ -3605,7 +3644,7 @@ function countRows(parent, rows, labels = CROSSCHECK_FIELDS) {
 }
 function renderCrosscheck(dialog) {
   const d = crosscheckData;
-  append(dialog, 'p', null, '玄枢把农历、四柱、节气、月相和紫微排盘与独立的开源库逐项对照。脚本、固定版本的参考库和原始数据都在仓库里，任何人都能重跑。');
+  append(dialog, 'p', null, '玄枢把农历、四柱、神煞、节气、月相和紫微排盘与独立的开源库逐项对照。脚本、固定版本的参考库和原始数据都在仓库里，任何人都能重跑。');
   texts(append(dialog, 'p', 'field-help'), '评测日期', ' ' + d.generated + ' · ', '年份', ' ' + d.years.join('–') + ' · ',
     Object.entries(d.references).map(([name, version]) => name + ' ' + version).join(', '));
   append(dialog, 'h4', null, '逐日对照（每天正午）');
@@ -3630,6 +3669,12 @@ function renderCrosscheck(dialog) {
     if (d.horoscope.flow_rows) countRows(dialog, d.horoscope.flow_rows.map(row => ({...row, reference: 'iztro'})), CROSSCHECK_FLOW_FIELDS);
     if (d.horoscope.calendar_differs && !d.horoscope.unexplained) append(dialog, 'p', 'field-help', '流日、流时的少数差异都落在玄枢与 lunar_python 农历日期不同的月份（iztro 的农历取自 lunar_python），日数差一天，宫位就差一宫。');
     if (d.horoscope.unexplained) texts(append(dialog, 'p', 'field-help'), '另有', ' ' + d.horoscope.unexplained + ' ', '处运限差异尚未解释，清单见完整报告。');
+  }
+  if (d.shensha) {
+    append(dialog, 'h4', null, '八字神煞对照');
+    texts(append(dialog, 'p', 'field-help'), '每天一张盘', ' ' + d.shensha.charts.toLocaleString('en-US') + ' · ', '十六种神煞逐柱比较');
+    countRows(dialog, ['natal', 'fortune'].map(field => ({field, reference: '@soul-atelier/bazi', ...d.shensha[field]})));
+    append(dialog, 'p', 'field-help', '参考库给阴干也排羊刃、孤辰寡宿兼以日支查、大运流年也标魁罡，与玄枢所引规则不同，这几处不比较。');
   }
   append(dialog, 'h4', null, '仍有差异的月份');
   const list = append(dialog, 'ul', 'crosscheck-list'); list.id = 'crosscheck-differences';

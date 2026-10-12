@@ -13,7 +13,8 @@
   "ephem": "4.2.1",
   "iztro_py": "0.5.0",
   "pyswisseph": "2.10.3.2",
-  "iztro": "2.6.1"
+  "iztro": "2.6.1",
+  "@soul-atelier/bazi": "0.9.1"
  },
  "delta_t_seconds": {
   "1901": -0.1,
@@ -1546,6 +1547,203 @@
     "new_moon_calendar_time": "2098-08-26T23:54:14+08:00",
     "minutes_from_midnight": 5.8
    }
+  ]
+ },
+ "shensha": {
+  "charts": 72684,
+  "results": {
+   "fortune.亡神": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.劫煞": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.华盖": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.咸池": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.天乙贵人": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.天喜": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.天德贵人": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.孤辰": {
+    "checked": 18170,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.寡宿": {
+    "checked": 18170,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.将星": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.月德贵人": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.禄神": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.红鸾": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.羊刃": {
+    "checked": 36342,
+    "mismatches": 0,
+    "examples": []
+   },
+   "fortune.驿马": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.亡神": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.劫煞": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.华盖": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.咸池": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.天乙贵人": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.天喜": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.天德贵人": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.孤辰": {
+    "checked": 18170,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.寡宿": {
+    "checked": 18170,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.将星": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.月德贵人": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.禄神": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.红鸾": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.羊刃": {
+    "checked": 36342,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.驿马": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   },
+   "natal.魁罡": {
+    "checked": 72684,
+    "mismatches": 0,
+    "examples": []
+   }
+  },
+  "not_compared": {
+   "羊刃": 36342,
+   "孤辰": 54514,
+   "寡宿": 54514
+  },
+  "reference_only": [
+   "丧门",
+   "五鬼",
+   "六秀",
+   "十灵",
+   "国印贵人",
+   "大耗",
+   "天医",
+   "天厨贵人",
+   "天官贵人",
+   "天狗",
+   "天赦贵",
+   "太极贵人",
+   "学堂",
+   "文昌",
+   "日德",
+   "日贵",
+   "流霞",
+   "灾煞",
+   "病符",
+   "白虎",
+   "福星贵人",
+   "红艳",
+   "血刃",
+   "词馆",
+   "进神贵",
+   "金匮",
+   "金舆",
+   "阳错",
+   "飞刃",
+   "龙德贵人"
   ]
  },
  "ziwei": {

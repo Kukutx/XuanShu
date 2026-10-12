@@ -157,6 +157,14 @@ def main() -> None:
             # Relations between pillars as labelled brackets: stems above, branches below.
             assert sorted(page.locator('.pillar-links:not(.below) .pillar-link-label').all_inner_texts()) == ['庚甲相冲', '甲庚相冲']
             assert page.locator('.pillar-links.below .pillar-link-label').all_inner_texts() == ['申寅六冲·相刑']
+            # 神煞 on each pillar, named by what places them (华盖 by the year branch 辰), and a table of rules and sources.
+            assert [page.locator('.pillar').nth(i).locator('.shensha-tag').all_inner_texts() for i in range(4)] == [
+                ['华盖'], ['驿马'], ['羊刃', '将星'], ['驿马']]
+            assert page.locator('.pillar').nth(0).locator('.shensha-tag').get_attribute('title') == '查法起点：年支 辰'
+            rules_rows = page.locator('#shensha-rules tbody tr')
+            assert [rules_rows.nth(i).locator('td').first.inner_text() for i in range(rules_rows.count())] == ['羊刃', '驿马', '将星', '华盖']
+            assert rules_rows.nth(1).locator('.shensha-where').all_inner_texts() == ['月柱甲申', '时柱庚寅']
+            assert '《三命通会》卷三·论驿马' in rules_rows.nth(1).inner_text()
             # Decade and annual pillars under the BaZi chart; a year opens the Zi Wei year layer.
             page.locator('#luck-decade-0').wait_for(timeout=30000)
             assert page.locator('.luck-decade').count() == 9 and page.locator('.luck-year').count() == 10
@@ -168,8 +176,10 @@ def main() -> None:
             assert page.locator('#luck-decade-1 .luck-stage').inner_text() == '帝旺'
             natal_line = page.locator('.luck-natal').inner_text()
             assert '日柱丙：壬丙相冲' in natal_line and '日柱午：午午同支·相刑' in natal_line, natal_line
+            assert natal_line.endswith('神煞 羊刃、将星、月德贵人'), natal_line
             assert page.locator('#luck-year-2015 .luck-mark').all_inner_texts() == ['合日']
             assert page.locator('#luck-year-2015').get_attribute('title').startswith('2015 乙未 · 星运 衰')
+            assert '神煞 天乙贵人' in page.locator('#luck-year-2015').get_attribute('title')
             assert page.locator('#luck-decade-4 .luck-mark').all_inner_texts() == ['害年', '日空']  # 己卯
             page.screenshot(path=str(screenshot_dir / '01-bazi-desktop.png'), full_page=True)
             page.locator('#luck-year-2015').click()
@@ -504,6 +514,7 @@ def main() -> None:
             assert '干支：庚辰　　甲申　　丙午　　庚寅' in text_chart and '空亡：月柱申（年空），时柱寅（日空）' in text_chart, text_chart
             assert '命宫在壬午，身宫在官禄宫，木三局，命主破军，身主文昌' in text_chart and '大限' not in text_chart and '坤造' not in text_chart
             assert '天干关系：年月 庚甲相冲　月时 甲庚相冲' in text_chart and '地支关系：月时 申寅六冲·相刑' in text_chart
+            assert '\n神煞：年柱 华盖｜月柱 驿马｜日柱 羊刃、将星｜时柱 驿马\n' in text_chart, text_chart
             page.locator('#share-gender').check()
             text_chart = page.evaluate(share_text)
             assert '坤造' in text_chart and '命宫（壬午）：紫微庙｜文曲陷 凤阁 蜚廉｜大限 3–12' in text_chart
@@ -564,7 +575,8 @@ def main() -> None:
             # Calculation cross-check: the committed evaluation summary in a dialog.
             page.locator('#crosscheck-open').click()
             page.locator('#crosscheck-differences li').first.wait_for(timeout=30000)
-            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 39
+            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 41
+            assert page.locator('#crosscheck-dialog h4', has_text='八字神煞对照').count() == 1
             assert '100.000%' in page.locator('#crosscheck-dialog').inner_text()
             page.locator('#crosscheck-dialog').screenshot(path=str(screenshot_dir / '38-crosscheck.png'))
             page.locator('#crosscheck-close').click()
@@ -586,6 +598,9 @@ def main() -> None:
             page.locator('.hour-unknown tbody tr').first.wait_for(timeout=30000)
             assert page.locator('.hour-unknown tbody tr').count() == 13
             assert '日柱 壬午 · 全天不变' in page.locator('.stable-list').inner_text()
+            # The noon placeholder carries no 神煞, and the rule table leaves it out (午 would otherwise be a 将星 there).
+            assert page.locator('.pillar').nth(3).locator('.pillar-shensha').inner_text().replace('\n', '') == '神煞时辰不详'
+            assert '时柱' not in page.locator('#shensha-rules').inner_text()
             # Luck and year pillars are not read against the placeholder hour pillar.
             page.locator('#luck-decade-0').wait_for(timeout=30000)
             assert page.locator('.luck-mark').count() > 0 and not any(t.endswith('时') for t in page.locator('.luck-mark').all_inner_texts())
@@ -686,6 +701,7 @@ def main() -> None:
             page.locator('#dayun-run').click()
             page.get_by_text('投影起始时间',exact=False).first.wait_for(timeout=30000)
             assert page.locator('#result tbody tr').count() == 10
+            assert page.locator('#result thead th').last.inner_text() == '神煞'
             page.screenshot(path=str(screenshot_dir / '17-dayun-desktop.png'), full_page=True)
             page.locator('[data-tab="boundaries"]').click()
             page.locator('#boundary-radius').fill('8')

@@ -21,6 +21,7 @@ OUT = ROOT / 'static/i18n-extra.js'
 CJK = re.compile('[㐀-鿿]')
 # Heavenly stems and earthly branches stay as characters in every language: concrete pillar
 # values (庚辰) are shown stem and branch separately, and romanization would merge 戊/午 into "Wu".
+# A string made only of them (庚辰, 申子辰) needs no entry either.
 KEEP_AS_CHARACTERS = frozenset('甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥')
 UI_ROW = re.compile(r"\['((?:[^'\\]|\\.)*)', '")
 
@@ -80,7 +81,7 @@ def ui_text_keys() -> set[str]:
 def missing() -> list[str]:
     known = set(load()) | ui_text_keys()
     return sorted(s for s in source_strings()
-                  if s not in known and s.strip() not in known and s.strip() not in KEEP_AS_CHARACTERS)
+                  if s not in known and s.strip() not in known and not set(s.strip()) <= KEEP_AS_CHARACTERS)
 
 
 def render(data: dict[str, list[str]]) -> str:

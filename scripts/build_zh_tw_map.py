@@ -28,6 +28,8 @@ CJK = re.compile('[\u3400-\u9fff]')
 OVERRIDES = {'干': None, '丑': None, '斗': None, '台': None, '咸': None, '凶': None, '占': None,
              '冲': '沖', '钟': '鐘'}
 KEEP = {c for c, t in OVERRIDES.items() if t is None}
+# OpenCC phrases that misfire here: 合中 is 三合 followed by 中位 (三合中位), not 閤中.
+SKIP_PHRASES = {'合中'}
 
 
 def main() -> None:
@@ -40,7 +42,7 @@ def main() -> None:
     phrases = {}
     for line in phrase_file.read_text(encoding='utf-8').splitlines():
         key, _, values = line.partition('\t')
-        if not key or key not in corpus or any(c in KEEP for c in key):
+        if not key or key not in corpus or key in SKIP_PHRASES or any(c in KEEP for c in key):
             continue
         target = convert(key)
         if target != ''.join(chars.get(c, c) for c in key):

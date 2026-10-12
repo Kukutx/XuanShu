@@ -1,8 +1,9 @@
 {
   "name": "xuanshu-eval-references",
   "private": true,
-  "description": "Reference library for scripts/eval_crosscheck.py only; XuanShu itself does not need it.",
+  "description": "Reference libraries for scripts/eval_crosscheck.py only; XuanShu itself does not need them.",
   "dependencies": {
+    "@soul-atelier/bazi": "0.9.1",
     "iztro": "2.6.1"
   }
 }

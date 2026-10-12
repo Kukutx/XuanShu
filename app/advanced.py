@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .astronomy import TERMS, from_jd, solar_term_jd, jie_neighbors
 from .engines import (BirthInput, BRANCHES, STEMS, normalized_dt, calculate_bazi,
                       calculate_ziwei, hour_branch_index, natal_interactions)
+from .shensha import rule_notes
 from .timebasis import time_basis
 
 
@@ -107,17 +108,22 @@ def dayun_sequence(request: DayunRequest) -> dict:
                                         'days_nominal_30_day_month': nominal_days},
         'approx_first_start_local': start_utc.astimezone(birthday.tzinfo).isoformat(timespec='minutes'),
         'periods': periods,
+        'shensha_rules': rule_notes({star['name'] for period in periods
+                                     for item in [period['natal_interactions'], *period.get('years', [])]
+                                     for star in item['shensha']}),
         'method': {'direction': 'year stem yin/yang + gender, or explicit override',
                    'jie': '12 month-boundary jie, not 24 solar terms',
                    'age_conversion': 'three exact elapsed days per nominal traditional year',
                    'civil_projection': '365.2425 days per nominal age-year; approximate, not a calendar school standard',
-                   'annual_pillars': 'with include_years: the civil years from the one each period begins in to the one the next begins in; the year of a change is listed under the new period'},
+                   'annual_pillars': 'with include_years: the civil years from the one each period begins in to the one the next begins in; the year of a change is listed under the new period',
+                   'shensha': 'stars on each luck or year pillar, read from the natal day stem, year stem, year and day branches and month branch (Kui Gang belongs to the natal day pillar only)'},
         'limitations': [
             '大运是传统十年干支标签，本工具不据此预测真实事件、吉凶、健康、财运或关系。',
             '起运年龄按三日折一岁；起始公历时间采用365.2425日近似年投影，非各流派统一精确交运日。',
             '顺逆规则参考立春年柱阴阳；自选 direction_override 优先。不同流派可按不同起运和顺逆规则排盘。',
             '时制模式用于出生时辰；交节间隔始终按实际UTC瞬间计算，不能把钟表偏移伪装为时间流逝。',
             '与原局的星运、空亡和合冲刑害只是传统标签，不判断合化成败，也不据此断吉凶。',
+            '大运流年的神煞按原局日干、年干、年支、日支、月支查，只列名称与查法出处，不断吉凶。',
             '流年按常见排法从交运那一年列起：交运当年整年记在新大运下，交运日之前的几个月实际仍属上一步大运。',
         ],
     }
