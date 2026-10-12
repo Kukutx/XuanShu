@@ -3512,6 +3512,13 @@ const WEEKDAY_NAMES = ['星期一', '星期二', '星期三', '星期四', '星�
 const ANIMAL_YEARS = ['鼠年', '牛年', '虎年', '兔年', '龙年', '蛇年', '马年', '羊年', '猴年', '鸡年', '狗年', '猪年'];
 // Numbers sit in their own text node so the units around them translate as whole entries.
 function texts(parent, ...parts) {parts.forEach(part => parent.append(String(part))); return parent;}
+// Labels listed in a sentence: each label and each 、 is its own text node, so every label translates whole and the
+// separator reads ", " in English.
+function enumList(parent, labels) {
+  const list = append(parent, 'span', 'enum-list');
+  labels.forEach((x, i) => {if (i) list.append('、'); append(list, 'span', null, x);});
+  return list;
+}
 // A span of minutes as days, hours and minutes (minutes and seconds under an hour), numbers apart from their units.
 function durationText(parent, minutes) {
   const seconds = Math.round(Math.abs(minutes) * 60), total = seconds >= 3600 ? Math.round(seconds / 60) * 60 : seconds;
@@ -3724,6 +3731,10 @@ function renderPillarSearch() {
 
 // Paste a chart from other software and compare it with XuanShu field by field.
 let importDraft = '', importResult = null;
+// What the last check was run on: the birth sent (applied back with a chosen hour) and whether the hour was a placeholder.
+let importBirth = null, importHourUnknown = false, importHourPick = null, importRecheck = false, importFocusAfter = false;
+// The birth data was edited after the check: its results, and the rule or hour it offers, belong to the old data.
+function importStale() {return !!importResult && !!importBirth && JSON.stringify(readInput()) !== JSON.stringify(importBirth);}
 function renderImportCheck() {
   title(result, '外部命盘导入核对', '粘贴其他软件排出的命盘，逐项比对，并找出对方用的规则');
   append(result, 'p', 'info-inline', '按出生资料里的信息排出玄枢的盘再比较。粘贴的内容只用于本次核对，服务器不保存。');
@@ -3739,11 +3750,23 @@ function renderImportCheck() {
   run.addEventListener('click', async () => {
     if (!area.value.trim()) {message.textContent = '先粘贴命盘文字。'; return;}
     run.disabled = true; message.className = 'inline-msg progress'; message.textContent = '正在比对…';
-    try {importResult = await postJSON('/api/chart-import-check', {birth: readInput(), text: area.value}); render();
-      announce(`核对完成：${importResult.summary.matched} 项一致，${importResult.summary.mismatched} 项不同`);}
+    const birth = readInput(), hourUnknown = $('#hour_unknown').checked;
+    try {importResult = await postJSON('/api/chart-import-check', {birth, text: area.value}); importBirth = birth; importHourUnknown = hourUnknown; importHourPick = null; render();
+      announce(`核对完成：${importResult.summary.matched} 项一致，${importResult.summary.mismatched} 项不同`);
+      // After a rule or an hour was applied the button pressed is gone; the new result takes the focus.
+      if (importFocusAfter) {
+        importFocusAfter = false;
+        const target = document.getElementById('import-verdict') || document.querySelector('#import-hours .is-picked') || document.getElementById('import-check-run');
+        if (target) target.focus();
+      }}
     catch (e) {importResult = null; message.className = 'inline-msg'; message.textContent = '核对失败：' + e.message;}
     finally {run.disabled = false;}
   });
+  // After a rule or an hour is applied, the check runs again on the new chart by itself.
+  if (importRecheck && !importResult && importDraft.trim() && current && JSON.stringify(readInput()) === JSON.stringify(currentInput)) {
+    importRecheck = false;
+    setTimeout(() => {if (active === 'import-check' && !run.disabled) run.click();});
+  }
   if (!importResult) return;
   const r = importResult;
   if (!r.recognized_count) {
@@ -3752,8 +3775,10 @@ function renderImportCheck() {
     return;
   }
   meta(result, [`已识别字段 ${r.recognized_count}`, `一致 ${r.summary.matched}`, `不同 ${r.summary.mismatched}`]);
+  const stale = append(result, 'p', 'info-inline', '出生资料在这次核对之后改过：下面的结果对应改动前的资料，请重新核对。');
+  stale.id = 'import-stale'; stale.hidden = !importStale();
   if (r.reproducing_variants.length) {
-    const box = append(result, 'div', 'import-verdict ok');
+    const box = append(result, 'div', 'import-verdict ok'); box.id = 'import-verdict'; box.tabIndex = -1;
     append(box, 'b', null, '改用下面的规则后，粘贴的命盘与玄枢完全一致：');
     if (r.fields.some(f => !f.match && f.key.startsWith('ziwei.brightness'))) append(box, 'small', 'muted', '星曜亮度的差异来自亮度表，不计入。');
     r.variants.filter(v => !v.mismatched).slice(0, 3).forEach((v, i) => {
@@ -3765,11 +3790,15 @@ function renderImportCheck() {
         append(line, 'small', 'muted', '需手动改时间'); return;
       }
       const apply = append(line, 'button', 'tiny-button', '套用到出生资料'); apply.type = 'button'; apply.id = 'import-apply-' + i;
-      apply.addEventListener('click', () => {setInput(v.settings); importResult = null; form.requestSubmit(); setFeedback('已套用：' + v.label);});
+      apply.addEventListener('click', () => {
+        if (importStale()) {render(); return;}
+        setInput(v.settings); importResult = null; importRecheck = true; importFocusAfter = true; form.requestSubmit(); setFeedback('已套用：' + v.label);
+      });
     });
   } else if (!r.summary.mismatched) {
-    append(result, 'div', 'import-verdict ok', '识别到的字段全部一致。');
+    const box = append(result, 'div', 'import-verdict ok', '识别到的字段全部一致。'); box.id = 'import-verdict'; box.tabIndex = -1;
   }
+  if (r.hour_alternatives && r.hour_alternatives.length) renderImportHours(r);
   const table = append(append(result, 'div', 'table-wrap'), 'table', 'data-table import-table');
   const head = append(append(table, 'thead'), 'tr');
   ['项目', '粘贴的命盘', '玄枢', '结果'].forEach(x => append(head, 'th', null, x));
@@ -3789,9 +3818,78 @@ function renderImportCheck() {
     const t2 = append(append(result, 'div', 'table-wrap'), 'table', 'data-table');
     const h2 = append(append(t2, 'thead'), 'tr'); ['规则', '仍不一致'].forEach(x => append(h2, 'th', null, x));
     const b2 = append(t2, 'tbody');
-    near.forEach(v => {const tr = append(b2, 'tr'); append(tr, 'td', null, v.label); append(tr, 'td', null, v.mismatched_fields.join('、'));});
+    near.forEach(v => {const tr = append(b2, 'tr'); append(tr, 'td', null, v.label); enumList(append(tr, 'td'), v.mismatched_fields);});
   }
   r.limitations.forEach(x => note(result, x));
+}
+// The same day recomputed once per double hour: a row of hours with how many recognized fields still differ.
+const IMPORT_HOUR_LABELS = ['早子', ...'丑寅卯辰巳午未申酉戌亥', '晚子'];  // the server's labels, in the order of LUNAR_HOURS
+function renderImportHours(r) {
+  const hours = r.hour_alternatives, best = Math.min(...hours.map(h => h.mismatched));
+  const nameOf = h => {const i = IMPORT_HOUR_LABELS.indexOf(h.label); return i < 0 ? h.label : LUNAR_HOURS[i + 1][1].split(' ')[0];};
+  const mode = importBirth ? importBirth.time_mode : 'clock', solar = mode === 'mean_solar' || mode === 'apparent_solar';
+  append(result, 'h4', 'subheading', '换个时辰对照');
+  const help = append(result, 'p', 'field-help', '同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。格子里的数字是仍不一致的项数，星曜亮度不计。');
+  if (solar) help.append(' ', '格子里写的是钟表时间，按所选太阳时换算后落在该时辰里。');
+  const matching = hours.filter(h => !h.mismatched), closest = matching.length ? [] : hours.filter(h => h.mismatched === best);
+  const verdict = append(result, 'p', 'ic-verdict' + (matching.length ? ' is-ok' : ''));
+  if (matching.length) {texts(verdict, '对得上的时辰：'); enumList(verdict, matching.map(nameOf));}
+  else {
+    texts(verdict, '没有哪个时辰能让识别到的字段全部一致。', ' ', '最接近：');
+    enumList(verdict, closest.map(nameOf)); texts(verdict, ' · ', String(best), ' 项不同');
+  }
+  if (r.missing_hours && r.missing_hours.length) {
+    const gone = append(result, 'p', 'field-help ic-missing');
+    texts(gone, '这天的夏令时切换跳过或重复了一段钟表时间，没有能唯一确定的出生时间落在这些时辰里，未列出：');
+    enumList(gone, r.missing_hours.map(label => nameOf({label})));
+  }
+  if (!hours.some(h => h.label === importHourPick)) importHourPick = (matching[0] || closest[0]).label;
+  const strip = append(result, 'div', 'ic-hours'); strip.id = 'import-hours';
+  strip.setAttribute('role', 'group'); strip.setAttribute('aria-label', '各时辰的对照结果');
+  const detail = elt('div', 'ic-detail'); detail.id = 'import-hour-detail';
+  const baseDate = importBirth ? importBirth.birth_datetime.slice(0, 10) : '';
+  const clockOf = h => (h.birth_datetime.slice(0, 10) === baseDate ? '' : h.birth_datetime.slice(5, 10).replace('-', '/') + ' ') + h.birth_datetime.slice(11, 16);
+  const cells = hours.map((h, i) => {
+    const near = closest.includes(h);
+    const cell = append(strip, 'button', 'ic-hour' + (!h.mismatched ? ' is-match' : near ? ' is-best' : '') + (h.current ? ' is-current' : ''));
+    cell.type = 'button'; cell.id = 'import-hour-' + i;
+    append(cell, 'span', 'ic-name', nameOf(h));
+    const gz = append(cell, 'b', 'ic-gz'); gz.dataset.noI18n = '';
+    append(gz, 'span', stemClass(h.hour_pillar[0]), h.hour_pillar[0]); append(gz, 'span', branchClass(h.hour_pillar[1]), h.hour_pillar[1]);
+    append(cell, 'small', 'ic-clock', clockOf(h));
+    const count = append(cell, 'small', 'ic-count');
+    if (h.mismatched) texts(count, String(h.mismatched), ' 项不同'); else count.textContent = '全部一致';
+    if (near) append(cell, 'small', 'ic-tag ic-near', '最接近');
+    if (h.current) append(cell, 'small', 'ic-tag', importHourUnknown ? '占位时间' : '当前时间');
+    cell.addEventListener('click', () => {importHourPick = h.label; pick();});
+    return cell;
+  });
+  function pick() {
+    const h = hours.find(x => x.label === importHourPick);
+    cells.forEach((cell, i) => {const on = hours[i] === h; cell.classList.toggle('is-picked', on); cell.setAttribute('aria-pressed', String(on));});
+    detail.replaceChildren();
+    const head = append(detail, 'p', 'ic-detail-head');
+    append(head, 'b', null, nameOf(h));
+    texts(append(head, 'span'), solar ? '钟表时间' : '出生时间', ' ', h.birth_datetime.replace('T', ' '));
+    if (solar && h.effective_reading) texts(append(head, 'span'), mode === 'mean_solar' ? '平太阳时' : '真太阳时', ' ', h.effective_reading.slice(11, 16));
+    const pillars = append(head, 'span'); texts(pillars, '时柱', ' ');
+    const hp = append(pillars, 'b'); hp.dataset.noI18n = ''; hp.textContent = h.hour_pillar;
+    texts(pillars, ' · ', '日柱', ' '); const dp = append(pillars, 'b'); dp.dataset.noI18n = ''; dp.textContent = h.day_pillar;
+    if (h.mismatched) {const diff = append(detail, 'p', 'ic-detail-diff'); texts(diff, '仍不一致：'); enumList(diff, h.mismatched_fields);}
+    else append(detail, 'p', 'ic-detail-ok', '识别到的字段全部一致（星曜亮度不计）。');
+    if (h.current && !importHourUnknown) return;
+    const use = append(detail, 'button', 'tiny-button', '用这个时间排盘'); use.type = 'button'; use.id = 'import-hour-use';
+    use.addEventListener('click', () => {
+      if (importStale()) {render(); return;}
+      setInput({...importBirth, birth_datetime: h.birth_datetime});
+      $('#hour_unknown').checked = false; updateHourUnknown(); updateBirthSummary(); updateStaleBirthNotice();
+      importResult = null; importRecheck = true; importFocusAfter = true; form.requestSubmit();
+      setFeedback('已改用对照里选的时辰排盘，并重新核对。');
+    });
+  }
+  pick();
+  // Filled before it is shown, so only later picks are read out, not the first one alongside the check result.
+  result.append(detail); detail.setAttribute('aria-live', 'polite');
 }
 // Lunar to Gregorian: the date found is picked on the month calendar above.
 function renderLunarInverseSection() {
@@ -5003,8 +5101,9 @@ function updateStaleBirthNotice() {
   const fingerprint=JSON.stringify(readInput());
   const outdatedChart=!!currentInput && fingerprint !== JSON.stringify(currentInput);
   const outdatedQimen=!!qimenResult && !!qimenFingerprint && fingerprint !== qimenFingerprint;
-  const outdated=outdatedChart || outdatedQimen || dateScanStale();
+  const outdated=outdatedChart || outdatedQimen || dateScanStale() || importStale();
   $('#stale-birth-warning').hidden = !outdated;
+  const importNotice = document.getElementById('import-stale'); if (importNotice) importNotice.hidden = !importStale();
   if (outdated) {
     $('#result-subtitle').textContent = '出生资料已更改：旧命盘需要重新生成';
     $('#download-json').disabled = true;
@@ -5030,6 +5129,8 @@ form.addEventListener('submit', async event => {
     ]);
     current = {...chart, reading}; currentInput = data;
     consultResult=null;consultCursor=null;
+    // A pasted-chart check belongs to the chart it ran on, unless this cast is the one its rule or hour asked for.
+    if (!importRecheck) {importResult = null; importBirth = null; importHourPick = null; importFocusAfter = false;}
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; timeRun = null; timeLongitude = ''; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
     dayunResult=null;dayunKey=null;dayunError='';autoOpened=new Set();boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
@@ -5045,7 +5146,7 @@ form.addEventListener('submit', async event => {
     else render();
     announce('命盘已生成：' + data.birth_datetime.replace('T', ' '));
     if (compactScreen && compactScreen.matches) {setBirthPanelCollapsed(true); $('#workspace').scrollIntoView({block: 'start'});}
-  } catch (err) {error.textContent = '计算失败：' + err.message; error.hidden = false;}
+  } catch (err) {error.textContent = '计算失败：' + err.message; error.hidden = false; importRecheck = false; importFocusAfter = false;}
   finally {run.disabled = false; run.querySelector('span').textContent = '生成命盘';}
 });
 $('#download-json').addEventListener('click', () => {

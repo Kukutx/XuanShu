@@ -171,3 +171,90 @@ def test_a_late_zi_chart_with_brightness_still_finds_its_rule():
         p['name'] + ' ' + ' '.join(star + p['star_brightness'][star] for star in p['main_stars']) for p in other['palaces'] if p['main_stars'])
     out = chart_import_check(ChartImportRequest(birth=late, text=text))
     assert out['reproducing_variants'][0] == '23:00 换日（早晚子时）'
+
+
+def test_the_same_day_is_tried_at_every_double_hour():
+    # Cast at 04:00 (寅), checked against the 12:00 placeholder a chart without the hour stands on.
+    out = chart_import_check(ChartImportRequest(birth=dict(BIRTH, birth_datetime='2000-08-16T12:00'), text=chart_text(BIRTH)))
+    hours = out['hour_alternatives']
+    assert [h['label'] for h in hours] == ['早子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '晚子']
+    assert [h['birth_datetime'][11:] for h in hours[:3]] == ['00:30', '02:00', '04:00'] and hours[-1]['birth_datetime'][11:] == '23:30'
+    assert all(h['hour_pillar'][1] == h['branch'] for h in hours)
+    assert out['reproducing_hours'] == ['寅'] and [h['label'] for h in hours if h['current']] == ['午']
+    assert next(h for h in hours if h['label'] == '寅')['mismatched_fields'] == []
+
+
+def tiger_hour(birth: dict) -> str:
+    """The 寅 hour pillar of the birth's effective day (五鼠遁), so some hour of the day reproduces it."""
+    stems, day = '甲乙丙丁戊己庚辛壬癸', pillars_of(birth)['day']
+    return '时柱 ' + stems[(stems.index(day[0]) % 5 * 2 + 2) % 10] + '寅'
+
+
+def test_hour_alternatives_land_in_their_hour_under_solar_time_and_daylight_saving():
+    slot = lambda reading: 0 if reading[11:13] == '00' else 12 if reading[11:13] == '23' else (int(reading[11:13]) + 1) // 2
+    cases = [dict(birth_datetime='1990-05-17T00:10', timezone='Asia/Shanghai', longitude=75.99, time_mode='apparent_solar'),
+             dict(birth_datetime='2024-03-10T01:30', timezone='America/New_York', longitude=-74.0, time_mode='apparent_solar'),
+             dict(birth_datetime='2024-03-10T01:30', timezone='America/New_York')]
+    for birth in cases:
+        hours = chart_import_check(ChartImportRequest(birth=birth, text=tiger_hour(birth)))['hour_alternatives']
+        assert len(hours) == 13 and sum(h['current'] for h in hours) == 1
+        days = set()
+        for i, h in enumerate(hours):
+            reading = calculate_bazi(BirthInput(**dict(birth, birth_datetime=h['birth_datetime'])))['time_basis']['effective_local_reading']
+            assert slot(reading) == i, (birth, h, reading)
+            days.add(reading[:10])
+        assert len(days) == 1  # every hour of the same (effective) day
+    # 2024-03-10 02:00 does not exist in New York: 丑 is tried in the middle of what is left of it, before the gap.
+    assert hours[1]['birth_datetime'] == '2024-03-10T01:30'
+
+
+def test_daylight_saving_days_keep_every_hour_that_exists_and_name_the_ones_that_do_not():
+    slot = lambda reading: 0 if reading[11:13] == '00' else 12 if reading[11:13] == '23' else (int(reading[11:13]) + 1) // 2
+    # Fall-back days with solar time, where the repeated hour sits next to 早子 and 丑, and London's spring-forward day.
+    cases = [dict(birth_datetime='2024-11-03T12:00', timezone='America/New_York', longitude=-74.0, time_mode='apparent_solar'),
+             dict(birth_datetime='2018-11-04T12:00', timezone='America/New_York', longitude=-74.0, time_mode='apparent_solar'),
+             dict(birth_datetime='2024-03-31T12:00', timezone='Europe/London', longitude=-3.0, time_mode='apparent_solar'),
+             dict(birth_datetime='2024-10-27T12:00', timezone='Europe/London', longitude=1.5, time_mode='mean_solar'),
+             dict(birth_datetime='2024-10-27T12:00', timezone='Europe/London', longitude=1.5, time_mode='apparent_solar')]
+    for birth in cases:
+        out = chart_import_check(ChartImportRequest(birth=birth, text=tiger_hour(birth)))
+        hours = out['hour_alternatives']
+        assert len(hours) == 13 and out['missing_hours'] == [] and out['reproducing_hours'] == ['寅'], birth
+        for i, h in enumerate(hours):
+            reading = calculate_bazi(BirthInput(**dict(birth, birth_datetime=h['birth_datetime'])))['time_basis']['effective_local_reading']
+            assert slot(reading) == i and reading[:10] == birth['birth_datetime'][:10] and h['effective_reading'] == reading[:16], (birth, h)
+    # São Paulo skipped 00:00–00:59 on 2018-11-04 and repeated 23:00–23:59 on 2019-02-16: those halves of 子 have no clock time.
+    for day, gone in (('2018-11-04', '早子'), ('2019-02-16', '晚子')):
+        birth = dict(birth_datetime=day + 'T12:00', timezone='America/Sao_Paulo')
+        out = chart_import_check(ChartImportRequest(birth=birth, text=tiger_hour(birth)))
+        assert out['missing_hours'] == [gone] and len(out['hour_alternatives']) == 12
+        assert gone not in [h['label'] for h in out['hour_alternatives']]
+
+
+def test_a_day_pillar_difference_tries_the_hours_only_with_the_late_zi_day_change():
+    # Another hour of the same day keeps the day pillar, except 晚子 when 23:00 starts the next day.
+    late = dict(BIRTH, late_zi_day_rollover=True)
+    next_day = pillars_of(dict(late, birth_datetime='2000-08-16T23:30'))['day']
+    assert next_day != pillars_of(BIRTH)['day']
+    plain = chart_import_check(ChartImportRequest(birth=BIRTH, text='日柱 ' + next_day))
+    assert plain['summary']['mismatched'] == 1 and plain['hour_alternatives'] == [] and plain['missing_hours'] == []
+    out = chart_import_check(ChartImportRequest(birth=late, text='日柱 ' + next_day))
+    assert out['reproducing_hours'] == ['晚子'] and all(h['mismatched'] == 1 for h in out['hour_alternatives'][:-1])
+
+
+def test_no_row_of_hours_when_every_hour_differs_by_as_much():
+    # An hour pillar no hour of the day has: all thirteen hours would show the same single difference.
+    noon = dict(BIRTH, birth_datetime='2000-08-16T12:00')
+    every = {h['hour_pillar'] for h in chart_import_check(ChartImportRequest(birth=noon, text=tiger_hour(noon)))['hour_alternatives']}
+    assert len(every) >= 12
+    stems, branches = '甲乙丙丁戊己庚辛壬癸', '子丑寅卯辰巳午未申酉戌亥'
+    impossible = next(stems[i % 10] + branches[i % 12] for i in range(60) if stems[i % 10] + branches[i % 12] not in every)
+    out = chart_import_check(ChartImportRequest(birth=BIRTH, text='时柱 ' + impossible))
+    assert out['summary']['mismatched'] == 1 and out['hour_alternatives'] == [] and out['reproducing_hours'] == []
+
+
+def test_hours_are_not_tried_when_only_year_based_fields_differ():
+    z = calculate_ziwei(BirthInput(**BIRTH))
+    wrong = next(s for s in ('太阳', '武曲') if s != z['birth_year_transformations'][0]['star'])
+    out = chart_import_check(ChartImportRequest(birth=BIRTH, text=f'年柱 {pillars_of(BIRTH)["year"]} {wrong}化禄'))
+    assert out['summary']['mismatched'] == 1 and out['hour_alternatives'] == [] and out['reproducing_hours'] == []

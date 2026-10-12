@@ -212,6 +212,8 @@ function toTraditional(text) {
   return out;
 }
 function translateText(source) {
+  // A list separator on its own, between labels that each translate whole.
+  if (uiLang === 'en' && source === '、') return ', ';
   if (uiLang === 'zh-CN' || !/[㐀-鿿]/.test(source)) return source;
   if (uiLang === 'zh-TW') return toTraditional(source);
   const trimmed = source.trim();

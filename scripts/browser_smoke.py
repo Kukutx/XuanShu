@@ -310,7 +310,48 @@ def main() -> None:
             page.locator('#import-check-run').click()
             page.wait_for_function("() => document.querySelectorAll('.import-table tr.mismatch').length === 1", timeout=30000)
             assert '可能的原因' in page.locator('#result').inner_text()
+            # A differing hour pillar: the same day is tried at every double hour. With the 命宫 above (the 寅 hour's)
+            # no hour matches both, and the closest ones are framed; the pillars alone match at 卯, 寅 is the chart's.
+            assert page.locator('#import-hours .ic-hour').count() == 13 and page.locator('.ic-hour.is-match').count() == 0
+            assert page.locator('.ic-hour.is-best').count() == 2 and page.locator('.ic-hour .ic-near').count() == 2
+            # The closest hours are named in the verdict, not only framed.
+            closest = page.locator('.ic-verdict').inner_text()
+            assert '最接近：' in closest and all(name.split('\n')[0] in closest for name in page.locator('.ic-hour.is-best .ic-name').all_inner_texts())
+            # Field lists translate label by label: no Chinese left in English, separators by language.
+            page.locator('#ui-language').select_option('en')
+            page.wait_for_function("() => document.querySelector('#import-hour-detail').innerText.includes('Still differing')", timeout=10000)
+            still = page.locator('#import-hour-detail .ic-detail-diff').inner_text()
+            assert not re.search(r'[\u3400-\u9fff、]', still), still
+            page.locator('#ui-language').select_option('zh-CN')
+            # Birth data edited after the check: the results are marked as belonging to the old data, and the hour is not applied.
+            page.locator('#gender').select_option('male')
+            assert page.locator('#import-stale').is_visible()
+            page.locator('#import-hour-0').click()
+            page.locator('#import-hour-use').click()
+            assert page.locator('#birth_datetime').input_value() == '2000-08-16T04:00' and page.locator('#import-stale').is_visible()
+            page.locator('#gender').select_option('female')
+            assert page.locator('#import-stale').is_hidden()
+            page.locator('#import-text').fill('乾造 庚辰 甲申 丙午 辛卯')
+            page.locator('#import-check-run').click()
+            page.locator('.ic-hour.is-match').first.wait_for(timeout=30000)
+            assert page.locator('.ic-hour.is-match').all_inner_texts() == [page.locator('#import-hour-3').inner_text()]
+            assert '卯时' in page.locator('.ic-verdict').inner_text() and '寅时' in page.locator('.ic-hour.is-current').inner_text()
+            assert page.locator('#import-hour-3').get_attribute('aria-pressed') == 'true'
+            assert '2000-08-16 06:00' in page.locator('#import-hour-detail').inner_text()
+            page.locator('#import-hour-1').click()
+            assert '仍不一致' in page.locator('#import-hour-detail').inner_text() and page.locator('#import-hour-3').get_attribute('aria-pressed') == 'false'
+            page.locator('#import-hour-3').click()
             page.screenshot(path=str(screenshot_dir / '34-import-check.png'), full_page=True)
+            # Casting with that hour checks the pasted chart again by itself.
+            page.locator('#import-hour-use').focus()
+            page.keyboard.press('Enter')
+            page.wait_for_function("() => document.querySelector('.import-verdict.ok') !== null", timeout=30000)
+            assert page.locator('#birth_datetime').input_value() == '2000-08-16T06:00' and page.locator('#import-hours').count() == 0
+            # The button pressed is gone; focus lands on the new verdict rather than the page.
+            page.wait_for_function("() => document.activeElement && document.activeElement.id === 'import-verdict'", timeout=10000)
+            page.locator('#birth_datetime').fill('2000-08-16T04:00')
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => currentInput && currentInput.birth_datetime === '2000-08-16T04:00'", timeout=30000)
             # Brightness printed after a star is compared too; a different grade is a table difference, not a rule.
             page.locator('#import-text').fill('命宫 紫微庙\n夫妻宫：七杀（平）')
             page.locator('#import-check-run').click()
