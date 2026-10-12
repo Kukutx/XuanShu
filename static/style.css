@@ -923,19 +923,18 @@ html[lang="en"] :is(.of-chip b,.of-jie b){font-family:inherit;font-size:13px}htm
 .ds-key::before{content:'';width:10px;height:10px;border-radius:3px;border:1px solid var(--border-strong);background:var(--panel2)}
 .ds-key.is-pick::before{border-color:var(--gold);background:var(--accent-soft)}
 .ds-key.is-out::before{opacity:.45}
-.ds-day{height:auto;min-height:84px}
 .ds-day.is-pick{padding:0;background:var(--accent-soft);border-color:var(--gold)}
 .ds-day.is-selected{box-shadow:inset 0 0 0 2px var(--gold)}
-.ds-pick{position:relative;display:block;width:100%;min-height:82px;padding:6px 4px 6px;border:0;border-radius:9px;background:transparent;color:inherit;font:inherit;text-align:center;cursor:pointer}
+.ds-pick{position:relative;display:block;width:100%;height:100%;min-height:82px;padding:6px 4px 6px;border:0;border-radius:9px;background:transparent;color:inherit;font:inherit;text-align:center;cursor:pointer}
 .ds-pick:hover{background:var(--hover)}
 .ds-pick:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
 .ds-day.is-pick .of-officer{color:var(--gold2)}
-.ds-day.is-dim{opacity:.5}
 .ds-reason{display:block;margin-top:3px;font-size:10.5px;line-height:1.3;color:var(--muted)}
 .ds-reason-short{display:none;margin-top:3px;font-size:10px;color:var(--muted)}
 .ds-day:not(:has(.of-gz)) .ds-reason{margin-top:22px}
 .ds-clash{display:inline-block;margin-top:3px;padding:0 5px;border:1px solid var(--warn-line);border-radius:999px;font-size:10.5px;color:var(--warn)}
 .ds-hours{display:flex;flex-direction:column;margin-top:3px;font-size:10.5px;line-height:1.35;color:var(--text2);font-variant-numeric:tabular-nums}
+.ds-hour-bureau{white-space:nowrap}
 .ds-jie-line{display:block;font-size:11px;color:var(--green)}
 .ds-jie-line b{margin-left:2px}
 .ds-detail .ds-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-weight:600}
@@ -1231,7 +1230,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .cal-nav .cal-step-words,.cal-nav .cal-caption{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .inline-control button.cal-step{min-height:42px;padding:0 15px}.cal-nav #calendar-today{grid-column:1/-1;justify-self:start}
   .cal-grid{width:calc(100% + 4px);border-spacing:2px;margin:2px -2px 8px}.cal-day{min-height:60px;padding:5px 1px;gap:1px;border-radius:7px}
-  .of-grid{width:calc(100% + 4px);border-spacing:2px;margin:0 -2px}.of-day{height:72px;padding:4px 1px;border-radius:7px}.of-date{top:3px;left:4px;font-size:10px}.of-gz{margin-top:11px;font-size:11px;letter-spacing:0}.of-officer{font-size:18px}.of-jie{font-size:9.5px}html[lang="en"] .of-officer{font-size:10.5px}.ds-day{min-height:72px}.ds-pick{min-height:70px;padding:4px 1px}.ds-reason,.ds-clash,.ds-hours{font-size:9.5px}.ds-clash{padding:0 3px}.ds-reason:not(.is-unscanned){display:none}.ds-reason-short{display:block}.ds-hour-bureau{display:none}
+  .of-grid{width:calc(100% + 4px);border-spacing:2px;margin:0 -2px}.of-day{height:72px;padding:4px 1px;border-radius:7px}.of-date{top:3px;left:4px;font-size:10px}.of-gz{margin-top:11px;font-size:11px;letter-spacing:0}.of-officer{font-size:18px}.of-jie{font-size:9.5px}html[lang="en"] .of-officer{font-size:10.5px}.ds-pick{min-height:70px;padding:4px 1px}.ds-reason,.ds-clash,.ds-hours{font-size:9.5px}.ds-clash{padding:0 3px}.ds-reason:not(.is-unscanned){display:none}.ds-reason-short{display:block}.ds-hour-bureau{display:none}
   .cal-num{font-size:15px}.cal-lunar{font-size:10px}:lang(en) .cal-day:is(.cal-month,.cal-term) .cal-lunar{white-space:normal;line-height:1.15;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}.cal-day .cal-gz{font-size:10px;letter-spacing:0}.cal-title{font-size:20px}
   .brand-en,.brand small,.ui-lang span,.theme-toggle .theme-label{display:none}
   .header .brand-mark{width:38px;height:38px;font-size:22px}

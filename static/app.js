@@ -91,7 +91,8 @@ let qimenFingerprint = null;
 let currentHourUnknown = false;  // the chart was generated with "不知道出生时辰" ticked
 let hourCandidates = null;       // {key, rows}: the same birth day cast at each of the twelve double hours
 // Qimen is cast for the moment of a question or event, which is usually now, not the birth time.
-let qimenMoment = {mode: 'now', custom: '', zone: ''};  // zone: set when a date-scan chart is opened here
+// zone: set when a date-scan chart is opened here; that chart then also keeps the scan's 00:00 day boundary.
+let qimenMoment = {mode: 'now', custom: '', zone: ''};
 let professionalResult = null;
 let referenceAuditResult = null;
 const localToday = () => {
@@ -244,7 +245,9 @@ function qimenMomentInput() {
   const base = readInput();
   if (qimenMoment.mode === 'birth') return base;
   const when = qimenMoment.mode === 'custom' && qimenMoment.custom ? qimenMoment.custom : localMinute();
-  return {...base, birth_datetime: when, timezone: (qimenMoment.mode === 'custom' && qimenMoment.zone) || browserZone() || base.timezone, time_mode: 'clock', longitude: null};
+  const scan = qimenMoment.mode === 'custom' && qimenMoment.zone;
+  return {...base, birth_datetime: when, timezone: scan || browserZone() || base.timezone, time_mode: 'clock', longitude: null,
+    ...(scan ? {late_zi_day_rollover: false} : {})};
 }
 function renderQimen() {
   if (qimenResult && qimenFingerprint && qimenFingerprint !== JSON.stringify(readInput())) qimenResult = null;
@@ -266,6 +269,7 @@ function renderQimen() {
   const scanZone = qimenMoment.mode === 'custom' && qimenMoment.zone;
   append(result, 'small', 'field-help', qimenMoment.mode === 'birth' ? '沿用出生资料里的时区、真太阳时和换日规则。'
     : (scanZone ? '按择日扫描所用时区 ' + scanZone : '按本机时区 ' + (browserZone() || readInput().timezone)) + ' 的钟表时间起局。');
+  if (scanZone) append(result, 'small', 'field-help', '与择日扫描一致，按 00:00 换日。');
   if (qimenMoment.mode === 'birth' && $('#hour_unknown').checked) append(result, 'p', 'inline-msg', '出生时辰不详：12:00 只是占位，用它起出的奇门盘没有意义。');
   const message = append(result, 'p', 'inline-msg');
   run.addEventListener('click', async () => {
@@ -1735,7 +1739,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (active === 'calendar' || active === 'boundaries' || active === 'officers') render();});
+document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan'].includes(active)) render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -2090,9 +2094,13 @@ function renderDateScan() {
   const nl=append(opts,'label','check-line');const natal=append(nl,'input');natal.type='checkbox';natal.id='scan-natal';natal.checked=dateScanDraft.natal;nl.append(' 排除与本命年支、日支相冲的日子');
   const run=append(opts,'button','scan-run','扫描候选日');run.id='scan-run';run.type='button';
   const msg=append(result,'p','inline-msg');
+  // The draft follows every edit, so choosing a candidate or switching views keeps what was typed but not yet scanned.
+  const checked=box=>[...box.querySelectorAll('input:checked')].map(x=>x.value);
+  const sync=()=>{dateScanDraft={start_date:start.value,days:Number(count.value),include:checked(inc),exclude:checked(exc),skipJie:jie.checked,natal:natal.checked,hours:hours.value};};
+  [start,hours].forEach(x=>x.addEventListener('input',sync));
+  [count,inc,exc,opts].forEach(x=>x.addEventListener('change',sync));
   run.addEventListener('click',async()=>{
-    const checked=box=>[...box.querySelectorAll('input:checked')].map(x=>x.value);
-    dateScanDraft={start_date:start.value,days:Number(count.value),include:checked(inc),exclude:checked(exc),skipJie:jie.checked,natal:natal.checked,hours:hours.value};
+    sync();
     const payload={start_date:dateScanDraft.start_date,days:dateScanDraft.days,include_officers:dateScanDraft.include,exclude_officers:dateScanDraft.exclude,
       exclude_jie_boundary_days:dateScanDraft.skipJie,hours:dateScanDraft.hours.split(/[,，\s]+/).filter(Boolean),timezone:$('#timezone').value};
     if(dateScanDraft.natal){payload.birth=readInput();if(payload.birth.longitude===null)delete payload.birth.longitude;payload.exclude_natal_clash=true;}
@@ -2127,7 +2135,8 @@ function renderDateScanResult(r) {
     button.type = 'button'; button.id = 'scan-view-' + key; button.setAttribute('aria-pressed', String(dateScanView === key));
     button.addEventListener('click', () => {dateScanView = key; render();});
   });
-  const lunarText = c => c.lunar_date.year + '年' + (c.lunar_date.is_leap_month ? '闰' : '') + c.lunar_date.month + '月' + c.lunar_date.day + '日';
+  // The lunar year by its pillar and the month and day in the interface language, as on the calendar page.
+  const lunarText = (parent, c) => {append(parent, 'span', null, lunarYearPillar(c.lunar_date.year) + ' · ' + lunarDateText(c.lunar_date)).dataset.noI18n = '';};
   const clashText = c => c.natal_clashes.map(x => x.day_branch + '冲' + x.natal_branch).join('、');
   const chartLine = h => `${h.dun}${h.bureau}局`;
   if (dateScanView === 'grid') {
@@ -2151,7 +2160,7 @@ function renderDateScanResult(r) {
       if (!entry) {weekDateLabel(td, date, first); append(td, 'span', 'ds-reason is-unscanned', '未扫描'); return;}
       const d = entry.d, box = entry.pick ? append(td, 'button', 'ds-pick') : td;
       if (entry.pick) {
-        box.type = 'button'; box.setAttribute('aria-pressed', String(date === dateScanPick));
+        box.type = 'button'; box.id = 'scan-pick-' + date; box.setAttribute('aria-pressed', String(date === dateScanPick));
         if (date === dateScanPick) td.classList.add('is-selected');
         box.addEventListener('click', () => {dateScanPick = date; render(); const panel = $('#scan-detail'); if (panel) panel.scrollIntoView({block: 'nearest'});});
       }
@@ -2183,14 +2192,20 @@ function renderDateScanResult(r) {
     r.candidates.forEach(c => {
       const tr = append(body, 'tr');
       const qimen = c.hour_charts.map(h => `${h.local_time} ${chartLine(h)} 值符${h.zhi_fu_star} 值使${h.zhi_shi_door}`).join('；') || '—';
-      [c.date, lunarText(c), c.day_pillar].forEach(x => append(tr, 'td', null, x));
+      append(tr, 'td', null, c.date); lunarText(append(tr, 'td'), c); append(tr, 'td', null, c.day_pillar);
       const officer = append(tr, 'td', null, c.officer);
       if (c.jie_on_date) officerJieText(append(officer, 'small', 'ds-jie-line'), c, false);
       [clashText(c) || '—', qimen].forEach(x => append(tr, 'td', null, x));
     });
   }
   if (!r.candidates.length) append(result, 'p', 'feature-note', '没有满足全部条件的日子，可以放宽条件或延长扫描天数。');
-  if (unscanned) append(result, 'p', 'feature-note', '候选日或时家奇门盘已达上限，后面的日子没有扫描；可以缩短范围、减少候选时刻，或从最后扫描的日子之后再扫一次。');
+  if (unscanned) {
+    const more = append(result, 'p', 'feature-note', '候选日或时家奇门盘已达上限，后面的日子没有扫描；可以缩短范围、减少候选时刻，或从最后扫描的日子之后再扫一次。');
+    const next = shiftDate(r.scanned_through, 1);
+    const go = append(more, 'button', 'tiny-button', '从下一天继续扫描'); go.type = 'button'; go.id = 'scan-continue';
+    go.title = next;
+    go.addEventListener('click', () => {dateScanDraft = {...dateScanDraft, start_date: next}; render(); const run = $('#scan-run'); if (run) {run.focus(); run.click();}});
+  }
   r.limitations.forEach(x => note(result, x));
 }
 // One candidate in full: the lunar date, pillar, officer and jie, natal clashes, and a card per hour chart that can be
@@ -2200,7 +2215,7 @@ function renderDateScanDetail(c, r, lunarText, clashText, chartLine) {
   texts(append(panel, 'h4', 'cal-detail-date'), c.date, ' · ', WEEKDAY_NAMES[weekdayOf(c.date)]);
   const facts = append(panel, 'div', 'cal-detail-facts');
   const fact = (label, ...parts) => texts(append(facts, 'p'), label, ' ', ...parts);
-  fact('农历', lunarText(c));
+  lunarText(fact('农历'), c);
   const gz = append(fact('日干支'), 'b', 'ds-gz'); gz.dataset.noI18n = '';
   append(gz, 'span', stemClass(c.day_pillar[0]), c.day_pillar[0]); append(gz, 'span', branchClass(c.day_pillar[1]), c.day_pillar[1]);
   const officer = fact('值日', c.officer);
@@ -2222,7 +2237,8 @@ function renderDateScanDetail(c, r, lunarText, clashText, chartLine) {
     const open = append(card, 'button', 'tiny-button', '在奇门页打开'); open.type = 'button'; open.id = 'scan-qimen-' + i;
     open.addEventListener('click', () => {
       qimenMoment = {mode: 'custom', custom: c.date + 'T' + h.local_time, zone: r.criteria.timezone}; qimenResult = null; qimenFingerprint = null;
-      activateTab(tabs.find(t => t.dataset.tab === 'qimen'));
+      const tab = tabs.find(t => t.dataset.tab === 'qimen');
+      activateTab(tab); tab.focus();
       const run = $('#qimen-run'); if (run) run.click();
     });
   });

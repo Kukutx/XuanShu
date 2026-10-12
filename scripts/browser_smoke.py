@@ -154,7 +154,7 @@ def main() -> None:
             assert not page.locator('#scan-include input[value="建"]').is_checked()
             page.locator('#scan-exclude input[value="建"]').uncheck()
             page.locator('#scan-exclude input[value="破"]').check()
-            page.locator('#scan-hours').fill('09:00')
+            page.locator('#scan-hours').fill('23:30')
             page.locator('#scan-run').click()
             page.get_by_text('值符', exact=False).first.wait_for(timeout=30000)
             # The result is a week calendar over the whole range: candidates open their detail, dropped days say why.
@@ -164,16 +164,36 @@ def main() -> None:
             assert scan['out'] and all(reason == 'officer_excluded' for _, reason in scan['out'])
             assert '排除的值日' in page.locator('#scan-day-' + scan['out'][0][0]).inner_text()
             assert page.locator('#scan-detail h4').inner_text().startswith(scan['picks'][0])
+            # Edits not yet scanned survive choosing a candidate and switching views; focus stays on the chosen day.
+            page.locator('#scan-hours').fill('10:00')
+            page.locator('#scan-skip-jie').check()
             page.locator('#scan-day-' + scan['picks'][2] + ' .ds-pick').click()
+            assert page.evaluate("document.activeElement.id") == 'scan-pick-' + scan['picks'][2]
             assert page.locator('#scan-detail h4').inner_text().startswith(scan['picks'][2])
             assert page.locator('#scan-detail .ds-hour-card').count() == 1
             page.locator('#scan-view-list').click()
             assert page.locator('#scan-list tbody tr').count() == len(scan['picks'])
             page.locator('#scan-view-grid').click()
-            # A chart opens on the Qimen page at the same date, time and time zone.
+            assert page.locator('#scan-hours').input_value() == '10:00' and page.locator('#scan-skip-jie').is_checked()
+            page.locator('#scan-hours').fill('23:30')
+            page.locator('#scan-skip-jie').uncheck()
+            # The lunar date follows the interface language; switching language re-renders the calendar.
+            lunar_zh = page.locator('#scan-detail .cal-detail-facts p').first.inner_text()
+            page.locator('#ui-language').select_option('en')
+            lunar_en = page.locator('#scan-detail .cal-detail-facts p').first.inner_text()
+            assert lunar_en != lunar_zh and '月' not in lunar_en and '年' not in lunar_en
+            page.locator('#ui-language').select_option('zh-CN')
+            # A chart opens on the Qimen page with the card's date, time, zone and 00:00 day boundary, whatever the
+            # birth panel's 23:00 setting, so the page shows the same chart as the card.
+            page.evaluate("$('#late_zi_day_rollover').checked = true")
             page.locator('#scan-qimen-0').click()
             page.wait_for_function("active === 'qimen' && qimenResult", timeout=30000)
-            assert page.evaluate("qimenResult.instant").startswith(scan['picks'][2] + 'T09:00')
+            assert page.evaluate("document.activeElement.dataset.tab") == 'qimen'
+            card = page.evaluate("dateScanResult.candidates.find(c => c.date === %r).hour_charts[0]" % scan['picks'][2])
+            shown = page.evaluate("qimenResult")
+            assert card['instant'].startswith(scan['picks'][2] + 'T23:30')
+            assert all(shown[k] == v for k, v in card.items() if k != 'local_time'), (card, {k: shown.get(k) for k in card})
+            page.evaluate("$('#late_zi_day_rollover').checked = false")
             page.locator('#qimen-moment').select_option('now')
             page.locator('[data-tab="chat"]').click()
             assert page.locator('#tool-toggle-all').is_visible()

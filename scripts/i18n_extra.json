@@ -1123,6 +1123,10 @@
   "Against my chart",
   "自分の命盤との関係"
  ],
+ "与择日扫描一致，按 00:00 换日。": [
+  "Same as the date scan: the day changes at 00:00.",
+  "日付選びの走査と同じく、00:00 で日付が変わります。"
+ ],
  "与本命四化分开显示 · 仅为星曜位置叠加": [
   "Shown separately from natal Four Transformations · star position overlay only",
   "本命四化とは別表示 · 星曜位置の重ね合わせのみ"
@@ -1646,6 +1650,10 @@
  "仍有差异的月份": [
   "Months that still differ",
   "なお差異のある月"
+ ],
+ "从下一天继续扫描": [
+  "Continue from the next day",
+  "翌日から続けて走査"
  ],
  "从当前命盘、本机档案和在这里临时添加的成员中选 2 到 8 人。临时成员只留在本页，刷新后消失；服务器不保存。": [
   "Choose 2 to 8 people from the current chart, your local profiles and members added here. Members added here stay on this page only and disappear on reload; the server stores nothing.",

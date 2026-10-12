@@ -74,6 +74,20 @@ def test_long_tool_results_stay_valid_json_and_keep_limitations(monkeypatch):
     assert any(f.startswith('candidates') for f in data['_truncated']['fields'])
 
 
+def test_compacted_scan_keeps_candidates_before_excluded_days(monkeypatch):
+    monkeypatch.setattr(chat_module, 'MAX_TOOL_RESULT_CHARS', 8000)
+    args = {'start_date': '2026-01-01', 'days': 93, 'hours': ['09:00', '15:00'], 'exclude_officers': ['破', '危', '闭']}
+    loop = scripted_loop([('date_candidate_scan', args)])
+    run_chat(ChatRequest(messages=[{'role': 'user', 'content': '择日'}]), config=CONFIG, loop=loop)
+    data = json.loads(loop.results[0][0])
+    full = chat_module.call_tool('date_candidate_scan', args)
+    assert full['excluded_days'] and data['excluded_counts'] == full['excluded_counts']
+    # The dropped-day list gets only what the candidates leave: as many candidates survive as without it.
+    bare = json.loads(chat_module._compact({k: v for k, v in full.items() if k != 'excluded_days'}, 1))
+    assert len(data['candidates']) == len(bare['candidates']) > 0
+    assert any(f.startswith('excluded_days') for f in data['_truncated']['fields'])
+
+
 def test_partner_tools_need_the_users_consent_tick():
     pair = {'person_a': BIRTH, 'person_b': {**BIRTH, 'birth_datetime': '1999-03-02T10:00'}}
     message = [{'role': 'user', 'content': '合盘'}]

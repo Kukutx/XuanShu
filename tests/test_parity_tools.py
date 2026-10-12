@@ -1,6 +1,8 @@
 """Date-range candidate scan (择日择时) and Life Path event review."""
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -55,6 +57,21 @@ def test_scan_hour_charts_use_qimen_engine_and_are_capped():
     assert scanned[0] == '2026-01-01' and scanned[-1] == capped['scanned_through'] == '2026-01-20' and len(scanned) == 20
     odd = date_candidate_scan(DateScanRequest(start_date='2026-01-01', days=60, hours=['09:00', '12:00', '15:00']))
     assert all(len(c['hour_charts']) == 3 for c in odd['candidates']) and len(odd['candidates']) == MAX_QIMEN_CHARTS // 3
+
+
+def test_scan_reason_is_the_first_filter_and_exclusions_continue_past_the_cap():
+    # 2006-05-05 is a jie-boundary day; excluding its officer as well names the officer filter, which comes first.
+    officer = day_officer_calendar(DayOfficerRequest(start_date='2006-05-05', days=1))['days'][0]['officer']
+    out = date_candidate_scan(DateScanRequest(start_date='2006-05-04', days=3, exclude_officers=[officer], exclude_jie_boundary_days=True))
+    assert {d['date']: d['reason'] for d in out['excluded_days']}['2006-05-05'] == 'officer_excluded'
+    assert out['excluded_counts']['jie_boundary'] == 0
+    # With one result allowed the scan still classifies the dropped days after it, up to the next candidate.
+    days = day_officer_calendar(DayOfficerRequest(start_date='2026-11-01', days=30))['days']
+    kept = [d['date'] for d in days if d['officer'] in ('成', '开')]
+    capped = date_candidate_scan(DateScanRequest(start_date='2026-11-01', days=30, include_officers=['成', '开'], max_results=1))
+    assert [c['date'] for c in capped['candidates']] == kept[:1] and capped['truncated']
+    assert capped['scanned_through'] == (date.fromisoformat(kept[1]) - timedelta(days=1)).isoformat()
+    assert max(d['date'] for d in capped['excluded_days']) == capped['scanned_through']
 
 
 def test_jie_boundary_found_when_the_jie_falls_after_23_00():

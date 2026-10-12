@@ -353,6 +353,10 @@ def _dumps(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, default=str, sort_keys=True)
 
 
+# Lists that only explain what a result left out are filled last, so the result itself keeps the budget.
+_COMPACT_LAST = frozenset({'excluded_days'})
+
+
 def _compact(result: Any, total: int) -> str:
     """Shrink an oversized result to valid JSON, keeping small fields such as
     ``limitations`` and ``method`` whole and cutting only the bulky lists."""
@@ -363,7 +367,7 @@ def _compact(result: Any, total: int) -> str:
     kept: dict[str, Any] = {}
     cut: list[str] = []
     # Smallest fields first so limitations, method and counts always survive.
-    for key in sorted(result, key=lambda k: (k != 'limitations', len(_dumps(result[k])))):
+    for key in sorted(result, key=lambda k: (k != 'limitations', k in _COMPACT_LAST, len(_dumps(result[k])))):
         value = result[key]
         size = len(_dumps(value)) + len(key) + 6
         if size <= budget or key == 'limitations':
