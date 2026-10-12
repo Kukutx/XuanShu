@@ -2457,7 +2457,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report', 'integration', 'professional'].includes(active)) render();});
+document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report', 'integration', 'professional', 'time'].includes(active)) render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -5483,35 +5483,182 @@ function renderAnnual() {
   if (currentHourUnknown) append(result, 'p', 'field-help', '时辰不详：宫位按 12:00 占位时辰排出，四化星落在哪一宫会随时辰变化。');
   a.limitations.forEach(t => note(result, t));
 }
+// Sampling around the birth time of the current chart. It is drawn like the boundary map (a line, the changes, a card
+// per structure); the exact moment of each change is the boundary map's job, one click away.
 function renderBirthWindowSection(){
-  append(result,'h4','subheading','出生时间误差采样 · 不确定时刻对照');
-  append(result,'p','info-inline','以出生资料里的时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。');
-  const row=append(result,'div','inline-control');
-  const radius=createInput('前后误差（分钟）','number',String(windowDraft.radius),row);radius.min='5';radius.max='120';
-  const spacing=createInput('采样间隔（分钟）','number',String(windowDraft.spacing),row);spacing.min='5';spacing.max='60';
-  const go=append(row,'button',null,'采样计算');go.type='button';go.id='window-run';
-  const msg=append(result,'p','inline-msg');
-  go.addEventListener('click',async()=>{
-    windowDraft={radius:Number(radius.value),spacing:Number(spacing.value)};
-    go.disabled=true;msg.textContent='';
-    try {windowResult=await postJSON('/api/birth-window',{birth:readInput(),uncertainty_minutes:windowDraft.radius,sample_every_minutes:windowDraft.spacing});render();}
-    catch(e){windowResult=null;msg.textContent='采样失败：'+e.message;}
-    finally{go.disabled=false;}
+  const section = append(result, 'section', 'bw-section'); section.id = 'birth-window';
+  section.setAttribute('aria-labelledby', 'birth-window-title');
+  append(section, 'h3', 'subheading', '出生时间误差采样').id = 'birth-window-title';
+  append(section, 'p', 'info-inline', '以出生时间为中心，在前后误差内每隔几分钟排一次盘，列出出现过的不同四柱、命宫、身宫和五行局。两个采样点之间的切换可能漏掉，精确时刻见「生时边界地图」。');
+  const row = append(section, 'div', 'inline-control');
+  const radius = createInput('前后误差（分钟）', 'number', String(windowDraft.radius), row); radius.id = 'window-radius'; radius.min = '5'; radius.max = '120'; radius.step = '1';
+  const spacing = createInput('采样间隔（分钟）', 'number', String(windowDraft.spacing), row); spacing.id = 'window-spacing'; spacing.min = '5'; spacing.max = '60'; spacing.step = '1';
+  keepTyped(radius, spacing);
+  const go = append(row, 'button', null, '采样计算'); go.type = 'button'; go.id = 'window-run';
+  const msg = append(section, 'p', 'inline-msg'); msg.id = 'window-msg'; msg.setAttribute('role', 'alert');
+  go.addEventListener('click', async () => {
+    const r = Number(radius.value), s = Number(spacing.value);
+    [radius, spacing].forEach(el => el.removeAttribute('aria-invalid'));
+    const bad = !Number.isInteger(r) || r < 5 || r > 120 ? radius : !Number.isInteger(s) || s < 5 || s > 60 ? spacing : null;
+    if (bad) {bad.setAttribute('aria-invalid', 'true'); msg.textContent = calT(bad === radius ? '前后误差需为 5–120 的整数分钟。' : '采样间隔需为 5–60 的整数分钟。'); bad.focus(); return;}
+    windowDraft = {radius: r, spacing: s}; go.disabled = true; msg.textContent = '';
+    try {
+      const data = await postForChart('/api/birth-window', {birth: currentInput || readInput(), uncertainty_minutes: r, sample_every_minutes: s});
+      if (data !== STALE) {windowResult = data; render(); const out = $('#window-summary'); if (out) out.focus();}
+    } catch (e) {msg.textContent = calT('采样失败：') + e.message;}
+    finally {go.disabled = false;}
   });
-  if(!windowResult)return;
-  meta(result,[`采样点 ${windowResult.sample_count}`,`观测到 ${windowResult.variant_count} 种结构`]);
-  const table=append(append(result,'div','table-wrap'),'table','data-table');
-  const tr=append(append(table,'thead'),'tr');
-  ['四柱（年/月/日/时）','命身宫','观测样本范围','样本数'].forEach(t=>append(tr,'th',null,t));
-  const body=append(table,'tbody');
-  windowResult.variants.forEach(v=>{
-    const row=append(body,'tr');
-    append(row,'td',null,Object.values(v.pillars).join(' / '));
-    append(row,'td',null,v.ming_palace+'/'+v.shen_palace);
-    append(row,'td',null,v.first_sample_local.replace('T',' ')+' → '+v.last_sample_local.replace('T',' '));
-    append(row,'td',null,v.sample_count);
+  if (!windowResult) return;
+  const w = windowResult, R = w.uncertainty_minutes, samples = w.samples;
+  const birthSample = samples.find(x => x.offset_minutes === 0) || samples[Math.floor(samples.length / 2)];
+  const base = w.variants[birthSample.variant_index - 1], day0 = w.center_local.slice(0, 10);
+  const clock = iso => (iso.slice(0, 10) !== day0 ? iso.slice(5, 10).replace('-', '/') + ' ' : '') + iso.slice(11, 16);
+  const summary = append(section, 'p', 'bw-summary'); summary.id = 'window-summary'; summary.tabIndex = -1;
+  texts(summary, '前后 ', R, ' 分钟内每 ', w.sample_every_minutes, ' 分钟采样一次，共 ', w.sample_count, ' 个点：');
+  if (w.variant_count === 1) texts(summary, '四柱、命宫、身宫和五行局都不变。');
+  else texts(summary, '出现 ', w.variant_count, ' 种结构。');
+  // Runs of neighbouring samples with the same structure; between two runs the change happened somewhere in the gap.
+  const runs = [];
+  samples.forEach(x => {const last = runs[runs.length - 1]; if (last && last.v === x.variant_index) last.to = x; else runs.push({v: x.variant_index, from: x, to: x});});
+  const at = off => (off + R) / (2 * R) * 100;
+  const line = append(section, 'div', 'bt-line bw-line'); line.id = 'window-line';
+  const track = append(line, 'div', 'bt-track'); track.setAttribute('aria-hidden', 'true');
+  const bands = append(track, 'div', 'bt-bands');
+  runs.forEach((run, i) => {
+    const left = at(run.from.offset_minutes), width = Math.max(at(run.to.offset_minutes) - left, 1.5);
+    const band = append(bands, 'span', 'bt-seg' + (run.v % 2 ? '' : ' is-alt') + (run.v === birthSample.variant_index ? ' is-birth' : '') + (width < 5 ? ' is-narrow' : ''));
+    band.style.left = Math.min(left, 100 - width) + '%'; band.style.width = width + '%';
+    append(band, 'span', 'bt-seg-num', String(run.v));
+    if (i) {
+      const gap = append(bands, 'span', 'bw-gap'), from = at(runs[i - 1].to.offset_minutes);
+      gap.style.left = from + '%'; gap.style.width = (left - from) + '%';
+    }
   });
-  windowResult.limitations.forEach(t=>note(result,t));
+  // Dots stay inside the track at both ends.
+  samples.forEach(x => {append(track, 'span', 'bw-dot').style.left = `calc(2px + (100% - 4px) * ${at(x.offset_minutes) / 100})`;});
+  const changes = runs.slice(1).map((run, i) => ({before: runs[i], after: run}));
+  const rows = [];
+  changes.forEach((c, i) => {
+    const left = (at(c.before.to.offset_minutes) + at(c.after.from.offset_minutes)) / 2, tick = append(track, 'span', 'bt-tick bw-tick'); tick.style.left = left + '%';
+    let row = rows.findIndex(last => left - last >= 3.5); if (row < 0) row = rows.length; rows[row] = left;
+    append(tick, 'span', 'bt-tick-num' + (row ? ' is-up' + Math.min(row, 2) : ''), String(i + 1));
+    if (row) line.classList.add('has-up' + Math.min(row, 2));
+  });
+  append(track, 'span', 'bt-pin').style.left = at(birthSample.offset_minutes) + '%';
+  const axis = append(line, 'div', 'bt-axis');
+  append(axis, 'span', null, clock(samples[0].local_time));
+  texts(append(axis, 'span', 'bt-axis-birth'), '出生时间', ' ' + clock(birthSample.local_time)).style.left = at(birthSample.offset_minutes) + '%';
+  append(axis, 'span', null, clock(samples[samples.length - 1].local_time));
+  // What differs between the structures on either side of each gap.
+  const diff = (a, b) => {
+    const out = PILLAR_KEYS.filter(k => a.pillars[k] !== b.pillars[k]).map(k => [nameMap[k], a.pillars[k], b.pillars[k]]);
+    [['命宫', 'ming_palace'], ['身宫', 'shen_palace'], ['五行局', 'five_elements_bureau']].forEach(([label, key]) => {if (a[key] !== b[key]) out.push([label, a[key], b[key]]);});
+    return out;
+  };
+  if (changes.length) {
+    append(section, 'h4', 'subheading', '采样之间的切换');
+    const list = append(section, 'ol', 'bt-switches'); list.id = 'window-changes';
+    changes.forEach((c, i) => {
+      const item = append(list, 'li', 'bt-switch');
+      append(item, 'span', 'bt-tick-num', String(i + 1));
+      const body = append(item, 'div');
+      const head = append(body, 'p', 'bt-switch-head');
+      append(head, 'b', null, clock(c.before.to.local_time) + ' – ' + clock(c.after.from.local_time));
+      append(head, 'span', 'bt-type', '切换在这两个采样点之间');
+      const chips = append(body, 'p', 'bt-changes');
+      diff(w.variants[c.before.v - 1], w.variants[c.after.v - 1]).forEach(([label, from, to]) => texts(append(chips, 'span', 'bt-change'), label, ' ', from + ' → ' + to));
+    });
+  }
+  append(section, 'h4', 'subheading', '出现过的结构');
+  const cards = append(section, 'div', 'bt-cards'); cards.id = 'window-cards';
+  w.variants.forEach((v, i) => {
+    const isBirth = v === base;
+    const card = append(cards, 'section', 'bt-card' + (isBirth ? ' is-birth' : '')); card.id = 'window-variant-' + (i + 1);
+    const head = append(card, 'div', 'bt-card-head');
+    append(head, 'b', 'bt-card-num', String(i + 1));
+    append(head, 'span', 'bt-card-range', v.first_sample_local === v.last_sample_local ? clock(v.first_sample_local) : clock(v.first_sample_local) + ' – ' + clock(v.last_sample_local));
+    texts(append(head, 'small', 'muted'), v.sample_count === 1 ? '1 个采样点' : v.sample_count + ' 个采样点');
+    if (isBirth) append(head, 'span', 'bt-badge', '含出生时间');
+    const pillars = append(card, 'div', 'bt-pillars');
+    PILLAR_KEYS.forEach(k => {
+      const gz = v.pillars[k], moved = !isBirth && gz !== base.pillars[k];
+      const cell = append(pillars, 'span', 'bt-pillar' + (moved ? ' is-changed' : ''));
+      append(cell, 'small', null, nameMap[k]);
+      const text = append(cell, 'b', 'bt-gz'); text.dataset.noI18n = '';
+      append(text, 'span', stemClass(gz[0]), gz[0]); append(text, 'span', branchClass(gz[1]), gz[1]);
+      if (moved) append(cell, 'span', 'visually-hidden', '与出生时间不同');
+    });
+    const ziwei = append(card, 'p', 'bt-ziwei');
+    [['ming_palace', '命宫'], ['shen_palace', '身宫'], ['five_elements_bureau', null]].forEach(([key, label]) => {
+      const moved = !isBirth && v[key] !== base[key];
+      const span = label ? texts(append(ziwei, 'span', 'bt-field' + (moved ? ' is-changed' : '')), label, ' ', v[key]) : texts(append(ziwei, 'span', 'bt-field' + (moved ? ' is-changed' : '')), v[key]);
+      if (moved) append(span, 'span', 'visually-hidden', '与出生时间不同');
+    });
+  });
+  // The exact moments: the boundary map with the same error, already run.
+  const exact = append(section, 'p', 'field-help bw-exact');
+  texts(exact, '采样只能说明切换发生在哪两个点之间。', ' ');
+  const open = append(exact, 'button', 'tiny-button', '在生时边界地图上找精确时刻'); open.type = 'button'; open.id = 'window-boundaries';
+  open.addEventListener('click', () => {
+    boundaryDraft = {uncertainty_minutes: R}; boundaryResult = null; delete typedValues['boundary-radius'];
+    autoOpened.add('boundaries');  // run once below, whether or not the page has opened on this chart before
+    activateTab(tabs.find(t => t.dataset.tab === 'boundaries'));
+    const run = $('#boundary-run'); if (run) run.click();
+  });
+  w.limitations.forEach(t => note(section, t));
+}
+// Where each time system's reading falls among the two-hour periods. The hour pillar changes at every odd hour
+// (23:00, 01:00 …), so a reading a few minutes from one changes the hour pillar with a small error in the birth time.
+const SHICHEN_NAMES = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
+function timeScale(parent, audit, names) {
+  const clock = audit.choices.find(t => t.mode === 'clock') || audit.choices[0];
+  const dayStart = Date.parse(clock.effective_reading.slice(0, 10) + 'T00:00:00Z');
+  const minuteOf = t => (Date.parse(t.effective_reading.slice(0, 19) + 'Z') - dayStart) / 60000;
+  const periodStart = m => Math.floor((m - 60) / 120) * 120 + 60;
+  const periodAt = m => SHICHEN_NAMES[Math.floor(((Math.floor(m / 60) + 1) % 24 + 24) % 24 / 2)];
+  const hhmm = m => {const d = ((Math.round(m) % 1440) + 1440) % 1440; return String(Math.floor(d / 60)).padStart(2, '0') + ':' + String(d % 60).padStart(2, '0');};
+  const marks = audit.choices.map((t, i) => {
+    const m = minuteOf(t), start = periodStart(m), toStart = m - start, toEnd = start + 120 - m;
+    return {t, i, m, start, near: Math.min(toStart, toEnd), boundary: toStart < toEnd ? start : start + 120};
+  });
+  // One period of margin on either side, so the nearest boundary is always on the scale.
+  const lo = Math.min(...marks.map(x => x.start)) - 120, hi = Math.max(...marks.map(x => x.start)) + 240, at = m => (m - lo) / (hi - lo) * 100;
+  const box = append(parent, 'section', 'ts-scale'); box.id = 'time-scale'; box.setAttribute('aria-labelledby', 'time-scale-title');
+  append(box, 'h4', 'subheading', '三种时制落在哪个时辰').id = 'time-scale-title';
+  const line = append(box, 'div', 'bt-line ts-line');
+  const track = append(line, 'div', 'bt-track'); track.setAttribute('aria-hidden', 'true');
+  const bands = append(track, 'div', 'bt-bands');
+  const usedStart = (marks.find(x => x.t.mode === audit.original_time_mode) || marks[0]).start;
+  for (let s = lo, k = 0; s < hi; s += 120, k++) {
+    const band = append(bands, 'span', 'bt-seg' + (k % 2 ? ' is-alt' : '') + (s === usedStart ? ' is-birth' : ''));
+    band.style.left = at(s) + '%'; band.style.width = (120 / (hi - lo) * 100) + '%';
+    append(band, 'span', 'bt-seg-num', periodAt(s));
+  }
+  // A badge that would overlap the one before it moves up a row, as on the boundary map.
+  const rows = [];
+  [...marks].sort((a, b) => a.m - b.m).forEach(x => {
+    const left = at(x.m), tick = append(track, 'span', 'bt-tick ts-tick'); tick.style.left = left + '%';
+    let row = rows.findIndex(last => left - last >= 3.5); if (row < 0) row = rows.length; rows[row] = left;
+    append(tick, 'span', 'bt-tick-num' + (row ? ' is-up' + Math.min(row, 2) : ''), String(x.i + 1));
+    if (row) line.classList.add('has-up' + Math.min(row, 2));
+  });
+  const axis = append(line, 'div', 'bt-axis');
+  append(axis, 'span', null, hhmm(lo)); append(axis, 'span', null, hhmm(hi));
+  // The same facts in words: which period each reading is in and how far the nearest change of period is.
+  const list = append(box, 'ol', 'bt-switches ts-list'); list.id = 'time-scale-list';
+  marks.forEach(x => {
+    const item = append(list, 'li', 'bt-switch' + (x.near < 15 ? ' is-near' : '')); item.id = 'time-scale-' + x.t.mode;
+    append(item, 'span', 'bt-tick-num', String(x.i + 1));
+    const body = append(item, 'p', 'bt-switch-head');
+    append(body, 'b', null, names[x.t.mode]);
+    append(body, 'span', 'ts-time', hhmm(x.m));
+    append(body, 'span', 'bt-type', periodAt(x.start));
+    const gap = append(body, 'span', 'ts-gap');
+    durationText(texts(gap, '最近交界 ', hhmm(x.boundary), ' · '), x.near);
+    if (x.t.mode === audit.original_time_mode) append(body, 'span', 'bt-badge', '当前排盘所用');
+  });
+  const used = marks.find(x => x.t.mode === audit.original_time_mode);
+  if (used && used.near < 15) append(box, 'p', 'ts-warn', '当前排盘所用的时间离时辰交界不到 15 分钟：出生时间稍有误差，时柱就会换成相邻的时辰。');
 }
 // The three clocks side by side. Without a longitude in the birth data, one can be picked here for this page only:
 // it never changes the birth data, so the chart and its exports stay as generated.
@@ -5613,22 +5760,12 @@ function renderTimeAudit() {
     append(result, 'p', 'field-help', !differ.length ? '三种时制下四柱、命宫、身宫与农历日期都相同。'
       : timeResult.original_time_mode === 'clock' ? '标色的项目和钟表时间不同；换用太阳时会改变这些结果。'
       : '标色的项目和钟表时间不同；当前命盘已按加框的太阳时排盘，改按钟表时间会得到不同结果。');
-    title(result,'规则敏感性比较','固定出生参数，仅切换时制');
-    const choose=append(result,'div','inline-control');
-    const label=append(choose,'label',null,'作为对照的时制');
-    const select=append(label,'select');select.id='rule-alt-mode';
-    [['clock','钟表时间'],['mean_solar','平太阳时'],['apparent_solar','真太阳时']].forEach(([mode,name])=>{let o=append(select,'option',null,name);o.value=mode;});
-    const compare=append(choose,'button',null,'执行规则差异对照');compare.id='compare-rules';compare.type='button';
-    const msg=append(result,'p','inline-msg');
-    compare.addEventListener('click',async()=>{
-      compare.disabled=true;
-      try{
-        const orig={...readInput(), longitude: readInput().longitude ?? used.longitude};const alt={...orig,time_mode:select.value};
-        const out=await postJSON('/api/rules-compare',{original:orig,alternative:alt});
-        msg.textContent='变化的四柱：'+(out.differences.pillars.map(k=>nameMap[k]).join('、')||'无')+
-          '；命宫：'+(out.differences.ming?'变化':'不变')+'；身宫：'+(out.differences.shen?'变化':'不变')+'。';
-      }catch(e){msg.textContent=e.message;}finally{compare.disabled=false;}
-    });
+    timeScale(result, timeResult, names);
+    // The three cards already compare the time systems; the other rules are compared on their own page.
+    const others = append(result, 'p', 'field-help tb-others');
+    texts(others, '23:00 换日、闰月分界等其他规则的影响见「规则差异对照」。', ' ');
+    const open = append(others, 'button', 'tiny-button', '打开规则差异对照'); open.type = 'button'; open.id = 'time-open-rules';
+    open.addEventListener('click', () => activateTab(tabs.find(t => t.dataset.tab === 'rule-matrix')));
     timeResult.warnings.forEach(t=>note(result,t));
   } else append(result,'p','info-inline','不会自动保存出生资料或经度；审计结果包含具体时差与命盘差异。');
   renderBirthWindowSection();

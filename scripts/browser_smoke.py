@@ -913,7 +913,46 @@ def main() -> None:
             assert page.locator('#time-mean_solar .visually-hidden', has_text='与钟表时间不同').count() >= 1
             assert page.locator('#time-clock .visually-hidden').count() == 0
             assert page.evaluate('() => jsonData().time_audit') is None
+            # A scale of two-hour periods places each reading and says how far the nearest change of period is.
+            assert page.locator('#time-scale-list li').count() == 3
+            audit = page.evaluate('timeResult')
+            for choice in audit['choices']:
+                item = page.locator('#time-scale-' + choice['mode'])
+                hour = int(choice['effective_reading'][11:13])
+                assert item.locator('.bt-type').inner_text() == '子丑寅卯辰巳午未申酉戌亥'[(hour + 1) % 24 // 2] + '时'
+                assert item.locator('.ts-gap').inner_text().startswith('最近交界 ')
+            assert page.locator('#time-scale .bt-seg.is-birth').count() == 1
+            # The time systems are compared by the cards; the other rules are one click away.
+            assert page.locator('#compare-rules').count() == 0
+            page.locator('#time-open-rules').click()
+            assert page.locator('[data-tab="rule-matrix"]').get_attribute('aria-selected') == 'true'
+            page.locator('[data-tab="time"]').click()
+            page.locator('#time-cards').wait_for(timeout=30000)
+            # The sampler checks its inputs, then draws the structures it found like the boundary map does.
+            page.locator('#window-radius').fill('200')
+            page.locator('#window-run').click()
+            assert '5–120' in page.locator('#window-msg').inner_text() and page.locator('#window-radius').get_attribute('aria-invalid') == 'true'
+            assert page.evaluate("document.activeElement.id") == 'window-radius'
+            page.locator('#window-radius').fill('60')
+            page.locator('#window-spacing').fill('10')
+            page.locator('#window-run').click()
+            page.locator('#window-summary').wait_for(timeout=30000)
+            assert page.evaluate("document.activeElement.id") == 'window-summary'
+            sampled = page.evaluate('windowResult')
+            assert sampled['uncertainty_minutes'] == 60 and sampled['sample_every_minutes'] == 10
+            assert page.locator('#window-cards .bt-card').count() == sampled['variant_count'] and page.locator('#window-cards .bt-card.is-birth').count() == 1
+            switches = sum(1 for a, b in zip(sampled['samples'], sampled['samples'][1:]) if a['variant_index'] != b['variant_index'])
+            assert page.locator('#window-changes li').count() == switches and page.locator('#window-line .bw-dot').count() == sampled['sample_count']
+            assert all('\u4e00' <= ch <= '\u9fff' for ch in sampled['limitations'][0][:2])
+            assert page.locator('#window-line .bt-pin').count() == 1
             page.screenshot(path=str(screenshot_dir / '04-time-audit.png'), full_page=True)
+            # The boundary map opens with the same error and finds the exact moments.
+            page.locator('#window-boundaries').click()
+            assert page.locator('[data-tab="boundaries"]').get_attribute('aria-selected') == 'true'
+            page.wait_for_function('() => boundaryResult && boundaryResult.uncertainty_minutes === 60', timeout=30000)
+            assert page.locator('#boundary-radius').input_value() == '60'
+            page.locator('[data-tab="time"]').click()
+            page.locator('#time-cards').wait_for(timeout=30000)
             # A new chart starts without the city picked for the previous one.
             page.evaluate("() => document.getElementById('run-btn').click()")
             page.wait_for_function('() => timeResult === null && timeLongitude === ""', timeout=30000)

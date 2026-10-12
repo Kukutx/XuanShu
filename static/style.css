@@ -1369,6 +1369,21 @@ html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-
 .tb-date{font-size:12px;font-weight:600;color:var(--warn);font-variant-numeric:tabular-nums}
 .tb-shift{margin:0;font-size:13px;color:var(--text2)}
 .tb-parts{margin:-4px 0 0;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tb-others{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.ts-scale{margin:14px 0 6px}
+.ts-line .bt-seg{justify-content:flex-start;padding-left:8px}
+.ts-scale>.subheading,.bw-section>.subheading{margin-top:0}
+.ts-time{font-variant-numeric:tabular-nums;color:var(--text2)}
+.ts-gap{font-size:12px;color:var(--muted)}
+.bt-switch.is-near{border-color:var(--warn-line);background:var(--warn-soft)}
+.bt-switch.is-near .ts-gap{color:var(--warn);font-weight:600}
+.ts-warn{margin:0 0 8px;font-size:12.5px;color:var(--warn)}
+.bw-section{margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
+.bw-summary{margin:6px 0 4px;font-size:13.5px;color:var(--text)}
+.bw-summary:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+.bw-gap{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,transparent 0 4px,var(--warn-line) 4px 6px)}
+.bw-dot{position:absolute;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--text2);opacity:.55}
+.bw-exact{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
 #time-city{min-width:9em}
 /* 年度轨迹: palaces down the side, lunar years across. The palace column stays in view while the years scroll;
    the current lunar year is tinted and the palace asked about is ruled above and below. */
@@ -1978,7 +1993,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ziwei-board,.pillar,.qimen-cell,.palace,.chat-msg{break-inside:avoid}
   .wuxing{grid-template-columns:minmax(0,440px);justify-content:center;grid-template-areas:'figure' 'legend' 'detail';break-inside:avoid}
   .ev-toc{display:none!important}
-  .ev-card,.tb-card{break-inside:avoid}
+  .ev-card,.tb-card,.bt-card,.bt-switch{break-inside:avoid}
   .dm-wrap{display:none}.dm-option-card{break-inside:avoid}  /* the cards repeat every rating */
   .ay-board,.ay-head{break-inside:avoid}.ay-actions{display:none!important}
   .dy-axis-wrap{overflow:visible}.dy-axis{min-width:0}.dy-start,.dy-detail-head,.dy-years tr{break-inside:avoid}
