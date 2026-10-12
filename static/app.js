@@ -128,6 +128,7 @@ let dayunDraft = {periods: 10, direction_override: ''};
 let dayunKey = null, dayunPending = false, dayunError = '';  // the request the shown periods belong to
 let boundaryDraft = {uncertainty_minutes: 60};
 let qualityMinutesDraft = 15;
+let qualityRun = null;  // the birth and window the shown audit was asked for
 let reportDraft = {lunar_year: null, include_time_audit: false, include_deep_evidence:true,
   include_dayun:false, dayun_direction_override:'', birth_boundary_minutes:''};
 let windowDraft = {radius: 30, spacing: 10};
@@ -1643,7 +1644,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (active === 'calendar') render();});
+document.addEventListener('xuanshu-language', () => {if (active === 'calendar' || active === 'boundaries') render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -3122,6 +3123,20 @@ const WEEKDAY_NAMES = ['星期一', '星期二', '星期三', '星期四', '星�
 const ANIMAL_YEARS = ['鼠年', '牛年', '虎年', '兔年', '龙年', '蛇年', '马年', '羊年', '猴年', '鸡年', '狗年', '猪年'];
 // Numbers sit in their own text node so the units around them translate as whole entries.
 function texts(parent, ...parts) {parts.forEach(part => parent.append(String(part))); return parent;}
+// A span of minutes as days, hours and minutes (minutes and seconds under an hour), numbers apart from their units.
+function durationText(parent, minutes) {
+  const seconds = Math.round(Math.abs(minutes) * 60), total = seconds >= 3600 ? Math.round(seconds / 60) * 60 : seconds;
+  const days = Math.floor(total / 86400), hours = Math.floor(total % 86400 / 3600);
+  const mins = Math.floor(total % 3600 / 60), secs = total % 60, parts = [];
+  if (days) parts.push([days, ' 天']);
+  if (hours) parts.push([hours, ' 小时']);
+  if (mins || (!days && !hours && !secs)) parts.push([mins, ' 分']);
+  if (secs && !days && !hours) parts.push([secs, ' 秒']);
+  parts.forEach(([n, unit], i) => {if (i) parent.append(' '); countText(parent, n, unit);});
+  return parent;
+}
+// A count and its unit. One day and one hour are a single text, so English reads "1 day", not "1 days".
+function countText(parent, n, unit) {return n === 1 && (unit === ' 天' || unit === ' 小时') ? texts(parent, '1' + unit) : texts(parent, n, unit);}
 function renderToday() {
   title(result, '今日历法', todayPick ? '所选时刻 · 历法事实 · 不打吉凶分' : '本机时间 · 历法事实 · 不打吉凶分');
   todayPicker(result);
@@ -3743,36 +3758,67 @@ function renderQualityAudit() {
     try {
       const value = Number(minutes.value);
       qualityMinutesDraft = value;
-      const data = await postForChart('/api/quality-audit', {birth:readInput(), boundary_window_minutes:value});
-      if (data !== STALE) {qualityResult = data; render();}
+      const input = readInput();
+      const data = await postForChart('/api/quality-audit', {birth:input, boundary_window_minutes:value});
+      if (data !== STALE) {qualityResult = data; qualityRun = {input, window: value}; render();}
     } catch(e) {msg.textContent = '核验失败：' + e.message;}
     finally {run.disabled = false;}
   });
   if (!qualityResult) {append(result, 'p', 'info-inline', '选择核验后列出实测四柱、日期、节令距离和需要复核的输入假设。');return;}
-  const q = qualityResult;
-  meta(result,[q.review_needed?'存在需人工核对的边界':'未发现当前规则已知边界问题',
-      '有效时间 '+q.calculation_snapshot.effective_traditional_time.replace('T',' '),
-      '年/月/日/时 '+Object.values(q.calculation_snapshot.bazi_pillars).join('/')]);
-  rules(result,[
-    {label:'距上一节令',value:q.calculation_snapshot.minutes_since_previous_jie.toFixed(1)+' 分'},
-    {label:'距下一节令',value:q.calculation_snapshot.minutes_until_next_jie.toFixed(1)+' 分'},
-    {label:'距时辰交界',value:q.calculation_snapshot.minutes_to_nearest_hour_boundary.toFixed(1)+' 分'},
-    {label:'距换日交界',value:q.calculation_snapshot.minutes_to_day_boundary.toFixed(1)+' 分'},
-  ]);
-  if(q.calculation_snapshot.china_reference_lunar_date &&
-     q.calculation_snapshot.china_reference_gregorian_date !== q.calculation_snapshot.local_effective_gregorian_date){
-    const chinese=q.calculation_snapshot.china_reference_lunar_date;
+  const q = qualityResult, snap = q.calculation_snapshot, used = qualityRun || {input: readInput(), window: qualityMinutesDraft};
+  const near = used.window, reviews = q.flags.filter(f => f.severity === 'review').length;
+  const status = append(result, 'div', 'qa-status ' + (q.review_needed ? 'is-review' : 'is-clear')); status.id = 'quality-status';
+  append(status, 'strong', null, q.review_needed ? '存在需人工核对的边界' : '未发现当前规则已知边界问题');
+  if (reviews) texts(append(status, 'span'), reviews, ' 项需核对');
+  meta(result, ['有效时间 ' + snap.effective_traditional_time.replace('T', ' '), '年/月/日/时 ' + Object.values(snap.bazi_pillars).join('/')]);
+  // Where the birth sits between the two jie that bound its month pillar, as on 今日历法.
+  const term = append(result, 'section', 'today-term qa-term'); term.id = 'quality-term';
+  const side = (cls, jie, label, minutes) => {
+    const box = append(term, 'div', cls + (minutes <= near ? ' is-near' : ''));
+    append(box, 'strong', null, jie.name);
+    durationText(texts(append(box, 'small'), label, ' '), minutes);
+    texts(append(box, 'small'), '交节', ' ' + clockOf(jie.instant));
+    if (minutes <= near) append(box, 'small', 'qa-near', '在敏感窗口内');
+  };
+  const since = snap.minutes_since_previous_jie, until = snap.minutes_until_next_jie;
+  side('today-term-now', snap.previous_jie, '交节已过', since);
+  const track = append(term, 'div', 'today-term-track');
+  track.setAttribute('role', 'progressbar'); track.setAttribute('aria-valuemin', '0'); track.setAttribute('aria-valuemax', '100');
+  track.setAttribute('aria-valuenow', String(Math.round(since / (since + until) * 100)));
+  track.setAttribute('aria-label', snap.previous_jie.name + ' → ' + snap.next_jie.name);
+  append(track, 'span', 'today-term-fill').style.width = (since / (since + until) * 100).toFixed(2) + '%';
+  side('today-term-next', snap.next_jie, '距交节还有', until);
+  // The hour and day boundaries are read on the clock the chart uses (钟表时间, or solar time when chosen).
+  const reading = snap.effective_traditional_time, at = Number(reading.slice(11, 13)) * 60 + Number(reading.slice(14, 16)) + Number(reading.slice(17, 19)) / 60;
+  const apart = t => Math.min(Math.abs(at - t), 1440 - Math.abs(at - t));
+  const nearest = [...Array(12)].map((_, i) => 60 + 120 * i).reduce((best, t) => apart(t) < apart(best) ? t : best);
+  const gaps = append(result, 'div', 'qa-gaps');
+  const gap = (id, label, minutes, ...what) => {
+    const card = append(gaps, 'div', 'qa-gap' + (minutes <= near ? ' is-near' : '')); card.id = id;
+    append(card, 'span', 'qa-gap-label', label);
+    durationText(append(card, 'b', 'qa-gap-value'), minutes);
+    texts(append(card, 'small'), ...what);
+    if (minutes <= near) append(card, 'small', 'qa-near', '在敏感窗口内');
+  };
+  gap('quality-hour', '距时辰交界', snap.minutes_to_nearest_hour_boundary, '有效时刻', ' ' + reading.slice(11, 16), ' · ', '最近的交界', ' ' + String(nearest / 60 % 24).padStart(2, '0') + ':00');
+  gap('quality-day', '距换日交界', snap.minutes_to_day_boundary, used.input.late_zi_day_rollover ? '按 23:00 换日' : '按 00:00 换日');
+  texts(append(result, 'p', 'field-help qa-window'), '敏感窗口', ' ±' + near, ' 分钟');
+  if(snap.china_reference_lunar_date && snap.china_reference_gregorian_date !== snap.lunar_lookup_gregorian_date){
+    const chinese=snap.china_reference_lunar_date;
     append(result,'div','feature-note',
-      '时区日界对照：出生地有效日期 '+q.calculation_snapshot.local_effective_gregorian_date+
-      '；同一瞬间北京日期 '+q.calculation_snapshot.china_reference_gregorian_date+
+      '时区日界对照：出生地有效日期 '+snap.lunar_lookup_gregorian_date+
+      '；同一瞬间北京日期 '+snap.china_reference_gregorian_date+
       '（农历 '+chinese.year+'年'+chinese.month+'月'+chinese.day+'日）。这不自动改变原命盘。');
   }
-  const box = append(result,'div','reading-list');
-  if(!q.flags.length) append(box,'p','info-inline','没有触发本工具已知边界标记；不代表专业命盘获得认证。');
+  append(result, 'h4', 'subheading', '核对项');
+  const list = append(result, 'div', 'qa-flags'); list.id = 'quality-flags';
+  if(!q.flags.length) append(list,'p','info-inline','没有触发本工具已知边界标记；不代表专业命盘获得认证。');
   q.flags.forEach(f => {
-    const entry = append(box,'section','report-section');
-    append(entry,'h4','subheading',(f.severity==='review'?'需要复核':'背景信息')+' · '+f.code);
-    append(entry,'p',null,f.detail);
+    const entry = append(list, 'section', 'qa-flag is-' + f.severity);
+    const head = append(entry, 'div', 'qa-flag-head');
+    append(head, 'span', 'qa-chip', f.severity === 'review' ? '需要复核' : '背景信息');
+    append(head, 'code', 'qa-code', f.code);
+    append(entry, 'p', null, f.detail);
     if(f.reference){const a=append(entry,'a',null,'打开参考来源 ↗');a.href=f.reference;a.target='_blank';a.rel='noopener noreferrer';}
   });
   q.limitations.forEach(x=>note(result,x));
@@ -3964,14 +4010,105 @@ function renderBirthBoundaries(){
   if(!boundaryResult)return;
   const d=boundaryResult;
   meta(result,[`检测区间 ±${d.uncertainty_minutes}分钟`,`${d.boundaries.length}个边界`,`${d.segments.length}个区间`]);
+  // The interval as a line: a band per segment, a numbered tick per switch and a pin at the recorded birth time.
+  // The window is symmetric around the birth instant. (Old zone offsets such as +01:19:32 do not parse in JS, so the
+  // local birth string is not read as a time.)
+  const t0 = Date.parse(d.start_utc), span = Date.parse(d.end_utc) - t0, birthAt = t0 + span / 2;
+  const at = iso => (typeof iso === 'number' ? iso - t0 : Date.parse(iso) - t0) / span * 100;
+  const birthDay = d.original_birth_local.slice(0, 10);
+  // When the zone's offset changes inside the window (daylight saving), local times carry their offset.
+  const offsets = new Set(d.segments.flatMap(s => [s.start_local_inclusive.slice(19), s.end_local_exclusive.slice(19)]));
+  const clock = iso => {
+    const t = iso.slice(11, 19);
+    return (iso.slice(0, 10) !== birthDay ? iso.slice(5, 10).replace('-', '/') + ' ' : '') + (t.endsWith(':00') ? t.slice(0, 5) : t) + (offsets.size > 1 ? ' (' + iso.slice(19) + ')' : '');
+  };
+  const offsetMinutes = o => {const m = /^([+-])(\d\d):(\d\d)(?::(\d\d))?$/.exec(o); return m ? (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +m[3] + +(m[4] || 0) / 60) : 0;};
+  // The same instant on the clock before an offset change, e.g. 03:00 (+02:00) when the clock goes back to 02:00 (+01:00).
+  const clockIn = (utc, offset) => clock(new Date(Date.parse(utc) + offsetMinutes(offset) * 60000).toISOString().slice(0, 19) + offset);
+  const birthSegment = d.segments.find(s => Date.parse(s.start_utc_inclusive) <= birthAt && birthAt < Date.parse(s.end_utc_exclusive));
+  const line = append(result, 'div', 'bt-line'); line.id = 'boundary-timeline';
+  const track = append(line, 'div', 'bt-track'); track.setAttribute('aria-hidden', 'true');
+  const bands = append(track, 'div', 'bt-bands');
+  d.segments.forEach((s, i) => {
+    const left = at(s.start_utc_inclusive), width = at(s.end_utc_exclusive) - left;
+    const band = append(bands, 'span', 'bt-seg' + (i % 2 ? ' is-alt' : '') + (s === birthSegment ? ' is-birth' : '') + (width < 5 ? ' is-narrow' : ''));
+    band.style.left = left + '%'; band.style.width = width + '%';
+    append(band, 'span', 'bt-seg-num', String(s.index));
+  });
+  // A badge that would overlap the one before it (an 18px badge on the track's width) moves up a row.
+  const badgeGap = 2000 / Math.max(track.getBoundingClientRect().width, 200), rows = [];
+  d.boundaries.forEach((b, i) => {
+    const left = at(b.utc), tick = append(track, 'span', 'bt-tick'); tick.style.left = left + '%';
+    let row = rows.findIndex(last => left - last >= badgeGap); if (row < 0) row = rows.length; rows[row] = left;
+    append(tick, 'span', 'bt-tick-num' + (row ? ' is-up' + Math.min(row, 2) : ''), String(i + 1));
+    if (row) line.classList.add('has-up' + Math.min(row, 2));
+  });
+  const pin = append(track, 'span', 'bt-pin'); pin.style.left = at(birthAt) + '%';
+  const axis = append(line, 'div', 'bt-axis');
+  append(axis, 'span', null, clock(d.segments[0].start_local_inclusive));
+  texts(append(axis, 'span', 'bt-axis-birth'), '出生时间', ' ' + d.original_birth_local.slice(11, 16)).style.left = at(birthAt) + '%';
+  append(axis, 'span', null, clock(d.segments[d.segments.length - 1].end_local_exclusive));
+  // What changes at each switch, read from the segments on either side of it.
+  const changes = (a, b) => {
+    const out = PILLAR_KEYS.filter(k => a.bazi_pillars[k] !== b.bazi_pillars[k]).map(k => [nameMap[k], a.bazi_pillars[k], b.bazi_pillars[k]]);
+    [['命宫', 'ziwei_ming_palace'], ['身宫', 'ziwei_shen_palace'], ['五行局', 'ziwei_bureau']].forEach(([label, key]) => {if (a[key] !== b[key]) out.push([label, a[key], b[key]]);});
+    const la = a.ziwei_lunar_date, lb = b.ziwei_lunar_date;
+    if (la.year !== lb.year || la.month !== lb.month || la.day !== lb.day || la.is_leap_month !== lb.is_leap_month) out.push(['农历', lunarDateText(la), lunarDateText(lb), true]);
+    return out;
+  };
   append(result,'h4','subheading','检出的规则切换点');
   if(!d.boundaries.length)append(result,'p','info-inline','当前模型在此检查范围内未检出时辰、日界、节令或时区变更。');
-  d.boundaries.forEach(b=>append(result,'div','feature-note',`${b.local.replace('T',' ')} · ${b.types.join(' / ')}`));
+  const switches = append(result, 'ol', 'bt-switches'); switches.id = 'boundary-switches';
+  d.boundaries.forEach((b, i) => {
+    const item = append(switches, 'li', 'bt-switch');
+    append(item, 'span', 'bt-tick-num', String(i + 1));
+    const body = append(item, 'div');
+    const head = append(body, 'p', 'bt-switch-head');
+    const after = d.segments.findIndex(s => s.start_utc_inclusive === b.utc);
+    const before = after > 0 ? d.segments[after - 1].start_local_inclusive.slice(19) : '';
+    append(head, 'b', null, (before && before !== b.local.slice(19) ? clockIn(b.utc, before) + ' → ' : '') + clock(b.local));
+    b.types.forEach(type => {
+      const chip = append(head, 'span', 'bt-type');
+      if (type.startsWith('节令界:')) texts(chip, '节令界', ' · ', type.slice(4)); else chip.textContent = type;
+    });
+    const diff = after > 0 ? changes(d.segments[after - 1], d.segments[after]) : [];
+    const list = append(body, 'p', 'bt-changes');
+    if (!diff.length) append(list, 'span', 'muted', '四柱与紫微字段不变');
+    diff.forEach(([label, from, to, own]) => {
+      const chip = append(list, 'span', 'bt-change');
+      texts(chip, label, ' ');
+      const words = append(chip, 'span', null, from + ' → ' + to); if (own) words.dataset.noI18n = '';
+    });
+  });
   append(result,'h4','subheading','各区间代表命盘');
-  const table=append(append(result,'div','table-wrap'),'table','data-table');
-  const hr=append(append(table,'thead'),'tr');['UTC 区间起点','代表本地时刻','四柱','紫微命/身宫'].forEach(x=>append(hr,'th',null,x));
-  const body=append(table,'tbody');
-  d.segments.forEach(x=>{const tr=append(body,'tr');append(tr,'td',null,x.start_utc_inclusive.replace('T',' '));append(tr,'td',null,x.sample_local.replace('T',' '));append(tr,'td',null,Object.values(x.bazi_pillars).join(' / '));append(tr,'td',null,x.ziwei_ming_palace+'/'+x.ziwei_shen_palace);});
+  const cards = append(result, 'div', 'bt-cards');
+  d.segments.forEach(s => {
+    const card = append(cards, 'section', 'bt-card' + (s === birthSegment ? ' is-birth' : '')); card.id = 'boundary-segment-' + s.index;
+    const head = append(card, 'div', 'bt-card-head');
+    append(head, 'b', 'bt-card-num', String(s.index));
+    append(head, 'span', 'bt-card-range', clock(s.start_local_inclusive) + ' – ' + clock(s.end_local_exclusive));
+    durationText(append(head, 'small', 'muted'), (Date.parse(s.end_utc_exclusive) - Date.parse(s.start_utc_inclusive)) / 60000);
+    if (s === birthSegment) append(head, 'span', 'bt-badge', '出生所在');
+    const changed = key => birthSegment && s !== birthSegment && s[key] !== birthSegment[key] ? ' is-changed' : '';
+    const pillars = append(card, 'div', 'bt-pillars');
+    PILLAR_KEYS.forEach(k => {
+      const gz = s.bazi_pillars[k];
+      const moved = birthSegment && s !== birthSegment && gz !== birthSegment.bazi_pillars[k];
+      const cell = append(pillars, 'span', 'bt-pillar' + (moved ? ' is-changed' : ''));
+      append(cell, 'small', null, nameMap[k]);
+      const text = append(cell, 'b', 'bt-gz'); text.dataset.noI18n = '';
+      append(text, 'span', stemClass(gz[0]), gz[0]); append(text, 'span', branchClass(gz[1]), gz[1]);
+      if (moved) append(cell, 'span', 'visually-hidden', '与出生所在区间不同');
+    });
+    const ziwei = append(card, 'p', 'bt-ziwei');
+    const field = (key, ...parts) => {const span = texts(append(ziwei, 'span', 'bt-field' + changed(key)), ...parts); if (changed(key)) append(span, 'span', 'visually-hidden', '与出生所在区间不同');};
+    field('ziwei_ming_palace', '命宫', ' ', s.ziwei_ming_palace);
+    field('ziwei_shen_palace', '身宫', ' ', s.ziwei_shen_palace);
+    field('ziwei_bureau', s.ziwei_bureau);
+    const lunar = append(card, 'p', 'bt-lunar');
+    texts(lunar, '农历', ' '); append(lunar, 'span', null, lunarDateText(s.ziwei_lunar_date)).dataset.noI18n = '';
+    texts(append(card, 'small', 'bt-utc'), 'UTC 区间起点', ' ' + s.start_utc_inclusive.slice(0, 19).replace('T', ' '));
+  });
   d.limitations.forEach(x=>note(result,x));
 }
 // The counts on the integration page come from the running server, so they never fall behind a new tool.

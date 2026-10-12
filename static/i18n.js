@@ -157,16 +157,18 @@ let uiObserver = null;
 const uiIndex = {};
 // One-character entries join only for the five elements, which results compose as 木 / 水.
 const UI_SINGLE_TOKENS = '木火土金水';
+const UI_WHOLE_ONLY = ['1 天', '1 小时'];
 let uiPhraseMap = {};  // trimmed phrase -> entry; an exact (untrimmed) key wins
 let uiPhrases = [], uiPhraseRe = null;
 function buildUiIndex() {
   Object.keys(uiIndex).forEach(k => {delete uiIndex[k];});
   if (typeof UI_EXTRA === 'object') Object.entries(UI_EXTRA).forEach(([zh, [en, ja]]) => {uiIndex[zh] = {en, ja};});
   UI_TEXT.forEach(([zh, en, ja]) => {uiIndex[zh] = {en, ja};});
-  // Phrases of two or more characters, longest first, for in-place replacement.
+  // Phrases of two or more characters, longest first, for in-place replacement. The singular counts match only a whole
+  // text, so "21 天" never turns into "21 day".
   uiPhraseMap = {};
   Object.keys(uiIndex).forEach(k => {const t = k.trim(); if (!uiPhraseMap[t] || k === t) uiPhraseMap[t] = uiIndex[k];});
-  uiPhrases = Object.keys(uiPhraseMap).filter(k => (k.length >= 2 || UI_SINGLE_TOKENS.includes(k)) && /[㐀-鿿]/.test(k))
+  uiPhrases = Object.keys(uiPhraseMap).filter(k => (k.length >= 2 || UI_SINGLE_TOKENS.includes(k)) && /[㐀-鿿]/.test(k) && !UI_WHOLE_ONLY.includes(k))
     .sort((a, b) => b.length - a.length);
   uiPhraseRe = uiPhrases.length
     ? new RegExp(uiPhrases.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g') : null;

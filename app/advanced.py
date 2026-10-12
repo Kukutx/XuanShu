@@ -157,7 +157,11 @@ def _find_first_changed_second(start: datetime, end: datetime, state, reference:
             lo = mid
         else:
             hi = mid
-    candidate = _instant_ceil_second(hi)
+    # The change lies in (lo, hi] with hi - lo under a second: the first changed whole second is floor(hi) when the
+    # change falls at or before it, else the second after.
+    candidate = hi.replace(microsecond=0)
+    if candidate <= lo or state(candidate) == reference:
+        candidate += timedelta(seconds=1)
     # Floating point edge rounding can land before exact transition.
     for _ in range(3):
         if state(candidate) != reference:
@@ -221,6 +225,8 @@ def birth_boundary_map(request: BirthBoundaryRequest) -> dict:
             'index': i,
             'start_utc_inclusive': begin.isoformat(timespec='seconds'),
             'end_utc_exclusive': finish.isoformat(timespec='seconds'),
+            'start_local_inclusive': begin.astimezone(original.tzinfo).isoformat(timespec='seconds'),
+            'end_local_exclusive': finish.astimezone(original.tzinfo).isoformat(timespec='seconds'),
             'sample_local': local.isoformat(timespec='seconds'),
             'bazi_pillars': {key: bazi['pillars'][key]['text'] for key in ('year', 'month', 'day', 'hour')},
             'ziwei_ming_palace': ziwei['ming_palace'],
