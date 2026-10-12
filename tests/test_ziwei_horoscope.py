@@ -57,9 +57,18 @@ def test_second_half_of_a_leap_month_counts_as_the_next_month():
 
 def test_layers_that_need_missing_facts_say_why():
     unknown_hour = layers({'birth_datetime': '2000-08-16T04:00', 'gender': 'female'}, '2026-10-11', hour_unknown=True)
-    for key in ('month', 'day', 'hour'):
+    for key in ('decade', 'month', 'day', 'hour'):
         assert unknown_hour['layers'][key]['available'] is False and '时辰不详' in unknown_hour['layers'][key]['reason']
-    assert unknown_hour['layers']['year']['available'] is True
+    # The small limit and year palaces follow the year branch; natal palaces and star positions follow the
+    # placeholder hour and are left out, so another placeholder gives the same answer.
+    other_placeholder = layers({'birth_datetime': '2000-08-16T15:00', 'gender': 'female'}, '2026-10-11', hour_unknown=True)
+    assert unknown_hour['layers'] == other_placeholder['layers'] and unknown_hour['hour_unknown'] is True
+    year = unknown_hour['layers']['year']
+    assert year['available'] is True and year['ming_branch'] == '午' and year['ming_natal_palace'] is None
+    assert [t['star'] for t in year['transformations']] == ['天同', '天机', '文昌', '廉贞']
+    assert all(t['branch'] is None and t['natal_palace'] is None for t in year['transformations'])
+    assert all(p['natal_palace'] is None for p in year['palaces']) and year['palaces'][6]['name'] == '命宫'
+    assert unknown_hour['layers']['small_limit']['ming_branch'] == '申' and any('时辰不详' in x for x in unknown_hour['limitations'])
     no_gender = layers({'birth_datetime': '2000-08-16T04:00'}, '2026-10-11')
     assert no_gender['layers']['decade']['available'] is False and '性别' in no_gender['layers']['decade']['reason']
     assert no_gender['layers']['small_limit']['available'] is False
@@ -77,6 +86,20 @@ def test_target_day_boundary_follows_the_birth_rule():
     # The last supported evening still works: 2099-12-31 23:30 counts as 2100-01-01, inside lunar year 2099.
     last = layers(dict(birth, late_zi_day_rollover=True), '2099-12-31', '23:30')
     assert last['target']['calendar_day'] == '2100-01-01' and last['navigation']['next_day'] is None
+
+
+def test_navigation_dates_are_target_dates_after_the_day_change():
+    # 23:30 with the 23:00 day change reads the next day; stepping back must land in the previous month, not this one.
+    birth = {'birth_datetime': '2000-08-16T04:00', 'gender': 'female', 'late_zi_day_rollover': True}
+    here = layers(birth, '2026-10-11', '23:30')
+    nav = here['navigation']
+    before = layers(birth, nav['previous_month'], '23:30')
+    after = layers(birth, nav['next_month'], '23:30')
+    assert before['layers']['month']['label'] != here['layers']['month']['label'] != after['layers']['month']['label']
+    assert before['navigation']['next_month'] == nav['month_segment'][0] and after['navigation']['previous_month'] == nav['month_segment'][1]
+    # Every target_date inside month_segment reads the same month at this time.
+    for value in nav['month_segment']:
+        assert layers(birth, value, '23:30')['layers']['month']['label'] == here['layers']['month']['label']
 
 
 def test_rest_mcp_and_chat_specialist():

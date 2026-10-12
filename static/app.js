@@ -610,7 +610,8 @@ function renderHoroscopeStack(h) {
     const row = append(stack, 'div', 'layer-stack-row' + (key === ziweiLayer.mode ? ' active' : ''));
     append(row, 'b', null, LAYER_NAMES[key]);
     if (!item.available) {append(row, 'span', 'muted', item.reason); return;}
-    texts(append(row, 'span'), '命宫在', ' ' + item.ming_branch, ' · ', '本命', ' ' + item.ming_natal_palace);
+    if (item.ming_natal_palace) texts(append(row, 'span'), '命宫在', ' ' + item.ming_branch, ' · ', '本命', ' ' + item.ming_natal_palace);
+    else texts(append(row, 'span'), '命宫在', ' ' + item.ming_branch);
     const hua = append(row, 'span', 'layer-stack-hua');
     hua.append(item.stem + '：');
     item.transformations.forEach(t => {const s = append(hua, 'span'); s.append(t.star); huaBadge(s, t.type, key);});
@@ -2265,7 +2266,7 @@ function renderIntegration() {
   append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
-  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, group_relations: groupResult, rule_matrix: ruleMatrixResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
+  return {birth_hour_unknown:currentHourUnknown, pillar_search:pillarResult, chart_import_check:importResult, date_scan:dateScanResult, consultation:consultResult, qimen:qimenResult, qimen_reference_audit:referenceAuditResult,ziwei_professional:professionalResult, ziwei_horoscope:horoscopeResult, bazi_dayun:dayunResult, birth_boundaries:boundaryResult, day_officers:officerResult, annual_timeline:timelineResult, decision_matrix:decisionResult, chart: current, calendar: calendarResult, lunar_inverse: lunarInverseResult, pair: pairResult, ziwei_pair: pairZiweiResult, group_relations: groupResult, rule_matrix: ruleMatrixResult, annual: annualResult, time_audit: timeResult, birth_window: windowResult, report: reportResult, quality_audit: qualityResult};
 }
 function renderConsultation() {
   title(result, '问题驱动咨询工作流', '真实执行工具 · 保留证据来源 · 不在服务器保存对话');

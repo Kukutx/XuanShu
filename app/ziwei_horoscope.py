@@ -45,7 +45,8 @@ class ZiweiHoroscopeRequest(BaseModel):
     target_date: date | None = Field(default=None, description='Gregorian date to read the periods for (YYYY-MM-DD, 1901-02-19 to 2099-12-31); default today in the birth time zone')
     target_time: str | None = Field(default=None, pattern=r'^([01]\d|2[0-3]):[0-5]\d$',
                                     description='Optional clock time HH:MM for the hour layer; with the 23:00 day change, 23:00-23:59 counts as the next day')
-    hour_unknown: bool = Field(default=False, description='Birth hour unknown: the month, day and hour layers depend on it and are left out')
+    hour_unknown: bool = Field(default=False, description='Birth hour unknown: the decade, month, day and hour layers depend on it and are '
+                               'left out; the small limit and year keep their palace branch, stem and transformed stars but not natal positions')
 
 
 def _ganzhi(stem: int, branch: int) -> dict:
@@ -69,6 +70,16 @@ def _layer(name: str, label: str, ming: int, stem: str, branch: str, chart: dict
 
 def _unavailable(name: str, reason: str) -> dict:
     return {'name': name, 'available': False, 'reason': reason}
+
+
+def _without_natal_positions(layer: dict) -> dict:
+    """Drop what depends on the natal chart's placeholder hour: natal palace names and where the stars sit."""
+    layer['ming_natal_palace'] = None
+    for palace in layer['palaces']:
+        palace['natal_palace'] = None
+    for item in layer['transformations']:
+        item.update(branch=None, natal_palace=None, layer_palace=None)
+    return layer
 
 
 def _in_range(day: date) -> str | None:
@@ -107,7 +118,9 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
     layers: dict[str, dict] = {}
     decades = [p for p in chart['palaces'] if p['decade']]
     holder = next((p for p in decades if p['decade']['start_age'] <= age <= p['decade']['end_age']), None)
-    if not decades:
+    if req.hour_unknown:
+        layers['decade'] = _unavailable('大限', '大限的起运岁数和所在宫位取决于五行局与命宫，时辰不详时无法确定。')
+    elif not decades:
         layers['decade'] = _unavailable('大限', '大限顺行或逆行取决于性别；出生资料未选性别。')
     elif holder is None:
         first = min(p['decade']['start_age'] for p in decades)
@@ -125,6 +138,10 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
     layers['year'] = _layer('流年', f"{lunar['year']} {STEMS[year_stem]}{BRANCHES[year_branch]}年 · 虚岁 {age}", year_branch,
                             STEMS[year_stem], BRANCHES[year_branch], chart)
     if req.hour_unknown:
+        # The small limit and year palaces follow the year branch alone; the natal palaces and star positions follow the hour.
+        for key in ('small_limit', 'year'):
+            if layers[key]['available']:
+                _without_natal_positions(layers[key])
         for key, name in zip(HOUR_LAYERS, ('流月', '流日', '流时')):
             layers[key] = _unavailable(name, '流月、流日、流时按出生时辰定斗君；时辰不详时无法确定。')
     else:
@@ -150,6 +167,9 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
     segment = (start, end)
     if lunar['is_leap_month'] and birth.leap_month_second_half_as_next:
         segment = (start + timedelta(days=15), end) if leap_next else (start, start + timedelta(days=14))
+    # Navigation is given as target_date values for the same target_time, so undo the 23:00 day change.
+    shift = day - target
+    segment = (segment[0] - shift, segment[1] - shift)
     return {
         'system': 'ziwei-horoscope',
         'birth_datetime': chart['birth_datetime'], 'timezone': birth.timezone,
@@ -157,6 +177,7 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
                    'year': _ganzhi(year_stem, year_branch), 'month': _ganzhi(month_stem, month_branch),
                    'day': _ganzhi(day_idx, day_idx), 'hour': _ganzhi(hour_stem, hour_branch) if hour is not None else None},
         'nominal_age': age,
+        'hour_unknown': req.hour_unknown,
         'layers': {key: layers[key] for key in LAYER_KEYS},
         'navigation': {'month_segment': [segment[0].isoformat(), segment[1].isoformat()],
                        'previous_month': _in_range(segment[0] - timedelta(days=1)), 'next_month': _in_range(segment[1] + timedelta(days=1)),
@@ -178,5 +199,6 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
             '只标出各层的命宫与四化落在哪颗本命星上，不安流曜，不预测具体事件。',
             '流月的起法各派不同；这里用斗君，与 iztro 一致。',
             '流时按所填钟表时间取时辰，不做太阳时换算。',
-        ],
+            '前后翻页的日期是 target_date，配合同一个 target_time 使用；选了 23:00 换日时已扣回提前的一天。',
+        ] + (['时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干和四化星名，不列它们落在哪个本命宫。'] if req.hour_unknown else []),
     }

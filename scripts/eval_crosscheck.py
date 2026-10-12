@@ -388,6 +388,12 @@ HOROSCOPE_LAYERS = {'decade': 'decadal', 'small_limit': 'age', 'year': 'yearly',
 STEM_KEYS = {key + 'Heavenly': STEMS[i] for i, key in enumerate(('jia', 'yi', 'bing', 'ding', 'wu', 'ji', 'geng', 'xin', 'ren', 'gui'))}
 
 
+def _one_palace_shift(value, reference) -> bool:
+    """The mismatch a one-day lunar date difference makes: the same stem and stars, the palace one step away."""
+    return (value is not None and reference is not None and value[1:] == reference[1:]
+            and (BRANCHES.index(value[0]) - BRANCHES.index(reference[0])) % 12 in (1, 11))
+
+
 def compare_horoscope(count: int) -> dict:
     """Period layers (decade to hour) for random birth and target pairs: Life palace, stem and the four stars."""
     rng = random.Random(20261012)
@@ -407,7 +413,8 @@ def compare_horoscope(count: int) -> dict:
         theirs = chart.horoscope(f'{target.year}-{target.month}-{target.day}', (hour + 1) // 2).model_dump(mode='json')
         ours = ziwei_horoscope(ZiweiHoroscopeRequest(birth=BirthInput(birth_datetime=birth.isoformat(timespec='minutes'), gender=gender),
                                                      target_date=target, target_time=f'{hour:02d}:30'))
-        # iztro takes its lunar dates from lunar_python; in the months where that calendar differs, the day layers do too.
+        # iztro takes its lunar dates from lunar_python; in the months where that calendar differs, the day and hour
+        # palaces move one step and nothing else changes. Only that exact shape counts as explained.
         lunar = chinese_lunar_date(target)
         calendar_differs = lunar_python_values(datetime(target.year, target.month, target.day, 12))[0] != (
             lunar['year'], lunar['month'], lunar['day'], lunar['is_leap_month'])
@@ -420,7 +427,7 @@ def compare_horoscope(count: int) -> dict:
                 [STAR_KEYS.get(star) or TRANSFORMED_MINOR.get(star, star) for star in item['mutagen']])
             value = (layer['ming_branch'], layer['stem'], [t['star'] for t in layer['transformations']]) if layer['available'] else None
             tally.check(key, value, reference, example)
-            if value != reference and calendar_differs:
+            if key in ('day', 'hour') and calendar_differs and _one_palace_shift(value, reference):
                 explained[key] += 1
     return {'sample': {'pairs': count, 'birth_years': '1930–2049', 'targets': 'up to 100 years after birth, through 2099',
                        'hours': '00:00–22:59', 'seed': 20261012},

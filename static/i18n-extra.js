@@ -2186,6 +2186,10 @@ const UI_EXTRA = {
 "First six stem-branch pairs:",
 "最初の六つの干支："
 ],
+"前后翻页的日期是 target_date，配合同一个 target_time 使用；选了 23:00 换日时已扣回提前的一天。": [
+"The previous and next dates are target_date values to use with the same target_time; with the 23:00 day change the day already added is taken back off.",
+"前後の日付は同じ target_time と組み合わせる target_date です。23:00 換日を選んだ場合は繰り上げた一日を差し引いています。"
+],
 "前后误差（分钟）": [
 "± error (min)",
 "前後誤差（分）"
@@ -3177,6 +3181,10 @@ const UI_EXTRA = {
 "大限 ": [
 "Major limit ",
 "大限 "
+],
+"大限的起运岁数和所在宫位取决于五行局与命宫，时辰不详时无法确定。": [
+"The decade starting ages and palaces depend on the five-element bureau and the Life palace, which cannot be fixed when the birth hour is unknown.",
+"大限の起運年齢と宮は五行局と命宮で決まるため、生時が不明だと確定できません。"
 ],
 "大限需要性别来定顺行或逆行，请在出生资料里选择性别后重新生成命盘。": [
 "Major limits need a gender to set the direction; choose one in the birth details and generate the chart again.",
@@ -4961,6 +4969,10 @@ const UI_EXTRA = {
 "时辰不详：哪些部分不受时辰影响": [
 "Hour unknown: what the hour does not change",
 "時辰不明：時辰に左右されない部分"
+],
+"时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干和四化星名，不列它们落在哪个本命宫。": [
+"Birth hour unknown: natal palaces and star positions change with the hour, so the small limit and year give only their Life palace branch, stem and transformed stars, not which natal palace they fall in.",
+"生時不明：本命の宮と星の位置は時刻で変わるため、小限・流年は命宮の地支、天干、四化の星名だけを示し、どの本命宮に当たるかは示しません。"
 ],
 "时辰交界": [
 "Double-hour boundary",
