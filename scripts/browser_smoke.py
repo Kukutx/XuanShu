@@ -310,7 +310,41 @@ def main() -> None:
             page.locator('#group-year .inline-msg', has_text='1901 到 2099').wait_for(timeout=10000)
             assert page.evaluate("groupResult.year_view.year") == 2027
             page.locator('#group-year').screenshot(path=str(screenshot_dir / '40-group-years.png'))
+            # An unknown hour can leave two possible start years; both are shown, never "null".
+            assert page.evaluate("luckText({status: 'not_started', start_year: null, start_years: [1996, 1997]})") == '未起运，1996 或 1997 年起运'
+            assert page.evaluate("(() => {const box = document.createElement('div'); luckLine(box, {status: 'not_started', start_year: null, start_years: [1996, 1997]}, '大运'); return box.textContent;})()") == '大运未起运 · 起运年 1996 / 1997 （随时辰而定）'
+            # Stepping to 2099 disables the 下一年 button that was used; keyboard focus moves to the year field.
+            page.locator('#group-year-input').fill('2098')
+            page.locator('#group-year-input').dispatch_event('change')
+            page.wait_for_function("() => groupResult.year_view.year === 2098 && !groupYearPending", timeout=30000)
+            page.locator('#group-year-next').click()
+            page.wait_for_function("() => groupResult.year_view.year === 2099 && !groupYearPending", timeout=30000)
+            assert page.locator('#group-year-next').is_disabled() and page.evaluate('document.activeElement.id') == 'group-year-input'
+            # Slow replies. A year switched while 对照关系 runs asks for the run's members, not the ones shown.
+            page.evaluate("() => { window.__post = postJSON; postJSON = async (...args) => { await new Promise(r => setTimeout(r, 800)); return window.__post(...args); }; }")
+            page.locator('#group-current').uncheck()
+            page.locator('#group-run').click()
             page.locator('#group-year-prev').click()
+            page.wait_for_function("() => groupResult.year_view.year === 2098 && !groupYearPending && !groupRun", timeout=30000)
+            assert page.evaluate("groupResult.members.length") == 2 and '成员已改变' not in page.locator('#result').inner_text()
+            page.locator('#group-current').check()
+            page.locator('#group-run').click()
+            page.wait_for_function("() => !groupRun && groupResult.members.length === 3", timeout=30000)
+            # Two quick steps count from the year asked for, not the one still shown.
+            page.locator('#group-year-prev').click()
+            page.locator('#group-year-prev').click()
+            assert page.locator('#group-year-input').input_value() == '2096' and page.locator('.group-year-status').inner_text() == '正在换年…'
+            page.wait_for_function("() => groupResult.year_view.year === 2096 && !groupYearPending", timeout=30000)
+            # A year being typed when a reply arrives is kept, still focused, with no error.
+            page.locator('#group-year-prev').click()
+            page.locator('#group-year-input').fill('20')
+            page.wait_for_function("() => groupResult.year_view.year === 2095 && !groupYearPending", timeout=30000)
+            page.wait_for_timeout(100)
+            assert page.locator('#group-year-input').input_value() == '20' and page.evaluate('document.activeElement.id') == 'group-year-input'
+            assert page.locator('#group-year .inline-msg').count() == 0
+            page.evaluate("() => { postJSON = window.__post; }")
+            page.locator('#group-year-input').fill('2026')
+            page.locator('#group-year-input').dispatch_event('change')
             page.wait_for_function("() => groupResult.year_view.year === 2026 && !groupYearPending", timeout=30000)
             page.locator('[data-filter="六冲"]').click()
             page.locator('#group-node-0').focus()

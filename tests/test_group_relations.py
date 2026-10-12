@@ -165,6 +165,31 @@ def test_year_view_with_an_unknown_hour_takes_both_ends_of_the_birth_day():
     assert any('交节' in n for n in view['year_view']['notes'])
 
 
+def test_unknown_hour_on_a_midnight_daylight_saving_change_uses_the_real_ends_of_the_day():
+    def zoned(label, when, zone):
+        return {'label': label, 'birth': {'birth_datetime': when, 'timezone': zone, 'gender': 'male'}, 'hour_unknown': True}
+    # Sao Paulo, 28 January 1989: clocks fell back at midnight, so 23:00-23:59 came twice and the day ended at
+    # the second 23:59 (UTC-3). Both ends count: the later one begins the second luck period in 2000.
+    view = group_relations(GroupRequest(members=[zoned('甲', '1989-01-28T12:00', 'America/Sao_Paulo'),
+                                                 zoned('乙', '1990-05-17T12:00', 'Asia/Shanghai')], year=2000))
+    luck = view['year_view']['members'][0]['luck']
+    assert luck['status'] == 'depends_on_hour'
+    assert [(o['pillar'], o['start_year']) for o in luck['options']] == [('丙寅', 1991), ('丁卯', 2000)]
+    late = BirthInput(birth_datetime='1989-01-28T23:59-03:00', timezone='America/Sao_Paulo', gender='male')
+    periods = dayun_sequence(DayunRequest(birth=late, periods=12, include_years=True))['periods']
+    assert [p['pillar'] for p in periods if 2000 in [y['year'] for y in p['years']]] == ['丁卯']
+    # One pillar, two possible start years: start_year is None and start_years has both.
+    early = group_relations(GroupRequest(members=[zoned('乙', '1990-05-17T12:00', 'Asia/Shanghai'),
+                                                  zoned('丙', '1991-01-01T12:00', 'Asia/Shanghai')], year=1992))
+    luck = early['year_view']['members'][0]['luck']
+    assert (luck['status'], luck['start_year'], luck['start_years']) == ('not_started', None, [1996, 1997])
+    # Havana, 7 October 1972: clocks also fell back at midnight, and the 寒露 jie came in the day's last two
+    # hours (the clock read 23:00-23:59 twice), so the month pillar is unknown.
+    view = group_relations(GroupRequest(members=[zoned('丁', '1972-10-07T12:00', 'America/Havana'),
+                                                 zoned('乙', '1990-05-17T12:00', 'Asia/Shanghai')]))
+    assert view['members'][0]['uncertain_pillars'] == ['month']
+
+
 def test_year_is_validated_and_reaches_rest_and_mcp():
     for year in (1900, 2100, 'next'):
         with pytest.raises(ValidationError):

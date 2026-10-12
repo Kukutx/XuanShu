@@ -12,7 +12,9 @@ is produced.
 """
 from __future__ import annotations
 
+from datetime import date, datetime, time, timedelta, timezone
 from itertools import combinations
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -72,23 +74,41 @@ def _labels(left: str, right: str) -> list[str]:
     return found
 
 
-DAY_START, DAY_END = ('00:00', '00:30', '01:00', '02:00'), ('23:59', '23:30', '23:00', '22:00')
+DAY_START, DAY_END = 'start', 'end'
 
 
-def _birth_at(birth: BirthInput, day: str, times: tuple[str, ...]) -> tuple[BirthInput, dict]:
-    """The birth at the first of ``times`` on ``day`` that exists in the zone (a daylight-saving jump can skip
-    one), with its chart."""
-    for clock in times:
-        moved = birth.model_copy(update={'birth_datetime': f'{day}T{clock}'})
+def _day_start(zone: ZoneInfo, day: date) -> datetime:
+    """The first instant of the local ``day``: a daylight-saving jump at midnight can skip local 00:00 (the day
+    then begins at the later clock reading) or repeat it (the day begins at the first 00:00)."""
+    found = []
+    for fold in (0, 1):
+        moment = datetime.combine(day, time(0), tzinfo=zone).replace(fold=fold).astimezone(timezone.utc)
+        if moment.astimezone(zone).date() == day:
+            found.append(moment)
+    if not found:
+        raise ValueError(f'{day} does not exist in {zone.key}')
+    return min(found)
+
+
+def _birth_at(birth: BirthInput, day: str, edge: str) -> tuple[BirthInput, dict]:
+    """The birth at the first (``DAY_START``) or the last whole minute (``DAY_END``) of the local ``day``, with
+    its chart. The time carries its UTC offset, so a clock reading repeated by a daylight-saving change is not
+    ambiguous."""
+    zone, local = ZoneInfo(birth.timezone), date.fromisoformat(day)
+    if edge == DAY_START:
+        moment = _day_start(zone, local)
+    else:
         try:
-            return moved, calculate_bazi(moved)
-        except ValueError:
-            continue
-    raise ValueError(f'no valid local time found on {day}')
+            following = _day_start(zone, local + timedelta(days=1))
+        except ValueError:  # the next date was skipped (Samoa, 30 December 2011)
+            following = _day_start(zone, local + timedelta(days=2))
+        moment = following - timedelta(minutes=1)
+    moved = birth.model_copy(update={'birth_datetime': moment.astimezone(zone).isoformat(timespec='minutes')})
+    return moved, calculate_bazi(moved)
 
 
-def _at(birth: BirthInput, day: str, times: tuple[str, ...]) -> dict:
-    return _birth_at(birth, day, times)[1]
+def _at(birth: BirthInput, day: str, edge: str) -> dict:
+    return _birth_at(birth, day, edge)[1]
 
 
 def _member(m: GroupMember) -> dict:

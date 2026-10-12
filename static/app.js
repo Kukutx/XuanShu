@@ -1542,7 +1542,9 @@ function renderRuleMatrix() {
 // Members added on this page live only in memory; nothing is stored.
 let groupResult = null, groupKey = null, groupResultKeys = [], groupChatBlock = null;
 // The year of the luck and year-pillar view. A newer request (another year, or 对照关系) makes older replies stale.
-let groupYearTicket = 0, groupYearPending = false, groupYearError = '';
+// A 对照关系 run waiting for its reply keeps its members here: switching the year meanwhile asks for those
+// members, not the ones of the result shown. A year typed but not yet entered survives a re-render.
+let groupYearTicket = 0, groupYearPending = false, groupYearError = '', groupRun = null, groupRunError = '', groupYearTyped = null;
 // Member notes stay on this page: the current chart's and temporary members' are never stored, a saved
 // profile's only after 「保存到档案」. Notes never go to the server; only the chat draft the user sends carries them.
 let groupDraft = {useCurrent: true, currentLabel: '我', currentNote: {key: '', text: ''}, profiles: [], profileNotes: {}, extras: [], filter: 'all', focus: null,
@@ -1715,7 +1717,7 @@ function groupText(g) {
 }
 // The luck and year-pillar section of the text copy.
 function luckText(l) {
-  if (l.status === 'not_started') return '未起运，' + l.start_year + ' 年起运';
+  if (l.status === 'not_started') return '未起运，' + (l.start_year || (l.start_years || []).join(' 或 ')) + ' 年起运';
   if (l.status === 'beyond') return '超出所排的十二步大运';
   const starts = l.start_year ? [l.start_year] : l.start_years || [];
   return l.pillar + (l.ten_god ? ' ' + l.ten_god : '') + (starts.length ? '，' + starts.join(' 或 ') + ' 年交运' : '');
@@ -1848,20 +1850,25 @@ function renderGroup() {
   run.disabled = members.length < 2 || members.length > 8;
   const error = append(result, 'p', 'inline-msg');
   if (members.length > 8) error.textContent = '最多 8 人，请取消一些勾选';
+  else if (groupRunError) error.textContent = groupRunError;
   run.addEventListener('click', async () => {
     // Read the selection again: a label typed since the last render is not in `members` yet.
     // The note keys are taken with it, so a change made while the request runs cannot shift the notes.
     const chosen = groupMembers(), keys = groupMemberKeys();
     if (chosen.length < 2 || chosen.length > 8) {error.textContent = '请选 2 到 8 人'; return;}
-    run.disabled = true; error.textContent = '';
+    run.disabled = true; error.textContent = ''; groupRunError = '';
     const ticket = ++groupYearTicket;
+    groupRun = {chosen, keys};
     try {
       const reply = await postJSON('/api/group-relations', {members: chosen, year: groupDraft.year});
       if (ticket !== groupYearTicket) return;
       groupResult = reply; groupKey = JSON.stringify(chosen); groupResultKeys = keys; groupDraft.focus = null;
-      groupYearPending = false; groupYearError = '';
-      render();
-    } catch (err) {error.textContent = '对照失败：' + err.message; run.disabled = false;}
+      groupRun = null; groupYearPending = false; groupYearError = '';
+    } catch (err) {
+      if (ticket !== groupYearTicket) return;
+      groupRun = null; groupYearPending = false; groupRunError = '对照失败：' + err.message;
+    }
+    if (active === 'group') render();
   });
   if (!groupResult) return;
   if (groupKey !== JSON.stringify(members)) append(result, 'p', 'feature-note', '成员已改变，下面仍是上一次的结果；点「对照关系」更新。');
@@ -2020,10 +2027,12 @@ function renderGroupResult(g) {
   groupYearSection(g);
   g.notes.forEach(x => note(result, x));
 }
-// Another year for the same members: the members of the result shown, not the selection being edited.
+// Another year for the same members: the members of the result shown, not the selection being edited, or
+// those of a 对照关系 run still waiting for its reply (this request replaces that run's).
 async function groupYear(year) {
-  if (!groupKey) return;
-  if (groupResult && groupResult.year_view && groupResult.year_view.year === year && !groupYearPending) {
+  const pendingRun = groupRun;
+  if (!groupKey && !pendingRun) return;
+  if (!pendingRun && groupResult && groupResult.year_view && groupResult.year_view.year === year && !groupYearPending) {
     if (groupYearError) {groupYearError = ''; render();}
     return;
   }
@@ -2031,14 +2040,15 @@ async function groupYear(year) {
   const ticket = ++groupYearTicket;
   groupDraft.year = year; groupYearPending = true; groupYearError = ''; render();
   try {
-    const reply = await postJSON('/api/group-relations', {members: JSON.parse(groupKey), year});
+    const reply = await postJSON('/api/group-relations', {members: pendingRun ? pendingRun.chosen : JSON.parse(groupKey), year});
     if (ticket !== groupYearTicket) return;
     groupResult = reply;
+    if (pendingRun) {groupKey = JSON.stringify(pendingRun.chosen); groupResultKeys = pendingRun.keys; groupDraft.focus = null;}
   } catch (err) {
     if (ticket !== groupYearTicket) return;
     groupYearError = '换年失败：' + err.message;
   }
-  groupYearPending = false;
+  groupRun = null; groupYearPending = false;
   if (active === 'group') render();
 }
 // The year pillar against one member's chart in chart notation, for the text copy: 年午 同支、相刑, 年丙 相冲,
@@ -2051,7 +2061,13 @@ const yearReadingParts = n => [...n.branch_relations.map(r => nameMap[r.pillar].
 function luckLine(parent, l, prefix) {
   const row = append(parent, 'div', 'group-year-row');
   append(row, 'span', 'pillar-stage-label', prefix);
-  if (l.status === 'not_started') {texts(append(row, 'span', 'muted'), '未起运', ' · ', '起运年', ' ' + l.start_year); return row;}
+  if (l.status === 'not_started') {
+    const begins = l.start_year ? [l.start_year] : l.start_years || [];
+    const line = append(row, 'span', 'muted');
+    texts(line, '未起运', ' · ', '起运年', ' ' + begins.join(' / '));
+    if (begins.length > 1) texts(line, ' ', '（随时辰而定）');
+    return row;
+  }
   if (l.status === 'beyond') {append(row, 'span', 'muted', '超出所排的十二步大运'); return row;}
   const pillar = append(row, 'span', 'group-year-pillar');
   append(pillar, 'b', stemClass(l.pillar[0]), l.pillar[0]); append(pillar, 'b', branchClass(l.pillar[1]), l.pillar[1]);
@@ -2068,20 +2084,28 @@ function groupYearSection(g) {
   const box = append(result, 'section', 'group-year'); box.id = 'group-year';
   append(box, 'h4', 'subheading', '大运流年对照');
   const nav = append(box, 'div', 'inline-control group-year-nav');
-  const year = v ? v.year : groupDraft.year;
+  // While a request runs, the controls count from the year asked for, not the one still shown.
+  const year = groupYearPending || groupRun || !v ? groupDraft.year : v.year;
   const prev = append(nav, 'button', 'tiny-button', '‹ 上一年'); prev.type = 'button'; prev.id = 'group-year-prev';
   const label = append(nav, 'label', 'group-year-label', '公历年');
   const input = append(label, 'input'); input.type = 'number'; input.id = 'group-year-input';
-  input.min = '1901'; input.max = '2099'; input.step = '1'; input.value = String(year); input.inputMode = 'numeric';
+  input.min = '1901'; input.max = '2099'; input.step = '1'; input.value = groupYearTyped ?? String(year); input.inputMode = 'numeric';
   const next = append(nav, 'button', 'tiny-button', '下一年 ›'); next.type = 'button'; next.id = 'group-year-next';
   const today = append(nav, 'button', 'tiny-button', '今年'); today.type = 'button'; today.id = 'group-year-today';
   prev.disabled = year <= 1901; next.disabled = year >= 2099;
+  // A step that reaches 1901 or 2099 disables the button it was made with; keyboard focus moves to the year field.
+  prev.dataset.focusFallback = next.dataset.focusFallback = 'group-year-input';
   prev.addEventListener('click', () => groupYear(year - 1));
   next.addEventListener('click', () => groupYear(year + 1));
   today.addEventListener('click', () => groupYear(new Date().getFullYear()));
   // Rendering removes this field, and a removed field that still holds a typed value fires another change as it
   // loses focus; running the request after the event keeps that second render from starting inside the first.
-  input.addEventListener('change', () => {const value = Number(input.value); setTimeout(() => groupYear(value));});
+  // A field removed by that render (or by a reply arriving while the user types) is not a request.
+  input.addEventListener('input', () => {groupYearTyped = input.value;});
+  input.addEventListener('change', () => {
+    const value = Number(input.value);
+    setTimeout(() => {if (input.isConnected) {groupYearTyped = null; groupYear(value);}});
+  });
   const status = append(nav, 'span', 'group-year-status muted'); status.setAttribute('role', 'status');
   if (groupYearPending) status.textContent = '正在换年…';
   if (groupYearError) append(box, 'p', 'inline-msg', groupYearError);
@@ -2116,7 +2140,7 @@ function groupYearSection(g) {
     append(yearRow, 'span', 'group-year-god', n.ten_god_of_stem);
     yearRow.title = natalText(n);
     natalMarks(yearRow, n);
-    if (!natalMarkList(n).length) append(yearRow, 'small', 'muted', '与原局地支无冲合');
+    if (!natalMarkList(n).length && !n.branch_groups.length) append(yearRow, 'small', 'muted', '与原局地支无冲合');
     // Words in separate text nodes, so each translates on its own: 月柱 辛 丙辛合水, 补成 巳午未 三会方.
     if (n.stem_relations.length || n.branch_groups.length) {
       const more = append(card, 'div', 'group-year-extra');
@@ -3218,7 +3242,8 @@ function render() {
   renderView();
   result.querySelectorAll('details').forEach(d => {const key = detailKey(d); if (openState.has(key)) d.open = openState.get(key);});
   if (focusId && !result.contains(document.activeElement)) {
-    const again = document.getElementById(focusId);
+    let again = document.getElementById(focusId);
+    if (again && again.disabled && again.dataset.focusFallback) again = document.getElementById(again.dataset.focusFallback);
     if (again && !again.disabled) {
       again.focus({preventScroll: true});
       if (caret && again.setSelectionRange) try {again.setSelectionRange(caret[0], caret[1]);} catch (_) { /* not a text field */ }
@@ -3347,6 +3372,8 @@ form.addEventListener('submit', async event => {
     pairResult = null; pairZiweiResult = null; annualResult = null; timelineResult=null; timeResult = null; windowResult = null; reportResult = null; deepResult=null; qualityResult = null;
     dayunResult=null;boundaryResult=null;qimenResult=null;qimenFingerprint=null;professionalResult=null;referenceAuditResult=null;
     ruleMatrixResult = null; ruleMatrixKey = ''; ruleMatrixError = ''; groupResult = null; groupKey = null;
+    // A group reply still on its way belongs to the previous chart.
+    ++groupYearTicket; groupYearPending = false; groupYearError = ''; groupRun = null; groupRunError = ''; groupYearTyped = null;
     horoscopeResult = null; horoscopeKey = null; horoscopeError = ''; horoscopeResultKey = null;
     selectedPalace = '命宫'; ziweiLayer.decade = null; currentHourUnknown = $('#hour_unknown').checked;
     $('#result-subtitle').textContent = data.birth_datetime.replace('T',' ') + ' · ' + data.timezone;
