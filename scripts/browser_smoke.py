@@ -729,8 +729,61 @@ def main() -> None:
             page.get_by_text('公历 2024-02-10', exact=False).first.wait_for(timeout=30000)
 
             page.locator('[data-tab="pair"]').click()
+            page.evaluate("() => { pairDraft.year = 2026; }")  # the device year would make the luck section vary
+            page.locator('#pair_gender').select_option('female')
             page.locator('#pair-run').click()
             page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
+            # The same luck and year-pillar cards as the group page, for A and B, switchable by year.
+            assert page.locator('#pair-year .group-year-card').count() == 2 and '2026 流年 丙午' in page.locator('#pair-year').inner_text()
+            assert page.evaluate("pairResult.year_view.members[1].gender") == 'female' and '女' in page.locator('#pair-year-card-1').inner_text()
+            page.locator('#pair-year-next').click()
+            page.wait_for_function("() => pairResult.year_view.year === 2027 && !pairYearPending", timeout=30000)
+            assert page.evaluate('document.activeElement.id') == 'pair-year-next' and page.locator('#ziwei-pair-grid').count() == 1
+            assert '【2027 丁未年 · 大运流年】' in page.locator('#pair-text-text').text_content()
+            page.locator('#pair-year').screenshot(path=str(screenshot_dir / '41-pair-years.png'))
+            page.locator('#pair-year-prev').click()
+            page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
+            # A year switched while 比较两人命盘 runs is fetched for the new pair once the run's reply arrives.
+            page.evaluate("() => { window.__post = postJSON; postJSON = async (...args) => { await new Promise(r => setTimeout(r, 800)); return window.__post(...args); }; }")
+            page.locator('#pair_gender').select_option('male')
+            page.locator('#pair-run').click()
+            page.locator('#pair-year-next').click()
+            assert page.locator('#pair-year-input').input_value() == '2027' and page.locator('#pair-run').is_disabled()
+            page.wait_for_function("() => pairResult.year_view.year === 2027 && !pairYearPending && !pairRunning && pairResult.year_view.members[1].gender === 'male'", timeout=30000)
+            assert 'A 或 B 的资料已改变' not in page.locator('#result').inner_text() and page.locator('#ziwei-pair-grid').count() == 1
+            page.evaluate("() => { postJSON = window.__post; }")
+            page.locator('#pair_gender').select_option('female')
+            page.locator('#pair-run').click()
+            page.wait_for_function("() => !pairRunning && pairResult.year_view.members[1].gender === 'female'", timeout=30000)
+            page.locator('#pair-year-prev').click()
+            page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
+            # A run's reply that then asks for another year does not redraw another open tab.
+            page.evaluate("() => { window.__post = postJSON; postJSON = async (...args) => { await new Promise(r => setTimeout(r, 800)); return window.__post(...args); }; }")
+            page.locator('#pair-run').click()
+            page.locator('#pair-year-next').click()
+            page.locator('[data-tab="calendar"]').click()
+            page.evaluate("() => { document.querySelector('#result').firstElementChild.dataset.mark = 'kept'; }")
+            page.wait_for_function("() => !pairRunning && !pairYearPending && pairResult.year_view.year === 2027", timeout=30000)
+            assert page.evaluate("document.querySelector('#result').firstElementChild.dataset.mark") == 'kept'
+            page.evaluate("() => { postJSON = window.__post; }")
+            page.locator('[data-tab="pair"]').click()
+            # A year that fails to load is not used by the next run.
+            page.evaluate("() => { window.__post = postJSON; postJSON = async (url, body) => { if (url === '/api/pair' && body.year === 2028) { postJSON = window.__post; throw new Error('offline'); } return window.__post(url, body); }; }")
+            page.locator('#pair-year-next').click()
+            page.locator('#pair-year .inline-msg', has_text='换年失败').wait_for(timeout=10000)
+            assert page.evaluate("pairDraft.year") == 2027 and page.locator('#pair-year-input').input_value() == '2027'
+            # A year typed but not entered goes with the 比较两人命盘 click that follows it, and steps count from it.
+            page.locator('#pair-year-input').fill('2031')
+            box = page.locator('#pair-run').bounding_box()  # a slow press: the field's change runs before the release
+            page.mouse.move(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2)
+            page.mouse.down()
+            page.wait_for_timeout(150)
+            page.mouse.up()
+            page.wait_for_function("() => !pairRunning && !pairYearPending && pairResult.year_view.year === 2031", timeout=30000)
+            assert page.locator('#pair-year-input').input_value() == '2031'
+            page.locator('#pair-year-input').fill('2025')
+            page.locator('#pair-year-next').click()
+            page.wait_for_function("() => pairResult.year_view.year === 2026 && !pairYearPending", timeout=30000)
             # 4 pillar rows + every labelled branch link + 12 branch rows + 8 cross-chart transformations.
             links = page.evaluate('pairResult.branch_links.length')
             assert links >= 1 and page.locator('#result tbody tr').count() == 4 + links + 12 + 8

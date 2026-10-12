@@ -38,7 +38,7 @@ from .exports import solar_terms_ics
 from .report import ReportRequest, structured_report
 from .quality import QualityAuditRequest, calculation_quality_audit
 from .engines import BirthInput, calculate_bazi, calculate_ziwei, combined_chart
-from .features import CalendarRequest, PairInput, PalaceRequest, AnnualRequest, TimeAuditRequest, RuleComparisonRequest, calendar_days, compare_charts, palace_detail, annual_transformations, time_audit, rule_comparison
+from .features import CalendarRequest, PairComparisonInput, PairInput, PalaceRequest, AnnualRequest, TimeAuditRequest, RuleComparisonRequest, calendar_days, compare_charts, palace_detail, annual_transformations, time_audit, rule_comparison
 from .advanced import (DayunRequest, BirthBoundaryRequest, dayun_sequence, birth_boundary_map)
 from .workflows import (DayOfficerRequest, TimelineRequest, DecisionMatrixRequest,
                         day_officer_calendar, annual_timeline, decision_matrix)
@@ -356,7 +356,7 @@ def calendar(request: CalendarRequest, http_request: Request):
 
 
 @app.post('/api/pair')
-def pair(request: PairInput, http_request: Request):
+def pair(request: PairComparisonInput, http_request: Request):
     if not _validate_auth(http_request):
         raise HTTPException(401, detail='Unauthorized')
     try:

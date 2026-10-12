@@ -37,7 +37,7 @@ from .advanced import DayunRequest, BirthBoundaryRequest, dayun_sequence, birth_
 from .workflows import (DayOfficerRequest, TimelineRequest, DecisionMatrixRequest,
                         day_officer_calendar, annual_timeline, decision_matrix)
 from .engines import BirthInput, calculate_bazi, calculate_ziwei, combined_chart
-from .features import CalendarRequest, PairInput, PalaceRequest, AnnualRequest, TimeAuditRequest, RuleComparisonRequest, calendar_days, compare_charts, palace_detail, annual_transformations, time_audit, rule_comparison
+from .features import CalendarRequest, PairComparisonInput, PairInput, PalaceRequest, AnnualRequest, TimeAuditRequest, RuleComparisonRequest, calendar_days, compare_charts, palace_detail, annual_transformations, time_audit, rule_comparison
 
 PROTOCOL = '2025-11-25'  # legacy initialization fallback
 MODERN_PROTOCOL = '2026-07-28'
@@ -56,7 +56,7 @@ TOOL_DEFS = [
     {'name': 'symbolic_reading', 'title': '文化规则说明', 'description': 'Explain fields and traditional symbolic labels without inventing predictions.', 'inputSchema': BirthInput.model_json_schema()},
     {'name': 'solar_terms', 'title': '二十四节气', 'description': 'Get China-time instants of 24 solar terms in one Gregorian year.', 'inputSchema': {'type': 'object', 'properties': {'year': {'type': 'integer', 'minimum': 1901, 'maximum': 2099}}, 'required': ['year'], 'additionalProperties': False}},
     {'name': 'calendar_days', 'title': '连续农历日历', 'description': 'List 1–31 days with lunar dates, day stems/branches and solar-term occurrences; no auspicious-day claims.', 'inputSchema': CalendarRequest.model_json_schema()},
-    {'name': 'pair_comparison', 'title': '双人四柱对照', 'description': 'Compare two sets of pillars: the day-stem ten god in both directions, the day-stem five combination, the zodiac labels and every labelled branch link across the four pillars (same branch, six harmony, six clash, six harm, punishment), plus the same-position table. person_a_hour_unknown / person_b_hour_unknown leave that hour pillar out (and any pillar that changes during an unknown-hour birth day). No compatibility score.', 'inputSchema': PairInput.model_json_schema()},
+    {'name': 'pair_comparison', 'title': '双人四柱对照', 'description': 'Compare two sets of pillars: the day-stem ten god in both directions, the day-stem five combination, the zodiac labels and every labelled branch link across the four pillars (same branch, six harmony, six clash, six harm, punishment), plus the same-position table. person_a_hour_unknown / person_b_hour_unknown leave that hour pillar out (and any pillar that changes during an unknown-hour birth day). With year, year_view lists the year pillar read against both charts, each person\'s luck pillar in that year (needs gender; with an unknown hour both possibilities when they differ) and the labels between the two luck pillars, as in group_relations. No compatibility score.', 'inputSchema': PairComparisonInput.model_json_schema()},
     {'name': 'ziwei_pair_overlay', 'title': '双人紫微宫位叠盘', 'description': 'Overlay two Zi Wei charts on the shared twelve-branch grid: palace-by-palace comparison, where each Ming/Shen palace lands in the other chart, and each birth-year stem four-transformation looked up in the other chart. Both birth hours are required: an hour_unknown flag is refused. No compatibility score.', 'inputSchema': PairInput.model_json_schema()},
     {'name': 'annual_transformations', 'title': '指定农历年干四化', 'description': 'Map a named lunar year stem four-transformations to natal star positions (not a complete annual chart).', 'inputSchema': AnnualRequest.model_json_schema()},
     {'name': 'time_basis_audit', 'title': '时制敏感性分析', 'description': 'Compare clock, longitude-based mean solar and apparent solar time for a birth with longitude.', 'inputSchema': TimeAuditRequest.model_json_schema()},
@@ -141,7 +141,7 @@ def call_tool(name: str, args: dict) -> Any:
         'combined_chart': (BirthInput, combined_chart),
         'symbolic_reading': (BirthInput, symbolic_reading),
         'calendar_days': (CalendarRequest, calendar_days),
-        'pair_comparison': (PairInput, compare_charts),
+        'pair_comparison': (PairComparisonInput, compare_charts),
         'ziwei_pair_overlay': (PairInput, ziwei_pair_overlay),
         'palace_detail': (PalaceRequest, palace_detail),
         'annual_transformations': (AnnualRequest, annual_transformations),
