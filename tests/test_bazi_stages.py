@@ -47,3 +47,23 @@ def test_growth_stage_table():
 def test_void_branches_of_the_six_decades():
     assert [xun_kong(first) for first in range(0, 60, 10)] == ['戌亥', '申酉', '午未', '辰巳', '寅卯', '子丑']
     assert all(xun_kong(first + k) == xun_kong(first) for first in range(0, 60, 10) for k in range(10))
+
+
+def test_rest_and_mcp_return_the_new_fields():
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+    from app.mcp import process_rpc
+
+    birth = {'birth_datetime': '1990-05-10T13:00', 'timezone': 'Asia/Shanghai'}
+    rest = TestClient(app).post('/api/bazi', json=birth).json()
+    reply = process_rpc({'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call', 'params': {'name': 'bazi_chart', 'arguments': birth}})
+    mcp = reply['result']['structuredContent']
+    fields = ('growth_stage', 'self_stage', 'xun_kong', 'void_of')
+    for result in (rest, mcp):
+        assert [result['pillars'][k]['growth_stage'] for k in ('year', 'month', 'day', 'hour')] == ['长生', '沐浴', '死', '养']
+        assert result['pillars']['day']['void_of'] == ['year'] and result['pillars']['day']['xun_kong'] == '申酉'
+        assert ['乙庚合金'] in [r['labels'] for r in result['stem_relations']]
+        assert [(g['kind'], g['branches'], g['element']) for g in result['branch_groups']] == [('三会', '巳午未', '火')]
+    assert {k: [rest['pillars'][p][k] for p in rest['pillars']] for k in fields} == {k: [mcp['pillars'][p][k] for p in mcp['pillars']] for k in fields}
+    assert rest['stem_relations'] == mcp['stem_relations'] and rest['branch_groups'] == mcp['branch_groups']
