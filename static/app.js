@@ -1727,7 +1727,7 @@ function groupText(g) {
   const totals = g.element_overview.surface_totals, masters = g.element_overview.day_masters;
   lines.push('', '【五行】', '表面合计：' + PHASES.split('').map(e => e + ' ' + totals[e]).join(gap) + '（四柱天干地支，不含藏干）',
     '日主：' + PHASES.split('').filter(e => masters[e].length).map(e => e + ' ' + masters[e].map(asName).join('、')).join('；'));
-  if (g.year_view) lines.push('', ...groupYearText(g.year_view));
+  if (g.year_view) lines.push('', ...groupYearText(g.year_view, 'group'));
   lines.push('', ...g.notes, ...TEXT_FOOTER);
   return finishText(lines);
 }
@@ -1738,7 +1738,7 @@ function luckText(l) {
   const starts = l.start_year ? [l.start_year] : l.start_years || [];
   return l.pillar + (l.ten_god ? ' ' + l.ten_god : '') + (starts.length ? '，' + starts.join(' 或 ') + ' 年交运' : '');
 }
-function groupYearText(v) {
+function groupYearText(v, prefix) {
   const gap = '　', lines = ['【' + v.year + ' ' + v.year_pillar + '年 · 大运流年】十神以各人日主看天干'];
   v.members.forEach(m => {
     const who = asName(m.label) + '（' + (GENDER_TEXT[m.gender] || '性别未填') + (m.status === 'born' ? '，' + m.age + ' 岁' : '') + '）';
@@ -1754,7 +1754,24 @@ function groupYearText(v) {
   const marked = v.luck_pairs.filter(p => p.branch_labels.length || p.stem_combination);
   lines.push('大运之间：' + (marked.map(p => asName(p.a_label) + ' ' + p.a_pillar + ' ↔ ' + asName(p.b_label) + ' ' + p.b_pillar + ' '
     + [p.stem_combination, ...p.branch_labels].filter(Boolean).join('、')).join('；') || '无标记'));
+  // The same fifteen years as the timeline on the page.
+  const start = luckWindowFor(prefix, v.year), end = start + LUCK_SPAN - 1;
+  if ((v.luck_timeline || []).length) lines.push('大运时间轴（' + start + '–' + end + '）：');
+  (v.luck_timeline || []).forEach(row => lines.push(gap + asName(row.label) + '：' + luckSpanText(row, start, end)));
   return lines;
+}
+// One member's luck periods that touch the years start..end, for the text export.
+function luckSpanText(row, start, end) {
+  if (row.status === 'needs_gender') return '未填性别，不排大运';
+  if (row.status !== 'ok') return '月柱不定，大运无法确定';
+  if (row.born_year > end) return '尚未出生';
+  const from = Math.max(start, row.born_year), parts = [], last = row.periods[row.periods.length - 1];
+  if (row.periods.length && from < row.periods[0].start_years[0]) parts.push('未起运');
+  const shown = row.periods.filter(p => p.end_years[p.end_years.length - 1] >= from && p.start_years[0] <= end);
+  shown.forEach(p => parts.push(p.pillar + (p.ten_god ? ' ' + p.ten_god : '') + ' ' + p.start_years.join('/') + '–' + p.end_years.join('/')));
+  // The years after the twelfth period are not left unmarked.
+  if (last && end > last.end_years[last.end_years.length - 1]) parts.push('已排完');
+  return parts.join(' → ') + (shown.some(p => p.start_years.length > 1 || p.end_years.length > 1) ? '（时辰不详，交运年有两种可能）' : '');
 }
 function renderGroup() {
   title(result, '多人关系', '家人、团队或朋友的四柱并排 · 只标传统标签，不打分');
@@ -2105,6 +2122,121 @@ function groupYearSection(g) {
   luckYearSection(v, {prefix: 'group', year: groupYearPending || groupRun || !v ? groupDraft.year : v.year, pending: groupYearPending, error: groupYearError,
     people: g.members, change: groupYear, rerun: '点「对照关系」重新计算后可以看这一部分。'});
 }
+// The first year shown on each luck timeline, kept while the open year stays inside the fifteen years.
+// luckTimelineYear is the open year the window was last placed for: moving the window by hand is kept until
+// another year is opened.
+const luckTimelineStart = {}, luckTimelineYear = {};
+const LUCK_SPAN = 15, LUCK_LAST_START = 2099 - LUCK_SPAN + 1;
+function luckWindow(year, start) {
+  if (start === undefined || year < start || year >= start + LUCK_SPAN) start = year - 4;
+  return Math.max(1901, Math.min(LUCK_LAST_START, start));
+}
+function luckWindowFor(prefix, year) {
+  if (luckTimelineYear[prefix] !== year || luckTimelineStart[prefix] === undefined) {
+    luckTimelineStart[prefix] = luckWindow(year, luckTimelineStart[prefix]); luckTimelineYear[prefix] = year;
+  }
+  return luckTimelineStart[prefix];
+}
+// What one member's luck is in a year: a period, a change that depends on the unknown hour, before the first
+// period, or not yet born.
+function luckAt(row, year) {
+  if (year < row.born_year) return {kind: 'unborn'};
+  const periods = row.periods;
+  for (let k = 0; k < periods.length; k++) {
+    const p = periods[k], starts = p.start_years;
+    if (starts.length > 1 && year >= starts[0] && year < starts[starts.length - 1]) return {kind: 'maybe', before: periods[k - 1] || null, after: p};
+    if (year >= starts[starts.length - 1] && year <= p.end_years[0]) return {kind: 'period', period: p, first: year === starts[starts.length - 1]};
+  }
+  if (periods.length && year < periods[0].start_years[0]) return {kind: 'not_started'};
+  // With an unknown hour the twelfth period may end a year later: that year is still in it or past the list.
+  const last = periods[periods.length - 1];
+  if (last && year > last.end_years[0] && year <= last.end_years[last.end_years.length - 1]) return {kind: 'maybe', before: last, after: null};
+  return {kind: 'beyond'};
+}
+// Each member's luck periods across fifteen years, so the changes line up at a glance; a year opens its cards.
+function luckTimeline(box, v, prefix, change) {
+  const rows = v.luck_timeline || [];
+  if (!rows.length) return;
+  append(box, 'h4', 'subheading', '大运时间轴');
+  const wrap = append(box, 'div', 'luck-timeline-box'); wrap.id = prefix + '-timeline';
+  const draw = () => {
+    wrap.replaceChildren();
+    const start = luckWindowFor(prefix, v.year);
+    const years = Array.from({length: LUCK_SPAN}, (_, k) => start + k);
+    const nav = append(wrap, 'div', 'inline-control luck-timeline-nav');
+    const back = append(nav, 'button', 'tiny-button', '‹ 早五年'); back.type = 'button'; back.id = prefix + '-timeline-back';
+    const forward = append(nav, 'button', 'tiny-button', '晚五年 ›'); forward.type = 'button'; forward.id = prefix + '-timeline-forward';
+    texts(append(nav, 'span', 'muted luck-timeline-range'), years[0] + '–' + years[years.length - 1]);
+    back.disabled = start <= 1901; forward.disabled = start >= LUCK_LAST_START;
+    // Moving the window keeps the open year; it only shows other years, so nothing is requested. Focus stays on
+    // the button pressed, or moves to the other one when the window reached the end of the range.
+    const shift = step => {
+      luckTimelineStart[prefix] = Math.max(1901, Math.min(LUCK_LAST_START, start + step)); draw();
+      const [pressed, other] = (step < 0 ? ['-timeline-back', '-timeline-forward'] : ['-timeline-forward', '-timeline-back']).map(id => wrap.querySelector('#' + prefix + id));
+      (pressed.disabled ? other : pressed).focus();
+      const copy = document.getElementById(prefix + '-text');  // the text preview lists the same years
+      if (copy && copy.xsFill) copy.xsFill();
+    };
+    back.addEventListener('click', () => shift(-5));
+    forward.addEventListener('click', () => shift(5));
+    const table = append(append(wrap, 'div', 'table-wrap luck-timeline-wrap'), 'table', 'luck-timeline');
+    const head = append(append(table, 'thead'), 'tr');
+    append(head, 'th', 'luck-timeline-who', '成员').scope = 'col';
+    years.forEach(year => {
+      const th = append(head, 'th', year === v.year ? 'tl-selected' : null); th.scope = 'col';
+      const pick = append(th, 'button', 'tl-year', String(year)); pick.type = 'button'; pick.id = prefix + '-timeline-year-' + year;
+      pick.setAttribute('aria-pressed', String(year === v.year));
+      pick.addEventListener('click', () => change(year));
+    });
+    const body = append(table, 'tbody');
+    rows.forEach(row => {
+      const tr = append(body, 'tr');
+      const who = append(tr, 'th', 'luck-timeline-who user-text', row.label); who.scope = 'row';
+      if (row.status !== 'ok') {
+        const td = append(tr, 'td', 'tl-cell tl-note', row.status === 'needs_gender' ? '未填性别，不排大运' : '时辰不详且当天交节，大运无法确定');
+        td.colSpan = LUCK_SPAN; return;
+      }
+      // A label sits in the first cell of a run and may run on over the following cells of the same run, so long
+      // translated ten-god names keep every year column the same width.
+      const same = (a, b) => a.kind === b.kind && a.period === b.period;
+      const label = (td, k, at) => {
+        let run = 1;
+        while (k + run < years.length && same(luckAt(row, years[k + run]), at)) run++;
+        const box = append(td, 'span', 'tl-label'); box.style.width = `calc(${run * 100}% + ${run * 2 - 10}px)`;
+        return box;
+      };
+      years.forEach((year, k) => {
+        const at = luckAt(row, year), td = append(tr, 'td', 'tl-cell');
+        if (year === v.year) td.classList.add('tl-selected');
+        td.addEventListener('click', () => change(year));
+        if (at.kind === 'unborn') {td.classList.add('tl-empty'); td.title = '尚未出生'; return;}
+        if (at.kind === 'not_started' || at.kind === 'beyond') {
+          td.classList.add('tl-empty');
+          td.title = at.kind === 'not_started' ? '未起运' : '已排完';
+          if (k === 0 || luckAt(row, year - 1).kind !== at.kind) append(label(td, k, at), 'small', 'tl-god', at.kind === 'not_started' ? '未起运' : '已排完');
+          return;
+        }
+        if (at.kind === 'maybe') {
+          td.classList.add('tl-maybe'); append(td, 'small', null, '?');
+          td.title = (at.before ? at.before.pillar : '未起运') + ' / ' + (at.after ? at.after.pillar : '已排完') + ' · 时辰不详，交运年随时辰而定';
+          return;
+        }
+        const p = at.period;
+        td.classList.add('tl-' + ELEMENT_CLASS[STEM_ELEMENTS[STEM_ORDER.indexOf(p.pillar[0])]]);
+        if (at.first) td.classList.add('tl-change');
+        td.title = p.pillar + (p.ten_god ? ' ' + p.ten_god : '') + ' · ' + p.start_years.join('/') + '–' + p.end_years.join('/');
+        // The pillar is written where a period begins, and again at the left edge for one already running.
+        if (at.first || k === 0 || luckAt(row, year - 1).kind !== 'period') {
+          const box = label(td, k, at), cell = append(box, 'span', 'tl-pillar');
+          append(cell, 'b', stemClass(p.pillar[0]), p.pillar[0]); append(cell, 'b', branchClass(p.pillar[1]), p.pillar[1]);
+          if (p.ten_god) append(box, 'small', 'tl-god', p.ten_god);
+        }
+      });
+    });
+  };
+  draw();
+  append(box, 'p', 'field-help', '一行一人、一格一年：颜色是大运天干的五行，粗边是交运的那一年，「?」是时辰不详时可能交运的年份。点年份或格子就切到那一年。');
+}
 // Each person's luck pillar and the year pillar of one year, with a year switcher; shared by the group and pair pages.
 // people[i] carries the day master of v.members[i] for the card's colour dot.
 // shownYear is the year the controls count from: the one asked for while a request runs, else the one shown.
@@ -2145,6 +2277,7 @@ function luckYearSection(v, {prefix, year: shownYear, pending, error, people, ch
   append(head, 'b', stemClass(v.year_pillar[0]), v.year_pillar[0]); append(head, 'b', branchClass(v.year_pillar[1]), v.year_pillar[1]);
   texts(head, ' · ', ANIMAL_YEARS[BRANCH_ORDER.indexOf(v.year_pillar[1])]);
   append(box, 'p', 'field-help', '每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。');
+  luckTimeline(box, v, prefix, change);
   const cards = append(box, 'div', 'group-year-cards');
   v.members.forEach((m, i) => {
     const card = append(cards, 'article', 'group-year-card'); card.id = prefix + '-year-card-' + i;
@@ -2688,7 +2821,7 @@ function pairText() {
     [['A → B', z.transformations_a_into_b], ['B → A', z.transformations_b_into_a]].forEach(([label, rows]) => lines.push('　' + `${label}（${rows[0].source_year_stem}年干）` + '：'
       + rows.map(t => t.star + t.type + ' ' + (t.target_palace ? t.target_palace + '（' + t.target_branch + '）' : '对方盘未安此星')).join('；')));
   } else lines.push('', PAIR_ZIWEI_NEEDS_HOURS);
-  if (r.year_view) lines.push('', ...groupYearText(r.year_view));
+  if (r.year_view) lines.push('', ...groupYearText(r.year_view, 'pair'));
   lines.push('', ...r.notes, ...(z ? z.limitations : []), ...TEXT_FOOTER);
   return finishText(lines);
 }

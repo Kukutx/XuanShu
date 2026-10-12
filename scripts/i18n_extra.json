@@ -35,6 +35,10 @@
   " · hour unknown",
   " · 時辰不明"
  ],
+ " · 时辰不详，交运年随时辰而定": [
+  " · hour unknown, the year the period changes depends on the hour",
+  " · 時刻不明のため、交運年は時刻次第"
+ ],
  " · 相冲 ": [
   " · Clash ",
   " · 相沖 "
@@ -663,6 +667,10 @@
   "‹ Previous year",
   "‹ 前年"
  ],
+ "‹ 早五年": [
+  "‹ 5 years earlier",
+  "‹ 5年前へ"
+ ],
  "← 左右滑动查看完整十二宫 →": [
   "← Swipe sideways to see all twelve palaces →",
   "← 左右にスワイプして十二宮すべてを表示 →"
@@ -794,6 +802,10 @@
  "一致率": [
   "Agreement",
   "一致率"
+ ],
+ "一行一人、一格一年：颜色是大运天干的五行，粗边是交运的那一年，「?」是时辰不详时可能交运的年份。点年份或格子就切到那一年。": [
+  "One row per person, one cell per year. The colour is the element of the luck period's stem, a thick edge marks the year a period begins, and \"?\" marks a year in which a period may begin when the hour is unknown. Click a year or a cell to open that year.",
+  "1行が1人、1マスが1年。色は大運の天干の五行、太い縁は交運の年、「?」は時刻不明のとき交運があり得る年です。年やマスをクリックするとその年に切り替わります。"
  ],
  "丁壬合木": [
   "Ding–Ren combine (Wood)",
@@ -3579,6 +3591,14 @@
   "Luck Pillar direction (auto by default)",
   "大運の方向（既定は自動）"
  ],
+ "大运时间轴": [
+  "Luck timeline",
+  "大運タイムライン"
+ ],
+ "大运时间轴（": [
+  "Luck timeline (",
+  "大運タイムライン（"
+ ],
  "大运是传统十年干支标签，本工具不据此预测真实事件、吉凶、健康、财运或关系。": [
   "Luck Pillars are traditional ten-year stem-branch labels; this tool does not use them to predict real events, auspiciousness, health, finances or relationships.",
   "大運は伝統的な十年の干支ラベルであり、本ツールはこれに基づいて現実の出来事、吉凶、健康、財運、関係を予測しません。"
@@ -4219,6 +4239,10 @@
   "No saved local profiles yet",
   "保存済みのローカルプロフィールはまだありません"
  ],
+ "尚未出生": [
+  "Not yet born",
+  "まだ生まれていない"
+ ],
  "尚未解释。": [
   "Not yet explained.",
   "未解明です。"
@@ -4354,6 +4378,10 @@
  "已按所选规则列出名义大运干支序列（非事件预测）。": [
   "Listed the nominal Luck Pillar stem-branch sequence under the selected rules (not an event prediction).",
   "選択した規則に従い、名目上の大運干支の並びを列挙しました（出来事の予測ではありません）。"
+ ],
+ "已排完": [
+  "Beyond the listed periods",
+  "算出範囲外"
  ],
  "已提议保存到档案记忆，等待用户确认": [
   "Proposed saving to profile memory; awaiting user confirmation",
@@ -4854,6 +4882,10 @@
  "成": [
   "Cheng (Success)",
   "成"
+ ],
+ "成员": [
+  "Member",
+  "メンバー"
  ],
  "成员两两比较大运：天干五合，地支同支、六合、六冲、六害、相刑": [
   "Each pair of members compared by luck pillars: stem five combinations; branch same branch, six harmony, six clash, six harm, punishment",
@@ -5679,6 +5711,10 @@
   "Birth hour unknown on a jie or day-change date: pillars marked ? are left out",
   "出生時刻不明で当日に節入りか日替わりあり：? の柱は比較しません"
  ],
+ "时辰不详且当天交节，大运无法确定": [
+  "Hour unknown and a solar term begins that day: luck periods cannot be set",
+  "時刻不明で当日に節入りがあるため、大運は確定できません"
+ ],
  "时辰不详且当天交节，月柱不定，大运无法确定": [
   "Hour unknown on a jie day: month pillar uncertain, luck pillar cannot be set",
   "時刻不明かつ節入り当日：月柱が未確定のため大運を確定できない"
@@ -5690,6 +5726,10 @@
  "时辰不详的成员按出生当天最早与最晚的时刻各排一次大运；两者不同时并列两种可能，流年也不与时柱比较。": [
   "For a member with an unknown hour, luck is computed for the first and the last minute of the birth day; when they differ both are listed, and the annual pillar is not compared with the hour pillar.",
   "時刻不明のメンバーは誕生日の最も早い時刻と遅い時刻でそれぞれ大運を出し、異なる場合は両方を並べます。流年も時柱とは比べません。"
+ ],
+ "时辰不详，交运年随时辰而定": [
+  "hour unknown, the year this period begins depends on the hour",
+  "時刻不明のため、交運年は時刻次第"
  ],
  "时辰不详：出生当天早晚不同，大运也不同": [
   "Hour unknown: the luck pillar differs between early and late in the birth day",
@@ -5850,6 +5890,10 @@
  "显示运柱数量（1–12）": [
   "Number of luck pillars to show (1–12)",
   "表示する運柱の数（1–12）"
+ ],
+ "晚五年 ›": [
+  "5 years later ›",
+  "5年後へ ›"
  ],
  "晚子": [
   "Late Zi",
@@ -6590,6 +6634,10 @@
  "每个命盘事实可追溯到工具调用": [
   "Every chart fact traces back to a tool call",
   "命盤の各事実はツール呼び出しまで遡れます"
+ ],
+ "每人十二步大运与各自列出的公历年，交运当年记在新大运下": [
+  "Each person's twelve luck periods with the calendar years each covers; the year a period begins is listed under the new period",
+  "各人の大運12期とそれぞれの西暦年。交運の年は新しい大運に含める"
  ],
  "每天一张盘": [
   "One chart a day",
@@ -9194,6 +9242,10 @@
  "（得）": [
   "(Good)",
   "（得）"
+ ],
+ "（时辰不详，交运年有两种可能）": [
+  " (hour unknown: each period may begin in either of two years)",
+  "（時刻不明のため、交運年は2通りあり得ます）"
  ],
  "（时辰不详，按 12:00 占位）": [
   " (hour unknown, 12:00 used as a placeholder)",
