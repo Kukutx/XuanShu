@@ -5,7 +5,8 @@ from app.chart_import import TRADITIONAL, ChartImportRequest, chart_import_check
 from app.engines import BirthInput
 
 BIRTH = BirthInput(birth_datetime='2000-08-16T04:00', timezone='Asia/Shanghai', gender='female')
-# Copied from the share dialog for this birth with 乾造/坤造 ticked (scripts/browser_smoke.py checks the same lines).
+# Copied from the share dialog for this birth with 乾造/坤造 ticked (scripts/browser_smoke.py checks the same lines);
+# the luck decades it then lists must not disturb the parser.
 TEXT_CHART = """玄枢命盘 · 本地确定性计算
 坤造
 
@@ -22,6 +23,16 @@ TEXT_CHART = """玄枢命盘 · 本地确定性计算
 日主：丙火
 天干关系：年月 庚甲相冲　月时 甲庚相冲
 地支关系：月时 申寅六冲·相刑
+大运：逆排
+　起运  3　癸未　正官　星运衰　　合日
+　起运 13　壬午　七杀　星运帝旺　同日　刑日
+　起运 23　辛巳　正财　星运临官　合月　刑月　害时　刑时
+　起运 33　庚辰　偏财　星运冠带　同年　刑年
+　起运 43　己卯　伤官　星运沐浴　害年　日空
+　起运 53　戊寅　食神　星运长生　冲月　刑月　同时　日空
+　起运 63　丁丑　劫财　星运养　　害日
+　起运 73　丙子　比肩　星运胎　　冲日
+　起运 83　乙亥　正印　星运绝　　害月　合时
 
 【紫微斗数】
 命宫在壬午，身宫在官禄宫，木三局，命主破军，身主文昌

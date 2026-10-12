@@ -491,6 +491,13 @@ def main() -> None:
             text_chart = page.evaluate(share_text)
             assert '坤造' in text_chart and '命宫（壬午）：紫微庙｜文曲陷 凤阁 蜚廉｜大限 3–12' in text_chart
             assert '官禄宫（丙戌，身宫）：廉贞利 天府庙｜' in text_chart and '田宅宫（乙酉）：空宫｜' in text_chart
+            # With the gender shown the luck decades follow, with their marks; calendar years only when the date is shown too.
+            page.wait_for_function("() => document.querySelector('#share-text').textContent.includes('大运：逆排')", timeout=30000)
+            text_chart = page.evaluate(share_text)
+            assert '\u3000起运 13\u3000壬午\u3000七杀\u3000星运帝旺\u3000同日\u3000刑日' in text_chart and '2013–2022' not in text_chart
+            page.locator('#share-date').check()
+            assert '\u3000起运 13\u3000壬午\u3000七杀\u3000星运帝旺\u30002013–2022\u3000同日' in page.evaluate(share_text)
+            page.locator('#share-date').uncheck()
             # The page runs from set_content (no secure origin), so the clipboard is stubbed: first refused, then allowed.
             page.evaluate('''() => {window.copiedText = null; Object.defineProperty(navigator, 'clipboard', {configurable: true,
               value: {writeText: async () => {throw new Error('denied');}}});}''')

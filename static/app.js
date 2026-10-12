@@ -372,13 +372,17 @@ function ensureLuck() {
   // Without the hour, relations with the (placeholder) hour pillar are left out.
   postJSON('/api/dayun', {birth: currentInput, periods: 9, include_years: true, hour_unknown: currentHourUnknown})
     .then(data => {luckData = data;}).catch(() => {luckData = null;})
-    .finally(() => {luckPending = false; luckKey = key; luckDecade = null; if (active === 'bazi') render();});
+    .finally(() => {
+      luckPending = false; luckKey = key; luckDecade = null; if (active === 'bazi') render();
+      const dialog = $('#share-dialog'); if (dialog && dialog.open && shareRefresh) shareRefresh();  // the text chart lists the decades
+    });
 }
 // A luck or year pillar against the natal chart. In the cells, short marks in chart notation (冲月: clashes the
 // month branch; 合 刑 害 likewise, 同 for the same branch; 日空 年空 for the voids); the full text in the caption and title.
+const natalMarkList = n => n.branch_relations.flatMap(r => r.labels.map(l => [(l === '同支' ? l.charAt(0) : l.slice(-1)) + nameMap[r.pillar].charAt(0), LINK_CLASS[l] || 'same']))
+  .concat(n.void_of.map(v => [v === 'day' ? '日空' : '年空', 'void']));
 function natalMarks(parent, n) {
-  const marks = n.branch_relations.flatMap(r => r.labels.map(l => [(l === '同支' ? l.charAt(0) : l.slice(-1)) + nameMap[r.pillar].charAt(0), LINK_CLASS[l] || 'same']))
-    .concat(n.void_of.map(v => [v === 'day' ? '日空' : '年空', 'void']));
+  const marks = natalMarkList(n);
   if (!marks.length) return;
   const line = append(parent, 'span', 'luck-marks'); line.setAttribute('data-no-i18n', '');
   marks.forEach(([text, kind]) => append(line, 'span', 'luck-mark link-' + kind, text));
@@ -3206,6 +3210,21 @@ function shareChartText() {
       .map(x => keys.filter(k => x.pillars.includes(k)).map(short).join('') + ' ' + x.label).join(gap);
     if (listed(links.stems)) lines.push('天干关系：' + listed(links.stems));
     if (listed(links.branches)) lines.push('地支关系：' + listed(links.branches));
+    // Luck decades need the gender for their direction; the calendar years would give away the birth year.
+    if (gender) {
+      if (luckKey !== luckKeyNow()) {ensureLuck(); lines.push('大运：正在排…');}
+      else if (luckData) {
+        lines.push(['大运', luckData.direction === 'forward' ? '顺排' : '逆排'].join('：'));
+        const rows = luckData.periods.map(p => {
+          const n = p.natal_interactions;
+          const cells = ['起运 ' + String(Math.round(p.approx_start_age_years)).padStart(2, ' '), p.pillar, n.ten_god_of_stem, '星运' + n.growth_stage];
+          if (shareOptions.date) cells.push(p.approx_start_local.slice(0, 4) + '–' + (Number(p.approx_end_local_exclusive.slice(0, 4)) - 1));
+          return [cells, natalMarkList(n).map(([text]) => text)];
+        });
+        const width = Math.max(...rows.map(([cells]) => cells[3].length));
+        rows.forEach(([cells, marks]) => {cells[3] = cells[3].padEnd(width, '　'); lines.push('　' + cells.concat(marks).join(gap));});
+      }
+    }
   }
   if (shareOptions.ziwei && currentHourUnknown) lines.push('', '紫微斗数需要出生时辰，时辰不详时不列出。');
   else if (shareOptions.ziwei) {
