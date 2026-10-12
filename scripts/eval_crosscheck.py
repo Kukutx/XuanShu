@@ -49,7 +49,7 @@ from lunar_python import Solar  # noqa: E402
 
 from app.almanac import moon_phases  # noqa: E402
 from app.astronomy import TERMS, _new_moons_between, calendar_zone, chinese_lunar_date, from_jd, solar_term_jd, to_jd  # noqa: E402
-from app.engines import ZIWEI_STARS, TIANFU_STARS, BirthInput, calculate_ziwei, pillar_indices  # noqa: E402
+from app.engines import ZIWEI_STARS, TIANFU_STARS, BirthInput, calculate_ziwei, growth_stage, pillar_indices, xun_kong  # noqa: E402
 from app.ziwei_horoscope import ZiweiHoroscopeRequest, ziwei_horoscope  # noqa: E402
 
 UTC = timezone.utc
@@ -139,6 +139,17 @@ def lunar_python_values(moment: datetime):
             (lunar.getYearInGanZhiExact(), lunar.getMonthInGanZhiExact(), lunar.getDayInGanZhi(), lunar.getTimeInGanZhi()))
 
 
+def lunar_python_stages(moment: datetime):
+    """lunar_python's own four pillars at a moment, with its 地势 (the day master's growth stage) and 旬空."""
+    chart = Solar.fromYmdHms(moment.year, moment.month, moment.day, moment.hour, moment.minute, moment.second).getLunar().getEightChar()
+    return ((chart.getYear(), chart.getMonth(), chart.getDay(), chart.getTime()),
+            (chart.getYearDiShi(), chart.getMonthDiShi(), chart.getDayDiShi(), chart.getTimeDiShi()),
+            (chart.getYearXunKong(), chart.getMonthXunKong(), chart.getDayXunKong(), chart.getTimeXunKong()))
+
+
+GZ_INDEX = {STEMS[i % 10] + BRANCHES[i % 12]: i for i in range(60)}
+
+
 def lunardate_values(day: date):
     try:
         value = lunardate.LunarDate.from_solar_date(day.year, day.month, day.day)
@@ -179,6 +190,13 @@ def compare_days(years) -> dict:
         pillars.check('sxtwl.day', ours_pillars[2], sx[4], example)
         for name, ours_value, theirs in zip(('year', 'month', 'day', 'hour'), ours_pillars, lp_pillars):
             pillars.check('lunar_python.' + name, ours_value, theirs, {'moment': noon.isoformat()})
+        # Growth stages and voids, applied to lunar_python's own pillars so that only the tables are compared.
+        lp_eight, lp_stages, lp_voids = lunar_python_stages(noon)
+        indices = [GZ_INDEX[text] for text in lp_eight]
+        for name, index, stage, void in zip(('year', 'month', 'day', 'hour'), indices, lp_stages, lp_voids):
+            where = {'moment': noon.isoformat(), 'pillar': name, 'ganzhi': gz(index)}
+            pillars.check('lunar_python.growth_stage', growth_stage(indices[2] % 10, index % 12), stage, where)
+            pillars.check('lunar_python.xun_kong', xun_kong(index), void, where)
         differing = [name for name, value in (('sxtwl', sx[:4]), ('lunar_python', lp_lunar), ('lunardate', ld))
                      if value is not None and value != xs]
         if differing:
@@ -599,6 +617,10 @@ def write_markdown(result: dict, path: Path) -> None:
         row('月柱（正午，按节） vs lunar_python', total(pillars, 'lunar_python.month')),
         row('日柱 vs lunar_python', total(pillars, 'lunar_python.day')),
         row('时柱（正午） vs lunar_python', total(pillars, 'lunar_python.hour')),
+        row('日主十二长生（四柱各一，同一四柱） vs lunar_python', total(pillars, 'lunar_python.growth_stage')),
+        row('旬空（四柱各一，同一四柱） vs lunar_python', total(pillars, 'lunar_python.xun_kong')),
+        '',
+        '十二长生与旬空把 lunar_python 自己排出的四柱代入玄枢的规则，只比对规则表本身，不受交节时刻差异影响。',
         '',
         f"交节前后 {jie['offset_seconds']} 秒的月柱与年柱（立春）对照 lunar_python：",
         '',
@@ -743,6 +765,7 @@ def summary(result: dict) -> dict:
         'daily': [{'field': 'lunar', 'reference': key, **counts(days['lunar_dates'][key])} for key in ('sxtwl', 'lunar_python', 'lunardate')]
         + [{'field': 'day', 'reference': 'sxtwl', **counts(days['pillars_at_noon']['sxtwl.day'])}]
         + [{'field': name, 'reference': 'lunar_python', **counts(days['pillars_at_noon']['lunar_python.' + name])} for name in ('year', 'month', 'day', 'hour')]
+        + [{'field': name, 'reference': 'lunar_python', **counts(days['pillars_at_noon']['lunar_python.' + name])} for name in ('growth_stage', 'xun_kong')]
         + [{'field': 'jie_month', 'reference': 'lunar_python', **counts(jie['month'])},
            {'field': 'jie_year', 'reference': 'lunar_python', **counts(jie['year'])}],
         'instants': instants('solar_terms', 'sxtwl') + instants('solar_terms', 'ephem') + instants('moon_phases', 'ephem'),

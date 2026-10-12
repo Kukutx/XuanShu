@@ -694,6 +694,14 @@ const UI_EXTRA = {
 "Qi Sha",
 "七殺"
 ],
+"三会": [
+"Seasonal trio",
+"三会"
+],
+"三会方": [
+"seasonal trio",
+"三会方"
+],
 "三十": [
 "Day 30",
 "30日"
@@ -705,6 +713,10 @@ const UI_EXTRA = {
 "三合": [
 "Three harmony",
 "三合"
+],
+"三合局": [
+"three-harmony frame",
+"三合局"
 ],
 "三合：": [
 "Three Harmonies: ",
@@ -1189,6 +1201,10 @@ const UI_EXTRA = {
 "亥卯未": [
 "Hai–Mao–Wei",
 "亥卯未"
+],
+"亥子丑": [
+"Hai–Zi–Chou",
+"亥子丑"
 ],
 "亥时 21–23": [
 "Hai hour 21–23",
@@ -2374,6 +2390,10 @@ const UI_EXTRA = {
 "Twelve jie (from the exact jie instant)",
 "十二節令（節入り時刻から）"
 ],
+"十二长生：阳干顺行、阴干逆行；长生位甲亥、乙午、丙戊寅、丁己酉、庚巳、辛子、壬申、癸卯（火土同宫）": [
+"Twelve growth stages: yang stems run forward, yin stems backward; birth branch Jia–Hai, Yi–Wu, Bing and Wu–Yin, Ding and Ji–You, Geng–Si, Xin–Zi, Ren–Shen, Gui–Mao (Fire and Earth share)",
+"十二長生：陽干は順行、陰干は逆行；長生の位置は甲亥・乙午・丙戊寅・丁己酉・庚巳・辛子・壬申・癸卯（火土同宮）"
+],
 "十五": [
 "Day 15",
 "15日"
@@ -2946,6 +2966,10 @@ const UI_EXTRA = {
 "Branches of all four pillars compared pairwise: same branch, six harmony, six clash, six harm, punishment",
 "四柱の地支を総当たりで比較：同支・六合・六冲・六害・相刑"
 ],
+"四柱旬空": [
+"Void branches of the four pillars",
+"四柱の旬空"
+],
 "四柱（年/月/日/时）": [
 "Four Pillars (year/month/day/hour)",
 "四柱（年/月/日/時）"
@@ -3015,7 +3039,7 @@ const UI_EXTRA = {
 "地支の六冲は本命の年支と日支のみを対照しています。伝統的なラベルであり、現実の衝突を表すものではありません。"
 ],
 "地支关系": [
-"Branch relationships",
+"Branch relations",
 "地支の関係"
 ],
 "地支关系标签与藏干统计": [
@@ -3358,6 +3382,14 @@ const UI_EXTRA = {
 "Stem combination",
 "天干五合"
 ],
+"天干五合（甲己、乙庚、丙辛、丁壬、戊癸）与四冲（甲庚、乙辛、丙壬、丁癸），只作标签，不判断合化成败": [
+"Stem combinations (Jia–Ji, Yi–Geng, Bing–Xin, Ding–Ren, Wu–Gui) and the four stem clashes (Jia–Geng, Yi–Xin, Bing–Ren, Ding–Gui) as labels only; whether a combination transforms is not judged",
+"天干五合（甲己・乙庚・丙辛・丁壬・戊癸）と四冲（甲庚・乙辛・丙壬・丁癸）はラベルのみ。合化の成否は判断しない"
+],
+"天干关系": [
+"Stem relations",
+"天干の関係"
+],
 "天干十神": [
 "Stem ten god",
 "天干の十神"
@@ -3469,6 +3501,10 @@ const UI_EXTRA = {
 "太阳节令 · 藏干十神 · 纳音": [
 "Solar terms · hidden stems and Ten Gods · Na Yin",
 "太陽節令 · 蔵干十神 · 納音"
+],
+"太阳节令 · 藏干十神 · 纳音 · 星运 · 空亡": [
+"Solar terms · hidden stems and Ten Gods · Na Yin · growth stages · void",
+"節気 · 蔵干十神 · 納音 · 星運 · 空亡"
 ],
 "太阴": [
 "Tai Yin",
@@ -3673,6 +3709,10 @@ const UI_EXTRA = {
 "寅午戌": [
 "Yin–Wu–Xu",
 "寅午戌"
+],
+"寅卯辰": [
+"Yin–Mao–Chen",
+"寅卯辰"
 ],
 "寅时 03–05": [
 "Yin hour 03–05",
@@ -3986,6 +4026,10 @@ const UI_EXTRA = {
 "Selected ",
 "選択 "
 ],
+"巳午未": [
+"Si–Wu–Wei",
+"巳午未"
+],
 "巳时 09–11": [
 "Si hour 09–11",
 "巳の刻 09–11"
@@ -4129,6 +4173,10 @@ const UI_EXTRA = {
 "年的": [
 " year: the ",
 "年の"
+],
+"年空": [
+"year void",
+"年空"
 ],
 "年解": [
 "Nian Jie (annual)",
@@ -4870,6 +4918,10 @@ const UI_EXTRA = {
 "Day Master",
 "日主"
 ],
+"日主十二长生（星运）": [
+"Day master's growth stage per pillar",
+"日主の十二長生（星運）"
+],
 "日主：": [
 "Day Master: ",
 "日主："
@@ -4938,6 +4990,10 @@ const UI_EXTRA = {
 "Lu (day)",
 "日の禄"
 ],
+"日空": [
+"day void",
+"日空"
+],
 "日羊": [
 "Yang (day)",
 "日の羊"
@@ -4981,6 +5037,10 @@ const UI_EXTRA = {
 "旬空": [
 "Xun Kong (void)",
 "旬空"
+],
+"旬空：每旬十个干支余下的两个地支；标出落在日柱旬空、年柱旬空里的地支": [
+"Void: the two branches left over by each ten-pillar decade; branches inside the day pillar's or year pillar's void are marked",
+"旬空：各旬の十干支に入らない二支。日柱・年柱の旬空に入る地支を表示"
 ],
 "旬首 / 六仪": [
 "Xun leader / Six Yi",
@@ -5265,6 +5325,14 @@ const UI_EXTRA = {
 "星期日": [
 "Sunday",
 "日曜日"
+],
+"星运": [
+"Growth stage",
+"星運"
+],
+"星运是日主在各柱地支的十二长生，自坐是各柱天干在本柱地支的十二长生（阳干顺行、阴干逆行，火土同宫）；空亡是各柱所在旬余下的两个地支，地支上的「日空」「年空」表示它落在日柱或年柱的旬空里。": [
+"Growth stage is the day master's stage at each pillar's branch, and self seat is each pillar's stem at its own branch (yang stems forward, yin stems backward, Fire and Earth share). Void lists the two branches left over by each pillar's decade; “day void” or “year void” on a branch means it falls in the day or year pillar's void.",
+"星運は日主から見た各柱地支の十二長生、自坐は各柱の天干から見た自柱地支の十二長生（陽干順行・陰干逆行、火土同宮）。空亡は各柱の旬に入らない二支で、地支の「日空」「年空」は日柱・年柱の旬空に入ることを示す。"
 ],
 "春分": [
 "Spring Equinox (Chunfen)",
@@ -6566,6 +6634,10 @@ const UI_EXTRA = {
 "Shen hour 15–17",
 "申の刻 15–17"
 ],
+"申酉戌": [
+"Shen–You–Xu",
+"申酉戌"
+],
 "男": [
 "Male",
 "男性"
@@ -6621,6 +6693,10 @@ const UI_EXTRA = {
 "目标日期（流年 / 流月 / 流日）": [
 "Target date (annual / monthly / daily)",
 "対象日（流年 / 流月 / 流日）"
+],
+"相冲": [
+"clash",
+"相冲"
 ],
 "相刑": [
 "Mutual Punishment",
@@ -6733,6 +6809,10 @@ const UI_EXTRA = {
 "移除方案": [
 "Remove option",
 "案を削除"
+],
+"空亡": [
+"Void",
+"空亡"
 ],
 "空亡地支": [
 "Void (Kong Wang) branches",
@@ -7082,6 +7162,10 @@ const UI_EXTRA = {
 "Self Ke",
 "自化科"
 ],
+"自坐": [
+"Self seat",
+"自坐"
+],
 "艮": [
 "Gen",
 "艮"
@@ -7157,6 +7241,14 @@ const UI_EXTRA = {
 "落入对方宫位": [
 "Falls in the other's palace",
 "相手の宮位に入る"
+],
+"落在年柱旬空": [
+"inside the year pillar's void",
+"年柱の旬空に入る"
+],
+"落在日柱旬空": [
+"inside the day pillar's void",
+"日柱の旬空に入る"
 ],
 "藏干": [
 "Hidden stems",

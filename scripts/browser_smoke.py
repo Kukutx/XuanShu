@@ -149,6 +149,14 @@ def main() -> None:
             page.locator('#run-btn').click()
             page.locator('.pillar-stem').first.wait_for(timeout=30000)
             assert page.locator('.pillar-stem').count() == 4
+            # Growth stages and voids under each pillar; 申 (month) sits in the year void, 寅 (hour) in the day void.
+            assert page.locator('.pillar-stage').count() == 8
+            assert page.locator('.pillar').nth(1).locator('.void-mark').inner_text() == '年空'
+            assert page.locator('.pillar').nth(3).locator('.void-mark').inner_text() == '日空'
+            assert '星运帝旺自坐帝旺' in page.locator('.pillar.day-master').inner_text().replace('\n', '')
+            # Relations between pillars as labelled brackets: stems above, branches below.
+            assert sorted(page.locator('.pillar-links:not(.below) .pillar-link-label').all_inner_texts()) == ['庚甲相冲', '甲庚相冲']
+            assert page.locator('.pillar-links.below .pillar-link-label').all_inner_texts() == ['申寅六冲·相刑']
             # Decade and annual pillars under the BaZi chart; a year opens the Zi Wei year layer.
             page.locator('#luck-decade-0').wait_for(timeout=30000)
             assert page.locator('.luck-decade').count() == 9 and page.locator('.luck-year').count() == 10
@@ -460,7 +468,7 @@ def main() -> None:
             # Calculation cross-check: the committed evaluation summary in a dialog.
             page.locator('#crosscheck-open').click()
             page.locator('#crosscheck-differences li').first.wait_for(timeout=30000)
-            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 37
+            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 39
             assert '100.000%' in page.locator('#crosscheck-dialog').inner_text()
             page.locator('#crosscheck-dialog').screenshot(path=str(screenshot_dir / '38-crosscheck.png'))
             page.locator('#crosscheck-close').click()

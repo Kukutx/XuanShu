@@ -17,9 +17,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from .astronomy import chinese_lunar_date, from_jd, solar_term_jd, solar_month_offset, nearest_jie
 
-from .reference import (HIDDEN_STEMS, NAYIN_NAMES, FOUR_TRANSFORMATIONS, FOUR_TYPES, TRANSFORMATION_SCHOOL, BRANCH_HARMONY, BRANCH_CLASH, BRANCH_HARM, BRANCH_PUNISH)
+from .reference import (HIDDEN_STEMS, NAYIN_NAMES, FOUR_TRANSFORMATIONS, FOUR_TYPES, TRANSFORMATION_SCHOOL, BRANCH_HARMONY, BRANCH_CLASH, BRANCH_HARM, BRANCH_PUNISH,
+                        BRANCH_SEASONS, BRANCH_TRIADS, GROWTH_START, STEM_CLASHES, STEM_COMBINATIONS)
 from .timebasis import time_basis
-from .ziwei_extensions import (BRIGHTNESS, adjunct_stars, cycle_positions, nominal_small_limit_ages,
+from .ziwei_extensions import (BRIGHTNESS, CHANGSHENG, adjunct_stars, cycle_positions, nominal_small_limit_ages,
                                LIFEMASTER_BY_BRANCH, BODYMASTER_BY_YEAR_BRANCH)
 
 STEMS = tuple('甲乙丙丁戊己庚辛壬癸')
@@ -96,6 +97,18 @@ def _sexagenary(index: int) -> dict:
     return {'stem': STEMS[i % 10], 'branch': BRANCHES[i % 12], 'text': STEMS[i % 10]+BRANCHES[i % 12]}
 
 
+def growth_stage(stem: int, branch: int) -> str:
+    """Twelve growth stages of a stem at a branch: yang stems run forward from their birth branch, yin stems backward."""
+    start = GROWTH_START[stem % 10]
+    return CHANGSHENG[(branch - start) % 12 if stem % 2 == 0 else (start - branch) % 12]
+
+
+def xun_kong(index: int) -> str:
+    """The two branches left over by the ten-pillar decade a pillar belongs to (Jia-Zi decade: Xu and Hai)."""
+    first = index - index % 10
+    return BRANCHES[(first + 10) % 12] + BRANCHES[(first + 11) % 12]
+
+
 def _sexagenary_by_pair(stem: int, branch: int) -> int:
     return next(i for i in range(60) if i % 10 == stem and i % 12 == branch)
 
@@ -168,6 +181,10 @@ def calculate_bazi(inp: BirthInput) -> dict:
         pillar['ten_god_of_stem'] = '日主' if name == 'day' else _ten_god(master_stem, STEMS.index(pillar['stem']))
         pillar_idx = {'year':year_idx, 'month':month_idx, 'day':day_idx, 'hour':hour_idx}[name]
         pillar['na_yin'] = NAYIN_NAMES[pillar_idx // 2]
+        # Growth stage of the day master at this branch, and of the pillar's own stem at its branch.
+        pillar['growth_stage'] = growth_stage(master_stem, pillar_idx % 12)
+        pillar['self_stage'] = growth_stage(pillar_idx % 10, pillar_idx % 12)
+        pillar['xun_kong'] = xun_kong(pillar_idx)
         pillar['hidden_stems'] = [
             {'stem': hidden, 'element': STEM_ELEMENT[STEMS.index(hidden)],
              'ten_god': _ten_god(master_stem, STEMS.index(hidden))}
@@ -188,8 +205,22 @@ def calculate_bazi(inp: BirthInput) -> dict:
         for hidden in pillar['hidden_stems']:
             hidden_elements[hidden['element']] += 1
             ten_god_counts[hidden['ten_god']] += 1
+    # Which pillars' branches fall in the day pillar's and the year pillar's 旬空.
+    for pillar in pillars.values():
+        pillar['void_of'] = [key for key in ('day', 'year') if pillar['branch'] in pillars[key]['xun_kong']]
     relations = []
     pillar_keys = tuple(pillars)
+    stem_relations = []
+    for i, a in enumerate(pillar_keys):
+        for b in pillar_keys[i+1:]:
+            pair = frozenset((pillars[a]['stem'], pillars[b]['stem']))
+            tags = ([STEM_COMBINATIONS[pair]] if pair in STEM_COMBINATIONS else []) + (['相冲'] if pair in STEM_CLASHES else [])
+            stem_relations.append({'a': a, 'b': b, 'stems': pillars[a]['stem'] + '/' + pillars[b]['stem'], 'labels': tags})
+    present = [pillars[key]['branch'] for key in pillar_keys]
+    branch_groups = [{'kind': kind, 'branches': group, 'element': element,
+                      'pillars': [key for key in pillar_keys if pillars[key]['branch'] in group]}
+                     for kind, table in (('三合', BRANCH_TRIADS), ('三会', BRANCH_SEASONS))
+                     for group, element in table if all(branch in present for branch in group)]
     for i, a in enumerate(pillar_keys):
         for b in pillar_keys[i+1:]:
             left, right = pillars[a]['branch'], pillars[b]['branch']
@@ -208,6 +239,8 @@ def calculate_bazi(inp: BirthInput) -> dict:
         'hidden_stem_elements_unweighted': dict(hidden_elements),
         'ten_god_occurrences_unweighted': dict(ten_god_counts),
         'branch_relations': relations,
+        'stem_relations': stem_relations,
+        'branch_groups': branch_groups,
         'time_basis': time_meta,
         'lunar_date': chinese_lunar_date(effective.date()),
         'jie_boundaries': nearest_jie(dt),
@@ -218,6 +251,9 @@ def calculate_bazi(inp: BirthInput) -> dict:
             'solar_time_correction': inp.time_mode != 'clock',
             'time_mode': inp.time_mode,
             'hidden_stems': '本气、中气、余气传统顺序；不含藏干权重',
+            'growth_stage': '十二长生：阳干顺行、阴干逆行；长生位甲亥、乙午、丙戊寅、丁己酉、庚巳、辛子、壬申、癸卯（火土同宫）',
+            'xun_kong': '旬空：每旬十个干支余下的两个地支；标出落在日柱旬空、年柱旬空里的地支',
+            'stem_relations': '天干五合（甲己、乙庚、丙辛、丁壬、戊癸）与四冲（甲庚、乙辛、丙壬、丁癸），只作标签，不判断合化成败',
         },
         'notes': ['五行计数仅包含四柱明干与地支本气，不代表旺衰或缺失判定', '传统历法模型，不构成可验证的人生预测'],
     }
