@@ -40,6 +40,37 @@ def test_layers_match_iztro_reference():
     assert lu['type'] == '化禄' and lu['star'] == '贪狼' and lu['natal_palace'] and lu['layer_palace'] == names[lu['branch']]
 
 
+def flows(layer: dict) -> dict:
+    return {star['name']: star['branch'] for star in layer['stars']}
+
+
+def test_period_stars_match_iztro_reference():
+    # Expected values from iztro 2.6.1 (JavaScript): astro.bySolar('2000-8-16', 2, '女').horoscope('2026-10-11', 5).
+    result = layers({'birth_datetime': '2000-08-16T04:00', 'gender': 'female'}, '2026-10-11', '09:30')
+    assert flows(result['layers']['decade']) == {'运魁': '丑', '运钺': '未', '运昌': '亥', '运曲': '卯', '运禄': '申', '运羊': '酉',
+                                                 '运陀': '未', '运马': '寅', '运鸾': '亥', '运喜': '巳'}
+    assert flows(result['layers']['year']) == {'流魁': '亥', '流钺': '酉', '流昌': '申', '流曲': '午', '流禄': '巳', '流羊': '午',
+                                               '流陀': '辰', '流马': '申', '流鸾': '酉', '流喜': '卯', '年解': '辰'}
+    assert flows(result['layers']['month']) == {'月魁': '丑', '月钺': '未', '月昌': '申', '月曲': '午', '月禄': '巳', '月羊': '午',
+                                                '月陀': '辰', '月马': '申', '月鸾': '巳', '月喜': '亥'}
+    assert flows(result['layers']['hour'])['时禄'] == '午' and flows(result['layers']['day'])['日鸾'] == '酉'
+    assert result['layers']['small_limit']['stars'] == []
+    # Each period star says which natal palace and which palace of its own layer it falls in.
+    lu = next(star for star in result['layers']['year']['stars'] if star['name'] == '流禄')
+    year_names = {p['branch']: p['name'] for p in result['layers']['year']['palaces']}
+    assert lu['layer_palace'] == year_names['巳'] and lu['natal_palace']
+    # The year's own 岁前 and 将前 twelve gods: 午 year starts 岁建 at 午 and 将星 at 午 (寅午戌).
+    twelve = {p['branch']: (p['suiqian'], p['jiangqian']) for p in result['layers']['year']['palaces']}
+    assert twelve['午'] == ('岁建', '将星') and twelve['子'] == ('大耗', '灾煞') and twelve['寅'] == ('白虎', '指背')
+    assert 'suiqian' not in result['layers']['month']['palaces'][0]
+    # A different stem and branch for every layer: iztro by_solar('1988-3-5', 7, '男').horoscope('2025-8-10', 0).
+    other = layers({'birth_datetime': '1988-03-05T14:00', 'gender': 'male'}, '2025-08-10', '00:15')
+    assert flows(other['layers']['decade']) == {'运魁': '卯', '运钺': '巳', '运昌': '寅', '运曲': '子', '运禄': '亥', '运羊': '子',
+                                                '运陀': '戌', '运马': '申', '运鸾': '巳', '运喜': '亥'}
+    assert flows(other['layers']['year'])['年解'] == '巳' and flows(other['layers']['month'])['月禄'] == '寅'
+    assert flows(other['layers']['day'])['日禄'] == '酉' and flows(other['layers']['hour'])['时马'] == '寅'
+
+
 def test_second_half_of_a_leap_month_counts_as_the_next_month():
     # iztro-py 0.5.0: by_solar('1988-3-5', 7, '男').horoscope('2025-8-10', 0).
     result = layers({'birth_datetime': '1988-03-05T14:00', 'gender': 'male'}, '2025-08-10', '00:15')

@@ -1,0 +1,8 @@
+{
+  "name": "xuanshu-eval-references",
+  "private": true,
+  "description": "Reference library for scripts/eval_crosscheck.py only; XuanShu itself does not need it.",
+  "dependencies": {
+    "iztro": "2.6.1"
+  }
+}

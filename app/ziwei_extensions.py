@@ -53,8 +53,9 @@ def adjunct_stars(lunar_day: int, month: int, hour_branch: int,
     result = {
         '火星': (fire_bell[0] + hour_branch) % 12,
         '铃星': (fire_bell[1] + hour_branch) % 12,
+        # 台辅 from 午 and 封诰 from 寅 at the Zi hour, both counting forward to the birth hour.
         '台辅': (6 + hour_branch) % 12,
-        '封诰': (2 - hour_branch) % 12,
+        '封诰': (2 + hour_branch) % 12,
         '月解': (8 + 2 * ((month-1)//2)) % 12,
         '天巫': TIANWU_BY_MONTH[(month-1) % 4],
         '天月': TIANYUE_BY_MONTH[month-1],
@@ -83,15 +84,20 @@ def adjunct_stars(lunar_day: int, month: int, hour_branch: int,
     return result
 
 
+def year_branch_cycles(year_branch: int) -> dict[str, dict[int, str]]:
+    """Sui-qian and jiang-qian cycles of one year branch, for the birth year or for a year layer."""
+    jiangxing_start = (0, 9, 6, 3)[_horse_group(year_branch)]  # 申子辰→子、巳酉丑→酉、寅午戌→午、亥卯未→卯
+    return {
+        'suiqian': {(year_branch + i) % 12: name for i, name in enumerate(SUIQIAN)},
+        'jiangqian': {(jiangxing_start + i) % 12: name for i, name in enumerate(JIANGQIAN)},
+    }
+
+
 def cycle_positions(bureau: int, lucun: int, year_stem: int,
                     year_branch: int, gender: str) -> dict[str, dict[int, str]]:
     """Four 12-position named cycles; gender-dependent cycles may be absent."""
-    group = _horse_group(year_branch)
-    jiangxing_start = (0, 9, 6, 3)[group]  # 申子辰→子、巳酉丑→酉、寅午戌→午、亥卯未→卯
-    data = {
-        'natal_suiqian': {(year_branch + i) % 12: name for i, name in enumerate(SUIQIAN)},
-        'natal_jiangqian': {(jiangxing_start + i) % 12: name for i, name in enumerate(JIANGQIAN)},
-    }
+    yearly = year_branch_cycles(year_branch)
+    data = {'natal_suiqian': yearly['suiqian'], 'natal_jiangqian': yearly['jiangqian']}
     if gender in ('male', 'female'):
         forward = (year_stem % 2 == 0) == (gender == 'male')
         step = 1 if forward else -1

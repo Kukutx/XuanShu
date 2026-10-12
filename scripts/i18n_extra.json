@@ -315,9 +315,9 @@
   " implemented auxiliary/minor stars; not a complete professional chart.",
   " 個の実装済み補助星・雑曜。完全な専門盤ではありません。"
  ],
- " 颗选定辅/杂曜、四组十二神（部分依性别）及经度时制选择；不含全流派与完整流年。所有展示均不等于命运预测。": [
-  " selected auxiliary/minor stars, four sets of twelve spirits (some depending on gender), and longitude time-system options; does not include all schools or full annual charts. Nothing displayed is a prediction of fate.",
-  " 個の選定された輔星・雑曜、四組の十二神（一部は性別による）、経度による時制の選択。全流派と完全な流年は含みません。表示内容はいずれも運命の予測ではありません。"
+ " 颗选定辅/杂曜、四组十二神（部分依性别）、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。": [
+  " selected minor/miscellaneous stars, four twelve-spirit series (some depend on gender), period stars and longitude time modes; not every school. Nothing shown is a prediction of fate.",
+  " 個の選定補星・雑曜、四組の十二神（一部は性別による）、運限の流曜と経度時制の選択；全流派ではありません。表示はすべて運命の予測ではありません。"
  ],
  "# XuanShu · 问题驱动的可核验咨询工作流": [
   "# XuanShu · Question-driven verifiable consultation workflow",
@@ -1831,6 +1831,10 @@
   "Other schools (for example changing the year at Chinese New Year, or the day at 23:00) give different intervals; switch the day-boundary rule or time basis and search again.",
   "他の流派（春節で年替わり、23:00 で日替わりなど）では区間が変わります。日替わり規則や時制を切り替えて再検索できます。"
  ],
+ "其余辅星、杂曜落宫": [
+  "Palaces of the other minor and miscellaneous stars",
+  "その他の補星・雑曜の宮"
+ ],
  "养": [
   "Yang (Nurturing)",
   "養"
@@ -2531,9 +2535,9 @@
   "Only lunardate differs; its table gives month lengths that do not match the sky.",
   "lunardate のみ異なります。この表の月の長さが天象と合いません。"
  ],
- "只标出各层的命宫与四化落在哪颗本命星上，不安流曜，不预测具体事件。": [
-  "Only marks each layer's Life palace and which natal stars its transformations fall on; no flowing stars and no event forecast.",
-  "各層の命宮と、四化がどの本命星に付くかだけを示します。流曜は置かず、具体的な出来事は予測しません。"
+ "只标出各层的命宫、四化落在哪颗本命星上和本层流曜，不预测具体事件。": [
+  "Only marks each layer's Life palace, which natal stars its four transformations fall on and the layer's period stars; no events are predicted.",
+  "各層の命宮、四化が掛かる本命星、その層の流曜だけを示し、具体的な出来事は予測しません。"
  ],
  "只校验实际给出的字段；未提供的逐宫字段不计为一致。": [
   "Only fields actually provided are checked; per-palace fields not provided are not counted as consistent.",
@@ -3178,6 +3182,14 @@
  "大限 ": [
   "Major limit ",
   "大限 "
+ ],
+ "大限、流年、流月、流日、流时各按本层干支安魁钺昌曲禄羊陀马鸾喜，字头分别为运、流、月、日、时；流年另安年解与岁前、将前十二神；小限不安流曜": [
+  "Decade, year, month, day and hour layers each place Kui, Yue, Chang, Qu, Lu, Yang, Tuo, Ma, Luan and Xi from the layer's stem and branch, prefixed 运, 流, 月, 日 and 时; the year adds Nian Jie and the Sui-qian and Jiang-qian twelve spirits; the small limit has no period stars",
+  "大限・流年・流月・流日・流時はそれぞれの干支で魁・鉞・昌・曲・禄・羊・陀・馬・鸞・喜を配し、頭字は運・流・月・日・時；流年は年解と歳前・将前十二神も配置；小限には流曜なし"
+ ],
+ "大限流曜": [
+  "Decade period stars",
+  "大限の流曜"
  ],
  "大限的起运岁数和所在宫位取决于五行局与命宫，时辰不详时无法确定。": [
   "The decade starting ages and palaces depend on the five-element bureau and the Life palace, which cannot be fixed when the birth hour is unknown.",
@@ -4031,6 +4043,10 @@
   " year: the ",
   "年の"
  ],
+ "年解": [
+  "Nian Jie (annual)",
+  "年解"
+ ],
  "广州": [
   "Guangzhou",
   "広州"
@@ -4755,6 +4771,10 @@
   "Calendar concept reference; not a cross-certification of the two algorithms",
   "暦の概念の参考。2つのアルゴリズムの相互認証ではありません"
  ],
+ "日喜": [
+  "Xi (day)",
+  "日の喜"
+ ],
  "日干十神（行看列）": [
   "Day-stem ten gods (row sees column)",
   "日干の十神（行から列を見る）"
@@ -4766,6 +4786,14 @@
  "日支": [
   "Day branch",
   "日支"
+ ],
+ "日昌": [
+  "Chang (day)",
+  "日の昌"
+ ],
+ "日曲": [
+  "Qu (day)",
+  "日の曲"
  ],
  "日期": [
   "Date",
@@ -4798,6 +4826,34 @@
  "日的": [
   " day: the ",
   "日の"
+ ],
+ "日禄": [
+  "Lu (day)",
+  "日の禄"
+ ],
+ "日羊": [
+  "Yang (day)",
+  "日の羊"
+ ],
+ "日钺": [
+  "Yue (day)",
+  "日の鉞"
+ ],
+ "日陀": [
+  "Tuo (day)",
+  "日の陀"
+ ],
+ "日马": [
+  "Ma (day)",
+  "日の馬"
+ ],
+ "日魁": [
+  "Kui (day)",
+  "日の魁"
+ ],
+ "日鸾": [
+  "Luan (day)",
+  "日の鸞"
  ],
  "日）。这不自动改变原命盘。": [
   " day). This does not automatically change the original chart.",
@@ -4879,6 +4935,10 @@
   "Time zone: ",
   "タイムゾーン："
  ],
+ "时喜": [
+  "Xi (hour)",
+  "時の喜"
+ ],
  "时基": [
   "Time base",
   "時基"
@@ -4923,9 +4983,17 @@
   "Hour branch",
   "時支"
  ],
+ "时昌": [
+  "Chang (hour)",
+  "時の昌"
+ ],
  "时是": [
   " hour is ",
   "時は"
+ ],
+ "时曲": [
+  "Qu (hour)",
+  "時の曲"
  ],
  "时柱": [
   "Hour pillar",
@@ -4942,6 +5010,14 @@
  "时柱（可不选）": [
   "Hour pillar (optional)",
   "時柱（任意）"
+ ],
+ "时禄": [
+  "Lu (hour)",
+  "時の禄"
+ ],
+ "时羊": [
+  "Yang (hour)",
+  "時の羊"
  ],
  "时辰": [
   "Double hour",
@@ -4967,9 +5043,9 @@
   "Hour unknown: what the hour does not change",
   "時辰不明：時辰に左右されない部分"
  ],
- "时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干和四化星名，不列它们落在哪个本命宫。": [
-  "Birth hour unknown: natal palaces and star positions change with the hour, so the small limit and year give only their Life palace branch, stem and transformed stars, not which natal palace they fall in.",
-  "生時不明：本命の宮と星の位置は時刻で変わるため、小限・流年は命宮の地支、天干、四化の星名だけを示し、どの本命宮に当たるかは示しません。"
+ "时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干、四化星名和本层流曜，不列它们落在哪个本命宫。": [
+  "Birth hour unknown: natal palaces and star positions change with the hour, so the small limit and year give only their Life palace branch, stem, transformed stars and period stars, not which natal palace they fall in.",
+  "生時不明：本命の宮と星の位置は時刻で変わるため、小限・流年は命宮の地支、天干、四化の星名とその層の流曜だけを示し、どの本命宮に当たるかは示しません。"
  ],
  "时辰交界": [
   "Double-hour boundary",
@@ -4982,6 +5058,10 @@
  "时辰界": [
   "Double-hour boundary",
   "時辰境界"
+ ],
+ "时钺": [
+  "Yue (hour)",
+  "時の鉞"
  ],
  "时长": [
   "Length",
@@ -4998,6 +5078,22 @@
  "时间窗口": [
   "Time window",
   "時間ウィンドウ"
+ ],
+ "时陀": [
+  "Tuo (hour)",
+  "時の陀"
+ ],
+ "时马": [
+  "Ma (hour)",
+  "時の馬"
+ ],
+ "时魁": [
+  "Kui (hour)",
+  "時の魁"
+ ],
+ "时鸾": [
+  "Luan (hour)",
+  "時の鸞"
  ],
  "昆明": [
   "Kunming",
@@ -5131,13 +5227,25 @@
   "Month",
   "月"
  ],
+ "月喜": [
+  "Xi (month)",
+  "月の喜"
+ ],
  "月支": [
   "Month branch",
   "月支"
  ],
+ "月昌": [
+  "Chang (month)",
+  "月の昌"
+ ],
  "月是": [
   " month is ",
   "月は"
+ ],
+ "月曲": [
+  "Qu (month)",
+  "月の曲"
  ],
  "月柱": [
   "Month pillar",
@@ -5159,9 +5267,37 @@
   "Moon phase instants",
   "月相の時刻"
  ],
+ "月禄": [
+  "Lu (month)",
+  "月の禄"
+ ],
+ "月羊": [
+  "Yang (month)",
+  "月の羊"
+ ],
  "月解": [
   "Yue Jie",
   "月解"
+ ],
+ "月钺": [
+  "Yue (month)",
+  "月の鉞"
+ ],
+ "月陀": [
+  "Tuo (month)",
+  "月の陀"
+ ],
+ "月马": [
+  "Ma (month)",
+  "月の馬"
+ ],
+ "月魁": [
+  "Kui (month)",
+  "月の魁"
+ ],
+ "月鸾": [
+  "Luan (month)",
+  "月の鸞"
  ],
  "有工具依据": [
   "Tool-backed",
@@ -5827,6 +5963,10 @@
   "Los Angeles",
   "ロサンゼルス"
  ],
+ "流喜": [
+  "Xi (annual)",
+  "年の喜"
+ ],
  "流年": [
   "Annual",
   "流年"
@@ -5847,9 +5987,21 @@
   "The palace on the year's branch is the year layer's Life palace; transformations from the year stem",
   "流年の地支がある宮が流年命宮。四化は年干から"
  ],
+ "流年岁前、将前十二神": [
+  "Annual Sui-qian and Jiang-qian twelve spirits",
+  "流年の歳前・将前十二神"
+ ],
+ "流年岁前：": [
+  "Annual Sui-qian: ",
+  "流年の歳前："
+ ],
  "流年干支以立春为界、按事件当日正午计算；紫微年度四化按农历命名年，两者年界不同。": [
   "The annual stem-branch changes at Start of Spring (Lichun) and is computed at noon on the event day; Zi Wei annual Four Transformations follow the named lunar year, so the two have different year boundaries.",
   "流年干支は立春を境とし、出来事当日の正午で計算します。紫微の年度四化は旧暦の命名年に従うため、両者の年境界は異なります。"
+ ],
+ "流年流曜（含年解）": [
+  "Annual period stars (with Nian Jie)",
+  "流年の流曜（年解を含む）"
  ],
  "流日": [
   "Day layer",
@@ -5863,6 +6015,10 @@
   "Day layer date",
   "流日の日付"
  ],
+ "流日流曜": [
+  "Day period stars",
+  "流日の流曜"
+ ],
  "流时": [
   "Hour layer",
   "流時"
@@ -5870,6 +6026,26 @@
  "流时按所填钟表时间取时辰，不做太阳时换算。": [
   "The hour layer uses the clock time given, without solar-time correction.",
   "流時は入力した時計の時刻で時辰を取り、太陽時の換算はしません。"
+ ],
+ "流时流曜": [
+  "Hour period stars",
+  "流時の流曜"
+ ],
+ "流昌": [
+  "Chang (annual)",
+  "年の昌"
+ ],
+ "流曜只有魁钺昌曲禄羊陀马鸾喜十颗（流年另有年解），与 iztro 一致；流火、流铃等其他流派的流曜不安。": [
+  "Only ten period stars are placed (Kui, Yue, Chang, Qu, Lu, Yang, Tuo, Ma, Luan, Xi; the year adds Nian Jie), as in iztro; period stars of other schools such as a flowing Huo or Ling are not placed.",
+  "流曜は魁・鉞・昌・曲・禄・羊・陀・馬・鸞・喜の十星のみ（流年は年解も）で iztro と同じです。流火・流鈴など他流派の流曜は配置しません。"
+ ],
+ "流曜：": [
+  " period stars: ",
+  "の流曜："
+ ],
+ "流曲": [
+  "Qu (annual)",
+  "年の曲"
  ],
  "流月": [
   "Month layer",
@@ -5886,6 +6062,10 @@
  "流月日期": [
   "Month layer date",
   "流月の日付"
+ ],
+ "流月流曜": [
+  "Month period stars",
+  "流月の流曜"
  ],
  "流月的起法各派不同；这里用斗君，与 iztro 一致。": [
   "Schools start the month layer differently; this uses Dou Jun, as iztro does.",
@@ -5906,6 +6086,34 @@
  "流派版本、闰月习惯和动态盘字段以实际安装的提供方为准；未通过逐星独立认证。": [
   "School version, leap-month conventions, and dynamic chart fields follow the actually installed provider; not independently certified star by star.",
   "流派のバージョン、閏月の扱い、動的盤のフィールドは実際にインストールされた提供元に従います。星ごとの独立認証は受けていません。"
+ ],
+ "流禄": [
+  "Lu (annual)",
+  "年の禄"
+ ],
+ "流羊": [
+  "Yang (annual)",
+  "年の羊"
+ ],
+ "流钺": [
+  "Yue (annual)",
+  "年の鉞"
+ ],
+ "流陀": [
+  "Tuo (annual)",
+  "年の陀"
+ ],
+ "流马": [
+  "Ma (annual)",
+  "年の馬"
+ ],
+ "流魁": [
+  "Kui (annual)",
+  "年の魁"
+ ],
+ "流鸾": [
+  "Luan (annual)",
+  "年の鸞"
  ],
  "浅色": [
   "Light",
@@ -6535,9 +6743,9 @@
   "Zi Wei Dou Shu comparison",
   "紫微斗数の照合"
  ],
- "紫微新增选定杂曜、四组十二神与虚岁小限；运限层（大限到流时）见 ziwei_horoscope；仍缺完整流曜和流派逐宫验证": [
-  "Zi Wei adds selected minor stars, four twelve-spirit series and nominal-age small limits; period layers (decade to hour) are in ziwei_horoscope; full flowing stars and palace-by-palace school verification are still missing",
-  "紫微に選定の雑曜、四組の十二神、数え年の小限を追加。運限層（大限から流時）は ziwei_horoscope。完全な流曜と流派ごとの宮単位の検証はまだありません"
+ "紫微新增选定杂曜、四组十二神与虚岁小限；运限层（大限到流时，含流曜与流年十二神）见 ziwei_horoscope；全部星曜已与 iztro 交叉核验，其他流派尚未逐宫核对": [
+  "Zi Wei adds selected minor stars, four twelve-spirit series and nominal-age small limits; period layers (decade to hour, with period stars and the annual twelve spirits) are in ziwei_horoscope; every star is cross-checked against iztro, other schools are not yet checked palace by palace",
+  "紫微に選定の雑曜、四組の十二神、数え年の小限を追加。運限層（大限から流時、流曜と流年十二神を含む）は ziwei_horoscope。全星曜を iztro と照合済み、他流派の宮ごとの照合はまだです"
  ],
  "紫微星曜和四化按选定公开流派规则，仅部分实现；不同流派可能不一致。": [
   "Zi Wei stars and Four Transformations follow selected public school rules and are only partially implemented; different schools may disagree.",
@@ -6546,6 +6754,10 @@
  "紫微盘已切到 ": [
   "Zi Wei chart switched to ",
   "紫微盤を切り替えました："
+ ],
+ "紫微辅星对照 iztro 时查出两张安星表有误：辛年天魁、天钺互换，封诰逆行。已按所引规则改正（辛年天魁在午、天钺在寅；封诰从寅宫起子时顺行），重跑后全部辅星一致。": [
+  "Checking the minor stars against iztro found two wrong tables: in Xin years Tian Kui and Tian Yue were swapped, and Feng Gao counted backwards. Both now follow the cited rules (Xin year: Tian Kui in 午, Tian Yue in 寅; Feng Gao from 寅 at the Zi hour, counting forward); every minor star agrees on the rerun.",
+  "補星を iztro と照合して二つの配置表の誤りが見つかりました：辛年の天魁・天鉞が逆、封誥が逆行。引用した規則どおり修正し（辛年は天魁が午、天鉞が寅；封誥は寅宮の子時から順行）、再実行で全補星が一致しました。"
  ],
  "紫微运限对照": [
   "Zi Wei period layers",
@@ -7395,6 +7607,34 @@
   "Travel Palace",
   "遷移宮"
  ],
+ "运喜": [
+  "Xi (decade)",
+  "限の喜"
+ ],
+ "运昌": [
+  "Chang (decade)",
+  "限の昌"
+ ],
+ "运曲": [
+  "Qu (decade)",
+  "限の曲"
+ ],
+ "运禄": [
+  "Lu (decade)",
+  "限の禄"
+ ],
+ "运羊": [
+  "Yang (decade)",
+  "限の羊"
+ ],
+ "运钺": [
+  "Yue (decade)",
+  "限の鉞"
+ ],
+ "运陀": [
+  "Tuo (decade)",
+  "限の陀"
+ ],
  "运限层": [
   "Time layer",
   "運限の層"
@@ -7403,13 +7643,25 @@
   "Time layers follow published traditional rules: major limits start from the five-phase bureau and run forward for yang males and yin females, with transformations from the limit palace's stem; the annual Life palace is the palace of the year's branch, with transformations from the year stem; minor limits use nominal age. Annual stars, months and days are not included, and no specific events are predicted.",
   "運限の層は公開された伝統規則で表示します：大限は五行局から起こし陽男陰女は順行、四化は大限宮の宮干から取ります。流年命宮はその年の地支の宮、四化は年干から取ります。小限は数え年です。流曜・流月・流日は含まず、具体的な出来事も予測しません。"
  ],
- "运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。不安流曜，也不预测具体事件。": [
-  "Period layers follow the public traditional rules: decades start from the five-element bureau and run forward for yang men and yin women, with transformations from the decade palace's stem; the year layer's Life palace is the palace on the year's branch, with transformations from the year stem; the small limit follows the nominal age; the month layer follows Dou Jun (from the year layer's Life palace count back to the birth month, then forward to the birth hour for the first month) and moves one palace per month, with transformations from the month stem; the day layer starts from the month layer's Life palace on the first day and moves one palace per day, with transformations from the day stem. No flowing stars and no event forecast.",
-  "運限層は公開されている伝統規則で示します。大限は五行局から起こし、陽男陰女は順行、四化は大限宮の宮干から。流年命宮はその年の地支がある宮、四化は年干から。小限は数え年。流月は斗君（流年命宮から生月まで逆に数え、生時まで順に数えた宮が正月）で毎月順行、四化は月干から。流日は流月命宮を初一として毎日順行、四化は日干から。流曜は置かず、具体的な出来事も予測しません。"
+ "运限层按公开的传统规则标注：大限按五行局起运、阳男阴女顺行，四化取大限宫干；流年命宫取当年地支所在宫，四化取年干；小限按虚岁；流月按斗君（从流年命宫逆数到生月、再顺数到生时为正月）逐月顺行，四化取月干；流日从流月命宫起初一逐日顺行，四化取日干。各层按本层干支安魁钺昌曲禄羊陀马鸾喜十颗流曜（大限称运曜），流年另安年解，并以当年地支起岁前、将前十二神。不预测具体事件。": [
+  "Period layers follow public traditional rules: decades start from the five-element bureau and run forward for yang men and yin women, with the decade palace stem's four transformations; the annual Life palace is the palace on that year's branch, with the year stem's transformations; small limits go by nominal age; the month layer uses Dou Jun (from the annual Life palace count back to the birth month, then forward to the birth hour for the first month) and moves one palace a month, with the month stem's transformations; the day layer starts the first day at the month Life palace and moves one palace a day, with the day stem's transformations. Each layer places ten period stars (Kui, Yue, Chang, Qu, Lu, Yang, Tuo, Ma, Luan, Xi) from its own stem and branch; the year adds Nian Jie and the Sui-qian and Jiang-qian twelve spirits from that year's branch. No events are predicted.",
+  "運限層は公開の伝統規則によります：大限は五行局から起運し陽男陰女は順行、四化は大限宮干；流年命宮はその年の地支の宮、四化は年干；小限は数え年；流月は斗君（流年命宮から生月まで逆に数え、生時まで順に数えた宮を正月）から毎月一宮順行、四化は月干；流日は流月命宮を初一として毎日一宮順行、四化は日干。各層はその干支で魁・鉞・昌・曲・禄・羊・陀・馬・鸞・喜の十流曜を配し（大限は運曜）、流年は年解と、その年の地支から歳前・将前十二神も配置します。具体的な出来事は予測しません。"
  ],
  "运限计算失败：": [
   "Period calculation failed: ",
   "運限の計算に失敗しました："
+ ],
+ "运马": [
+  "Ma (decade)",
+  "限の馬"
+ ],
+ "运魁": [
+  "Kui (decade)",
+  "限の魁"
+ ],
+ "运鸾": [
+  "Luan (decade)",
+  "限の鸞"
  ],
  "近似起始公历": [
   "Approx. Gregorian start",
@@ -7674,6 +7926,10 @@
  "长生": [
   "Growth (Chang Sheng)",
   "長生"
+ ],
+ "长生、博士、岁前、将前十二神": [
+  "Chang-sheng, Bo-shi, Sui-qian and Jiang-qian twelve spirits",
+  "長生・博士・歳前・将前の十二神"
  ],
  "长辈、导师与支持网络": [
   "Elders, mentors, and support networks",
@@ -8018,6 +8274,10 @@
  "；时间模式：": [
   "; time mode: ",
   "；時刻モード："
+ ],
+ "；流年将前：": [
+  "; annual Jiang-qian: ",
+  "；流年の将前："
  ],
  "；焦点宫宫干飞化：": [
   "; focus-palace stem flying transformations: ",

@@ -34,6 +34,10 @@ BUREAU_NUM = {'水': 2, '木': 3, '金': 4, '土': 5, '火': 6}
 ZIWEI_STARS = (('紫微', 0), ('天机', -1), ('太阳', -3), ('武曲', -4), ('天同', -5), ('廉贞', -8))
 TIANFU_STARS = (('天府', 0), ('太阴', 1), ('贪狼', 2), ('巨门', 3), ('天相', 4), ('天梁', 5), ('七杀', 6), ('破军', 10))
 LUCUN_BY_STEM = (2, 3, 5, 6, 5, 6, 8, 9, 11, 0)
+# 天魁, 天钺 by stem: 甲戊庚 丑未, 乙己 子申, 丙丁 亥酉, 辛 午寅, 壬癸 卯巳 (iztro's published table).
+KUI_YUE_BY_STEM = ((1, 7), (0, 8), (11, 9), (11, 9), (1, 7), (0, 8), (1, 7), (6, 2), (3, 5), (3, 5))
+# 天马 by branch triad: 申子辰 寅, 巳酉丑 亥, 寅午戌 申, 亥卯未 巳.
+TIANMA_BY_BRANCH = tuple((2, 11, 8, 5)[branch % 4] for branch in range(12))
 
 
 class BirthInput(BaseModel):
@@ -253,20 +257,8 @@ def _star_positions(lunar_day: int, bureau: int, adjusted_month: int,
     })
     lucun = LUCUN_BY_STEM[year_stem]
     stars.update({'禄存': lucun, '擎羊': (lucun + 1) % 12, '陀罗': (lucun - 1) % 12})
-    # Annual 驿马 / 天马 determined by birth-year earthly branch triad.
-    if year_branch in (2, 6, 10):
-        tianma = 8
-    elif year_branch in (8, 0, 4):
-        tianma = 2
-    elif year_branch in (5, 9, 1):
-        tianma = 11
-    else:
-        tianma = 5
-    stars['天马'] = tianma
-    # Common auxiliary placements. Named rule tables are auditable and school-dependent.
-    noble = ((1, 7), (0, 8), (11, 9), (11, 9), (1, 7),
-             (0, 8), (1, 7), (2, 6), (3, 5), (3, 5))
-    stars['天魁'], stars['天钺'] = noble[year_stem]
+    stars['天马'] = TIANMA_BY_BRANCH[year_branch]
+    stars['天魁'], stars['天钺'] = KUI_YUE_BY_STEM[year_stem]
     # 红鸾 starts at 卯 for 子 year and counts backwards; 天喜 opposite.
     stars['红鸾'] = (3 - year_branch) % 12
     stars['天喜'] = (stars['红鸾'] + 6) % 12
@@ -390,7 +382,7 @@ def calculate_ziwei(inp: BirthInput) -> dict:
             'solar_time_correction': inp.time_mode != 'clock',
             'time_mode': inp.time_mode,
         },
-        'notes': ['紫微新增选定杂曜、四组十二神与虚岁小限；运限层（大限到流时）见 ziwei_horoscope；仍缺完整流曜和流派逐宫验证', '传统时辰依据所选时基计算；太阳时转换为近似值，非精密历史历书定盘', '流派差异请使用一致的命盘规则比对'],
+        'notes': ['紫微新增选定杂曜、四组十二神与虚岁小限；运限层（大限到流时，含流曜与流年十二神）见 ziwei_horoscope；全部星曜已与 iztro 交叉核验，其他流派尚未逐宫核对', '传统时辰依据所选时基计算；太阳时转换为近似值，非精密历史历书定盘', '流派差异请使用一致的命盘规则比对'],
     }
 
 

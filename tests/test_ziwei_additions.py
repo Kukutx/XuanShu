@@ -80,3 +80,11 @@ def test_late_zi_rollover_on_the_last_supported_day():
     assert (chart['lunar_date']['year'], chart['lunar_date']['month'], chart['lunar_date']['day']) == (2099, 11, 21)
     with pytest.raises(ValueError):
         chinese_lunar_date(date(2100, 1, 1))
+
+
+def test_star_tables_found_by_the_iztro_crosscheck():
+    # iztro 2.6.1: a 辛 year puts 天魁 in 午 and 天钺 in 寅 ("辛年午寅"); 封诰 counts forward from 寅 at the Zi hour.
+    xin = calculate_ziwei(BirthInput(birth_datetime='1981-12-18T13:09', gender='male'))['star_positions']
+    assert (xin['天魁'], xin['天钺']) == ('午', '寅')
+    yin_hour = calculate_ziwei(BirthInput(birth_datetime='1988-02-08T04:25', gender='male'))['star_positions']
+    assert yin_hour['封诰'] == '辰' and yin_hour['台辅'] == '申'

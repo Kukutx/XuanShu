@@ -7,4 +7,4 @@
 - 数量统计仅表示多少条标签指向某本命宫位，不是运势强弱、事件概率或风险分数。与出生时间误差、闰月流派和时区设置有相应相关性。
 - 农历纪年从春节起，不是公历 1 月 1 日，也不等于立春干支年的每一刻。节令与农历年份归属仍需单独核对。
 
-工程来源：`app.reference.FOUR_TRANSFORMATIONS` 和 `app.engines.calculate_ziwei`，便于审计与回归。大限、小限、流年、流月、流日和流时的运限层见 `ziwei_horoscope`（`docs/rules/ziwei.md`）；仍不含流曜。
+工程来源：`app.reference.FOUR_TRANSFORMATIONS` 和 `app.engines.calculate_ziwei`，便于审计与回归。大限、小限、流年、流月、流日和流时的运限层（含各层流曜与流年十二神）见 `ziwei_horoscope`（`docs/rules/ziwei.md`）。

@@ -17,10 +17,16 @@ rules are the public traditional ones, as implemented by iztro:
 - hour (流时): from the day palace, the Zi hour, one palace per double hour;
   the hour pillar's stem.
 
+Each layer except the small limit also places its own ten period stars (流曜)
+from the layer's stem and branch, with the natal tables: 魁钺 and 昌曲 by stem,
+禄存 by stem with 擎羊 and 陀罗 beside it, 天马 by branch triad, 红鸾 and 天喜
+by branch. Their names carry the layer: 运 (decade), 流 (year), 月, 日, 时. The year
+layer adds 年解 and the year branch's 岁前 and 将前 twelve gods.
+
 The lunar year is counted from the lunar new year. With the leap-month option
 on, the second half of a leap month counts as the next month for the month
 layer, as it does for the natal chart. Nothing is stored and nothing is
-forecast: a layer only says which palace and which transformations apply.
+forecast: a layer only says which palace, transformations and stars apply.
 """
 from __future__ import annotations
 
@@ -31,12 +37,24 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .almanac import LUNAR_DAYS, LUNAR_MONTHS
 from .astronomy import chinese_lunar_date
-from .engines import BRANCHES, PALACE_NAMES, STEMS, BirthInput, calculate_ziwei, hour_branch_index, normalized_dt
+from .engines import (BRANCHES, KUI_YUE_BY_STEM, LUCUN_BY_STEM, PALACE_NAMES, STEMS, TIANMA_BY_BRANCH, BirthInput, calculate_ziwei,
+                      hour_branch_index, normalized_dt)
 from .reference import FOUR_TRANSFORMATIONS, FOUR_TYPES
 from .timebasis import time_basis
+from .ziwei_extensions import year_branch_cycles
 
 LAYER_KEYS = ('decade', 'small_limit', 'year', 'month', 'day', 'hour')
 HOUR_LAYERS = ('month', 'day', 'hour')
+# 文昌, 文曲 of a period by its stem (the natal pair goes by birth hour instead).
+CHANG_QU_BY_STEM = ((5, 9), (6, 8), (8, 6), (9, 5), (8, 6), (9, 5), (11, 3), (0, 2), (2, 0), (3, 11))
+# Period stars in the order 魁钺昌曲禄羊陀马鸾喜, named with each layer's prefix as iztro does.
+FLOW_STAR_NAMES = {
+    'decade': ('运魁', '运钺', '运昌', '运曲', '运禄', '运羊', '运陀', '运马', '运鸾', '运喜'),
+    'year': ('流魁', '流钺', '流昌', '流曲', '流禄', '流羊', '流陀', '流马', '流鸾', '流喜'),
+    'month': ('月魁', '月钺', '月昌', '月曲', '月禄', '月羊', '月陀', '月马', '月鸾', '月喜'),
+    'day': ('日魁', '日钺', '日昌', '日曲', '日禄', '日羊', '日陀', '日马', '日鸾', '日喜'),
+    'hour': ('时魁', '时钺', '时昌', '时曲', '时禄', '时羊', '时陀', '时马', '时鸾', '时喜'),
+}
 
 
 class ZiweiHoroscopeRequest(BaseModel):
@@ -53,8 +71,20 @@ def _ganzhi(stem: int, branch: int) -> dict:
     return {'stem': STEMS[stem % 10], 'branch': BRANCHES[branch % 12], 'text': STEMS[stem % 10] + BRANCHES[branch % 12]}
 
 
-def _layer(name: str, label: str, ming: int, stem: str, branch: str, chart: dict, **extra) -> dict:
-    """One period: its Life palace, the names it gives the twelve palaces and its stem's transformations."""
+def flow_star_positions(stem: int, branch: int, scope: str) -> list[tuple[str, int]]:
+    """Period stars of one layer as (name, branch index) pairs, in the order of FLOW_STAR_NAMES; the year adds Nian Jie."""
+    lu = LUCUN_BY_STEM[stem]
+    luan = (3 - branch) % 12
+    places = (*KUI_YUE_BY_STEM[stem], *CHANG_QU_BY_STEM[stem], lu, (lu + 1) % 12, (lu - 1) % 12,
+              TIANMA_BY_BRANCH[branch], luan, (luan + 6) % 12)
+    stars = list(zip(FLOW_STAR_NAMES[scope], places))
+    if scope == 'year':
+        stars.append(('年解', (10 - branch) % 12))  # 子年在戌，逆行
+    return stars
+
+
+def _layer(name: str, label: str, ming: int, stem: str, branch: str, chart: dict, scope: str | None = None, **extra) -> dict:
+    """One period: its Life palace, the names it gives the twelve palaces, its stem's transformations and its stars."""
     natal = {p['branch']: p['name'] for p in chart['palaces']}
     transformations = []
     for kind, star in zip(FOUR_TYPES, FOUR_TRANSFORMATIONS[stem]):
@@ -62,10 +92,16 @@ def _layer(name: str, label: str, ming: int, stem: str, branch: str, chart: dict
         index = BRANCHES.index(where) if where else None
         transformations.append({'type': kind, 'star': star, 'branch': where,
                                 'natal_palace': natal.get(where), 'layer_palace': None if index is None else PALACE_NAMES[(ming - index) % 12]})
+    stars = [] if scope is None else [
+        {'name': star, 'branch': BRANCHES[at], 'natal_palace': natal[BRANCHES[at]], 'layer_palace': PALACE_NAMES[(ming - at) % 12]}
+        for star, at in flow_star_positions(STEMS.index(stem), BRANCHES.index(branch), scope)]
+    palaces = [{'branch': BRANCHES[i], 'natal_palace': natal[BRANCHES[i]], 'name': PALACE_NAMES[(ming - i) % 12]} for i in range(12)]
+    if scope == 'year':
+        cycles = year_branch_cycles(BRANCHES.index(branch))
+        for i, palace in enumerate(palaces):
+            palace.update(suiqian=cycles['suiqian'][i], jiangqian=cycles['jiangqian'][i])
     return {'name': name, 'available': True, 'label': label, 'ming_branch': BRANCHES[ming], 'ming_natal_palace': natal[BRANCHES[ming]],
-            'stem': stem, 'branch': branch,
-            'palaces': [{'branch': BRANCHES[i], 'natal_palace': natal[BRANCHES[i]], 'name': PALACE_NAMES[(ming - i) % 12]} for i in range(12)],
-            'transformations': transformations, **extra}
+            'stem': stem, 'branch': branch, 'palaces': palaces, 'transformations': transformations, 'stars': stars, **extra}
 
 
 def _unavailable(name: str, reason: str) -> dict:
@@ -79,6 +115,8 @@ def _without_natal_positions(layer: dict) -> dict:
         palace['natal_palace'] = None
     for item in layer['transformations']:
         item.update(branch=None, natal_palace=None, layer_palace=None)
+    for star in layer['stars']:  # period stars sit by the layer's own stem and branch; only the natal name goes
+        star['natal_palace'] = None
     return layer
 
 
@@ -128,7 +166,7 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
                                         else f'虚岁 {age} 超出十二个大限。')
     else:
         layers['decade'] = _layer('大限', f"大限 {holder['decade']['start_age']}–{holder['decade']['end_age']} 岁 · {holder['stem']}{holder['branch']}",
-                                  BRANCHES.index(holder['branch']), holder['stem'], holder['branch'], chart,
+                                  BRANCHES.index(holder['branch']), holder['stem'], holder['branch'], chart, 'decade',
                                   start_age=holder['decade']['start_age'], end_age=holder['decade']['end_age'])
     small = next((p for p in chart['palaces'] if age in (p['small_limit_nominal_ages'] or [])), None)
     layers['small_limit'] = (_layer('小限', f"小限 · {small['stem']}{small['branch']}", BRANCHES.index(small['branch']),
@@ -136,7 +174,7 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
                              else _unavailable('小限', '小限顺行或逆行取决于性别；出生资料未选性别。' if birth.gender == 'unspecified'
                                                else f'虚岁 {age} 不在小限表内。'))
     layers['year'] = _layer('流年', f"{lunar['year']} {STEMS[year_stem]}{BRANCHES[year_branch]}年 · 虚岁 {age}", year_branch,
-                            STEMS[year_stem], BRANCHES[year_branch], chart)
+                            STEMS[year_stem], BRANCHES[year_branch], chart, 'year')
     if req.hour_unknown:
         # The small limit and year palaces follow the year branch alone; the natal palaces and star positions follow the hour.
         for key in ('small_limit', 'year'):
@@ -152,15 +190,15 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
         if lunar['is_leap_month'] and birth.leap_month_second_half_as_next:
             half = ('（下半月，按' if leap_next else '（上半月，按') + LUNAR_MONTHS[(month_number - 1) % 12] + '）'
         layers['month'] = _layer('流月', f"{lunar['year']}年{month_name}{half} · {STEMS[month_stem]}{BRANCHES[month_branch]}月",
-                                 month_palace, STEMS[month_stem], BRANCHES[month_branch], chart, dou_jun_branch=BRANCHES[dou_jun])
+                                 month_palace, STEMS[month_stem], BRANCHES[month_branch], chart, 'month', dou_jun_branch=BRANCHES[dou_jun])
         day_palace = (month_palace + lunar['day'] - 1) % 12
         layers['day'] = _layer('流日', f"{day.isoformat()} · {month_name}{LUNAR_DAYS[lunar['day'] - 1]} · {STEMS[day_idx % 10]}{BRANCHES[day_idx % 12]}日",
-                               day_palace, STEMS[day_idx % 10], BRANCHES[day_idx % 12], chart)
+                               day_palace, STEMS[day_idx % 10], BRANCHES[day_idx % 12], chart, 'day')
         if hour is None:
             layers['hour'] = _unavailable('流时', '没有填写时刻（target_time），不列流时。')
         else:
             layers['hour'] = _layer('流时', f"{req.target_time} · {STEMS[hour_stem]}{BRANCHES[hour_branch]}时",
-                                    (day_palace + hour_branch) % 12, STEMS[hour_stem], BRANCHES[hour_branch], chart)
+                                    (day_palace + hour_branch) % 12, STEMS[hour_stem], BRANCHES[hour_branch], chart, 'hour')
 
     start = day - timedelta(days=lunar['day'] - 1)
     end = start + timedelta(days=lunar['month_days'] - 1)
@@ -192,13 +230,15 @@ def ziwei_horoscope(req: ZiweiHoroscopeRequest) -> dict:
             'month': '斗君：从流年命宫逆数到生月，再顺数到生时为正月，每月顺行一宫；四化取月干（五虎遁）',
             'day': '从流月命宫起初一，每日顺行一宫；四化取日干',
             'hour': '从流日命宫起子时，每个时辰顺行一宫；四化取时干',
+            'flow_stars': '大限、流年、流月、流日、流时各按本层干支安魁钺昌曲禄羊陀马鸾喜，字头分别为运、流、月、日、时；流年另安年解与岁前、将前十二神；小限不安流曜',
             'nominal_age': '传统虚岁：目标农历年减出生农历年再加一',
             'transformation_school': chart['transformation_school'],
         },
         'limitations': [
-            '只标出各层的命宫与四化落在哪颗本命星上，不安流曜，不预测具体事件。',
+            '只标出各层的命宫、四化落在哪颗本命星上和本层流曜，不预测具体事件。',
+            '流曜只有魁钺昌曲禄羊陀马鸾喜十颗（流年另有年解），与 iztro 一致；流火、流铃等其他流派的流曜不安。',
             '流月的起法各派不同；这里用斗君，与 iztro 一致。',
             '流时按所填钟表时间取时辰，不做太阳时换算。',
             '前后翻页的日期是 target_date，配合同一个 target_time 使用；选了 23:00 换日时已扣回提前的一天。',
-        ] + (['时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干和四化星名，不列它们落在哪个本命宫。'] if req.hour_unknown else []),
+        ] + (['时辰不详：本命宫位和星曜位置随时辰变化，小限、流年只列命宫地支、天干、四化星名和本层流曜，不列它们落在哪个本命宫。'] if req.hour_unknown else []),
     }

@@ -12,7 +12,9 @@ The project depends on these independently distributed Python packages. They are
 
 ## iztro
 
-This repository does **not** package or import the iztro JavaScript library; its publicly documented expected outputs are used only as a comparator for tests. Source: https://docs.iztro.com/quick-start.
+Source: https://github.com/SylarLong/iztro · MIT License · documentation https://docs.iztro.com/quick-start.
+
+The application does **not** package, import or depend on the iztro JavaScript library. The evaluation script `scripts/iztro_reference.cjs` (run by `scripts/eval_crosscheck.py`) loads iztro 2.6.1 through Node.js to compare XuanShu's Zi Wei charts with it; the version is pinned in `docs/evals/package.json` and installed only on request with `npm install --prefix docs/evals`. `docs/evals/node_modules` is ignored by Git and left out of the release archive. Expected values copied from iztro's output into tests are used only as a comparator.
 
 ## External platform interfaces
 

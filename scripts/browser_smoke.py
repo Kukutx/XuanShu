@@ -278,10 +278,29 @@ def main() -> None:
             assert page.locator('.palace-layer').count() == 12
             assert page.locator('.palace.layer-anchor').count() == 1
             assert page.locator('#ziwei-board .hua.layer').count() == 4
+            # The decade and year layers draw their 流曜 in the browser; they must match the engine's.
+            flow_check = '''async key => {
+              // 1 July always falls inside the lunar year of the same number.
+              const z = current.ziwei, info = ziweiLayerInfo(z);
+              const year = key === 'year' ? info.year : z.lunar_date.year + z.palaces[info.anchor].decade.start_age - 1;
+              const target = year + '-07-01';
+              const h = await postJSON('/api/ziwei-horoscope', {birth: currentInput, target_date: target});
+              const at = branch => 'palace-' + '子丑寅卯辰巳午未申酉戌亥'.indexOf(branch);
+              const shown = [...document.querySelectorAll('#ziwei-board .flow-star')].map(el => el.textContent + '@' + el.closest('.palace').id).sort();
+              const expected = h.layers[key].stars.map(s => s.name + '@' + at(s.branch)).sort();
+              const cycles = [...document.querySelectorAll('#ziwei-board .layer-cycle')].map(el => el.textContent + '@' + el.closest('.palace').id).sort();
+              const yearly = key === 'year' ? h.layers.year.palaces.map(p => p.suiqian + '@' + at(p.branch)).sort() : [];
+              return JSON.stringify([shown, cycles]) === JSON.stringify([expected, yearly]) ? '' : JSON.stringify({shown, expected, cycles, yearly});
+            }'''
+            assert page.locator('#ziwei-board .flow-star').count() == 10
+            decade_check = page.evaluate(flow_check, 'decade')
+            assert decade_check == '', decade_check
             page.locator('#ziwei-layer-year').click()
             page.locator('#ziwei-layer-next').click()
             assert page.evaluate('document.activeElement.id') == 'ziwei-layer-next'
-            assert '流年四化' in page.locator('.palace-panel').inner_text()
+            assert '流年四化' in page.locator('.palace-panel').inner_text() and '流年流曜' in page.locator('.palace-panel').inner_text()
+            assert page.locator('#ziwei-board .flow-star').count() == 11 and page.locator('#ziwei-board .layer-cycle').count() == 12
+            assert page.evaluate(flow_check, 'year') == ''
             page.screenshot(path=str(screenshot_dir / '31-ziwei-annual-layer.png'), full_page=True)
             # Month and day layers come from the engine for any date; the stack lists every layer in force that day.
             page.locator('#ziwei-layer-month').click()
@@ -289,6 +308,7 @@ def main() -> None:
             page.locator('.layer-label', has_text='2026年九月 · 戊戌月').wait_for(timeout=30000)
             assert page.locator('#palace-10.layer-anchor').count() == 1 and page.locator('#ziwei-layer-stack .layer-stack-row').count() == 5
             assert page.locator('#ziwei-board .hua.layer').count() == 4 and '流月四化（戊干）' in page.locator('.palace-panel').inner_text()
+            assert page.locator('#ziwei-board .flow-star', has_text='月禄').count() == 1 and page.locator('#palace-5 .flow-star', has_text='月禄').count() == 1
             page.locator('#ziwei-layer-next').click()
             page.locator('.layer-label', has_text='十月').wait_for(timeout=30000)
             assert page.evaluate('document.activeElement.id') == 'ziwei-layer-next'
@@ -307,11 +327,23 @@ def main() -> None:
             page.locator('#share-bazi').uncheck()
             assert page.evaluate("document.querySelector('#share-canvas').height") < full
             page.locator('#share-close').click()
+            # Without a gender there is no 长生 or 博士, but the year's own 岁前 still marks every palace.
+            page.locator('#gender').select_option('unspecified')
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => current && current.ziwei && current.ziwei.palaces.every(p => !p.natal_cycles.changsheng)", timeout=30000)
+            page.locator('[data-tab="ziwei"]').click()
+            page.locator('#ziwei-layer-year').click()
+            assert page.locator('#ziwei-board .layer-cycle').count() == 12
+            page.locator('#ziwei-layer-natal').click()
+            assert page.locator('#ziwei-board .palace-cycles').count() == 12
+            page.locator('#gender').select_option('female')
+            page.locator('#run-btn').click()
+            page.wait_for_function("() => current && current.ziwei && current.ziwei.palaces.some(p => p.natal_cycles.changsheng)", timeout=30000)
 
             # Calculation cross-check: the committed evaluation summary in a dialog.
             page.locator('#crosscheck-open').click()
             page.locator('#crosscheck-differences li').first.wait_for(timeout=30000)
-            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 28
+            assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 36
             assert '100.000%' in page.locator('#crosscheck-dialog').inner_text()
             page.locator('#crosscheck-dialog').screenshot(path=str(screenshot_dir / '38-crosscheck.png'))
             page.locator('#crosscheck-close').click()
