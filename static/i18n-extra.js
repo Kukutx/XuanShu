@@ -1722,6 +1722,10 @@ const UI_EXTRA = {
 "Rest Door (Xiu)",
 "休門"
 ],
+"会变的字段有几种结果": [
+"How many results each changing field can take",
+"変わる項目の結果は何通りか"
+],
 "会随规则变化": [
 "Changes with the rules",
 "ルールによって変わる"
@@ -2053,6 +2057,10 @@ const UI_EXTRA = {
 "全部提供字段一致": [
 "All provided fields match",
 "提供された全フィールドが一致"
+],
+"全部规则组合": [
+"All rule combinations",
+"すべての規則の組み合わせ"
 ],
 "八字": [
 "BaZi",
@@ -2938,6 +2946,10 @@ const UI_EXTRA = {
 "Hua Gai",
 "華蓋"
 ],
+"单独换一条规则": [
+"One rule changed at a time",
+"規則を一つだけ変えた場合"
+],
 "南": [
 "South",
 "南"
@@ -3042,6 +3054,10 @@ const UI_EXTRA = {
 "Reference sources are provided by the user; the tool does not automatically certify the authority of the source.",
 "参考出典はユーザーが提供したものであり、ツールはその出典の権威性を自動的に認証しません。"
 ],
+"及另": [
+"and",
+"ほか"
+],
 "双人关系": [
 "Two-person relationship",
 "2人の関係"
@@ -3077,6 +3093,10 @@ const UI_EXTRA = {
 "发展方向": [
 "Direction of development",
 "発展の方向"
+],
+"取消突出": [
+"Clear highlight",
+"強調を解除"
 ],
 "变化": [
 "Changed",
@@ -5158,6 +5178,10 @@ const UI_EXTRA = {
 "charts (one per day)",
 "枚の盤（一日一枚）"
 ],
+"当前": [
+"Current",
+"現在"
+],
 "当前 ": [
 "Current ",
 "現在 "
@@ -6137,6 +6161,10 @@ const UI_EXTRA = {
 "时制规则界": [
 "Time-system rule boundary",
 "時刻制度の規則境界"
+],
+"时刻不变": [
+"Same time",
+"時刻は同じ"
 ],
 "时刻误差采样": [
 "Time-error sampling",
@@ -7386,6 +7414,14 @@ const UI_EXTRA = {
 "Peers",
 "比劫"
 ],
+"比当前设置早": [
+"Earlier than the current settings",
+"現在の設定より早い"
+],
+"比当前设置晚": [
+"Later than the current settings",
+"現在の設定より遅い"
+],
 "比肩": [
 "Friend (Bi Jian)",
 "比肩"
@@ -7789,6 +7825,10 @@ const UI_EXTRA = {
 "点「比较两人命盘」重新计算后可以看这一部分。": [
 "Click Compare both charts again to see this part.",
 "「二人の命盤を比較」をもう一度押すとこの部分が表示されます。"
+],
+"点一个结果，下方表格只突出得出它的规则组合。": [
+"Pick a result to highlight, in the table below, only the rule combinations that give it.",
+"結果を選ぶと、下の表でその結果になる規則の組み合わせだけを強調します。"
 ],
 "点击「查询日历」查看农历、日柱与当日节气时间。此功能不提供吉凶宜忌。": [
 "Click 'Look up calendar' to see the lunar date, day pillar and that day's solar term time. This feature does not provide auspicious/inauspicious or do/avoid guidance.",
@@ -8330,9 +8370,17 @@ const UI_EXTRA = {
 "Autumn Equinox (Qiufen)",
 "秋分"
 ],
+"种": [
+"ways",
+"通り"
+],
 "种不同规则下结果与当前完全相同": [
 "alternative rules give exactly the same result",
 "通りの別ルールで結果がまったく同じ"
+],
+"种组合": [
+"combinations",
+"通りの組み合わせ"
 ],
 "科入": [
 "Ke in",
@@ -8373,6 +8421,10 @@ const UI_EXTRA = {
 "空宫（未安十四主星）": [
 "Empty palace (none of the 14 main stars)",
 "空宮（十四主星なし）"
+],
+"突出": [
+"Highlighting",
+"強調"
 ],
 "突出显示": [
 "Highlighting",
@@ -8653,6 +8705,10 @@ const UI_EXTRA = {
 "结果 SHA-256 ": [
 "Result SHA-256 ",
 "結果 SHA-256 "
+],
+"结果不变": [
+"No change",
+"結果は同じ"
 ],
 "结果依赖选定流派；不同流派、时区和临界出生时刻可能产生差异。": [
 "Results depend on the selected school; different schools, time zones, and boundary birth times may produce differences.",
