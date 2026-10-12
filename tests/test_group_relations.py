@@ -175,6 +175,9 @@ def test_unknown_hour_on_a_midnight_daylight_saving_change_uses_the_real_ends_of
     luck = view['year_view']['members'][0]['luck']
     assert luck['status'] == 'depends_on_hour'
     assert [(o['pillar'], o['start_year']) for o in luck['options']] == [('丙寅', 1991), ('丁卯', 2000)]
+    # The timeline gives the same pillars at both ends, each period beginning in one of two years.
+    assert [(p['pillar'], p['start_years'], p['end_years']) for p in view['year_view']['luck_timeline'][0]['periods'][:2]] == [
+        ('丙寅', [1990, 1991], [1999, 2000]), ('丁卯', [2000, 2001], [2009, 2010])]
     late = BirthInput(birth_datetime='1989-01-28T23:59-03:00', timezone='America/Sao_Paulo', gender='male')
     periods = dayun_sequence(DayunRequest(birth=late, periods=12, include_years=True))['periods']
     assert [p['pillar'] for p in periods if 2000 in [y['year'] for y in p['years']]] == ['丁卯']
@@ -190,6 +193,39 @@ def test_unknown_hour_on_a_midnight_daylight_saving_change_uses_the_real_ends_of
     assert view['members'][0]['uncertain_pillars'] == ['month']
 
 
+def test_luck_timeline_lists_every_period_and_agrees_with_the_year_cards():
+    view = group_relations(GroupRequest(members=YEAR_FAMILY, year=2026))['year_view']
+    rows = {r['label']: r for r in view['luck_timeline']}
+    assert list(rows) == ['我', '妈妈', '爸爸', '弟弟', '侄子']
+    me = rows['我']
+    assert (me['status'], me['born_year'], len(me['periods'])) == ('ok', 1990, 12)
+    assert [(p['pillar'], p['start_years'], p['end_years'], p['ten_god']) for p in me['periods'][1:4]] == [
+        ('癸未', [2007], [2016], '劫财'), ('甲申', [2017], [2026], '食神'), ('乙酉', [2027], [2036], '伤官')]
+    # Consecutive periods share no year and skip none.
+    for row in (me, rows['妈妈'], rows['侄子']):
+        for prev, nxt in zip(row['periods'], row['periods'][1:]):
+            assert prev['end_years'][-1] + 1 == nxt['start_years'][-1] and prev['end_years'][0] + 1 == nxt['start_years'][0]
+    assert (rows['弟弟']['status'], rows['弟弟']['periods']) == ('needs_gender', [])
+    # The timeline is the same whatever year is open, and each year card names the period the timeline shows.
+    assert group_relations(GroupRequest(members=YEAR_FAMILY, year=2001))['year_view']['luck_timeline'] == view['luck_timeline']
+    for year in (2016, 2017, 2036, 2037):
+        card = group_relations(GroupRequest(members=YEAR_FAMILY, year=year))['year_view']['members'][0]['luck']
+        period = next(p for p in me['periods'] if p['start_years'][0] <= year <= p['end_years'][0])
+        assert (card['pillar'], card['start_year']) == (period['pillar'], period['start_years'][0])
+
+
+def test_luck_timeline_with_an_unknown_hour():
+    me = YEAR_FAMILY[0]
+    view = group_relations(GroupRequest(members=[gendered('甲', '1985-07-03T12:00', 'female', hour_unknown=True), me], year=2001))
+    row = view['year_view']['luck_timeline'][0]
+    # The pillars are the same at both ends of the day; each period may begin one year later.
+    assert row['status'] == 'ok' and row['hour_unknown'] is True
+    assert [(p['pillar'], p['start_years']) for p in row['periods'][:3]] == [
+        ('癸未', [1986, 1987]), ('甲申', [1996, 1997]), ('乙酉', [2006, 2007])]
+    view = group_relations(GroupRequest(members=[gendered('丙', '2026-02-04T12:00', 'female', hour_unknown=True), me], year=2030))
+    assert (view['year_view']['luck_timeline'][0]['status'], view['year_view']['luck_timeline'][0]['periods']) == ('uncertain_pillars', [])
+
+
 def test_year_is_validated_and_reaches_rest_and_mcp():
     for year in (1900, 2100, 'next'):
         with pytest.raises(ValidationError):
@@ -199,7 +235,8 @@ def test_year_is_validated_and_reaches_rest_and_mcp():
                          'params': {'name': 'group_relations', 'arguments': {'members': YEAR_FAMILY[:2], 'year': 2026}}})
     assert reply['result']['structuredContent']['year_view'] == rest['year_view'] and rest['year_view']['year_pillar'] == '丙午'
     tools = process_rpc({'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list'})['result']['tools']
-    assert 'year_view' in next(t for t in tools if t['name'] == 'group_relations')['description']
+    description = next(t for t in tools if t['name'] == 'group_relations')['description']
+    assert 'year_view' in description and 'luck_timeline' in description
 
 
 def test_mcp_tool_chat_access_and_page_wiring():

@@ -6,7 +6,8 @@ five combinations and every labelled branch link across the four pillars. The
 group also gets complete three-harmony triads formed by different members'
 year or day branches. With a year, each member's luck pillar (大运) and the
 year pillar (流年) read against each chart are listed side by side, with the
-labelled links between members' luck pillars. These are traditional symbolic
+labelled links between members' luck pillars and every member's twelve luck
+periods for a timeline. These are traditional symbolic
 labels, not a judgement of the relationship: no compatibility score or ranking
 is produced.
 """
@@ -193,20 +194,36 @@ def _triads(members: list[dict]) -> list[dict]:
     return found
 
 
-def _luck_case(birth: BirthInput, year: int, hour_unknown: bool) -> dict:
-    """The luck period ``year`` falls in, by the same 交运年 listing as the luck page: the year a period begins
-    in is listed whole under it."""
-    data = dayun_sequence(DayunRequest(birth=birth, periods=12, include_years=True, hour_unknown=hour_unknown))
-    for period in data['periods']:
-        years = [item['year'] for item in period['years']]
-        if year in years:
-            return {'status': 'in_period', 'pillar': period['pillar'], 'sequence': period['sequence'], 'start_year': years[0]}
-    first = data['periods'][0]['years'][0]['year']
+def _periods(birth: BirthInput, hour_unknown: bool) -> list[dict]:
+    """The twelve luck periods with the civil years each one lists, by the same 交运年 listing as the luck page:
+    from the year a period begins in up to the year before the next one begins, so the year of a change is
+    listed whole under the new period."""
+    data = dayun_sequence(DayunRequest(birth=birth, periods=12, hour_unknown=hour_unknown))
+    return [{'sequence': p['sequence'], 'pillar': p['pillar'], 'start_year': int(p['approx_start_local'][:4]),
+             'end_year': int(p['approx_end_local_exclusive'][:4]) - 1} for p in data['periods']]
+
+
+def _luck_case(periods: list[dict], year: int) -> dict:
+    """The luck period ``year`` falls in."""
+    for period in periods:
+        if period['start_year'] <= year <= period['end_year']:
+            return {'status': 'in_period', 'pillar': period['pillar'], 'sequence': period['sequence'],
+                    'start_year': period['start_year']}
+    first = periods[0]['start_year']
     return {'status': 'not_started' if year < first else 'beyond', 'pillar': None, 'sequence': None,
             'start_year': first if year < first else None}
 
 
-def _luck(m: GroupMember, member: dict, year: int) -> dict:
+def _period_cases(m: GroupMember, member: dict) -> list[list[dict]]:
+    """The member's luck periods; with an unknown hour, once at the first and once at the last minute of the
+    birth day, since the luck start moves by up to a third of a year within that day."""
+    if m.hour_unknown:
+        day = member['birth_datetime'][:10]
+        return [_periods(_birth_at(m.birth, day, edge)[0], True) for edge in (DAY_START, DAY_END)]
+    return [_periods(m.birth, False)]
+
+
+def _luck(m: GroupMember, member: dict, year: int, period_cases: list[list[dict]] | None) -> dict:
     """The member's luck pillar in ``year``. With an unknown hour the luck start moves by up to a third of a
     year within the birth day, so the period is taken at the first and the last minute of that day: when both
     give one pillar but different start years, ``start_years`` has both and ``start_year`` is None; when the
@@ -218,11 +235,7 @@ def _luck(m: GroupMember, member: dict, year: int) -> dict:
     if {'year', 'month'} & set(member['uncertain_pillars']):
         # The month pillar the luck pillars count from (or the year stem that sets their direction) is unknown.
         return {**empty, 'status': 'uncertain_pillars'}
-    if m.hour_unknown:
-        day = member['birth_datetime'][:10]
-        cases = [_luck_case(_birth_at(m.birth, day, times)[0], year, True) for times in (DAY_START, DAY_END)]
-    else:
-        cases = [_luck_case(m.birth, year, False)]
+    cases = [_luck_case(periods, year) for periods in period_cases]
     for case in cases:
         case['changes_this_year'] = case['start_year'] == year
     starts = sorted({case['start_year'] for case in cases if case['start_year'] is not None})
@@ -243,11 +256,35 @@ def _luck(m: GroupMember, member: dict, year: int) -> dict:
     return found
 
 
+def _timeline_row(m: GroupMember, member: dict, period_cases: list[list[dict]] | None) -> dict:
+    """Every luck period of one member for the timeline. With an unknown hour the pillars are the same at both
+    ends of the birth day (the month pillar and the direction are known), but a period may begin one civil year
+    later at one end: ``start_years`` then has both years and the earlier one is uncertain."""
+    row = {'label': member['label'], 'born_year': int(member['birth_datetime'][:4]), 'hour_unknown': m.hour_unknown,
+           'status': 'ok', 'periods': []}
+    if m.birth.gender == 'unspecified':
+        return {**row, 'status': 'needs_gender'}
+    if period_cases is None or any([p['pillar'] for p in c] != [p['pillar'] for p in period_cases[0]] for c in period_cases):
+        return {**row, 'status': 'uncertain_pillars'}
+    master = member['day_master']
+    for found in zip(*period_cases):
+        starts = sorted({p['start_year'] for p in found})
+        ends = sorted({p['end_year'] for p in found})
+        pillar = found[0]['pillar']
+        row['periods'].append({'sequence': found[0]['sequence'], 'pillar': pillar, 'start_years': starts, 'end_years': ends,
+                               'ten_god': _ten_god(STEMS.index(master), STEMS.index(pillar[0])) if master else None})
+    return row
+
+
 def _year_view(req: GroupRequest, members: list[dict]) -> dict:
     year = req.year
     pillar = STEMS[(year - 4) % 10] + BRANCHES[(year - 4) % 12]
     rows = []
+    timeline = []
     for m, member in zip(req.members, members):
+        luck_known = m.birth.gender != 'unspecified' and not {'year', 'month'} & set(member['uncertain_pillars'])
+        period_cases = _period_cases(m, member) if luck_known else None
+        timeline.append(_timeline_row(m, member, period_cases))
         born = int(member['birth_datetime'][:4])
         row = {'label': member['label'], 'gender': m.birth.gender, 'age': year - born, 'hour_unknown': m.hour_unknown}
         if year < born:
@@ -257,7 +294,7 @@ def _year_view(req: GroupRequest, members: list[dict]) -> dict:
         # A year, month or day pillar that can change within the birth day leaves the stars and the day master
         # unknown, so the year pillar is not read against such a chart.
         reading = None if member['uncertain_pillars'] else natal_interactions(pillar, calculate_bazi(m.birth), known)
-        rows.append({**row, 'status': 'born', 'luck': _luck(m, member, year), 'year_reading': reading})
+        rows.append({**row, 'status': 'born', 'luck': _luck(m, member, year, period_cases), 'year_reading': reading})
     pairs = []
     for i, j in combinations(range(len(rows)), 2):
         a, b = rows[i]['luck'], rows[j]['luck']
@@ -279,10 +316,11 @@ def _year_view(req: GroupRequest, members: list[dict]) -> dict:
         notes.append('时辰不详且出生当天交节的成员，月柱可能有两种，大运无法确定；流年也不与其原局比较。')
     return {
         'year': year, 'year_pillar': pillar, 'zodiac': ANIMALS[(year - 4) % 12],
-        'members': rows, 'luck_pairs': pairs,
+        'members': rows, 'luck_pairs': pairs, 'luck_timeline': timeline,
         'rules': {'year_pillar': '立春换年，公历年对应的干支', 'luck': '与大运页相同：三日折一岁，顺逆按年干阴阳与性别',
                   'luck_links': '成员两两比较大运：天干五合，地支同支、六合、六冲、六害、相刑',
-                  'year_reading': '流年与各人原局：十神、星运、空亡、干支合冲刑害、补成三合三会、神煞'},
+                  'year_reading': '流年与各人原局：十神、星运、空亡、干支合冲刑害、补成三合三会、神煞',
+                  'luck_timeline': '每人十二步大运与各自列出的公历年，交运当年记在新大运下'},
         'notes': notes,
     }
 
