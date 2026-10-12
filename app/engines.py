@@ -109,6 +109,47 @@ def xun_kong(index: int) -> str:
     return BRANCHES[(first + 10) % 12] + BRANCHES[(first + 11) % 12]
 
 
+def stem_labels(left: str, right: str) -> list[str]:
+    """The five stem combinations (Yi and Geng combine into metal, ...) and the four stem clashes between two stems."""
+    pair = frozenset((left, right))
+    return ([STEM_COMBINATIONS[pair]] if pair in STEM_COMBINATIONS else []) + (['相冲'] if pair in STEM_CLASHES else [])
+
+
+def branch_labels(left: str, right: str) -> list[str]:
+    """Pair labels between two branches. Punishment (xing) belongs to the pair, whichever pillar comes first."""
+    pair = frozenset((left, right))
+    return ((['同支'] if left == right else []) + (['六合'] if pair in BRANCH_HARMONY else [])
+            + (['六冲'] if pair in BRANCH_CLASH else []) + (['六害'] if pair in BRANCH_HARM else [])
+            + (['相刑'] if (left, right) in BRANCH_PUNISH or (right, left) in BRANCH_PUNISH else []))
+
+
+def natal_interactions(pillar: str, natal: dict, pillar_keys: tuple[str, ...] = ('year', 'month', 'day', 'hour')) -> dict:
+    """A luck or year pillar read against the natal pillars: its growth stages, whether it falls in the
+    day or year void, and the stem and branch relations it forms with each natal pillar. Labels only."""
+    stem, branch = STEMS.index(pillar[0]), BRANCHES.index(pillar[1])
+    master = STEMS.index(natal['day_master'])
+    natal_pillars = {key: natal['pillars'][key] for key in pillar_keys}
+    present = {p['branch'] for p in natal_pillars.values()}
+    return {
+        'pillar': pillar,
+        'ten_god_of_stem': _ten_god(master, stem),
+        'na_yin': NAYIN_NAMES[_sexagenary_by_pair(stem, branch) // 2],
+        'growth_stage': growth_stage(master, branch),
+        'self_stage': growth_stage(stem, branch),
+        'void_of': [key for key in ('day', 'year') if key in natal_pillars and pillar[1] in natal_pillars[key]['xun_kong']],
+        'stem_relations': [{'pillar': key, 'stem': p['stem'], 'labels': labels}
+                           for key, p in natal_pillars.items() if (labels := stem_labels(pillar[0], p['stem']))],
+        'branch_relations': [{'pillar': key, 'branch': p['branch'], 'labels': labels}
+                             for key, p in natal_pillars.items() if (labels := branch_labels(pillar[1], p['branch']))],
+        # A three-harmony or seasonal group this branch completes with branches already in the natal chart.
+        'branch_groups': [{'kind': kind, 'branches': group, 'element': element,
+                           'pillars': [key for key, p in natal_pillars.items() if p['branch'] in group and p['branch'] != pillar[1]]}
+                          for kind, table in (('三合', BRANCH_TRIADS), ('三会', BRANCH_SEASONS))
+                          for group, element in table
+                          if pillar[1] in group and all(b in present for b in group if b != pillar[1])],
+    }
+
+
 def _sexagenary_by_pair(stem: int, branch: int) -> int:
     return next(i for i in range(60) if i % 10 == stem and i % 12 == branch)
 
@@ -213,8 +254,7 @@ def calculate_bazi(inp: BirthInput) -> dict:
     stem_relations = []
     for i, a in enumerate(pillar_keys):
         for b in pillar_keys[i+1:]:
-            pair = frozenset((pillars[a]['stem'], pillars[b]['stem']))
-            tags = ([STEM_COMBINATIONS[pair]] if pair in STEM_COMBINATIONS else []) + (['相冲'] if pair in STEM_CLASHES else [])
+            tags = stem_labels(pillars[a]['stem'], pillars[b]['stem'])
             stem_relations.append({'a': a, 'b': b, 'stems': pillars[a]['stem'] + '/' + pillars[b]['stem'], 'labels': tags})
     present = [pillars[key]['branch'] for key in pillar_keys]
     branch_groups = [{'kind': kind, 'branches': group, 'element': element,
@@ -224,9 +264,7 @@ def calculate_bazi(inp: BirthInput) -> dict:
     for i, a in enumerate(pillar_keys):
         for b in pillar_keys[i+1:]:
             left, right = pillars[a]['branch'], pillars[b]['branch']
-            pair = frozenset((left, right))
-            tags = ([ '同支' ] if left == right else []) + ([ '六合' ] if pair in BRANCH_HARMONY else []) + ([ '六冲' ] if pair in BRANCH_CLASH else []) + ([ '六害' ] if pair in BRANCH_HARM else []) + ([ '相刑' ] if (left, right) in BRANCH_PUNISH else [])
-            relations.append({'a': a, 'b': b, 'branches': left + '/' + right, 'labels': tags})
+            relations.append({'a': a, 'b': b, 'branches': left + '/' + right, 'labels': branch_labels(left, right)})
 
     return {
         'system': 'bazi',

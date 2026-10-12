@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .astronomy import TERMS, from_jd, solar_term_jd, jie_neighbors
 from .engines import (BirthInput, BRANCHES, STEMS, normalized_dt, calculate_bazi,
-                      calculate_ziwei, hour_branch_index)
+                      calculate_ziwei, hour_branch_index, natal_interactions)
 from .timebasis import time_basis
 
 
@@ -25,6 +25,8 @@ class DayunRequest(BaseModel):
     birth: BirthInput
     periods: int = Field(default=10, ge=1, le=12)
     direction_override: Literal['forward', 'reverse'] | None = None
+    include_years: bool = Field(default=False, description='Also list each civil year of every period with its pillar read against the natal chart')
+    hour_unknown: bool = Field(default=False, description='Birth hour unknown: relations with the hour pillar are left out')
 
     @model_validator(mode='after')
     def require_direction(self):
@@ -62,6 +64,7 @@ def dayun_sequence(request: DayunRequest) -> dict:
     month_pillar = natal['pillars']['month']['text']
     index = next(i for i in range(60) if STEMS[i % 10] + BRANCHES[i % 12] == month_pillar)
     sign = 1 if direction == 'forward' else -1
+    keys = ('year', 'month', 'day') if request.hour_unknown else ('year', 'month', 'day', 'hour')
     periods = []
     for i in range(request.periods):
         from_age = traditional_years + i * 10
@@ -75,7 +78,15 @@ def dayun_sequence(request: DayunRequest) -> dict:
             'approx_end_age_years': round(from_age + 10, 4),
             'approx_start_local': begin.astimezone(birthday.tzinfo).isoformat(timespec='minutes'),
             'approx_end_local_exclusive': finish.astimezone(birthday.tzinfo).isoformat(timespec='minutes'),
+            'natal_interactions': natal_interactions(STEMS[cycle % 10] + BRANCHES[cycle % 12], natal, keys),
         })
+        if request.include_years:
+            # The common 交运年 listing: from the civil year the period begins in up to the year the next one
+            # begins in. The year that straddles a change is listed whole under the new period, so consecutive
+            # periods share no year and skip none; the pillar is the one that 立春 opens in that year.
+            first, last = begin.astimezone(birthday.tzinfo).year, finish.astimezone(birthday.tzinfo).year
+            periods[-1]['years'] = [{'year': y, **natal_interactions(STEMS[(y - 4) % 10] + BRANCHES[(y - 4) % 12], natal, keys)}
+                                    for y in range(first, last)]
     months_float = traditional_years * 12
     months_whole = floor(months_float)
     nominal_days = round((months_float - months_whole) * 30, 1)
@@ -99,12 +110,15 @@ def dayun_sequence(request: DayunRequest) -> dict:
         'method': {'direction': 'year stem yin/yang + gender, or explicit override',
                    'jie': '12 month-boundary jie, not 24 solar terms',
                    'age_conversion': 'three exact elapsed days per nominal traditional year',
-                   'civil_projection': '365.2425 days per nominal age-year; approximate, not a calendar school standard'},
+                   'civil_projection': '365.2425 days per nominal age-year; approximate, not a calendar school standard',
+                   'annual_pillars': 'with include_years: the civil years from the one each period begins in to the one the next begins in; the year of a change is listed under the new period'},
         'limitations': [
             '大运是传统十年干支标签，本工具不据此预测真实事件、吉凶、健康、财运或关系。',
             '起运年龄按三日折一岁；起始公历时间采用365.2425日近似年投影，非各流派统一精确交运日。',
             '顺逆规则参考立春年柱阴阳；自选 direction_override 优先。不同流派可按不同起运和顺逆规则排盘。',
             '时制模式用于出生时辰；交节间隔始终按实际UTC瞬间计算，不能把钟表偏移伪装为时间流逝。',
+            '与原局的星运、空亡和合冲刑害只是传统标签，不判断合化成败，也不据此断吉凶。',
+            '流年按常见排法从交运那一年列起：交运当年整年记在新大运下，交运日之前的几个月实际仍属上一步大运。',
         ],
     }
 

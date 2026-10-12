@@ -899,6 +899,10 @@
   "Any",
   "指定なし"
  ],
+ "与原局的星运、空亡和合冲刑害只是传统标签，不判断合化成败，也不据此断吉凶。": [
+  "Growth stages, voids and combinations, clashes, punishments and harms against the natal chart are traditional labels only; whether a combination transforms is not judged, and nothing here predicts fortune.",
+  "原局との星運・空亡・合沖刑害は伝統的なラベルにすぎず、合化の成否は判断せず、吉凶も断じません。"
+ ],
  "与我的命盘": [
   "Against my chart",
   "自分の命盤との関係"
@@ -2467,6 +2471,10 @@
   "Ten gods are read from the stem against the day master. Decade start years come from the three-days-per-year rule and are approximate; annual pillars change at Lichun. Click a year to open the same year layer on the Zi Wei chart.",
   "十神は日主から見た天干です。交運年は三日一歳の換算による概算で、流年は立春で替わります。流年をクリックすると紫微盤で同じ年の流年層を開きます。"
  ],
+ "十神按日主看天干，下面的小字是日主在该支的星运。格子底部是与原局地支的关系：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空。所选大运的天干关系、三合三会写在上方一行，流年的写在悬停说明里。只列关系，不判断吉凶。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。": [
+  "Ten Gods are read from the day master against the stem; the small text below is the day master's growth stage at that branch. Marks at the bottom of a cell are relations with the natal branches, in chart notation: 冲月 means it clashes with the month branch, 合 (combination), 刑 (punishment) and 害 (harm) likewise, 同 means the same branch; 日空 and 年空 mean it falls in the day or year pillar's void. The selected luck period's stem relations and three-harmony or seasonal groups are listed in the line above; for a year they are in its hover text. Relations only, no fortune judgement. Luck start years use three days per year and are approximate; years change at Li Chun. Click a year to open the same year's annual layer in the Zi Wei chart.",
+  "十神は日主から天干を見たもの、その下の小さな文字は日主のその支での星運です。マスの下部は原局の地支との関係を命盤の記法で示します：冲月は月柱と六冲、合・刑・害も同様、同は同じ支、日空・年空は日柱・年柱の旬空に入ることを表します。選択した大運の天干関係と三合・三会は上の行に、流年の分はホバー説明に記載します。関係を示すだけで吉凶は判断しません。交運年は三日を一年に換算した近似値で、流年は立春で切り替わります。流年をクリックすると紫微盤で同じ年の流年層を開きます。"
+ ],
  "十神是有方向的：A 看 B 与 B 看 A 往往不同，两者都列出。": [
   "Ten-god names have a direction: how A sees B usually differs from how B sees A, so both are listed.",
   "十神には方向があります。A から見た B と B から見た A は多くの場合異なるため、両方を示します。"
@@ -2730,6 +2738,10 @@
  "各宫出现次数不是吉凶评分或事件发生概率，不预测现实变化。": [
   "Occurrence counts per palace are not auspiciousness scores or event probabilities and do not predict real-world changes.",
   "各宮の出現回数は吉凶の採点や出来事の発生確率ではなく、現実の変化を予測しません。"
+ ],
+ "各层宫位对照表": [
+  "Palaces across layers",
+  "各層の宮位対照表"
  ],
  "各流派专家意见 · ": [
   "Expert views by school · ",
@@ -3231,9 +3243,17 @@
   "Copy failed; please use the download option next to it",
   "コピー失敗。横のダウンロード機能を使用してください"
  ],
+ "复制失败，请手动选中表格": [
+  "Copy failed; select the table by hand",
+  "コピーできませんでした。表を手動で選択してください"
+ ],
  "复制文字盘": [
   "Copy text chart",
   "テキスト命盤をコピー"
+ ],
+ "复制表格": [
+  "Copy table",
+  "表をコピー"
  ],
  "夏至": [
   "Summer Solstice (Xiazhi)",
@@ -3747,6 +3767,10 @@
   "Which calculation rules place the main stars, auxiliary stars and Four Transformations in each palace?",
   "宮内の主星、補助星、四化はそれぞれどの計算規則で配置されているか？"
  ],
+ "宫干支": [
+  "Palace stem-branch",
+  "宮の干支"
+ ],
  "宫干飞化：": [
   "Palace-stem flying transformations: ",
   "宮干飛化："
@@ -4026,6 +4050,10 @@
  "已复制文字盘": [
   "Text chart copied",
   "テキスト命盤をコピーしました"
+ ],
+ "已复制表格": [
+  "Table copied",
+  "表をコピーしました"
  ],
  "已复制，记得替换项目实际路径": [
   "Copied; remember to replace with your actual project path",
@@ -5291,6 +5319,10 @@
   "Birth hour unknown on a jie or day-change date: pillars marked ? are left out",
   "出生時刻不明で当日に節入りか日替わりあり：? の柱は比較しません"
  ],
+ "时辰不详时，各宫名称和星曜位置会随时辰变化，不列各层宫位对照表。": [
+  "With the birth hour unknown, palace names and star positions change with the hour, so the palaces-across-layers table is not shown.",
+  "出生時刻が不明なときは、宮名と星の位置が時刻によって変わるため、各層の宮位対照表は表示しません。"
+ ],
  "时辰不详：哪些部分不受时辰影响": [
   "Hour unknown: what the hour does not change",
   "時辰不明：時辰に左右されない部分"
@@ -6131,6 +6163,10 @@
   "Each row recalculates the current birth details under one common alternative rule (or a pair of them) and highlights the cells that differ from the current settings.",
   "各行は現在の出生情報を一般的な別ルール（または 2 つの組み合わせ）で再計算し、現在の設定と異なるセルを示します。"
  ],
+ "每一行是盘上的同一个宫位：各列写它在这一层叫什么宫，以及这一层的四化有哪几颗落在这里；高亮的格子是各层的命宫。点行首的干支，盘上就选中那一宫。": [
+  "Each row is one palace of the chart: each column gives its name in that layer and which of the layer's Four Transformations land there; highlighted cells are each layer's Life Palace. Click the stem-branch at the start of a row to select that palace on the chart.",
+  "各行は盤上の同じ宮位です。各列には、その層での宮名と、その層の四化のうちここに入る星を示します。強調されたマスは各層の命宮です。行頭の干支をクリックすると、盤上でその宮を選択します。"
+ ],
  "每个命盘事实可追溯到工具调用": [
   "Every chart fact traces back to a tool call",
   "命盤の各事実はツール呼び出しまで遡れます"
@@ -6282,6 +6318,10 @@
  "流年干支以立春为界、按事件当日正午计算；紫微年度四化按农历命名年，两者年界不同。": [
   "The annual stem-branch changes at Start of Spring (Lichun) and is computed at noon on the event day; Zi Wei annual Four Transformations follow the named lunar year, so the two have different year boundaries.",
   "流年干支は立春を境とし、出来事当日の正午で計算します。紫微の年度四化は旧暦の命名年に従うため、両者の年境界は異なります。"
+ ],
+ "流年按常见排法从交运那一年列起：交运当年整年记在新大运下，交运日之前的几个月实际仍属上一步大运。": [
+  "Annual pillars follow the common listing from the year a period begins: that whole year is listed under the new period, although the months before the change still belong to the previous one.",
+  "流年は一般的な並べ方に従い交運の年から並べます。交運の年は丸ごと新しい大運の下に置きますが、交運日より前の数か月は実際には前の大運に属します。"
  ],
  "流年流曜（含年解）": [
   "Annual period stars (with Nian Jie)",
@@ -7366,6 +7406,14 @@
  "落在日柱旬空": [
   "inside the day pillar's void",
   "日柱の旬空に入る"
+ ],
+ "落年空": [
+  "in the year void",
+  "年空に入る"
+ ],
+ "落日空": [
+  "in the day void",
+  "日空に入る"
  ],
  "藏干": [
   "Hidden stems",

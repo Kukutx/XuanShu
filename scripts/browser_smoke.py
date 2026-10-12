@@ -163,6 +163,14 @@ def main() -> None:
             page.locator('#luck-decade-1').click()
             assert page.locator('#luck-decade-1').get_attribute('aria-pressed') == 'true'
             assert page.locator('#luck-year-2015').count() == 1
+            # Each luck and year pillar against the natal chart: 午 is the same branch as the day pillar and punishes it.
+            assert page.locator('#luck-decade-1 .luck-mark').all_inner_texts() == ['同日', '刑日']
+            assert page.locator('#luck-decade-1 .luck-stage').inner_text() == '帝旺'
+            natal_line = page.locator('.luck-natal').inner_text()
+            assert '日柱丙：壬丙相冲' in natal_line and '日柱午：午午同支·相刑' in natal_line, natal_line
+            assert page.locator('#luck-year-2015 .luck-mark').all_inner_texts() == ['合日']
+            assert page.locator('#luck-year-2015').get_attribute('title').startswith('2015 乙未 · 星运 衰')
+            assert page.locator('#luck-decade-4 .luck-mark').all_inner_texts() == ['害年', '日空']  # 己卯
             page.screenshot(path=str(screenshot_dir / '01-bazi-desktop.png'), full_page=True)
             page.locator('#luck-year-2015').click()
             page.locator('#ziwei-board').wait_for(timeout=30000)
@@ -422,6 +430,9 @@ def main() -> None:
             overlap = page.locator('.hua-overlap-item').all_inner_texts()
             assert overlap == ['太阳（生年化禄、大限化权）', '天同（生年化忌、流年化禄）', '文昌（大限化忌、流年化科）'], overlap
             assert page.locator('#ziwei-board .star.hua-stack').count() == 3
+            # The layer table lists the decade and small limit in force that year next to the year itself.
+            heads = "[...document.querySelectorAll('#ziwei-layer-table thead th')].map(th => th.textContent)"
+            assert page.evaluate(heads) == ['宫干支', '本命', '大限', '小限', '流年']
             page.screenshot(path=str(screenshot_dir / '31-ziwei-annual-layer.png'), full_page=True)
             # Month and day layers come from the engine for any date; the stack lists every layer in force that day.
             page.locator('#ziwei-layer-month').click()
@@ -434,6 +445,22 @@ def main() -> None:
             overlap = page.locator('.hua-overlap-item').all_inner_texts()
             assert overlap == ['太阳（生年化禄、大限化禄）', '武曲（生年化权、大限化权）', '太阴（生年化科、大限化科、流月化权）',
                                '天同（生年化忌、大限化忌、流年化禄）', '天机（流年化权、流月化忌）'], overlap
+            # Every layer side by side: each row one palace, each layer's 命宫 highlighted, rows pick the palace on the board.
+            page.locator('#ziwei-layer-table summary').click()
+            assert page.evaluate(heads) == ['宫干支', '本命', '大限', '小限', '流年', '流月', '流日']
+            assert page.locator('#ziwei-layer-table td.layer-ming').count() == 6 and page.locator('.layer-table-hua').count() == 24
+            assert page.locator('#ziwei-layer-table tbody tr').nth(2).locator('td.layer-ming').count() == 1  # 庚辰: the decade's 命宫
+            page.locator('#layer-table-pick-3').click()
+            assert page.locator('#palace-3.selected').count() == 1 and page.locator('#ziwei-layer-table[open]').count() == 1
+            assert page.locator('#ziwei-layer-table tbody tr.selected th').inner_text() == '己卯'
+            page.evaluate('''() => {window.copiedText = null; Object.defineProperty(navigator, 'clipboard', {configurable: true,
+              value: {writeText: async text => {window.copiedText = text;}}});}''')
+            page.locator('#ziwei-layer-table-copy').click()
+            page.locator('#ziwei-layer-table-copy', has_text='已复制表格').wait_for(timeout=10000)
+            tsv = page.evaluate('window.copiedText').split('\n')
+            assert tsv[0] == '宫干支\t本命\t大限\t小限\t流年\t流月\t流日' and len(tsv) == 13
+            assert '己卯\t子女宫 太阳化禄\t兄弟宫 太阳化禄\t疾厄宫 太阳化忌\t子女宫\t仆役宫\t官禄宫' in tsv, tsv
+            page.screenshot(path=str(screenshot_dir / '41-ziwei-layer-table.png'), full_page=True)
             page.locator('#ziwei-layer-next').click()
             page.locator('.layer-label', has_text='十月').wait_for(timeout=30000)
             assert page.evaluate('document.activeElement.id') == 'ziwei-layer-next'
@@ -535,6 +562,9 @@ def main() -> None:
             page.locator('.hour-unknown tbody tr').first.wait_for(timeout=30000)
             assert page.locator('.hour-unknown tbody tr').count() == 13
             assert '日柱 壬午 · 全天不变' in page.locator('.stable-list').inner_text()
+            # Luck and year pillars are not read against the placeholder hour pillar.
+            page.locator('#luck-decade-0').wait_for(timeout=30000)
+            assert page.locator('.luck-mark').count() > 0 and not any(t.endswith('时') for t in page.locator('.luck-mark').all_inner_texts())
             page.screenshot(path=str(screenshot_dir / '32-hour-unknown.png'), full_page=True)
             # Without the hour there is no decade: not as a layer, and not in the year layer's stacked transformations.
             page.locator('[data-tab="ziwei"]').click()
@@ -543,6 +573,7 @@ def main() -> None:
             page.locator('#ziwei-layer-year').click()
             page.locator('.hua-overlap').wait_for(timeout=30000)
             assert '大限' not in page.locator('.hua-overlap').inner_text()
+            assert page.locator('#ziwei-layer-table').count() == 0 and '不列各层宫位对照表' in page.locator('#result').inner_text()
             page.locator('#ziwei-layer-natal').click()
             page.locator('[data-tab="bazi"]').click()
             page.locator('#hour_unknown').uncheck()
