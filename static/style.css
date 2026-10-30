@@ -2348,9 +2348,14 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
 @media print{.api-page .header-right,.api-tools,.api-try,.skip-link{display:none!important}.api-op,.api-schema{break-inside:avoid;box-shadow:none}}
 
 /* ---- Windows contrast themes (forced colours) ----
-   The browser repaints every colour from the system palette, which erased the tick of the token-drawn checkboxes,
-   the knob of the rule switches and the date icon; they get system colours instead. */
+   The browser repaints every colour from the system palette. State shown only by colour (the selected tool, a
+   pressed chip, a checked box or switch, the date icon) and buttons drawn without a border would disappear, so they
+   get system-colour marks instead. */
 @media (forced-colors:active){
+  .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
+  .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,
+  .cal-day.is-selected,.ds-day.is-selected,.ds-day.is-pick,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,
+  [aria-pressed="true"]{outline:2px solid Highlight;outline-offset:1px}
   input[type=checkbox],.switch-row input[type=checkbox]{forced-color-adjust:none;background:Canvas;border-color:ButtonText}
   input[type=checkbox]::before{background:HighlightText}
   input[type=checkbox]:checked,.switch-row input[type=checkbox]:checked,#scan-exclude input[type=checkbox]:checked{background:Highlight;border-color:Highlight}
@@ -2358,4 +2363,10 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .switch-row input[type=checkbox]::before{background:ButtonText}
   .switch-row input[type=checkbox]:checked::before{background:HighlightText}
   input:is([type=date],[type=datetime-local],[type=month],[type=time])::-webkit-calendar-picker-indicator{forced-color-adjust:none;background:CanvasText}
+  :focus-visible{outline-color:Highlight}
+  .skip-link{border:2px solid ButtonText}
+}
+/* People who ask for less transparency get solid bars instead of frosted glass. */
+@media (prefers-reduced-transparency:reduce){
+  .header,.api-tools{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
 }
