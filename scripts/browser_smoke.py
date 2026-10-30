@@ -255,6 +255,13 @@ def main() -> None:
             page.evaluate("() => {['hour_unknown', 'late_zi_day_rollover'].forEach(id => {document.getElementById(id).checked = false;}); document.getElementById('smoke-still').remove();}")
             page.emulate_media(forced_colors='none')
             assert off[0] != on[0] and off[1] != on[1], (off, on)
+            # Asked for more contrast, borders and secondary text get stronger in whichever theme is shown.
+            token = "(name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()"
+            plain = [page.evaluate(token, n) for n in ('--border', '--muted')]
+            page.emulate_media(contrast='more')
+            more = [page.evaluate(token, n) for n in ('--border', '--muted')]
+            page.emulate_media(contrast='no-preference')
+            assert more[0] in ('#5f6977', '#8b7d62') and more[0] != plain[0] and more[1] != plain[1], (plain, more)
             # AI chat is the initial view; without a configured model it explains how to enable it.
             page.locator('#chat-status').get_by_text('对话服务未启用', exact=False).wait_for(timeout=30000)
             assert page.locator('#chat-send').is_disabled()
@@ -1021,6 +1028,14 @@ def main() -> None:
             assert page.locator('#live-status').inner_text() == '紫微盘已打开宫干飞化：财帛宫'
             page.evaluate("selectedPalace = '命宫'")
             page.locator('[data-tab="bazi"]').click()
+            # A screen past the tool tabs a round button appears; it scrolls back and focuses the opened tool's tab.
+            assert not page.locator('#to-top').is_visible()
+            page.evaluate('scrollTo(0, document.documentElement.scrollHeight)')
+            page.locator('#to-top.is-shown').wait_for(timeout=5000)
+            assert page.locator('#to-top').get_attribute('aria-description') is None  # its hint repeats its name
+            page.locator('#to-top').click()
+            page.wait_for_function("document.activeElement.dataset.tab === 'bazi' && document.getElementById('workspace-tabs').getBoundingClientRect().top >= 0", timeout=10000)
+            page.locator('#to-top').wait_for(state='hidden', timeout=5000)
             # As on a fresh page, today's lunar year is not known yet: the result still comes once it is.
             page.evaluate("todayLunarYear = null")
             page.locator('[data-tab="annual"]').click()

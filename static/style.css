@@ -53,6 +53,15 @@
   }
 }
 
+/* Asked for more contrast (macOS "Increase contrast", the matching Windows and Linux settings): borders that read as
+   lines, secondary text close to the main text, near-solid glass. Forced-colour modes are handled further down. */
+@media (prefers-contrast:more){
+  :root{--border:#5f6977;--text2:#eef0f2;--muted:#c5cbd2;--faint:#b3bbc4;--accent-line:rgba(198,160,108,.62);--ring:rgba(240,203,145,.6);--glass:rgba(11,14,19,.96)}
+  :root[data-theme="light"]{--border:#8b7d62;--text2:#1d1b18;--muted:#3d3831;--faint:#463f36;--accent-line:rgba(138,99,34,.62);--ring:rgba(110,74,20,.5);--glass:rgba(246,242,234,.97)}
+}
+@media (prefers-contrast:more) and (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){--border:#8b7d62;--text2:#1d1b18;--muted:#3d3831;--faint:#463f36;--accent-line:rgba(138,99,34,.62);--ring:rgba(110,74,20,.5);--glass:rgba(246,242,234,.97)}
+}
 /* ---- base ---- */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--header-h) + 14px)}
@@ -2599,4 +2608,15 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
 /* People who ask for less transparency get solid bars instead of frosted glass. */
 @media (prefers-reduced-transparency:reduce){
   .header,.api-tools{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .share-dialog::backdrop{background:rgba(4,6,10,.74);-webkit-backdrop-filter:none;backdrop-filter:none}
 }
+/* Back to the tool tabs: a round button that appears once the tabs are a screen behind. Hidden by visibility, so it
+   cannot take the focus while it is out of sight. */
+.to-top{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:35;display:grid;place-items:center;width:42px;height:42px;padding:0;border:1px solid var(--border-strong);border-radius:50%;background:var(--panel2);color:var(--gold2);box-shadow:var(--shadow-sm);cursor:pointer;visibility:hidden;opacity:0;transform:translateY(10px);transition:opacity .2s var(--ease),transform .2s var(--ease),background .15s,border-color .15s,visibility 0s .2s}
+.to-top::before{content:'';width:10px;height:10px;margin-top:5px;border-left:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg)}
+.to-top.is-shown{visibility:visible;opacity:1;transform:none;transition:opacity .2s var(--ease),transform .2s var(--ease),background .15s,border-color .15s,visibility 0s}
+.to-top:hover{background:var(--hover);border-color:var(--gold)}
+.to-top:active{transform:scale(.94)}
+@media (prefers-reduced-motion:reduce){.to-top,.to-top.is-shown{transform:none;transition:opacity .01s,visibility 0s}}
+@media (forced-colors:active){.to-top{border-color:ButtonText}.to-top::before{border-color:ButtonText}}
+@media print{.to-top{display:none!important}}

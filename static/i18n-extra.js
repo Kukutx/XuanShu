@@ -4970,6 +4970,10 @@ const UI_EXTRA = {
 "Back to this year",
 "今年に戻る"
 ],
+"回到功能标签": [
+"Back to the tool tabs",
+"機能タブに戻る"
+],
 "回到此刻": [
 "Back to now",
 "現在に戻る"

@@ -8488,6 +8488,19 @@ function activateTab(tab, updateUrl = true) {
   }
 }
 tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
+// A screen past the tool tabs, a round button brings them back, and the opened tool's tab takes the focus.
+const toTop = $('#to-top');
+let toTopFrame = 0;
+function placeToTop() {
+  toTopFrame = 0;
+  toTop.classList.toggle('is-shown', $('#workspace-tabs').getBoundingClientRect().bottom < -innerHeight);
+}
+['scroll', 'resize'].forEach(type => window.addEventListener(type, () => {toTopFrame ||= requestAnimationFrame(placeToTop);}, {passive: true}));
+toTop.addEventListener('click', () => {
+  $('#workspace').scrollIntoView({block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  const tab = tabs.find(other => other.classList.contains('active'));
+  if (tab) tab.focus({preventScroll: true});
+});
 $('#workspace-tabs').addEventListener('keydown', event => {
   if (!['ArrowRight','ArrowLeft','Home','End'].includes(event.key) || !event.target.classList.contains('tab')) return;
   event.preventDefault();
