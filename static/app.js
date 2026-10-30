@@ -146,7 +146,9 @@ let annualDraft = null;  // today's lunar year, until another one is asked for
 let officerDraft = {start_date:localToday(),days:30};
 let timelineDraft = {start_lunar_year:null,years:10,focus_palace:''};  // null: today's lunar year
 let timelineView = 'matrix';  // the palace-by-year grid, or the list by year
-let decisionDraft = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
+// The example comparison shows in the interface language until anything in it is changed.
+const DECISION_EXAMPLE = {question:'比较两种实现方案',criteria:[{name:'交付速度',weight:2},{name:'维护成本',weight:3}], options:[{name:'方案 A',ratings:[4,2]},{name:'方案 B',ratings:[3,5]}]};
+let decisionDraft = JSON.parse(JSON.stringify(DECISION_EXAMPLE)), decisionExampleShown = JSON.stringify(DECISION_EXAMPLE);
 let pairDraft = {birth_datetime: '2001-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified', year: new Date().getFullYear()};
 // The year of the pair's luck and year-pillar view; a newer request makes older replies stale, as on the group page.
 // While 比较两人命盘 runs, a year switch only changes the year asked for: the run's reply then fetches that year.
@@ -1214,7 +1216,8 @@ function elementBars(parent, primary, secondary) {
     track.setAttribute('aria-label', name + ' ' + (primary[name] || 0) + (secondary ? '；藏干 ' + (secondary[name] || 0) : ''));
     if (secondary) append(track, 'span', 'element-fill secondary bg-' + ELEMENT_CLASS[name]).style.width = Math.round((secondary[name] || 0) / totalSecondary * 100) + '%';
     append(track, 'span', 'element-fill bg-' + ELEMENT_CLASS[name]).style.width = Math.round((primary[name] || 0) / total * 100) + '%';
-    append(row, 'small', null, (primary[name] || 0) + ' 个' + (secondary ? ' · 藏 ' + (secondary[name] || 0) : ''));
+    // Each count and word is its own text, so 个 and 藏 translate as words.
+    texts(append(row, 'small'), primary[name] || 0, ' 个', ...(secondary ? [' · 藏 ', secondary[name] || 0] : []));
   });
   if (secondary) {
     const legend = append(parent, 'div', 'element-legend');
@@ -1787,8 +1790,11 @@ const LAYER_NAMES = {decade: '大限', small_limit: '小限', year: '流年', mo
 // told apart from birth-year ones by shape and text, not by colour alone.
 function currentPalaceIndex(palace) {return current && current.ziwei ? current.ziwei.palaces.indexOf(palace) : -1;}
 function huaBadge(parent, type, layer) {
-  const prefix = layer ? LAYER_NAMES[layer].slice(-1) : '';
-  const badge = append(parent, 'span', 'hua hua-' + (HUA_CLASS[type] || 'lu') + (layer ? ' layer' : ''), prefix + type.replace('化', ''));
+  // The layer's one-character mark (年, 限) is drawn apart from the glyph: English shows the outlined glyph alone, and
+  // the glyph translates by itself (权 is 権 in Japanese).
+  const badge = append(parent, 'span', 'hua hua-' + (HUA_CLASS[type] || 'lu') + (layer ? ' layer' : ''));
+  if (layer) append(badge, 'span', 'hua-layer-mark', LAYER_NAMES[layer].slice(-1));
+  badge.append(type.replace('化', ''));
   tip(badge, (layer ? LAYER_NAMES[layer] : '生年') + type);
   return badge;
 }
@@ -2242,8 +2248,10 @@ function renderZiwei(z) {
     // 长生 and 博士 need a gender; 岁前 follows the year branch alone, so it shows either way.
     const gendered = [cycles.changsheng, cycles.boshi].filter(Boolean);
     if (gendered.length || suiqian) {
-      const line = append(node, 'div', 'palace-cycles', gendered.join(' · '));
-      if (suiqian) {if (gendered.length) line.append(' · '); append(line, 'span', live && live.twelve ? 'layer-cycle' : null, suiqian);}
+      // Each name is its own text, so a one-character stage (养, 死) translates as a word.
+      const line = append(node, 'div', 'palace-cycles');
+      const names = gendered.map(name => [name, null]).concat(suiqian ? [[suiqian, live && live.twelve ? 'layer-cycle' : null]] : []);
+      names.forEach(([name, cls], i) => {if (i) line.append(' · '); append(line, 'span', cls, name);});
     }
     const foot = append(node, 'div', 'palace-foot');
     const marks = append(foot, 'span');
@@ -2678,12 +2686,19 @@ const calendarRows = (data, termHead = '节气', withRules = false) => [['公历
     marksOf(d).map(m => m.name + (m.day !== undefined ? ' ' + fillDay(SEASON_DAY.zh, m) : '')).join('、') || '—',
     ...(withRules ? [marksOf(d).map(m => m.name + '：' + m.rule).join('；') || '—',
       [...new Set(marksOf(d).map(m => m.caution).filter(Boolean))].join('；') || '—'] : [])])];
+// In English and Japanese the calendar's export uses the interface's words, the same the month grid shows (the chart
+// exports keep the usual Chinese chart notation). Day pillars stay as characters, as on the grid.
+const WEEKDAY_WORDS = {en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], ja: ['月', '火', '水', '木', '金', '土', '日']};
+const exportLang = () => typeof uiLang !== 'undefined' && WEEKDAY_WORDS[uiLang] ? uiLang : null;
+const calendarWords = text => exportLang() ? calT(String(text)) : text;
+const calendarExportRows = rows => !exportLang() ? rows : rows.map((row, r) => row.map((cell, i) =>
+  r && i === 1 && cell.length === 1 && '一二三四五六日'.includes(cell) ? WEEKDAY_WORDS[uiLang]['一二三四五六日'.indexOf(cell)] : i === 3 && r ? cell : calendarWords(cell)));
 function calendarText(year, month, data) {
-  const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱、节气与传统节令（中国标准时间）', ''];
-  lines.push(...textColumns(calendarRows(data)));
-  const rules = calendarRuleLines(data);
-  if (rules.length) lines.push('', '【节令推算规则】', ...rules);
-  lines.push('', '只列历法事实，不含宜忌或吉凶。');
+  const lines = [calendarWords('玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱、节气与传统节令（中国标准时间）'), ''];
+  lines.push(...textColumns(calendarExportRows(calendarRows(data)), exportLang() === 'en'));
+  const rules = calendarRuleLines(data).map(calendarWords);
+  if (rules.length) lines.push('', calendarWords('【节令推算规则】'), ...rules);
+  lines.push('', calendarWords('只列历法事实，不含宜忌或吉凶。'));
   return finishText(lines);
 }
 function renderCalendar() {
@@ -2886,7 +2901,7 @@ function renderCalendar() {
   open.type = 'button'; open.id = 'calendar-open-day';
   open.addEventListener('click', () => {todayPick = {date: d.date, time: '12:00'}; activateTab(tabs.find(t => t.dataset.tab === 'today'));});
   textExport(result, 'calendar-text', () => calendarText(year, month, data), 'xuanshu-calendar-' + key + '.txt', '整月的农历、日柱与节气，按中国标准时间',
-    () => calendarRows(data, '节气（中国标准时间）', true));
+    () => calendarExportRows(calendarRows(data, '节气（中国标准时间）', true)));
   renderLunarInverseSection();
   note(result, data.notes.join(' '));
 }
@@ -2954,7 +2969,7 @@ function renderDayOfficers() {
   });
   append(result,'p','field-help','查询按北京时间正午取值；交节当天另写交节时刻和另一个值日。');
   if(officerPending)append(result,'p','field-help','正在查询…');
-  if(!officerResult)return;
+  if(!officerResult){if(officerPending)loadingGhost(result,'month');return;}
   const days = officerResult.days, first = days[0], last = days[days.length - 1];
   if (!days.length) return;
   const tags = append(result, 'div', 'meta-tags');
@@ -3399,6 +3414,10 @@ async function compareDecision(button) {
   }
 }
 function renderDecision() {
+  if (JSON.stringify(decisionDraft) === decisionExampleShown) {
+    decisionDraft = JSON.parse(JSON.stringify(DECISION_EXAMPLE), (key, value) => typeof value === 'string' ? calT(value) : value);
+    decisionExampleShown = JSON.stringify(decisionDraft);
+  }
   title(result,'透明方案决策矩阵','权重归一化 · 逐项贡献 · 剔除单项敏感性 · 无命理加权');
   append(result,'p','info-inline','这里的分数均为你自己输入的主观假设，不能代表客观成功率。');
   const question=createInput('你要比较什么？','text',decisionDraft.question,result);question.id='decision-question';question.maxLength=300;
@@ -3633,7 +3652,7 @@ function renderRuleMatrix() {
       .finally(() => {if (active === 'rule-matrix') render();});
   }
   if (ruleMatrixError) {append(result, 'p', 'inline-msg', '对照失败：' + ruleMatrixError); return;}
-  if (!ruleMatrixResult) {append(result, 'p', 'field-help', '正在按各种规则重新排盘…'); return;}
+  if (!ruleMatrixResult) {append(result, 'p', 'field-help', '正在按各种规则重新排盘…'); loadingGhost(result, 'table'); return;}
   const m = ruleMatrixResult, s = m.summary, base = m.rows[0];
   const fieldLabel = Object.fromEntries(m.fields.map(f => [f.key, f.label]));
   const cards = append(result, 'div', 'rule-summary');
@@ -3785,6 +3804,8 @@ let groupResult = null, groupKey = null, groupResultKeys = [], groupChatBlock = 
 let groupYearTicket = 0, groupYearPending = false, groupYearError = '', groupRun = null, groupRunError = '';
 // Member notes stay on this page: the current chart's and temporary members' are never stored, a saved
 // profile's only after 「保存到档案」. Notes never go to the server; only the chat draft the user sends carries them.
+// The current chart's default name 我 shows in the interface language until it is changed.
+let groupLabelShown = '我';
 let groupDraft = {useCurrent: true, currentLabel: '我', currentNote: {key: '', text: ''}, profiles: [], profileNotes: {}, extras: [], filter: 'all', focus: null,
   extra: {label: '', birth_datetime: '1990-01-01T12:00', timezone: 'Asia/Shanghai', gender: 'unspecified', hour_unknown: false},
   year: new Date().getFullYear()};
@@ -3834,7 +3855,7 @@ function birthOf(data) {
 }
 function groupMembers() {
   const members = [], saved = loadProfiles();
-  if (groupDraft.useCurrent && currentInput) members.push({label: groupDraft.currentLabel.trim() || '我', birth: birthOf(currentInput), hour_unknown: currentHourUnknown});
+  if (groupDraft.useCurrent && currentInput) members.push({label: groupDraft.currentLabel.trim() || calT('我'), birth: birthOf(currentInput), hour_unknown: currentHourUnknown});
   groupDraft.profiles.forEach(id => {
     const entry = saved.find(x => x.id === id);
     if (entry) members.push({label: entry.label.trim().slice(0, 50) || '档案', birth: birthOf(entry.data), hour_unknown: entry.hour_unknown === true});
@@ -3868,12 +3889,13 @@ const NAME_OPEN = '', NAME_CLOSE = '';
 const asName = label => NAME_OPEN + label + NAME_CLOSE;
 const textWidth = text => [...text.replace(/[]/g, '')].reduce((n, ch) => n + (ch.codePointAt(0) > 0xFF ? 2 : 1), 0);
 // Columns padded with full-width spaces (two half-width units each), which keeps CJK columns aligned.
-function textColumns(rows) {
+// Columns padded to line up; English text pads with plain spaces rather than the full-width ones Chinese lines use.
+function textColumns(rows, plain = false) {
   const widths = rows[0].map((_, i) => Math.max(...rows.map(row => textWidth(row[i]))) + 2);
   return rows.map(row => row.map((cell, i) => {
     if (i === row.length - 1) return cell;
     const gap = widths[i] - textWidth(cell);
-    return cell + '　'.repeat(Math.floor(gap / 2)) + (gap % 2 ? ' ' : '');
+    return cell + (plain ? ' '.repeat(gap) : '　'.repeat(Math.floor(gap / 2)) + (gap % 2 ? ' ' : ''));
   }).join('').trimEnd());
 }
 function finishText(lines) {
@@ -4021,6 +4043,7 @@ function renderGroup() {
   const currentBox = append(append(current, 'label', 'check-line'), 'input'); currentBox.type = 'checkbox'; currentBox.id = 'group-current';
   currentBox.checked = groupDraft.useCurrent && !!currentInput; currentBox.disabled = !currentInput;
   currentBox.parentNode.append(currentInput ? '当前命盘' : '当前命盘（先生成命盘）');
+  if (groupDraft.currentLabel === groupLabelShown) groupDraft.currentLabel = groupLabelShown = calT('我');
   const currentLabel = append(current, 'input', 'group-label user-text'); currentLabel.id = 'group-current-label'; currentLabel.hidden = !currentInput;
   currentLabel.maxLength = 50; currentLabel.value = groupDraft.currentLabel; currentLabel.setAttribute('aria-label', '当前命盘的称呼');
   currentBox.addEventListener('change', () => {groupDraft.useCurrent = currentBox.checked; render();});
@@ -4860,6 +4883,7 @@ function renderToday() {
           .finally(() => {pickPending = false; pickKey = key; if (active === 'today') render();});
       }
       append(result, 'p', 'field-help', '正在计算所选时刻的四柱、节气和月相…');
+      loadingGhost(result, 'cards');
       return;
     }
     if (!pickData) {append(result, 'p', 'inline-msg', '所选时刻算不出来：' + pickError); return;}
@@ -4867,7 +4891,7 @@ function renderToday() {
   } else {
     if (todayKey !== JSON.stringify(todayRequest())) {
       ensureToday(() => {if (active === 'today') render();});
-      if (!todayData) {append(result, 'p', 'field-help', '正在计算今天的四柱、节气和月相…'); return;}
+      if (!todayData) {append(result, 'p', 'field-help', '正在计算今天的四柱、节气和月相…'); loadingGhost(result, 'cards'); return;}
     }
     if (!todayData) {append(result, 'p', 'inline-msg', '今日历法暂时算不出来：' + todayError); return;}
     t = todayData; skipped = todayBirthSkipped;
@@ -6590,9 +6614,9 @@ function renderDayun() {
   });
   if (!ready) {append(result, 'p', 'field-help', '命盘没有填性别：选好顺排或逆排后点「计算大运」。'); return;}
   if (dayunPending) append(result, 'p', 'field-help', '正在按当前命盘计算大运…');
-  if(!dayunResult || dayunKey !== JSON.stringify(request()))return;
+  if(!dayunResult || dayunKey !== JSON.stringify(request())){if (dayunPending) loadingGhost(result, 'strip', 'table'); return;}
   const d=dayunResult, o=dayunOpenness(), parts=startAgeParts(d);
-  meta(result,[`年柱 ${d.natal_year_pillar}`,`月柱 ${d.natal_month_pillar}`,`方向 ${d.direction==='forward'?'顺排':'逆排'}`,o.sequence?'起运随时辰而定':`起运约 ${parts.years}岁 ${parts.months}月`]);
+  meta(result,[`年柱 ${d.natal_year_pillar}`,`月柱 ${d.natal_month_pillar}`,`方向 ${d.direction==='forward'?'顺排':'逆排'}`,o.sequence?'起运随时辰而定':`起运约 ${parts.years}岁 ${parts.months}个月`]);
   // The decade this civil year belongs to, by the usual listing (the years under each decade, and the BaZi page's
   // luck strip, count it the same way): the year a decade begins in belongs to it whole.
   const now=localToday(), thisYear=Number(now.slice(0,4)), yearOf=s=>Number(s.slice(0,4));
@@ -8124,6 +8148,17 @@ async function postForChart(url, body) {
 // chart, by pressing their own button; a changed setting still waits for that button. A tool whose button reads the
 // birth form rather than the chart shown does not run while the form holds edits not yet cast (READS_CHART lists the
 // ones that read the chart and so may run).
+// While a page computes its first result, soft blocks in the rough shape of that result hold the space below it, so
+// the page neither sits as one bare line nor jumps when the result lands. Screen readers skip the blocks.
+const GHOST_COUNT = {strip: 10, cards: 6, table: 8, month: 35};
+function loadingGhost(parent, ...shapes) {
+  const box = append(parent, 'div', 'xs-ghosts'); box.setAttribute('aria-hidden', 'true');
+  shapes.forEach(shape => {
+    const ghost = append(box, 'div', 'xs-ghost xs-ghost-' + shape);
+    for (let i = 0; i < GHOST_COUNT[shape]; i++) append(ghost, 'span');
+  });
+  return box;
+}
 const AUTO_OPEN = {
   annual: ['annual-run', () => annualResult, () => annualDraft !== null || !todayLunarPending],
   timeline: ['timeline-run', () => timelineResult, () => timelineDraft.start_lunar_year !== null || !todayLunarPending],
@@ -8132,6 +8167,8 @@ const AUTO_OPEN = {
   time: ['time-run', () => timeResult, () => readInput().longitude !== null],
   deep: ['deep-run', () => deepResult],
 };
+// The rough shape of each page's first result, drawn while the automatic run is out.
+const AUTO_GHOST = {annual: ['cards', 'table'], timeline: ['table'], boundaries: ['table'], quality: ['cards', 'table'], time: ['table'], deep: ['cards']};
 const READS_CHART = new Set(['annual', 'timeline']);
 let autoOpened = new Set();
 function autoOpen() {
@@ -8147,7 +8184,17 @@ function autoOpen() {
   if (!READS_CHART.has(active) && JSON.stringify(readInput()) !== JSON.stringify(currentInput)) return;
   autoOpened.add(active);
   const tab = active;
-  setTimeout(() => {const run = document.getElementById(button); if (active === tab && run && !run.disabled) run.click();});
+  setTimeout(() => {
+    const run = document.getElementById(button);
+    if (!(active === tab && run && !run.disabled)) return;
+    run.click();
+    // A run that went out leaves its button disabled; the placeholder goes when the page redraws with the result, or
+    // when the button is enabled again after a failure that only wrote a message.
+    if (!run.disabled || shown()) return;
+    const ghost = loadingGhost(result, ...AUTO_GHOST[tab]);
+    const watch = new MutationObserver(() => {if (!run.isConnected || !run.disabled) {ghost.remove(); watch.disconnect();}});
+    watch.observe(run, {attributes: true, attributeFilter: ['disabled']});
+  });
 }
 // What was typed into a tool's settings but not yet applied survives a redraw, such as the one an automatic
 // result brings while the field is being edited.

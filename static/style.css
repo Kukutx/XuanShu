@@ -878,6 +878,15 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .cal-ghost{display:inline-block;width:var(--w,3em);max-width:100%;height:.8em;border-radius:4px;vertical-align:middle;background:linear-gradient(90deg,color-mix(in srgb,var(--muted) 16%,transparent) 20%,color-mix(in srgb,var(--muted) 34%,transparent) 50%,color-mix(in srgb,var(--muted) 16%,transparent) 80%) 0 0/200% 100%;animation:xs-shimmer 1.4s linear infinite}
 @keyframes xs-shimmer{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.cal-ghost{animation:none}}
+/* Placeholders while a page computes its first result: the same soft shimmer as the calendar's, in the result's rough shape. */
+.xs-ghosts{display:grid;gap:14px;margin:12px 0 0}
+.xs-ghost{display:grid;gap:10px}
+.xs-ghost>span{display:block;min-width:0;border-radius:var(--radius-sm);background:linear-gradient(90deg,color-mix(in srgb,var(--muted) 10%,transparent) 20%,color-mix(in srgb,var(--muted) 22%,transparent) 50%,color-mix(in srgb,var(--muted) 10%,transparent) 80%) 0 0/200% 100%;animation:xs-shimmer 1.4s linear infinite}
+.xs-ghost-strip{grid-auto-flow:column;grid-auto-columns:minmax(84px,1fr);overflow:hidden}.xs-ghost-strip>span{height:92px}
+.xs-ghost-cards{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}.xs-ghost-cards>span{height:112px}
+.xs-ghost-table{gap:6px}.xs-ghost-table>span{height:30px}
+.xs-ghost-month{grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.xs-ghost-month>span{height:84px}
+@media (prefers-reduced-motion:reduce){.xs-ghost>span{animation:none}}
 .cal-day.is-selected{background:var(--accent-soft);border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
 .cal-detail{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;padding:12px 16px;margin:4px 0 12px;border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--radius-sm);background:var(--panel2)}
 .cal-detail-date{margin:0;flex-basis:100%;font-weight:600;color:var(--text)}
@@ -991,6 +1000,8 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .star-secondary{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
 .hua{display:inline-block;font-size:11px;line-height:1;font-weight:700;padding:2px 3px;border-radius:3px;margin-left:2px;vertical-align:2px;color:var(--on-hua)}
 .hua-lu{background:var(--lu)}.hua-quan{background:var(--quan)}.hua-ke{background:var(--ke)}.hua-ji{background:var(--ji)}
+/* In English a layer's badge is the outlined glyph alone; its legend names the layer (年 and 限 would read as stray characters). */
+:lang(en) .hua-layer-mark{display:none}
 .star-label{font-size:11px;color:var(--green);white-space:normal;margin:6px 0 2px}
 /* Star brightness: the text carries the level; weight and tone only echo it. Each language draws its own short form. */
 .bright{font-size:11px;line-height:1;font-weight:400;margin-left:1px;vertical-align:1px;color:var(--muted)}
@@ -2530,7 +2541,7 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .xs-dp-day.is-today{border:2px dashed CanvasText}
   .xs-dp-nav{border-color:ButtonText}
   kbd{border-color:CanvasText}
-  .cal-ghost{forced-color-adjust:none;background:GrayText;opacity:.5;animation:none}
+  .cal-ghost,.xs-ghost>span{forced-color-adjust:none;background:GrayText;opacity:.5;animation:none}
   .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
   .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,
   .cal-day.is-selected,.ds-day.is-selected,.ds-day.is-pick,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,

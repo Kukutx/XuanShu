@@ -2676,6 +2676,13 @@ def main() -> None:
             ].map(parts => parts.map(translateText).join(''))""")
             assert pieces == ['The backup holds 1 profile(s). Replace everything in this browser with these profiles and their memory, life events and conversations?',
                               'Encrypted backup restored: 1 profile(s), 2 memory note(s), 0 life event(s), 1 saved conversation(s); the previous contents were replaced.'], pieces
+            # Composed results read as English: a palace's stem in brackets, growth stages, the colon, ages and counts.
+            composed = page.evaluate("() => ['疾厄宫（己干）文曲化忌', '自坐 死', '重阳节：农历九月初九', '起运约 2岁 10个月', '63–72岁'].map(translateText)")
+            assert composed == ['Health Palace (己 stem) Wen Qu Hua Ji (Obstacle)', 'Self seat Death (Si)',
+                                'Double Ninth Festival: Lunar calendar Month 9 Day 9', 'Starts about 2 yr 10 mo', '63–72 yr'], composed
+            # The month calendar's text export follows the interface language, except for the day pillars.
+            exported = page.evaluate("calendarExportRows([['公历', '星期'], ['2026-10-01', '四', '八月廿一', '戊申']])")
+            assert exported == [['Gregorian', 'Weekday'], ['2026-10-01', 'Thu', 'Month 8 Day 21', '戊申']], exported
             # After a restore the open conversation starts again from what was restored.
             assert page.evaluate("() => {chatMessages = [{role: 'user', content: 'before the restore'}]; restartChat(); return chatMessages.length;}") == 0
             # The memory panel starts each change from what is stored at the click: what a restore wrote while the panel
@@ -2700,6 +2707,8 @@ def main() -> None:
             page.locator('#ui-language').select_option('ja')
             grid = page.locator('#ziwei-pair-grid').inner_text()
             assert '命宮' in grid and '命宫' not in grid, grid[:300]
+            # Japanese ages use 歳 and counted months か月, so a bare 10月 is never read as October.
+            assert page.evaluate("['起运约 2岁 10个月', '63–72岁'].map(translateText)") == ['起運はおよそ 2歳 10か月', '63–72歳']
             # No hint in a text field is cut off, in Japanese or English, on a desktop or a phone.
             for lang in ('ja', 'en'):
                 page.locator('#ui-language').select_option(lang)
