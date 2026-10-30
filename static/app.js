@@ -8194,6 +8194,7 @@ window.addEventListener('hashchange', () => {
 // Keep old results visible for reference, but mark them as stale and
 // disable export when the user edits any birth parameter.
 function updateStaleBirthNotice() {
+  recheckFieldProblems();
   hideStaleDstChoice();  // also for values set directly (时辰不详, a lunar date) rather than typed
   const fingerprint=JSON.stringify(readInput());
   const outdatedChart=!!currentInput && fingerprint !== JSON.stringify(currentInput);
@@ -8222,6 +8223,72 @@ for (const type of ['input','change']) {
     if (type === 'change' && active === 'professional' && event.target.id !== 'api_token') render();
   });
 }
+// The browser's own validation bubble ignores the colour theme and speaks the browser's language rather than the
+// interface's ("Please enter a valid value. The two nearest valid values are…"). The form checks itself instead:
+// each problem is written under its field in the interface language, the field is marked for screen readers and
+// focused, and the message clears as soon as the value is fixed. The lunar converter's fields have their own button
+// and never hold back the birth form.
+const FIELD_PROBLEMS = {
+  birth_datetime: {valueMissing: '请填写出生日期与时间', badInput: '日期或时间没填完整：年、月、日、时、分都要填',
+    rangeUnderflow: '出生时间需在 1901 年到 2099 年之间', rangeOverflow: '出生时间需在 1901 年到 2099 年之间'},
+  longitude: {valueMissing: '按太阳时计算需要出生地经度：选择出生城市，或填写经度（东经为正、西经为负）',
+    badInput: '经度只能填数字，例如 104.0667', rangeUnderflow: '经度需在 -180 到 180 之间（东经为正、西经为负）',
+    rangeOverflow: '经度需在 -180 到 180 之间（东经为正、西经为负）', stepMismatch: '经度最多保留 4 位小数，例如 104.0667'},
+};
+// In this order: a half-typed date is both missing and bad input, and the half-typed part is what to fix.
+const GENERIC_PROBLEMS = {badInput: '格式不正确', valueMissing: '这一项需要填写', typeMismatch: '格式不正确',
+  rangeUnderflow: '超出可填写的范围', rangeOverflow: '超出可填写的范围', stepMismatch: '数值的精度超出范围', tooLong: '内容太长'};
+const checkedFields = () => [...form.elements].filter(el => el.willValidate && !el.closest('#lunar-entry'));
+function fieldProblem(el) {
+  if (el.validity.valid) return '';
+  const kind = Object.keys(GENERIC_PROBLEMS).find(key => el.validity[key]) || 'badInput';
+  return (FIELD_PROBLEMS[el.id] || {})[kind] || GENERIC_PROBLEMS[kind];
+}
+function showFieldProblem(el, text) {
+  const id = el.id + '-problem';
+  let note = document.getElementById(id);
+  const described = (el.getAttribute('aria-describedby') || '').split(' ').filter(x => x && x !== id);
+  if (!text) {
+    if (note) note.remove();
+    el.removeAttribute('aria-invalid');
+    if (described.length) el.setAttribute('aria-describedby', described.join(' ')); else el.removeAttribute('aria-describedby');
+    return;
+  }
+  if (!note) {note = elt('p', 'field-problem'); note.id = id; el.after(note);}
+  note.textContent = text;
+  el.setAttribute('aria-invalid', 'true');
+  el.setAttribute('aria-describedby', [...described, id].join(' '));
+}
+form.noValidate = true;
+form.addEventListener('submit', event => {
+  const bad = checkedFields().filter(el => !el.validity.valid);
+  checkedFields().forEach(el => showFieldProblem(el, fieldProblem(el)));
+  if (!bad.length) return;
+  // Runs before the casting handler below (a capture listener on the form itself goes first) and stops it.
+  event.preventDefault(); event.stopImmediatePropagation();
+  // An error from an earlier cast no longer applies to what is on the form now.
+  $('#error').hidden = true; $('#dst-choice').hidden = true;
+  setBirthPanelCollapsed(false);
+  const first = bad[0], section = first.closest('details');
+  if (section) section.open = true;
+  first.focus();
+  // Emptied first, so the same words said again (Enter pressed twice in the same field) are read again.
+  announce(''); requestAnimationFrame(() => announce(fieldProblem(first)));
+}, true);
+// Every field already marked is checked again whenever the birth data changes: typed, filled by a city choice (which
+// also drops or brings back the need for a longitude), by the lunar converter or from a saved profile. Nothing is
+// marked on leaving a field: the note it adds would push the 生成命盘 button down under a pointer on its way to it.
+function recheckFieldProblems() {
+  form.querySelectorAll('[aria-invalid=true]').forEach(el => showFieldProblem(el, fieldProblem(el)));
+}
+for (const type of ['input', 'change']) form.addEventListener(type, recheckFieldProblems);
+// Enter in the lunar fields converts the lunar date (as the button beside them does) instead of casting a chart from
+// the Gregorian date above, which those fields do not change.
+$('#lunar-entry').addEventListener('keydown', event => {
+  if (event.key !== 'Enter' || !(event.target instanceof HTMLInputElement) || event.isComposing) return;
+  event.preventDefault();
+  $('#lunar-fill').click();
+});
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const run = $('#run-btn'); const error = $('#error');

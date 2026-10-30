@@ -3063,6 +3063,10 @@
   "Yang (Nurturing)",
   "養"
  ],
+ "内容太长": [
+  "Too long",
+  "長すぎます"
+ ],
  "内部一致性核查（不等于外部准确率认证）": [
   "Internal consistency check (not external accuracy certification)",
   "内部整合性チェック（外部の精度認証ではない）"
@@ -3442,6 +3446,10 @@
  "出生时间边界地图": [
   "Birth time boundary map",
   "出生時刻の境界マップ"
+ ],
+ "出生时间需在 1901 年到 2099 年之间": [
+  "The birth time must be between 1901 and 2099",
+  "生年月日時は 1901 年から 2099 年の間で入力してください"
  ],
  "出生记录不保存到服务器；报告由请求即时生成。": [
   "Birth records are not saved to the server; reports are generated on demand per request.",
@@ -7439,6 +7447,10 @@
   "Filter by name, purpose or parameter",
   "名前・用途・パラメータで絞り込み"
  ],
+ "按太阳时计算需要出生地经度：选择出生城市，或填写经度（东经为正、西经为负）": [
+  "Solar time needs the birthplace longitude: choose a birth city or enter the longitude (east positive, west negative)",
+  "太陽時で計算するには出生地の経度が必要です。出生都市を選ぶか、経度を入力してください（東経が正、西経が負）"
+ ],
  "按宫列表": [
   "By palace",
   "宮ごとの一覧"
@@ -7731,6 +7743,10 @@
   "Numerical positioning precision does not equal the precision of the real birth record; only the currently implemented school rules are covered.",
   "数値上の位置精度は実際の出生記録の精度と同じではありません。現在実装されている流派の規則のみを対象とします。"
  ],
+ "数值的精度超出范围": [
+  "Too many decimal places",
+  "小数点以下の桁数が多すぎます"
+ ],
  "数据结构": [
   "Data structures",
   "データ構造"
@@ -7990,6 +8006,10 @@
  "日期与时间": [
   "Date and time",
   "日付と時刻"
+ ],
+ "日期或时间没填完整：年、月、日、时、分都要填": [
+  "The date or time is incomplete: fill in the year, month, day, hour and minute",
+  "日付または時刻が未入力です。年・月・日・時・分をすべて入力してください"
  ],
  "日期须在 1901-01-01 至 2099-12-31 之间": [
   "The date must be between 1901-01-01 and 2099-12-31",
@@ -9386,6 +9406,10 @@
  "格子里写的是钟表时间，按所选太阳时换算后落在该时辰里。": [
   "Cells show clock times; converted to the selected solar time, each falls in its hour.",
   "マスの時刻は時計の時刻で、選んだ太陽時に換算するとその時辰に入ります。"
+ ],
+ "格式不正确": [
+  "Invalid format",
+  "形式が正しくありません"
  ],
  "桑柘木": [
   "Mulberry Wood (Sang Zhe Mu)",
@@ -11287,9 +11311,21 @@
   "Longitude and time-system check",
   "経度と時刻制度の確認"
  ],
+ "经度只能填数字，例如 104.0667": [
+  "Longitude must be a number, e.g. 104.0667",
+  "経度は数字で入力してください（例：104.0667）"
+ ],
  "经度差": [
   "Longitude offset",
   "経度差"
+ ],
+ "经度最多保留 4 位小数，例如 104.0667": [
+  "Longitude takes at most 4 decimal places, e.g. 104.0667",
+  "経度は小数点以下 4 桁までです（例：104.0667）"
+ ],
+ "经度需在 -180 到 180 之间（东经为正、西经为负）": [
+  "Longitude must be between -180 and 180 (east positive, west negative)",
+  "経度は -180 から 180 の間で入力してください（東経が正、西経が負）"
  ],
  "经度（东经为正）": [
   "Longitude (east is positive)",
@@ -12015,6 +12051,10 @@
   "Please enter B's birth time",
   "B の出生時刻を入力してください"
  ],
+ "请填写出生日期与时间": [
+  "Enter the birth date and time",
+  "生年月日と時刻を入力してください"
+ ],
  "请填写出生时间": [
   "Enter the birth time",
   "出生時刻を入力してください"
@@ -12266,6 +12306,10 @@
  "超出 1901–2099 的计算范围": [
   "Outside the supported 1901–2099 range",
   "計算範囲 1901–2099 の外です"
+ ],
+ "超出可填写的范围": [
+  "Out of the allowed range",
+  "入力できる範囲を超えています"
  ],
  "超出所排的十二步大运": [
   "Beyond the twelve luck periods listed",
@@ -12606,6 +12650,10 @@
  "这一页用第二套独立实现的紫微引擎重排一次，用来逐项核对玄枢的原生盘；不装它，原生功能照常可用。": [
   "This page recasts the chart with a second, independently written Zi Wei engine to check XuanShu's own chart item by item; without it everything else works as usual.",
   "このページは独立して実装された第二の紫微エンジンで盤を出し直し、玄枢のネイティブ盤を項目ごとに確かめます。インストールしなくてもネイティブ機能はそのまま使えます。"
+ ],
+ "这一项需要填写": [
+  "This field is required",
+  "この項目は必須です"
  ],
  "这个月暂时算不出来：": [
   "This month cannot be computed right now: ",

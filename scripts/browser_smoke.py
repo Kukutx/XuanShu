@@ -367,6 +367,28 @@ def main() -> None:
             assert page.locator('#consult-next p').first.inner_text() == '下一问按新话题识别，不沿用本次场景。'
             page.locator('#consult-year').fill('')
             page.locator('[data-tab="bazi"]').click()
+            # The form checks itself instead of showing the browser's validation bubble: a wrong longitude is named under
+            # its field in the interface language and focused, and nothing is cast until it is fixed.
+            assert page.evaluate("document.getElementById('birth-form').noValidate")
+            page.locator('#longitude').fill('200')
+            page.locator('#run-btn').click()
+            page.locator('#longitude-problem').wait_for(timeout=5000)
+            assert page.locator('#longitude-problem').inner_text() == '经度需在 -180 到 180 之间（东经为正、西经为负）'
+            assert page.evaluate('document.activeElement.id') == 'longitude' and page.get_attribute('#longitude', 'aria-invalid') == 'true'
+            assert 'longitude-problem' in page.get_attribute('#longitude', 'aria-describedby')
+            assert page.locator('.pillar-stem').count() == 0
+            page.locator('#longitude').fill('104.06675')
+            assert page.locator('#longitude-problem').inner_text() == '经度最多保留 4 位小数，例如 104.0667'
+            page.locator('#longitude').fill('')
+            assert page.locator('#longitude-problem').count() == 0 and page.get_attribute('#longitude', 'aria-invalid') is None
+            # A longitude filled in by choosing a city clears the note too, not only typing.
+            page.locator('#longitude').fill('200')
+            page.locator('#run-btn').click()
+            page.locator('#longitude-problem').wait_for(timeout=5000)
+            page.locator('#birth_city').select_option('成都')
+            assert page.locator('#longitude-problem').count() == 0 and page.get_attribute('#longitude', 'aria-invalid') is None
+            page.locator('#birth_city').select_option('')
+            page.locator('#longitude').fill('')
             page.locator('#run-btn').click()
             page.locator('.pillar-stem').first.wait_for(timeout=30000)
             assert page.locator('.pillar-stem').count() == 4
