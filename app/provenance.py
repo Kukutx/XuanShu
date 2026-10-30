@@ -12,6 +12,20 @@ from pathlib import Path
 import swisseph as swe
 
 
+def _system_version(base: Path) -> str | None:
+    """The release of a system zone database: Linux distributions write it in tzdata.zi, macOS in +VERSION."""
+    index = base / 'tzdata.zi'
+    if index.is_file():
+        with index.open(encoding='utf-8', errors='replace') as handle:
+            first = handle.readline().strip()
+        if first.startswith('# version '):
+            return first[len('# version '):]
+    stamp = base / '+VERSION'
+    if stamp.is_file():
+        return stamp.read_text(encoding='utf-8', errors='replace').strip() or None
+    return None
+
+
 def timezone_database() -> dict:
     if not zoneinfo.TZPATH:
         try:
@@ -21,14 +35,7 @@ def timezone_database() -> dict:
             return {'source': 'unavailable', 'version': None}
     for base in map(Path, zoneinfo.TZPATH):
         if (base / 'Asia' / 'Shanghai').is_file():
-            version = None
-            index = base / 'tzdata.zi'
-            if index.is_file():
-                with index.open(encoding='utf-8', errors='replace') as handle:
-                    first = handle.readline().strip()
-                if first.startswith('# version '):
-                    version = first[len('# version '):]
-            return {'source': 'system', 'version': version}
+            return {'source': 'system', 'version': _system_version(base)}
     return {'source': 'unavailable', 'version': None}
 
 

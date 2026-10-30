@@ -32,6 +32,22 @@ def test_time_zone_rules_come_from_the_bundled_package_and_are_reported():
     assert res.status_code == 200 and res.json()['birth_datetime'].endswith('+09:00')
 
 
+def test_system_zone_database_version_is_read_on_linux_and_macos(tmp_path):
+    from app.provenance import _system_version
+    (tmp_path / 'tzdata.zi').write_text('# version 2026c\n# Zone data\n', encoding='utf-8')
+    assert _system_version(tmp_path) == '2026c'
+    mac = tmp_path / 'mac'
+    mac.mkdir()
+    (mac / '+VERSION').write_text('2025b\n', encoding='utf-8')
+    assert _system_version(mac) == '2025b'
+    assert _system_version(tmp_path / 'missing') is None
+
+
+def test_permissions_policy_names_only_features_browsers_recognise():
+    # An unknown feature (bluetooth) makes Chromium log a warning on every page.
+    assert 'bluetooth' not in client.get('/').headers['permissions-policy']
+
+
 def test_mcp_tool_calls_run_in_the_threadpool(monkeypatch):
     seen = []
 
