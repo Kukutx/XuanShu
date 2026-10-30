@@ -534,6 +534,10 @@ const UI_EXTRA = {
 "After 2025 each library relies on its own forecast of Earth's rotation (ΔT), so the gap grows over the years. It only changes a result when a solar term or midnight is a few minutes away.",
 "2025 年以降は各ライブラリが独自の地球自転差（ΔT）予測を使うため、年を追うごとに差が広がります。節入りや真夜中まで数分しかない場合にだけ結果に影響します。"
 ],
+"23:00 不换日，按当天排": [
+"23:00 without day change, cast on the same day",
+"23:00 は日替わりなし・当日で作盤"
+],
 "23:00 以后出生": [
 "Born after 23:00",
 "23:00 以降の出生"
@@ -545,6 +549,14 @@ const UI_EXTRA = {
 "23:00 换日（早晚子时）": [
 "Day changes at 23:00 (early/late Zi hour)",
 "23:00 に日替わり（早子・晩子）"
+],
+"23:00 换日，按次日排": [
+"23:00 day change, cast on the next day",
+"23:00 で日替わり・翌日で作盤"
+],
+"23:00–23:59 按出生资料的「23:00 换日」设置：换日用 iztro 的晚子时（序号 12），不换日用早子时（序号 0）。": [
+"23:00–23:59 follows the birth's \"day changes at 23:00\" setting: with the day change it uses iztro's late Zi hour (index 12), without it the early Zi hour (index 0).",
+"23:00〜23:59 は出生情報の「23:00 日替わり」設定に従います。日替わりありは iztro の晩子時（番号 12）、なしは早子時（番号 0）を使います。"
 ],
 "23点换日": [
 "Day changes at 23:00",
@@ -1402,6 +1414,10 @@ const UI_EXTRA = {
 "The professional engine failed; the provider said: ",
 "専門エンジンの計算に失敗しました。提供元のメッセージ："
 ],
+"专业盘十二宫图": [
+"Professional chart, twelve palaces",
+"専門盤の十二宮図"
+],
 "专业盘已算好": [
 "Professional chart ready",
 "専門盤を計算しました"
@@ -1893,10 +1909,6 @@ const UI_EXTRA = {
 "仅是固定四化与原生命宫映射，不是流年全盘或事件预测。": [
 "Only a fixed Four Transformations mapping onto the natal palaces; not a full annual chart or event prediction.",
 "固定の四化を本命宮へ対応させただけで、流年の全盤や出来事の予測ではありません。"
-],
-"仅本机显式安装 xuanshu[professional] 后可使用。第三方引擎的流派、星曜与当前子集可能不同，不会隐式混合数据。": [
-"Available only after explicitly installing xuanshu[professional] on this machine. The third-party engine's school and stars may differ from the current subset; data is never implicitly mixed.",
-"このマシンに xuanshu[professional] を明示的にインストールした場合のみ使用可能。サードパーティエンジンの流派・星曜は現行サブセットと異なる場合があり、データを暗黙に混在させることはありません。"
 ],
 "仅用于本页": [
 "This page only",
@@ -4554,6 +4566,10 @@ const UI_EXTRA = {
 "Copy Claude / Codex local config",
 "Claude / Codex のローカル設定をコピー"
 ],
+"复制 JSON": [
+"Copy JSON",
+"JSON をコピー"
+],
 "复制全文": [
 "Copy full text",
 "全文をコピー"
@@ -4582,6 +4598,10 @@ const UI_EXTRA = {
 "Copy failed; select the table by hand",
 "コピーできませんでした。表を手動で選択してください"
 ],
+"复制安装命令": [
+"Copy install command",
+"インストールコマンドをコピー"
+],
 "复制成文字": [
 "Copy as text",
 "テキストでコピー"
@@ -4593,6 +4613,10 @@ const UI_EXTRA = {
 "复制本节": [
 "Copy section",
 "この節をコピー"
+],
+"复制源码目录里的安装命令": [
+"Copy install command for the source folder",
+"ソースフォルダ用のインストールコマンドをコピー"
 ],
 "复制表格": [
 "Copy table",
@@ -5129,6 +5153,14 @@ const UI_EXTRA = {
 "子年在卯，逆行十二支（丑年在寅，寅年在丑……亥年在辰）；以年支查": [
 "子 year at 卯, counting the twelve branches backwards (丑 year at 寅, 寅 year at 丑 … 亥 year at 辰); read from the year branch",
 "子年は卯、十二支を逆にたどる（丑年は寅、寅年は丑……亥年は辰）。年支から求める"
+],
+"子时（按当天）": [
+"Zi hour (same day)",
+"子の刻（当日）"
+],
+"子时（按次日）": [
+"Zi hour (next day)",
+"子の刻（翌日）"
 ],
 "存在差异": [
 "Differences found",
@@ -7502,6 +7534,10 @@ const UI_EXTRA = {
 "How do next year's transformations differ from this year's?",
 "来年の四化は今年と比べてどう変わりますか？"
 ],
+"星名、宫名和干支按提供方自带的简体中文语言表从内部键名转成中文，其余字段保持提供方原样。": [
+"Star names, palace names, stems and branches are converted from the provider's internal keys into Chinese with the provider's own Simplified Chinese locale; every other field is kept as the provider gave it.",
+"星名・宮名・干支は提供元の内部キーから、提供元自身の簡体字中国語ロケールで中国語に変換しています。その他のフィールドは提供元の出力のままです。"
+],
 "星座": [
 "Western sign",
 "星座"
@@ -8973,6 +9009,10 @@ const UI_EXTRA = {
 "济南": [
 "Jinan",
 "済南"
+],
+"浏览器不让复制，请用「下载 JSON」": [
+"The browser blocked copying; use \"Download JSON\"",
+"ブラウザがコピーを許可しません。「JSON をダウンロード」を使ってください"
 ],
 "海中金": [
 "Sea Metal (Hai Zhong Jin)",

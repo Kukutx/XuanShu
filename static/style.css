@@ -384,13 +384,13 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .pf-steps{margin:12px 0 0;padding-left:1.4em;display:grid;gap:8px;line-height:1.6}
 .pf-steps li>span{display:block}
 .pf-command{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0}
-.pf-command code{flex:1 1 260px;min-width:0;padding:6px 10px;border-radius:6px;background:var(--code-bg);color:var(--code-text);font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.pf-command code{flex:1 1 260px;min-width:0;padding:6px 10px;border-radius:6px;background:var(--code-bg);color:var(--code-text);font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:nowrap;overflow-x:auto}
 .pf-form{margin:0 0 12px}
 .pf-row{flex-wrap:wrap;align-items:flex-end}
 .pf-row.inline-control select{width:auto}
 .pf-quick{display:flex;gap:6px}
 .pf-guard{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
-.pf-board-wrap{margin:10px 0 6px}
+.pf-board-wrap{margin:10px 0 6px;container-type:inline-size;overflow-x:auto}
 .pf-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(118px,auto));gap:6px}
 .pf-palace{min-width:0;padding:7px 8px 8px;border:1px solid var(--border-strong);border-radius:6px;background:var(--panel2);display:flex;flex-direction:column;gap:4px}
 .pf-palace.is-ming{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
@@ -402,8 +402,8 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .pf-tag{padding:0 5px;border:1px solid var(--accent-line);border-radius:999px;font-size:10.5px;color:var(--gold2)}
 .pf-gz{margin-left:auto;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:15px}
 .pf-stars{display:flex;flex-wrap:wrap;gap:2px 7px;font-size:13px;line-height:1.5}
-.pf-major{color:var(--text);font-weight:600;white-space:nowrap}
-.pf-minor{color:var(--text2);white-space:nowrap}
+.pf-major{color:var(--text);font-weight:600;overflow-wrap:anywhere}
+.pf-minor{color:var(--text2);overflow-wrap:anywhere}
 .pf-bright{margin-left:1px;font-size:10.5px;font-weight:400;color:var(--muted)}
 .pf-adj{font-size:11px;line-height:1.5;color:var(--muted)}
 .pf-decadal{margin-top:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -419,12 +419,14 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .pf-table td.pf-value{font-weight:600}
 .pf-table td.pf-value .bright{font-size:13px;vertical-align:0}
 .pf-table tr.is-diff td.pf-value{color:var(--warn)}
-.pf-ok{color:var(--green)}
-.pf-bad{color:var(--warn);font-weight:600}
+.pf-ok{color:var(--green);white-space:nowrap}
+.pf-bad{color:var(--warn);font-weight:600;white-space:nowrap}
 .pf-raw{margin:12px 0;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
 .pf-raw>summary{cursor:pointer;padding:9px 12px;color:var(--gold2)}
 .pf-raw-tools{display:flex;gap:6px;padding:0 12px}
-@media (max-width:640px){.pf-board-wrap{overflow-x:auto;margin:10px -16px 6px;padding:0 16px 6px}.pf-board{min-width:580px;gap:4px}.pf-status-head .tiny-button{margin-left:0}}
+/* The board scrolls sideways whenever its column is narrower than four readable palaces, wherever the page puts it. */
+@container (max-width:600px){.pf-board{min-width:580px;gap:4px}.pf-board-wrap>.ziwei-scroll-hint{display:block;position:sticky;left:0}}
+@media (max-width:640px){.pf-board-wrap{margin:10px -16px 6px;padding:0 16px 6px}.pf-status-head .tiny-button{margin-left:0}}
 @media print{#professional-status .tiny-button,.pf-form,.pf-raw-tools,#professional-only-diff,label:has(#professional-only-diff){display:none!important}.pf-palace,.pf-table tr{break-inside:avoid}.pf-raw{display:none}}
 .jv-leaf.is-match,.jv-node.is-match>summary{background:var(--warn-soft);box-shadow:inset 2px 0 0 var(--warn)}
 @media(max-width:640px){
