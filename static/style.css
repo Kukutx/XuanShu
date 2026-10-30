@@ -238,6 +238,13 @@ kbd{display:inline-block;min-width:1.9em;padding:3px 6px;border:1px solid var(--
 .tab{background:none;border:1px solid transparent;color:var(--muted);white-space:nowrap;padding:6px 12px;font-size:12.5px;border-radius:999px;transition:color .15s,background .15s,border-color .15s,box-shadow .15s}
 .tab:hover{color:var(--text);background:var(--hover);border-color:var(--border)}
 .tab.active{color:var(--on-gold);background:linear-gradient(135deg,var(--gold2),var(--gold));border-color:transparent;font-weight:600;box-shadow:0 6px 14px -8px var(--gold)}
+/* Switching tools, the active pill slides over from the tool that was open (app.js slideTabPill), under the tab labels;
+   the tab draws its own pill again once the slide lands. */
+.tabbar{position:relative;isolation:isolate}
+/* The theme switch's circular reveal (theme.js): the new colours grow over a still picture of the old ones. */
+html.theme-reveal::view-transition-old(root),html.theme-reveal::view-transition-new(root){animation:none;mix-blend-mode:normal}
+.tab-pill{position:absolute;z-index:-1;border-radius:999px;background:linear-gradient(135deg,var(--gold2),var(--gold));box-shadow:0 6px 14px -8px var(--gold);pointer-events:none}
+.tab.active.pill-arriving{background:transparent;box-shadow:none;transition:color .15s}
 #result{padding:24px 26px;min-height:520px}
 /* A newly opened tool fades in once; later redraws of the same tool do not repeat it. */
 #result.is-entering{animation:xs-enter .26s var(--ease) backwards}
@@ -2014,6 +2021,14 @@ html[lang="en"] .qr-value{grid-template-columns:6.6em minmax(0,1fr)}
 .share-dialog::backdrop{background:rgba(4,6,10,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .share-dialog[open]{animation:xs-pop .2s var(--ease) backwards}
 @keyframes xs-pop{from{opacity:0;transform:translateY(8px) scale(.985)}}
+/* Closing, a dialog fades out the way it came in and the dimmed page behind it brightens with it, instead of both
+   vanishing at once; the dialog stays in the top layer until the fade ends, and clicks pass through it meanwhile. */
+.share-dialog{transition:opacity .16s var(--ease),transform .16s var(--ease),overlay .16s allow-discrete,display .16s allow-discrete}
+.share-dialog:not([open]){opacity:0;transform:translateY(6px) scale(.985);pointer-events:none}
+.share-dialog::backdrop{transition:opacity .16s var(--ease),overlay .16s allow-discrete,display .16s allow-discrete}
+.share-dialog:not([open])::backdrop{opacity:0;pointer-events:none}
+@starting-style{.share-dialog[open]::backdrop{opacity:0}}
+@media (prefers-reduced-motion:reduce){.share-dialog::backdrop{transition:none}}
 .share-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .share-head h3{margin:0;font-size:17px}
 .share-options{display:flex;flex-wrap:wrap;gap:8px 16px;margin:12px 0;font-size:13px}
@@ -2542,6 +2557,7 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .xs-dp-nav{border-color:ButtonText}
   kbd{border-color:CanvasText}
   .cal-ghost,.xs-ghost>span{forced-color-adjust:none;background:GrayText;opacity:.5;animation:none}
+  .tab-pill{display:none}
   .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
   .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,
   .cal-day.is-selected,.ds-day.is-selected,.ds-day.is-pick,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,

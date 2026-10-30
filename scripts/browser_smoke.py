@@ -1450,7 +1450,8 @@ def main() -> None:
             assert page.evaluate("[...document.querySelectorAll('#crosscheck-dialog .table-wrap')].every(w => (w.scrollWidth > w.clientWidth + 1) === w.classList.contains('xs-hscroll'))")
             page.locator('#crosscheck-dialog').screenshot(path=str(screenshot_dir / '38-crosscheck.png'))
             page.locator('#crosscheck-close').click()
-            assert not page.locator('#crosscheck-dialog').is_visible()
+            # The dialog fades out as it closes, then leaves the page.
+            page.locator('#crosscheck-dialog').wait_for(state='hidden', timeout=3000)
 
             # Lunar birthday entry fills the Gregorian field; an unknown hour gets a twelve-hour comparison.
             page.locator('#lunar-entry summary').click()
@@ -1570,7 +1571,8 @@ def main() -> None:
             assert page.evaluate('document.documentElement.dataset.theme') == 'light'
             page.locator('#theme-toggle').click()
             page.locator('#theme-toggle').click()
-            assert page.evaluate("document.documentElement.dataset.theme === undefined && localStorage.getItem('xuanshu-theme') === null")
+            # A switch that changes the colours runs as a circular reveal, so the page follows a frame later.
+            page.wait_for_function("document.documentElement.dataset.theme === undefined && localStorage.getItem('xuanshu-theme') === null", timeout=5000)
 
             # Real Chromium exercise for installed or unavailable optional provider.
             from app.professional_ziwei import professional_provider_available
@@ -2609,6 +2611,9 @@ def main() -> None:
             assert not page.evaluate(tab_in_strip)
             page.evaluate("document.querySelector('[data-tab=\"professional\"]').click()")
             page.wait_for_function(tab_in_strip, timeout=5000)
+            # The active pill slides over from the tool that was open, then the tab draws its own pill again.
+            assert page.evaluate("document.querySelectorAll('#workspace-tabs .tab-pill').length <= 1")
+            page.wait_for_function("!document.querySelector('.tab-pill, .pill-arriving')", timeout=5000)
             # Its install steps keep inside the card: each command scrolls in its own box beside its copy button.
             page.locator('#professional-status').wait_for(timeout=30000)
             assert page.evaluate("[...document.querySelectorAll('.pf-steps>li')].every(li => li.getBoundingClientRect().right <= li.parentElement.getBoundingClientRect().right + 1)")

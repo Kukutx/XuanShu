@@ -14,9 +14,10 @@
     catch (_) {return null;}
   }
   let choice = stored();
+  const isDark = value => value ? value === 'dark' : !media || media.matches;
   function apply() {
     if (choice) root.dataset.theme = choice; else delete root.dataset.theme;
-    const dark = choice ? choice === 'dark' : !media || media.matches;
+    const dark = isDark(choice);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = dark ? '#0d1118' : '#f6f2ea';
     const button = document.getElementById('theme-toggle');
@@ -26,12 +27,26 @@
     button.querySelector('.theme-label').textContent = label;
     button.setAttribute('data-tip', '配色：' + label + '（点击切换）');
   }
-  function cycle() {
+  function cycle(event) {
+    const before = isDark(choice);
     choice = ORDER[(ORDER.indexOf(choice) + 1) % ORDER.length];
     try {
       if (choice) localStorage.setItem(KEY, choice); else localStorage.removeItem(KEY);
     } catch (_) { /* Storage unavailable: the theme still changes for this visit. */ }
-    apply();
+    if (isDark(choice) !== before) reveal(event && event.currentTarget); else apply();
+  }
+  // When the colours actually change, the new theme spreads in a circle from the button over a still picture of the
+  // old one. The browser takes that picture first and then runs apply, so the page switches a frame later.
+  function reveal(button) {
+    if (!button || typeof document.startViewTransition !== 'function' || document.hidden
+        || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {apply(); return;}
+    const box = button.getBoundingClientRect(), x = box.left + box.width / 2, y = box.top + box.height / 2;
+    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    root.classList.add('theme-reveal');
+    const transition = document.startViewTransition(apply);
+    transition.ready.then(() => root.animate({clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`]},
+      {duration: 480, easing: 'cubic-bezier(.2, .7, .2, 1)', pseudoElement: '::view-transition-new(root)'})).catch(() => {});
+    transition.finished.finally(() => root.classList.remove('theme-reveal'));
   }
   apply();
   if (media && media.addEventListener) media.addEventListener('change', () => {if (!choice) apply();});
