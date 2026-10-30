@@ -11534,6 +11534,14 @@ const UI_EXTRA = {
 "Solar-term transition",
 "節気の切り替わり"
 ],
+"节令推算规则": [
+"How the seasonal day is counted",
+"節令の数え方"
+],
+"节令提醒": [
+"Seasonal count caveat",
+"節令の注意"
+],
 "节令月支 × 日支 · 仅传统标签，不给吉凶或宜忌结论": [
 "Solar-term month branch × day branch · traditional labels only, no auspicious/inauspicious or do/avoid conclusions",
 "節令月支 × 日支 · 伝統ラベルのみで吉凶・宜忌の結論は出さない"

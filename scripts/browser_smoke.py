@@ -1705,6 +1705,17 @@ def main() -> None:
             page.locator('[data-tab="calendar"]').click()
             page.locator('#calendar-grid').wait_for(timeout=30000)
             assert page.locator('#calendar-day-' + page.evaluate('localToday()')).get_attribute('aria-current') == 'date'
+            # While a month loads, its grid is already drawn (Gregorian days, hidden from screen readers), and once
+            # it has come the months before and after are fetched while the page is idle.
+            page.evaluate("() => {window.__postJSON = postJSON; window.__release = null; postJSON = (url, body) => url === '/api/calendar' ? new Promise(go => {window.__release = go;}).then(() => window.__postJSON(url, body)) : window.__postJSON(url, body);}")
+            page.evaluate("() => showCalendarDay('1990-05-10')")
+            page.locator('#calendar-loading').wait_for(timeout=5000)
+            assert page.locator('.cal-skeleton[aria-hidden=true] .cal-grid .cal-day').count() == 31
+            assert page.locator('.cal-skeleton .cal-title').inner_text() == '1990年5月' and page.locator('.cal-skeleton button').count() == 0
+            page.evaluate("() => {postJSON = window.__postJSON; window.__release();}")
+            page.locator('#calendar-day-1990-05-31').wait_for(timeout=30000)
+            assert page.locator('.cal-skeleton').count() == 0
+            page.wait_for_function("() => calendarMonths['1990-04'] && calendarMonths['1990-04'].days && calendarMonths['1990-06'] && calendarMonths['1990-06'].days", timeout=15000)
             page.evaluate("() => showCalendarDay('2024-02-10')")
             page.locator('#calendar-day-2024-02-29').wait_for(timeout=30000)
             # February 2024 begins on a Thursday: three blank cells before the 1st and three after the 29th.
@@ -1765,8 +1776,14 @@ def main() -> None:
             csv_name, csv_type, csv = page.evaluate('window.__csv')
             page.evaluate('() => {downloadBlob = window.__keepDownload;}')
             assert csv_name == 'xuanshu-calendar-2024-02.csv' and csv_type.startswith('text/csv'), (csv_name, csv_type)
-            assert csv.startswith('\ufeff公历,星期,农历,日柱,节气（中国标准时间）,节令\r\n') and csv.count('\r\n') == 30, csv[:120]
+            assert csv.startswith('\ufeff公历,星期,农历,日柱,节气（中国标准时间）,节令,节令推算规则,节令提醒\r\n') and csv.count('\r\n') == 30, csv[:120]
             assert '\r\n2024-02-10,' in csv and '春节' in csv.split('\r\n2024-02-10,')[1].split('\r\n')[0], csv[:400]
+            assert '春节：农历正月初一' in csv.split('\r\n2024-02-10,')[1].split('\r\n')[0], csv[:400]
+            # The file has no rule list at its end, so a count whose start is in doubt says so on its own row: 1951's
+            # winter solstice falls 0.8 s after midnight, so the nines of January 1952 carry the warning.
+            doubt = page.evaluate("() => ensureCalendarMonth(1952, 1).then(data => csvText(calendarRows(data, '节气', true)))")
+            doubt_row = doubt.split('\r\n1952-01-10,')[1].split('\r\n')[0]
+            assert '冬至当天起每九天为一九' in doubt_row and '数九的起算日可能相差一天' in doubt_row, doubt_row
             page.screenshot(path=str(screenshot_dir / '05-calendar.png'), full_page=True)
             # A lunar date turned into a Gregorian one is picked on the calendar.
             page.locator('#calendar-next').click()

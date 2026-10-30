@@ -56,6 +56,8 @@
 html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--header-h) + 14px)}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 'Noto Sans SC','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;transition:background .25s,color .25s;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 ::selection{background:var(--ring);color:var(--text)}
+/* Hints in empty fields: the theme's quiet text colour in both themes (Firefox would also fade it to half). */
+::placeholder{color:var(--faint);opacity:1}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 a{color:inherit;text-decoration:none}
@@ -821,6 +823,12 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .cal-day .cal-gz{font-family:'Noto Serif SC','Songti SC','STSong',serif;font-size:12px;letter-spacing:.04em}
 .cal-day.is-today{border-color:var(--gold)}
 .cal-day.is-today .cal-num{color:var(--gold2)}
+/* A month on its way: the same grid with soft bars where the lunar day and day pillar will be. */
+.cal-skeleton .cal-day,.cal-skeleton .cal-day:hover{cursor:default;border-color:var(--border);background:var(--panel2)}
+.cal-skeleton .cal-term-chip{border-style:dashed}
+.cal-ghost{display:inline-block;width:var(--w,3em);max-width:100%;height:.8em;border-radius:4px;vertical-align:middle;background:linear-gradient(90deg,color-mix(in srgb,var(--muted) 16%,transparent) 20%,color-mix(in srgb,var(--muted) 34%,transparent) 50%,color-mix(in srgb,var(--muted) 16%,transparent) 80%) 0 0/200% 100%;animation:xs-shimmer 1.4s linear infinite}
+@keyframes xs-shimmer{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.cal-ghost{animation:none}}
 .cal-day.is-selected{background:var(--accent-soft);border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
 .cal-detail{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;padding:12px 16px;margin:4px 0 12px;border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--radius-sm);background:var(--panel2)}
 .cal-detail-date{margin:0;flex-basis:100%;font-weight:600;color:var(--text)}
@@ -2146,6 +2154,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
 ::-webkit-scrollbar-thumb:active{background-color:var(--gold2)}
 ::-webkit-scrollbar-button{display:none;width:0;height:0}
 html::-webkit-scrollbar{width:12px}
+/* The grip of a resizable text box, in the theme's colours rather than the browser's grey hatching. */
+::-webkit-resizer{background:linear-gradient(135deg,transparent 0 40%,var(--border-strong) 40% 47%,transparent 47% 58%,var(--border-strong) 58% 65%,transparent 65%) no-repeat;border-bottom-right-radius:var(--radius-sm)}
+::-webkit-resizer:hover{background-image:linear-gradient(135deg,transparent 0 40%,var(--gold) 40% 47%,transparent 47% 58%,var(--gold) 58% 65%,transparent 65%)}
 @supports (-moz-appearance:none){html{scrollbar-color:color-mix(in srgb,var(--border-strong) 55%,transparent) transparent;scrollbar-width:thin}}
 
 /* Checkboxes: a token-drawn box with a tick (accent-color only tinted the checked state). */
@@ -2450,6 +2461,7 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .xs-dp-grid td[aria-selected=true] .xs-dp-day :is(.xs-dp-num,.xs-dp-lunar){color:HighlightText}
   .xs-dp-day.is-today{border:2px dashed CanvasText}
   .xs-dp-nav{border-color:ButtonText}
+  .cal-ghost{forced-color-adjust:none;background:GrayText;opacity:.5;animation:none}
   .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
   .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,
   .cal-day.is-selected,.ds-day.is-selected,.ds-day.is-pick,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,

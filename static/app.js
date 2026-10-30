@@ -2525,13 +2525,14 @@ let calendarMonth = null, calendarSelected = null, calendarFocus = false;
 const monthKey = (year, month) => year + '-' + String(month).padStart(2, '0');
 const monthLength = (year, month) => new Date(Date.UTC(year, month, 0)).getUTCDate();
 // One request per month, shared with the date picker (static/datepicker.js); the promise gives the month's data.
-function ensureCalendarMonth(year, month) {
+// A month fetched ahead of time (ahead) that fails is not remembered as failed: it is asked for again when shown.
+function ensureCalendarMonth(year, month, ahead = false) {
   const key = monthKey(year, month);
   if (calendarMonths[key]) return Promise.resolve(calendarMonths[key]);
   if (calendarPending.has(key)) return calendarPending.get(key);
   const asked = postJSON('/api/calendar', {start_date: key + '-01', days: monthLength(year, month)})
     .then(data => {calendarMonths[key] = data;})
-    .catch(err => {if (!calendarMonths[key]) calendarMonths[key] = {error: err.message};})
+    .catch(err => {if (!calendarMonths[key] && !ahead) calendarMonths[key] = {error: err.message};})
     .finally(() => {
       calendarPending.delete(key);
       if (active !== 'calendar' || !calendarMonth || monthKey(calendarMonth.year, calendarMonth.month) !== key) return;
@@ -2615,6 +2616,42 @@ function calendarCellText(d) {
 }
 const CAL_WEEKDAYS = {'zh-CN': [...'一二三四五六日'], 'zh-TW': [...'一二三四五六日'], ja: ['月', '火', '水', '木', '金', '土', '日']};
 const CAL_WEEKDAYS_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+// The month before and after the one shown are fetched while the page is idle, so paging shows them at once.
+const whenIdle = typeof requestIdleCallback === 'function' ? fn => requestIdleCallback(fn, {timeout: 2000}) : fn => setTimeout(fn, 300);
+function prefetchCalendarMonths(year, month) {
+  whenIdle(() => [-1, 1].forEach(step => {
+    const index = year * 12 + month - 1 + step, y = Math.floor(index / 12), m = index % 12 + 1;
+    if (y >= 1901 && y <= 2099) ensureCalendarMonth(y, m, true);
+  }));
+}
+// While a month loads its grid is drawn already, with the Gregorian days, weekends and today in place and a soft
+// shimmer where the lunar day and day pillar will be, so the page does not jump when the month arrives.
+function calendarSkeleton(year, month, today) {
+  const ghost = append(result, 'div', 'cal-skeleton'); ghost.setAttribute('aria-hidden', 'true');
+  const bar = (parent, width) => {const b = append(parent, 'span', 'cal-ghost'); b.style.setProperty('--w', width); return b;};
+  const head = append(ghost, 'div', 'cal-head');
+  append(head, 'h4', 'cal-title', calendarMonthTitle(year, month)).dataset.noI18n = '';
+  bar(append(head, 'p', 'cal-span'), '16em');
+  const chips = append(head, 'div', 'cal-terms');
+  ['9em', '9em'].forEach(width => bar(append(chips, 'span', 'cal-term-chip'), width));
+  const table = append(ghost, 'table', 'cal-grid');
+  const hr = append(append(table, 'thead'), 'tr'), lang = calLang();
+  WEEKDAY_NAMES.forEach((full, i) => {
+    append(append(hr, 'th', i > 4 ? 'is-weekend' : null), 'abbr', null, lang === 'en' ? CAL_WEEKDAYS_EN[i] : (CAL_WEEKDAYS[lang] || CAL_WEEKDAYS['zh-CN'])[i]).dataset.noI18n = '';
+  });
+  const body = append(table, 'tbody'), lead = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7, days = monthLength(year, month);
+  let row = append(body, 'tr');
+  for (let i = 0; i < lead; i++) append(row, 'td', 'cal-blank');
+  for (let i = 0; i < days; i++) {
+    if ((lead + i) % 7 === 0 && i) row = append(body, 'tr');
+    const date = monthKey(year, month) + '-' + String(i + 1).padStart(2, '0');
+    const day = append(append(row, 'td', 'cal-cell'), 'div', 'cal-day' + ((lead + i) % 7 > 4 ? ' is-weekend' : '') + (date === today ? ' is-today' : ''));
+    append(day, 'span', 'cal-num', String(i + 1));
+    bar(append(day, 'span', 'cal-lunar'), '2.6em');
+    bar(append(day, 'span', 'cal-gz'), '1.8em');
+  }
+  while (row.children.length < 7) append(row, 'td', 'cal-blank');
+}
 function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
@@ -2631,11 +2668,15 @@ function calendarRuleLines(data) {
   return [...names].map(([rule, list]) => list.join('、') + '：' + rule);
 }
 // One row a day, for the text export and the spreadsheet file alike.
-// The file has no title line, so its term column says which clock the times are on.
-const calendarRows = (data, termHead = '节气') => [['公历', '星期', '农历', '日柱', termHead, '节令'], ...data.days.map(d => [d.date, d.weekday,
-  lunarMonthName(d.lunar) + LUNAR_DAYS[d.lunar.day - 1], d.day_pillar,
-  d.solar_terms.map(t => t.name + ' ' + t.time_china.slice(11, 16)).join('、') || '—',
-  marksOf(d).map(m => m.name + (m.day !== undefined ? ' ' + fillDay(SEASON_DAY.zh, m) : '')).join('、') || '—'])];
+// The file has no title line, so its term column says which clock the times are on, and it has no rule list at the
+// end either, so each day carries the rule of its marks and any doubt about them (a 冬至 close to midnight) itself.
+const calendarRows = (data, termHead = '节气', withRules = false) => [['公历', '星期', '农历', '日柱', termHead, '节令', ...(withRules ? ['节令推算规则', '节令提醒'] : [])],
+  ...data.days.map(d => [d.date, d.weekday,
+    lunarMonthName(d.lunar) + LUNAR_DAYS[d.lunar.day - 1], d.day_pillar,
+    d.solar_terms.map(t => t.name + ' ' + t.time_china.slice(11, 16)).join('、') || '—',
+    marksOf(d).map(m => m.name + (m.day !== undefined ? ' ' + fillDay(SEASON_DAY.zh, m) : '')).join('、') || '—',
+    ...(withRules ? [marksOf(d).map(m => m.name + '：' + m.rule).join('；') || '—',
+      [...new Set(marksOf(d).map(m => m.caution).filter(Boolean))].join('；') || '—'] : [])])];
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱、节气与传统节令（中国标准时间）', ''];
   lines.push(...textColumns(calendarRows(data)));
@@ -2715,6 +2756,7 @@ function renderCalendar() {
         showCalendarDay(monthKey(y, m) + '-' + String(day).padStart(2, '0'), true);
       });
       if (calendarFocus) wait.focus();
+      calendarSkeleton(year, month, today);
     }
     else {
       append(result, 'p', 'inline-msg', '这个月暂时算不出来：' + data.error);
@@ -2725,6 +2767,7 @@ function renderCalendar() {
     return;
   }
   calendarResult = data;
+  prefetchCalendarMonths(year, month);
   if (!calendarSelected || calendarSelected.slice(0, 7) !== key) calendarSelected = key + '-01';
   // The month at a glance: the lunar months it spans and the solar terms in it, with the month pillar a jie opens.
   const head = append(result, 'div', 'cal-head');
@@ -2842,7 +2885,7 @@ function renderCalendar() {
   open.type = 'button'; open.id = 'calendar-open-day';
   open.addEventListener('click', () => {todayPick = {date: d.date, time: '12:00'}; activateTab(tabs.find(t => t.dataset.tab === 'today'));});
   textExport(result, 'calendar-text', () => calendarText(year, month, data), 'xuanshu-calendar-' + key + '.txt', '整月的农历、日柱与节气，按中国标准时间',
-    () => calendarRows(data, '节气（中国标准时间）'));
+    () => calendarRows(data, '节气（中国标准时间）', true));
   renderLunarInverseSection();
   note(result, data.notes.join(' '));
 }
