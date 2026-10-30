@@ -51,4 +51,15 @@ def test_the_hour_label_follows_the_birth_form():
 def test_the_month_loader_is_shared_and_keeps_good_data():
     app = (STATIC / 'app.js').read_text(encoding='utf-8')
     assert 'calendarPending = new Map()' in app and 'calendarPending.set(key, asked)' in app
-    assert 'if (!calendarMonths[key]) calendarMonths[key] = {error: err.message};' in app
+    assert 'if (!calendarMonths[key] && !ahead) calendarMonths[key] = {error: err.message};' in app
+
+
+def test_the_month_calendar_draws_its_grid_while_loading_and_fetches_neighbours():
+    app = (STATIC / 'app.js').read_text(encoding='utf-8')
+    css = (STATIC / 'style.css').read_text(encoding='utf-8')
+    # The skeleton is the same grid, hidden from screen readers; the loading line stays the focus target.
+    assert "calendarSkeleton(year, month, today);" in app and "ghost.setAttribute('aria-hidden', 'true')" in app
+    assert '.cal-ghost{' in css and '@keyframes xs-shimmer' in css and '.cal-ghost{animation:none}' in css
+    # The neighbouring months are fetched when idle, and a failed fetch ahead of time is not remembered as failed.
+    assert 'prefetchCalendarMonths(year, month);' in app and 'ensureCalendarMonth(y, m, true)' in app
+    assert '!calendarMonths[key] && !ahead' in app
