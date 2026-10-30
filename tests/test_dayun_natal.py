@@ -101,4 +101,8 @@ def test_luck_page_years_open_their_months():
     script = open('static/app.js', encoding='utf-8').read()
     # Each year of the picked decade is a button that fetches and toggles its month pillars below the table.
     assert "open.setAttribute('aria-expanded'" in script and 'month_year: year' in script and "panel.id = 'dayun-months'" in script
+    # Years past the supported range (the decades run on beyond 2099) stay plain; the request is matched by identity,
+    # so a reply for an earlier year or chart is dropped, and a failure belongs to its chart and year.
+    assert 'const FLOW_MONTH_LAST_YEAR = 2099;' in script and 'if (y.year > FLOW_MONTH_LAST_YEAR) first.textContent' in script
+    assert 'if (dayunMonthsLoad === load && dayunKey === key)' in script and "dayunMonthsError.key === dayunKey && inDecade(dayunMonthsError.year)" in script
     assert '.dy-year-toggle[aria-expanded="true"]' in open('static/style.css', encoding='utf-8').read()

@@ -245,7 +245,10 @@ let dayunDraft = {periods: 10, direction_override: ''};
 let dayunPick = null;  // the decade shown in detail on the luck-pillar page; null: the one today falls in
 let dayunKey = null, dayunPending = false, dayunError = '';  // the request the shown periods belong to
 let dayunAxisScroll = null;  // {key, left}: where the luck axis was scrolled to, kept while the same decade is shown
-let dayunMonths = null, dayunMonthsPending = 0, dayunMonthsError = '';  // {key, year, pillar, months}: the month pillars opened under a year
+// The month pillars opened under a year ({key, year, pillar, months}), the request out for them ({key, year}, compared by
+// identity so a reply to an earlier request is dropped) and its failure ({key, year, text}).
+let dayunMonths = null, dayunMonthsLoad = null, dayunMonthsError = null;
+const FLOW_MONTH_LAST_YEAR = 2099;  // the supported range ends here; a later year's months are not offered
 let boundaryDraft = {uncertainty_minutes: 60};
 let qualityMinutesDraft = 15;
 let qualityRun = null;  // the birth and window the shown audit was asked for
@@ -6912,6 +6915,7 @@ function dayunDetail(d, x, isNow, o, now) {
   const birthYear = b.lunar_date ? b.lunar_date.year : Number(d.birth_datetime.slice(0, 4)), thisYear = Number(now.slice(0, 4));
   const inDecade = year => x.years.some(y => y.year === year);
   const shown = dayunMonths && dayunMonths.key === dayunKey && inDecade(dayunMonths.year) ? dayunMonths : null;
+  const loading = dayunMonthsLoad && dayunMonthsLoad.key === dayunKey && inDecade(dayunMonthsLoad.year) ? dayunMonthsLoad : null;
   append(box, 'p', 'field-help dy-years-hint', '点年份可展开这一年的十二个流月。');
   const wrap = append(box, 'div', 'table-wrap');
   const table = append(wrap, 'table', 'data-table dy-years'); table.id = 'dayun-years';
@@ -6923,12 +6927,15 @@ function dayunDetail(d, x, isNow, o, now) {
     const tr = append(tbody, 'tr', y.year === thisYear ? 'is-current' : null);
     if (y.year === thisYear) tr.setAttribute('aria-current', 'date');
     const first = append(tr, 'th'); first.scope = 'row';
-    const open = append(first, 'button', 'dy-year-toggle', String(y.year)); open.type = 'button'; open.id = 'dayun-year-' + y.year;
-    open.setAttribute('aria-expanded', String(!!shown && shown.year === y.year));
-    if (shown && shown.year === y.year) open.setAttribute('aria-controls', 'dayun-months');
-    if (dayunMonthsPending === y.year) open.setAttribute('aria-busy', 'true');
-    tip(open, '展开这一年的十二个流月');
-    open.addEventListener('click', () => dayunMonthsToggle(y.year));
+    if (y.year > FLOW_MONTH_LAST_YEAR) first.textContent = String(y.year);
+    else {
+      const open = append(first, 'button', 'dy-year-toggle', String(y.year)); open.type = 'button'; open.id = 'dayun-year-' + y.year;
+      open.setAttribute('aria-expanded', String(!!shown && shown.year === y.year));
+      if (shown && shown.year === y.year) open.setAttribute('aria-controls', 'dayun-months');
+      if (loading && loading.year === y.year) open.setAttribute('aria-busy', 'true');
+      tip(open, '展开这一年的十二个流月');
+      open.addEventListener('click', () => dayunMonthsToggle(y.year));
+    }
     const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
     append(pair, 'span', stemClass(y.pillar[0]), y.pillar[0]); append(pair, 'span', branchClass(y.pillar[1]), y.pillar[1]);
     const ys = settledInteractions(y, o);
@@ -6939,22 +6946,25 @@ function dayunDetail(d, x, isNow, o, now) {
     append(tr, 'td', null, o.stars ? '随时辰而定' : (ys.shensha || []).map(s => s.name).join('、') || '—');
   });
   append(box, 'p', 'field-help', '与原局一栏：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空，悬停可看全部关系。流年以立春换年，虚龄从农历出生年起算。只列关系与标签，不判断吉凶。');
-  if (dayunMonthsError) append(box, 'p', 'inline-msg', dayunMonthsError);
-  if (dayunMonthsPending && inDecade(dayunMonthsPending)) loadingGhost(box, 'table');
+  const failed = dayunMonthsError && dayunMonthsError.key === dayunKey && inDecade(dayunMonthsError.year) ? dayunMonthsError : null;
+  if (failed) append(box, 'p', 'inline-msg', failed.text);
+  if (loading) loadingGhost(box, 'table');
   else if (shown) dayunMonthTable(box, shown, o);
 }
 // The twelve months of one year under the decade's years: each from the jie that opens it, read against the natal
 // chart like the years. Fetched when a year is opened; opening it again closes it.
 function dayunMonthsToggle(year) {
   const key = dayunKey;
-  dayunMonthsError = '';
+  dayunMonthsError = null;
   if (dayunMonths && dayunMonths.key === key && dayunMonths.year === year) {dayunMonths = null; dayunRefocus(year); return;}
-  dayunMonthsPending = year; dayunRefocus(year);
+  if (dayunMonthsLoad && dayunMonthsLoad.key === key && dayunMonthsLoad.year === year) return;  // already on its way
+  const load = dayunMonthsLoad = {key, year};
+  dayunRefocus(year);
   postJSON('/api/dayun', {...JSON.parse(key), periods: 1, include_years: false, month_year: year})
-    // Only the year opened last is shown: an earlier year's reply arriving later is dropped.
-    .then(data => {if (dayunKey === key && dayunMonthsPending === year) dayunMonths = {key, year, pillar: data.flow_months.year_pillar, months: data.flow_months.months};})
-    .catch(err => {if (dayunMonthsPending === year) dayunMonthsError = '流月计算失败：' + err.message;})
-    .finally(() => {if (dayunMonthsPending === year) dayunMonthsPending = 0; if (active === 'dayun') dayunRefocus(year);});
+    // Only the request made last counts: a reply to an earlier one (another year, or the chart before) is dropped.
+    .then(data => {if (dayunMonthsLoad === load && dayunKey === key) dayunMonths = {key, year, pillar: data.flow_months.year_pillar, months: data.flow_months.months};})
+    .catch(err => {if (dayunMonthsLoad === load) dayunMonthsError = {key, year, text: '流月计算失败：' + err.message};})
+    .finally(() => {if (dayunMonthsLoad === load) dayunMonthsLoad = null; if (active === 'dayun') dayunRefocus(year);});
 }
 // Redraw, keeping the focus on a year's button when it was there.
 function dayunRefocus(year) {
