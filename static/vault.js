@@ -8,7 +8,26 @@
   const rand = size => crypto.getRandomValues(new Uint8Array(size));
   const b64 = data => btoa(String.fromCharCode(...data));
   const unb64 = value => Uint8Array.from(atob(value), c => c.charCodeAt(0));
-  const inform = message => {q('profile-feedback').textContent = message;};
+  // Pieces become separate text nodes, so each one translates whole and the counts stay as numbers.
+  const inform = (...parts) => {q('profile-feedback').replaceChildren(...parts.map(String));};
+  // Backups now carry each profile's memory, life events and saved conversations, so they can be larger.
+  const MAX_FILE = 4 * 1024 * 1024, MAX_CIPHERTEXT = 3 * 1024 * 1024;
+  const SCHEMA = 'xuanshu-backup-v2';
+  const DAY = /^\d{4}-\d{2}-\d{2}$/;
+  const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  function readStore(key) {
+    try {const value = JSON.parse(localStorage.getItem(key) || '{}'); return isObject(value) ? value : {};}
+    catch (_) {return {};}
+  }
+  // What this browser keeps beside each saved profile (written by chat.js), limited to the profiles being backed up.
+  function companions(records) {
+    const memory = {}, history = {}, kept = readStore(chatMemoryKey), talks = readStore(chatHistoryKey);
+    records.forEach(({id}) => {
+      if (isObject(kept[id])) memory[id] = kept[id];
+      if (Array.isArray(talks[id]) && talks[id].length) history[id] = talks[id];
+    });
+    return {memory, history};
+  }
 
   async function keyFromPassword(password, salt, iterations) {
     const material = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
@@ -18,7 +37,7 @@
   async function encryptedArchive(records, password) {
     const salt=rand(16), iv=rand(12);
     const key=await keyFromPassword(password,salt,ITERATIONS);
-    const data=enc.encode(JSON.stringify({schema:'xuanshu-profiles-v1',created_at:new Date().toISOString(),records}));
+    const data=enc.encode(JSON.stringify({schema:SCHEMA,created_at:new Date().toISOString(),records,...companions(records)}));
     const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,data);
     return JSON.stringify({format:'xuanshu-aes256gcm-v1',kdf:'PBKDF2-SHA256',iterations:ITERATIONS,
       salt:b64(salt),iv:b64(iv),ciphertext:b64(new Uint8Array(encrypted))},null,2);
@@ -31,12 +50,12 @@
       throw new Error('备份格式或 PBKDF2 参数不受支持');
     }
     const salt=unb64(archive.salt),iv=unb64(archive.iv),ct=unb64(archive.ciphertext);
-    if(salt.length!==16 || iv.length!==12 || ct.length>128*1024) throw new Error('加密备份内容无效');
+    if(salt.length!==16 || iv.length!==12 || ct.length>MAX_CIPHERTEXT) throw new Error('加密备份内容无效');
     const key=await keyFromPassword(password,salt,archive.iterations);
     const decrypted=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
     const payload=JSON.parse(dec.decode(decrypted));
-    const expectedSchema = legacy ? 'oriental-astro-profiles-v1' : 'xuanshu-profiles-v1';
-    if(payload.schema!==expectedSchema||!Array.isArray(payload.records)||payload.records.length>20)
+    const expectedSchema = legacy ? ['oriental-astro-profiles-v1'] : ['xuanshu-profiles-v1', SCHEMA];
+    if(!expectedSchema.includes(payload.schema)||!Array.isArray(payload.records)||payload.records.length>20)
       throw new Error('档案格式不合法或超过数量限制');
     for(const item of payload.records){
       if(!item || typeof item.id!=='string' || item.id.length>80 ||
@@ -49,8 +68,41 @@
         throw new Error('备份中存在格式错误的档案');
       }
     }
-    return payload.records;
+    if (payload.schema !== SCHEMA) return {records: payload.records, memory: null, history: null};
+    const ids = new Set(payload.records.map(item => item.id));
+    const memory = payload.memory ?? {}, history = payload.history ?? {};
+    if (!isObject(memory) || !isObject(history) || ![...Object.keys(memory), ...Object.keys(history)].every(id => ids.has(id)) ||
+      !Object.values(memory).every(validMemory) || !Object.values(history).every(validHistory)) {
+      throw new Error('备份中存在格式错误的记忆、人生事件或对话');
+    }
+    return {records: payload.records, memory, history};
   }
+  // The same limits the chat page applies when they are added: 30 notes of up to 300 characters, 30 dated events.
+  function validMemory(entry) {
+    const text = (value, max) => typeof value === 'string' && value.length <= max;
+    return isObject(entry) && Object.keys(entry).every(key => ['memory', 'life_events', 'keep_history'].includes(key)) &&
+      (entry.memory === undefined || (Array.isArray(entry.memory) && entry.memory.length <= 30 && entry.memory.every(x => text(x, 300)))) &&
+      (entry.life_events === undefined || (Array.isArray(entry.life_events) && entry.life_events.length <= 30 &&
+        entry.life_events.every(e => isObject(e) && text(e.date, 10) && DAY.test(e.date) && text(e.title, 80) && (e.note == null || text(e.note, 300))))) &&
+      (entry.keep_history === undefined || typeof entry.keep_history === 'boolean');
+  }
+  // Saved conversations: the last 60 turns, each a user or assistant message with its text.
+  function validHistory(list) {
+    return Array.isArray(list) && list.length <= 60 &&
+      list.every(m => isObject(m) && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.length <= 40000);
+  }
+  // All of a restore lands, or none of it does (a full browser storage must not leave half a backup behind).
+  function replaceStored(entries) {
+    const before = entries.map(([key]) => [key, localStorage.getItem(key)]);
+    const put = ([key, value]) => value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value);
+    try {entries.forEach(put);}
+    catch (_) {
+      before.forEach(entry => {try {put(entry);} catch (__) {}});
+      throw new Error('浏览器存储空间不足，未作任何更改');
+    }
+  }
+  const storeText = data => Object.keys(data).length ? JSON.stringify(data) : null;
+  const count = (data, field) => Object.values(data).reduce((n, entry) => n + (Array.isArray(entry[field]) ? entry[field].length : 0), 0);
   function downloadText(filename, contents){
     const blob=new Blob([contents],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob);
@@ -70,26 +122,37 @@
       const records=loadProfiles();if(!records.length) throw new Error('尚无已保存的本地档案');
       const blob=await encryptedArchive(records,password());
       downloadText('xuanshu-encrypted-'+new Date().toISOString().slice(0,10)+'.astro',blob);
-      inform('已生成 AES-256-GCM 加密备份；口令不会保存，也不会上传服务器。');
-    }catch(e){inform('加密导出失败：'+e.message);}finally{button.disabled=false;q('vault-password').value='';}
+      const {memory, history} = companions(records);
+      inform('已生成 AES-256-GCM 加密备份：', records.length, ' 份档案、', count(memory, 'memory'), ' 条记忆、',
+        count(memory, 'life_events'), ' 件人生事件、', Object.keys(history).length, ' 段已保存的对话', '；口令不会保存，也不会上传服务器。');
+    }catch(e){inform('加密导出失败：', e.message);}finally{button.disabled=false;q('vault-password').value='';}
   });
   q('vault-import').addEventListener('click',()=>q('vault-file').click());
   q('vault-file').addEventListener('change',async event=>{
     const file=event.target.files?.[0];if(!file)return;
     try {
-      if(file.size>256*1024) throw new Error('备份文件超过 256 KB');
+      if(file.size>MAX_FILE) throw new Error('备份文件超过 4 MB');
       const value=password();
-      const records=await decryptedArchive(JSON.parse(await file.text()),value);
+      const {records, memory, history}=await decryptedArchive(JSON.parse(await file.text()),value);
       // Replace rather than silently merge; user controls the complete backup state.
-      if(!await xsConfirm(['即将使用备份中的 ',records.length,' 条档案替换当前浏览器档案，确定吗？'],{confirmLabel:'替换'})) return;
-      localStorage.setItem(profileKey,JSON.stringify(records));showProfiles();purgeChatStores();
-      inform('加密备份已恢复；原档案已被替换。');
-    }catch(e){inform('导入失败：口令错误、文件损坏或 '+e.message);}
+      if (memory === null) {
+        // An older backup holds profiles only: memory and conversations of profiles it also contains stay.
+        if(!await xsConfirm(['即将使用备份中的 ',records.length,' 条档案替换当前浏览器档案，确定吗？'],{confirmLabel:'替换'})) return;
+        replaceStored([[profileKey, JSON.stringify(records)]]);
+      } else {
+        if(!await xsConfirm(['即将使用备份中的 ',records.length,' 条档案及其记忆、人生事件和对话替换当前浏览器里的这些内容，确定吗？'],{confirmLabel:'替换'})) return;
+        replaceStored([[profileKey, JSON.stringify(records)], [chatMemoryKey, storeText(memory)], [chatHistoryKey, storeText(history)]]);
+      }
+      showProfiles();purgeChatStores();
+      if (memory === null) inform('加密备份已恢复；原档案已被替换。');
+      else inform('加密备份已恢复：', records.length, ' 份档案、', count(memory, 'memory'), ' 条记忆、', count(memory, 'life_events'), ' 件人生事件、',
+        Object.keys(history).length, ' 段已保存的对话', '；原有内容已被替换。');
+    }catch(e){inform('导入失败：口令错误、文件损坏或 ', e.message);}
     finally{event.target.value='';q('vault-password').value='';}
   });
   q('clear-profiles').addEventListener('click',async()=>{
     if(!await xsConfirm('确定清空当前浏览器保存的所有出生档案吗？此操作不可撤销。',{confirmLabel:'清空',danger:true}))return;
     try{localStorage.removeItem(profileKey);showProfiles();purgeChatStores();inform('已清空此浏览器的所有本地档案及其对话、记忆和人生事件。');}
-    catch(e){inform('清空失败：'+e.message);}
+    catch(e){inform('清空失败：', e.message);}
   });
 })();

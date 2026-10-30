@@ -2210,9 +2210,17 @@ const UI_EXTRA = {
 "Transformations started from one palace's stem, seeing which palace each transformed star falls in; landing back in the same palace is called self-transformation.",
 "ある宮の宮干から四化を起こし、四化星がどの宮に入るかを見ること。本宮に戻るものを自化と呼びます。"
 ],
+"件人生事件、": [
+"life event(s), ",
+"件の人生の出来事、"
+],
 "任意权重下首位都不变": [
 "The leader holds at any weight",
 "どの重みでも首位は変わりません"
+],
+"份档案、": [
+"profile(s), ",
+"件のプロフィール、"
 ],
 "伏兵": [
 "Fu Bing",
@@ -3525,6 +3533,10 @@ const UI_EXTRA = {
 "加密备份内容无效": [
 "Encrypted backup content is invalid",
 "暗号化バックアップの内容が無効"
+],
+"加密备份已恢复：": [
+"Encrypted backup restored: ",
+"暗号化バックアップを復元しました："
 ],
 "加密备份已恢复；原档案已被替换。": [
 "Encrypted backup restored; existing profiles were replaced.",
@@ -4978,9 +4990,17 @@ const UI_EXTRA = {
 "Backup contains malformed profiles",
 "バックアップに形式の誤ったプロフィールがあります"
 ],
-"备份文件超过 256 KB": [
-"Backup file exceeds 256 KB",
-"バックアップファイルが 256 KB を超えています"
+"备份中存在格式错误的记忆、人生事件或对话": [
+"The backup contains malformed memory, life events or conversations",
+"バックアップに形式が正しくない記憶・人生の出来事・会話があります"
+],
+"备份包含全部档案，以及每份档案的记忆、人生事件和已保存的对话；恢复时整体替换。": [
+"A backup holds every profile with its memory, life events and saved conversations; restoring replaces them all.",
+"バックアップにはすべてのプロフィールと、それぞれの記憶・人生の出来事・保存済みの会話が含まれます。復元するとまとめて置き換わります。"
+],
+"备份文件超过 4 MB": [
+"Backup file exceeds 4 MB",
+"バックアップファイルが 4 MB を超えています"
 ],
 "备份格式或 PBKDF2 参数不受支持": [
 "Unsupported backup format or PBKDF2 parameters",
@@ -6261,6 +6281,10 @@ const UI_EXTRA = {
 "已清空此浏览器的所有本地档案及其对话、记忆和人生事件。": [
 "All local profiles in this browser and their chats, memory and life events were cleared.",
 "このブラウザのすべてのローカルプロフィールとその対話・記憶・人生の出来事を消去しました。"
+],
+"已生成 AES-256-GCM 加密备份：": [
+"AES-256-GCM encrypted backup created: ",
+"AES-256-GCM 暗号化バックアップを作成しました："
 ],
 "已生成 AES-256-GCM 加密备份；口令不会保存，也不会上传服务器。": [
 "AES-256-GCM encrypted backup created; the passphrase is neither saved nor uploaded to the server.",
@@ -8922,6 +8946,14 @@ const UI_EXTRA = {
 "Items",
 "件数"
 ],
+"条档案及其记忆、人生事件和对话替换当前浏览器里的这些内容，确定吗？": [
+"profile(s), with their memory, life events and conversations, will replace those in this browser. Continue?",
+"件のプロフィールとその記憶・人生の出来事・会話で、このブラウザ内の内容を置き換えます。よろしいですか？"
+],
+"条记忆、": [
+"memory note(s), ",
+"件の記憶、"
+],
 "来源": [
 "Source",
 "出典"
@@ -9381,6 +9413,10 @@ const UI_EXTRA = {
 "残月": [
 "Waning crescent",
 "有明月（欠けていく三日月）"
+],
+"段已保存的对话": [
+"saved conversation(s)",
+"件の保存済み会話"
 ],
 "每一行把当前出生资料换成一种常见的不同规则（或两种规则的组合）重新排盘，标出与当前设置不同的格子。": [
 "Each row recalculates the current birth details under one common alternative rule (or a pair of them) and highlights the cells that differ from the current settings.",
@@ -9857,6 +9893,10 @@ const UI_EXTRA = {
 "浏览器不让复制，请用「下载 JSON」": [
 "The browser blocked copying; use \"Download JSON\"",
 "ブラウザがコピーを許可しません。「JSON をダウンロード」を使ってください"
+],
+"浏览器存储空间不足，未作任何更改": [
+"Not enough browser storage; nothing was changed",
+"ブラウザの保存容量が足りないため、何も変更していません"
 ],
 "海中金": [
 "Sea Metal (Hai Zhong Jin)",
@@ -13205,6 +13245,14 @@ const UI_EXTRA = {
 "；农历年": [
 "; lunar year",
 "；旧暦年"
+],
+"；原有内容已被替换。": [
+"; the previous contents were replaced.",
+"。元の内容は置き換えられました。"
+],
+"；口令不会保存，也不会上传服务器。": [
+"; the passphrase is neither saved nor uploaded to the server.",
+"。パスフレーズは保存もサーバーへのアップロードもされません。"
 ],
 "；同一瞬间北京日期 ": [
 "; Beijing date at the same instant ",
