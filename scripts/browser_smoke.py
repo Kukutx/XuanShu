@@ -149,6 +149,7 @@ def main() -> None:
     i18n_js = (ROOT / 'static/i18n.js').read_text(encoding='utf-8')
     i18n_extra_js = (ROOT / 'static/i18n-extra.js').read_text(encoding='utf-8')
     api_js = (ROOT / 'static/api.js').read_text(encoding='utf-8')
+    tips_js = (ROOT / 'static/tips.js').read_text(encoding='utf-8')
     client = TestClient(app)
     counts = {'requests': 0}
     group_bodies: list[str] = []
@@ -206,6 +207,7 @@ def main() -> None:
             page.add_script_tag(content=js)
             page.add_script_tag(content=vault_js)
             page.add_script_tag(content=cities_js)
+            page.add_script_tag(content=tips_js)
             page.add_script_tag(content=i18n_js)
             # The full time-zone list keeps the page's default zone selected.
             assert page.locator('#timezone').input_value() == 'Asia/Shanghai'
@@ -349,7 +351,26 @@ def main() -> None:
             # 神煞 on each pillar, named by what places them (华盖 by the year branch 辰), and a table of rules and sources.
             assert [page.locator('.pillar').nth(i).locator('.shensha-tag').all_inner_texts() for i in range(4)] == [
                 ['华盖'], ['驿马'], ['羊刃', '将星'], ['驿马']]
-            assert page.locator('.pillar').nth(0).locator('.shensha-tag').get_attribute('title') == '查法起点：年支 辰'
+            assert page.locator('.pillar').nth(0).locator('.shensha-tag').get_attribute('data-tip') == '查法起点：年支 辰'
+            # Hints are drawn by tips.js in the project's style, not as the browser's title tooltip: hover shows one,
+            # Escape closes it, and a click pins a plain label's hint until the next click.
+            assert page.evaluate("document.querySelectorAll('body [title]').length") == 0
+            tag = page.locator('.pillar').nth(0).locator('.shensha-tag')
+            tag.hover()
+            page.wait_for_function("() => {const t = document.getElementById('xs-tip'); return t && !t.hidden && t.textContent === '查法起点：年支 辰';}", timeout=3000)
+            assert 'xs-tip' in (tag.get_attribute('aria-describedby') or '')
+            box = page.locator('#xs-tip').bounding_box(); anchor = tag.bounding_box()
+            assert box['y'] + box['height'] <= anchor['y'] or box['y'] >= anchor['y'] + anchor['height']
+            page.keyboard.press('Escape')
+            page.wait_for_function("() => document.getElementById('xs-tip').hidden", timeout=3000)
+            assert 'xs-tip' not in (tag.get_attribute('aria-describedby') or '')
+            tag.click()
+            page.wait_for_function("() => !document.getElementById('xs-tip').hidden", timeout=3000)
+            page.mouse.move(2, 2)
+            page.wait_for_timeout(450)
+            assert page.evaluate("!document.getElementById('xs-tip').hidden")
+            tag.click()
+            page.wait_for_function("() => document.getElementById('xs-tip').hidden", timeout=3000)
             rules_rows = page.locator('#shensha-rules tbody tr')
             assert [rules_rows.nth(i).locator('td').first.inner_text() for i in range(rules_rows.count())] == ['羊刃', '驿马', '将星', '华盖']
             assert rules_rows.nth(1).locator('.shensha-where').all_inner_texts() == ['月柱甲申', '时柱庚寅']
@@ -367,8 +388,8 @@ def main() -> None:
             assert '日柱丙：壬丙相冲' in natal_line and '日柱午：午午同支·相刑' in natal_line, natal_line
             assert natal_line.endswith('神煞 羊刃、将星、月德贵人'), natal_line
             assert page.locator('#luck-year-2015 .luck-mark').all_inner_texts() == ['合日']
-            assert page.locator('#luck-year-2015').get_attribute('title').startswith('2015 乙未 · 星运 衰')
-            assert '神煞 天乙贵人' in page.locator('#luck-year-2015').get_attribute('title')
+            assert page.locator('#luck-year-2015').get_attribute('data-tip').startswith('2015 乙未 · 星运 衰')
+            assert '神煞 天乙贵人' in page.locator('#luck-year-2015').get_attribute('data-tip')
             assert page.locator('#luck-decade-4 .luck-mark').all_inner_texts() == ['害年', '日空']  # 己卯
             # 五行生克: five phases, the 生 circle and the 克 star; the day master's phase is open first.
             assert page.locator('#wuxing .wx-node').count() == 5 and page.locator('#wuxing .wx-edge').count() == 10
@@ -814,9 +835,9 @@ def main() -> None:
             assert page.locator('#transform-matrix td.is-focus-col').count() == 12
             page.screenshot(path=str(screenshot_dir / '47-transform-matrix.png'), full_page=True)
             # The matrix badges name the palace stem, not the birth year.
-            assert page.locator('#transform-matrix .fh-hua .hua').first.get_attribute('title').startswith('命宫（')
+            assert page.locator('#transform-matrix .fh-hua .hua').first.get_attribute('data-tip').startswith('命宫（')
             page.locator('#transform-view-table').click()
-            assert page.locator('#transform-table thead .hua[title]').count() == 0
+            assert page.locator('#transform-table thead .hua[data-tip]').count() == 0
             # The board opens on the palace picked here, with the flying lines on even if they were turned off before.
             page.evaluate("showFlying = false")
             page.locator('#transform-pick-4').click()
@@ -1840,7 +1861,7 @@ def main() -> None:
             page.locator('#json-filter').fill('natal_month_pillar')
             page.wait_for_function("() => document.querySelector('#json-filter-count').textContent.includes('处匹配')", timeout=10000)
             match = page.locator('#json-section-bazi_dayun .jv-leaf.is-match')
-            assert match.count() == 1 and match.get_attribute('title') == 'bazi_dayun.natal_month_pillar' and '甲申' in match.inner_text()
+            assert match.count() == 1 and match.get_attribute('data-tip') == 'bazi_dayun.natal_month_pillar' and '甲申' in match.inner_text()
             assert page.locator('#json-filter-count').inner_text() == '1 处匹配'
             assert page.locator('#json-section-chart').count() == 0
             page.locator('#json-filter').fill('zzz-no-such-field')
@@ -2429,7 +2450,7 @@ def main() -> None:
             expected = ' '.join(f'{mark[0]}"{english[mark[0]]}"' for mark in marks)
             page.wait_for_function(f"() => {level} === {json.dumps(expected)}", timeout=10000)
             first = page.locator('#ziwei-board .bright').first
-            assert first.get_attribute('title').startswith('Brightness: ' + english[first.get_attribute('data-level')])
+            assert first.get_attribute('data-tip').startswith('Brightness: ' + english[first.get_attribute('data-level')])
             panel = page.locator('.palace-panel').inner_text()
             selected_levels = page.evaluate("() => {const p = findPalace(current.ziwei, selectedPalace); return p.main_stars.map(s => p.star_brightness[s]);}")
             assert all(f'({english[x]})' in panel for x in selected_levels) and not re.search('（[庙旺得利平不陷]）', panel), panel[:300]
@@ -2437,11 +2458,11 @@ def main() -> None:
             page.screenshot(path=str(screenshot_dir / '41-ziwei-brightness-english.png'), full_page=True)
             # A board drawn while English is active keeps its Chinese source text: the tooltips follow the next switch.
             page.locator('.palace-btn').nth(1).click()
-            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').title.startsWith('Brightness: ')", timeout=10000)
+            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').dataset.tip.startsWith('Brightness: ')", timeout=10000)
             page.locator('#ui-language').select_option('ja')
-            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').title.startsWith('明るさ：')", timeout=10000)
+            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').dataset.tip.startsWith('明るさ：')", timeout=10000)
             page.locator('#ui-language').select_option('zh-CN')
-            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').title.startsWith('亮度：')", timeout=10000)
+            page.wait_for_function("() => document.querySelector('#ziwei-board .bright').dataset.tip.startsWith('亮度：')", timeout=10000)
             page.locator('#ui-language').select_option('ja')
             page.wait_for_function(f"() => {level} === {json.dumps(' '.join(m[0] + (chr(34) + '廟' + chr(34) if m[0] == '庙' else chr(34) + '陥' + chr(34) if m[0] == '陷' else m[1:]) for m in marks))}", timeout=10000)
             page.locator('#ui-language').select_option('zh-CN')
@@ -2511,9 +2532,13 @@ def main() -> None:
                         headers:{get:name=>name.toLowerCase()==='content-type'?result.type:null}};
               };
             }''')
-            for script in (theme_js, i18n_extra_js, api_js, i18n_js):
+            for script in (theme_js, i18n_extra_js, api_js, tips_js, i18n_js):
                 docs.add_script_tag(content=script)
             docs.locator('.api-op').first.wait_for(timeout=10000)
+            # The theme button's hint shows for keyboard focus too, in the page's own style.
+            docs.focus('#ui-language'); docs.keyboard.press('Tab')
+            docs.wait_for_function("() => {const t = document.getElementById('xs-tip'); return document.activeElement.id === 'theme-toggle' && t && !t.hidden && t.textContent.startsWith('配色：');}", timeout=3000)
+            docs.keyboard.press('Escape')
             assert docs.locator('.api-group').count() == 8 and docs.locator('#api-groups a').count() == 8
             assert docs.locator('#api-groups a').first.inner_text().startswith('命盘与报告')
             op = docs.locator('#op-post-api-time-audit')

@@ -24,7 +24,7 @@
     const mode = choice || 'system', label = LABELS[mode];
     button.querySelector('.theme-icon').dataset.mode = mode;  // drawn in CSS
     button.querySelector('.theme-label').textContent = label;
-    button.title = '配色：' + label + '（点击切换）';
+    button.setAttribute('data-tip', '配色：' + label + '（点击切换）');
   }
   function cycle() {
     choice = ORDER[(ORDER.indexOf(choice) + 1) % ORDER.length];
