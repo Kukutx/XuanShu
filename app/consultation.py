@@ -41,7 +41,8 @@ SIGNALS = {
 INTENT_LABELS = {'natal': '本命分析', 'career': '事业/年度', 'relationship': '双人关系', 'timing': '多时刻查询',
                  'decision': '方案比较', 'rules': '规则分歧'}
 STATUS_LABELS = {'completed': '已完成', 'partial': '部分完成，还缺输入', 'needs_input': '需要补充输入'}
-FOLLOWUP_CUES = ('那', '那么', '再看', '然后', '继续', '也', '呢', '刚才', '之前', '接着')
+# Traditional forms too, so a follow-up typed in 繁體 (or shown that way by the interface) carries the topic on.
+FOLLOWUP_CUES = ('那', '那么', '那麼', '再看', '然后', '然後', '继续', '繼續', '也', '呢', '刚才', '剛才', '之前', '接着', '接著')
 YEAR_PATTERN = re.compile(r'(?<!\d)(19\d{2}|20\d{2})(?=年|\b)')
 
 

@@ -254,6 +254,10 @@ const UI_EXTRA = {
 " This tool does not automatically correct lunar dates; the number of days in a month may also differ by one.",
 " 本ツールは旧暦日付を自動修正しません。月内の日数も1日ずれる可能性があります。"
 ],
+" 条": [
+" items",
+" 件"
+],
 " 条内部一致性检查": [
 " internal consistency checks",
 " 件の内部整合性チェック"
@@ -277,6 +281,10 @@ const UI_EXTRA = {
 " 次计算步骤": [
 " calculation steps",
 " 回の計算ステップ"
+],
+" 步可复现计算已执行": [
+" reproducible calculation steps ran",
+" 件の再現可能な計算を実行"
 ],
 " 步可复现计算，": [
 " reproducible calculation steps, ",
@@ -1066,6 +1074,10 @@ const UI_EXTRA = {
 "The next question starts a new topic",
 "次の質問は新しい話題として判定します"
 ],
+"下一问按新话题识别，不沿用本次场景。": [
+"The next question is read as a new topic; this scenario is not carried on.",
+"次の質問は新しい話題として判定し、今回の場面は引き継ぎません。"
+],
 "下个月": [
 "Next month",
 "次の月"
@@ -1105,6 +1117,10 @@ const UI_EXTRA = {
 "下载本年节气与月相日历（ICS）": [
 "Download this year's solar terms and moon phases (ICS)",
 "今年の節気と月相カレンダーをダウンロード（ICS）"
+],
+"下面列出与问题相关的": [
+"listed below as relevant to the question:",
+"質問に関係するものを下に表示："
 ],
 "下面的命盘按 12:00 占位。比较十二个时辰，可以看出哪些柱位和宫位在整天里都不变，哪些需要先确定时辰。": [
 "The chart below uses 12:00 as a placeholder. Comparing the twelve double hours shows which pillars and palaces stay the same all day and which need the hour first.",
@@ -1825,6 +1841,10 @@ const UI_EXTRA = {
 "以「那」「然后」「再看」等开头续问时，沿用本次的场景": [
 "A follow-up starting with 那, 然后 or 再看 keeps this scenario: ",
 "「那」「然后」「再看」などで始まる追加質問は、今回のシナリオを引き継ぎます："
+],
+"以「那」「然后」「再看」等开头续问时，沿用本次的场景：": [
+"Start a follow-up with 那, 然后 or 再看 to keep this scenario: ",
+"「那」「然后」「再看」などで始まる続きの質問は、今回の場面を引き継ぎます："
 ],
 "以下规则换算后无法排盘，未列出：": [
 "These rule choices could not be charted and are not listed: ",
@@ -2774,6 +2794,10 @@ const UI_EXTRA = {
 "Birth hour unknown: the time entered is only a placeholder, so the hour pillar, Life and Body palaces, five-element bureau and Life-palace major stars are left out.",
 "出生時刻不明：入力した時刻は仮の値のため、時柱・命宮・身宮・五行局・命宮主星は比較しません。"
 ],
+"出生时辰不详：本次按 12:00 占位计算，时柱、起运岁数和与时辰有关的观察都可能不同。": [
+"Birth hour unknown: this run used 12:00 as a stand-in, so the hour pillar, the luck-cycle start age and any hour-dependent observation may differ.",
+"出生時刻不明：今回は 12:00 を仮の時刻として計算しました。時柱、起運年齢、時刻に関わる観察は異なる可能性があります。"
+],
 "出生时间": [
 "Birth time",
 "出生時刻"
@@ -2973,6 +2997,10 @@ const UI_EXTRA = {
 "剑锋金": [
 "Sword Edge Metal",
 "剣鋒金"
+],
+"剛才": [
+"just now",
+"さっき"
 ],
 "力士": [
 "Li Shi",
@@ -3845,6 +3873,10 @@ const UI_EXTRA = {
 "咨询工作流": [
 "Consultation workflow",
 "相談ワークフロー"
+],
+"咨询工作流已执行：": [
+"Consultation workflow ran: ",
+"相談ワークフローを実行："
 ],
 "咸池": [
 "Xian Chi",
@@ -5270,6 +5302,10 @@ const UI_EXTRA = {
 "Implemented auxiliary/minor stars: ",
 "実装済みの輔星・雑曜："
 ],
+"已打开": [
+"Opened ",
+"開きました："
+],
 "已按所选规则列出名义大运干支序列（非事件预测）。": [
 "Listed the nominal Luck Pillar stem-branch sequence under the selected rules (not an event prediction).",
 "選択した規則に従い、名目上の大運干支の並びを列挙しました（出来事の予測ではありません）。"
@@ -5938,6 +5974,10 @@ const UI_EXTRA = {
 "Print / save as PDF",
 "印刷 / PDF に保存"
 ],
+"打开": [
+"Open ",
+"開く："
+],
 "打开今日历法": [
 "Open today's calendar",
 "今日の暦を開く"
@@ -6261,6 +6301,10 @@ const UI_EXTRA = {
 "接着看": [
 "Next",
 "続けて見る"
+],
+"接著": [
+"next",
+"続いて"
 ],
 "推理过程 · ": [
 "Reasoning · ",
@@ -6902,6 +6946,10 @@ const UI_EXTRA = {
 "Hour unknown: the luck pillar differs between early and late in the birth day",
 "時刻不明：誕生日の朝と夜で大運が異なる"
 ],
+"时辰不详：只检查了 12:00 占位时间": [
+"Hour unknown: only the 12:00 stand-in was checked",
+"時刻不明：12:00 の仮の時刻のみ確認"
+],
 "时辰不详：哪些部分不受时辰影响": [
 "Hour unknown: what the hour does not change",
 "時辰不明：時辰に左右されない部分"
@@ -6913,6 +6961,10 @@ const UI_EXTRA = {
 "时辰不详：宫位按 12:00 占位时辰排出，落宫会随时辰变化。": [
 "Hour unknown: palaces are placed from the 12:00 placeholder, so the landing palaces change with the hour.",
 "時刻不明：宮位は 12:00 の仮の時刻で配置しており、落宮は時刻によって変わります。"
+],
+"时辰不详：按 12:00 占位": [
+"Hour unknown: 12:00 stand-in",
+"時刻不明：12:00 を仮に使用"
 ],
 "时辰不详：按 12:00 占位计算；出生时间前后差 12 小时，起运最多差约 2 个月。": [
 "Birth hour unknown: worked out from a 12:00 placeholder; 12 hours either way moves the start by up to about 2 months.",
@@ -6949,6 +7001,10 @@ const UI_EXTRA = {
 "时辰不详：生在交节之前或之后，月柱不同，大运的干支和起运岁数也都跟着变。下面的大运表按 12:00 占位排出，只是其中一种可能；补上出生时辰后才有起运推算和人生时间轴。": [
 "Birth hour unknown: born before or after the term, the month pillar differs, and so do the pillars and the starting age of the Luck Pillars. The table below is cast on the 12:00 placeholder and is only one of the possibilities; the start calculation and the life timeline appear once the birth hour is filled in.",
 "時辰不明：節入りの前か後かで月柱が異なり、大運の干支と起運年齢も変わります。下の大運表は 12:00 の仮の時刻で排した可能性の一つにすぎません。出生時辰を入力すると起運の計算と人生の時間軸を表示します。"
+],
+"时辰不详：起运岁数随时辰而定": [
+"Hour unknown: the start age depends on the hour",
+"時刻不明：起運年齢は時刻によって変わる"
 ],
 "时辰交界": [
 "Double-hour boundary",
@@ -8154,6 +8210,10 @@ const UI_EXTRA = {
 "No days meet all conditions; relax the conditions or extend the scan period.",
 "すべての条件を満たす日はありません。条件を緩めるかスキャン日数を延ばしてください。"
 ],
+"没有缺少的必需输入": [
+"No required input is missing",
+"必須入力の不足はありません"
+],
 "没有触发本工具已知边界标记；不代表专业命盘获得认证。": [
 "No known boundary flags from this tool were triggered; this does not mean a professional chart has been certified.",
 "本ツールの既知の境界フラグは発生しませんでした。専門的な命盤が認証されたことを意味しません。"
@@ -8504,6 +8564,10 @@ const UI_EXTRA = {
 ],
 "然后": [
 "Then",
+"それから"
+],
+"然後": [
+"then",
 "それから"
 ],
 "照亮": [
@@ -9349,6 +9413,10 @@ const UI_EXTRA = {
 "繁體中文": [
 "繁體中文",
 "繁體中文"
+],
+"繼續": [
+"continue",
+"続ける"
 ],
 "红鸾": [
 "Hong Luan",
@@ -10510,6 +10578,10 @@ const UI_EXTRA = {
 "No memory yet. Content suggested by the AI or background you add manually will appear here and be sent to the model with each question.",
 "まだ記憶はありません。AI が提案した内容や手動で追加した背景がここに表示され、質問のたびにモデルへ送信されます。"
 ],
+"还缺部分输入，见下方": [
+"Some inputs are still missing; see below",
+"一部の入力が不足しています。下記を参照"
+],
 "还需填写参考来源（至少 4 个字）": [
 "Still needs a reference source (at least 4 characters)",
 "参照元の入力が必要です（4 文字以上）"
@@ -10729,6 +10801,10 @@ const UI_EXTRA = {
 "那么": [
 "So",
 "それでは"
+],
+"那麼": [
+"then",
+"では"
 ],
 "郑州": [
 "Zhengzhou",
@@ -10969,6 +11045,10 @@ const UI_EXTRA = {
 "需要人工复核": [
 "Needs human review",
 "人による確認が必要"
+],
+"需要先补齐下面的输入才能计算": [
+"Fill in the inputs below before anything can be calculated",
+"下の入力を補うと計算できます"
 ],
 "需要出生公历时间、出生地时区与所选排盘口径；不在后台猜测或恢复出生资料": [
 "Requires the Gregorian birth time, the birthplace time zone, and the selected charting convention; birth data is not guessed or recovered in the background",
@@ -11321,6 +11401,10 @@ const UI_EXTRA = {
 "：本宫为": [
 ": this palace is the ",
 "：この宮は"
+],
+"；农历年": [
+"; lunar year",
+"；旧暦年"
 ],
 "；同一瞬间北京日期 ": [
 "; Beijing date at the same instant ",

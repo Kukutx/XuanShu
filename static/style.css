@@ -362,7 +362,8 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .cw-need p{margin:6px 0 8px;font-size:13px}
 .cw-given{padding:10px 14px;border:1px solid var(--border);border-radius:10px}
 .cw-given-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.cw-given-list li{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:14px}
+.cw-given-list li{min-width:0;font-size:14px;overflow-wrap:anywhere}
+.cw-given-list li::before{content:'·';color:var(--gold);margin-right:8px}
 .cw-given .field-help{margin:8px 0 0}
 .cw-type{flex:none;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--border);color:var(--muted);white-space:nowrap}
 .cw-type-user-provided,.cw-type-user-assumption{border-color:var(--green);color:var(--green)}
@@ -370,7 +371,7 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .cw-steps{list-style:none;margin:0 0 14px;padding:0;position:relative}
 .cw-step{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;padding-bottom:14px}
 .cw-step:not(:last-child)::before{content:'';position:absolute;left:14px;top:30px;bottom:0;border-left:2px solid var(--border)}
-.cw-step-no{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--panel);font-weight:700;font-variant-numeric:tabular-nums}
+.cw-step-no{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--on-gold);font-weight:700;font-variant-numeric:tabular-nums}
 .cw-step-body{min-width:0;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
 .cw-step-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .cw-step-head b{font-size:15px;color:var(--text)}
@@ -388,6 +389,7 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .cw-ob-src .cw-rule{color:var(--gold2)}
 .cw-ev{cursor:help;text-decoration:underline dotted}
 .cw-ref{color:var(--gold2)}
+.cw-hour-note{margin:6px 0 0;font-size:12px;color:var(--warn)}
 .cw-next{margin:6px 0 10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px}
 .cw-next .subheading{margin-top:0}
 .cw-next p{margin:4px 0;font-size:13px}
@@ -971,6 +973,7 @@ html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:cent
 .ps-facts p{margin:0}
 .ps-card .tiny-button{align-self:flex-start;margin-top:4px}
 @media print{.ps-builder,.ps-builder+.field-help{display:none}.ps-card{break-inside:avoid}}
+@media print{.cw-next,.cw-tools{display:none!important}.cw-ob,.cw-need,.cw-step{break-inside:avoid}.cw-step-no{background:none;color:var(--gold);border:1px solid currentColor}}
 @media print{.rm-single,.rm-field{break-inside:avoid}.rm-fields-hint{display:none}.rule-matrix tbody tr.is-lit th{box-shadow:none}}
 @media(max-width:640px){.ps-builder{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .import-text{width:100%;min-height:150px;background:var(--panel2);color:var(--text);border:1px solid var(--border-strong);border-radius:6px;padding:10px 12px;line-height:1.6;resize:vertical}

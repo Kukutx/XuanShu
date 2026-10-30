@@ -86,6 +86,7 @@ let consultResult = null;
 let consultCursor = null;
 let consultRunKey = null;  // the birth input the consultation shown ran on, to offer its pages only for the chart shown
 let consultAdvancedOpen = false;
+let consultTicket = 0;  // a reply to an older run is dropped when a newer run was started meanwhile
 let consultDraft = {question:'',intent:'auto', useBirth:false, usePartner:false, partnerDate:'', lunarYear:'', candidateDates:'', facts:'', includeReport:false};
 let qimenResult = null;
 let qimenFingerprint = null;
@@ -6231,10 +6232,19 @@ function renderConsultation() {
     }
     if(full.checked&&birthCheck.checked)payload.include_full_report=true;
     if(consultCursor)payload.continuation=consultCursor;
-    launch.disabled=true; feedback.textContent='正在按问题调用计算工具…';
-    try{consultResult=await postJSON('/api/consultation',payload);consultCursor=consultResult.continuation;consultRunKey=payload.birth?JSON.stringify(payload.birth):null;render();}
-    catch(e){feedback.textContent='执行失败：'+e.message;}
-    finally{launch.disabled=false;}
+    // The form sends 12:00 when the hour is unknown; the result says so instead of reading as a known time.
+    const hourUnknown=birthCheck.checked&&$('#hour_unknown').checked, ticket=++consultTicket;
+    launch.disabled=true; feedback.className='inline-msg progress'; feedback.textContent='正在按问题调用计算工具…';
+    try{
+      const reply=await postJSON('/api/consultation',payload);
+      if(ticket!==consultTicket)return;
+      consultResult={...reply,xsHourUnknown:hourUnknown};consultCursor=reply.continuation;consultRunKey=payload.birth?JSON.stringify(payload.birth):null;
+      render();
+      const head=$('#consult-head');if(head)head.focus({preventScroll:true});
+      announce('咨询工作流已执行：'+(CW_STATUS[reply.status]||[reply.status])[0]);
+    }
+    catch(e){if(ticket===consultTicket){const box=$('#consult-feedback');if(box){box.className='inline-msg';box.textContent='执行失败：'+e.message;}}}
+    finally{const button=$('#consult-run');if(button&&ticket===consultTicket)button.disabled=false;}
   });
   if(!consultResult)return;
   renderConsultationResult(consultResult);
@@ -6251,7 +6261,6 @@ const CW_ROUTES = {'intent selected explicitly': '手动选择了场景', 'matri
   'no domain keywords; inherited client-provided topic cursor': '没有场景关键词，沿用上一问的场景',
   'no domain keywords; default to natal structural review': '没有场景关键词，默认看本命结构'};
 const CW_TYPES = {'user-provided': '你提供的', calculated: '计算结果', 'traditional-rule': '传统规则', 'user-assumption': '你的评分'};
-const CW_FACTS = {constraint: '限制条件', goal: '目标', experience: '经历'};
 function cwToolName(tool) {
   const m = /^qimen_hour_chart_(\d+)$/.exec(tool);
   return m ? ['奇门遁甲', ' · ', '候选', ' ' + m[1]] : [(CW_TOOLS[tool] || [tool])[0]];
@@ -6259,18 +6268,24 @@ function cwToolName(tool) {
 // A star and its transformation, each translated whole; English puts a space between them (太阴化禄 → Tai Yin Hua Lu).
 function cwPair(star, type) {const pair = elt('span', 'cw-pair'); append(pair, 'span', null, star); append(pair, 'span', null, type); return pair;}
 // One line of what each tool came back with, read from its own result.
-function cwToolFact(tool, r) {
+// shown: how many of the tool's observations the consultation kept for this question; hourUnknown: the birth time was
+// a 12:00 stand-in.
+function cwToolFact(tool, r, shown, hourUnknown) {
   if (!r) return null;
   if (tool === 'chart_quality_audit') {
     const n = r.flags.filter(f => f.severity === 'review').length;
+    if (hourUnknown) return ['时辰不详：只检查了 12:00 占位时间', ' · ', n, ' 项需核对'];
     return n ? [n, ' 项需核对'] : ['没有需要核对的边界', ' · ', r.flags.length, ' 项提示'];
   }
   if (tool === 'deep_evidence_review') {
     const passed = r.checks.filter(c => c.passed).length;
-    return [r.findings.length, ' 条观察', ' · ', '内部检查', ' ' + passed + '/' + r.checks.length, ' ', '通过'];
+    const count = shown < r.findings.length ? [r.findings.length, ' 条观察', ' · ', '下面列出与问题相关的', ' ' + shown, ' 条'] : [r.findings.length, ' 条观察'];
+    return [...count, ' · ', '内部检查', ' ' + passed + '/' + r.checks.length, ' ', '通过'];
   }
   if (tool === 'annual_transformations') return [r.lunar_year, ' 农历年', ' ' + r.year_pillar, ' · ', ...r.transformations.flatMap((t, i) => [i ? ' ' : '', cwPair(t.star, t.type)])];
   if (tool === 'bazi_dayun') {
+    // The start age moves with the birth time; with the hour unknown it is not stated (the 大运 page shows which parts hold).
+    if (hourUnknown) return ['时辰不详：起运岁数随时辰而定', ' · ', r.periods.length, ' 步大运'];
     const p = r.start_age_traditional_parts;
     return [r.direction === 'forward' ? '顺排' : '逆排', ' · ', '起运约', ' ', p.years, ' 岁', ' ', p.months, ' 个月', ' · ', r.periods.length, ' 步大运'];
   }
@@ -6300,12 +6315,15 @@ function cwObservation(list, o) {
 }
 function renderConsultationResult(c) {
   const v = c.verification || {}, [statusText, statusClass] = CW_STATUS[c.status] || [c.status, ''];
-  const head = append(result, 'section', 'cw-head ' + statusClass); head.id = 'consult-head';
+  const head = append(result, 'section', 'cw-head ' + statusClass); head.id = 'consult-head'; head.tabIndex = -1;
   const line = append(head, 'div', 'cw-status');
   append(line, 'b', 'cw-badge', statusText);
   append(line, 'span', 'cw-intent', CW_INTENTS[c.intent] || c.intent);
   if (c.continuation && c.continuation.turns > 1) texts(append(line, 'span', 'cw-turn'), '对话轮次', ' ' + c.continuation.turns);
-  append(head, 'p', 'cw-summary', c.summary);
+  const summary = append(head, 'p', 'cw-summary');
+  if (!c.tool_trace.length) summary.textContent = '需要先补齐下面的输入才能计算';
+  else texts(summary, c.tool_trace.length, ' 步可复现计算已执行', ' · ', c.missing_inputs.length ? '还缺部分输入，见下方' : '没有缺少的必需输入');
+  if (c.xsHourUnknown) append(head, 'p', 'cw-hour-note', '出生时辰不详：本次按 12:00 占位计算，时柱、起运岁数和与时辰有关的观察都可能不同。');
   const why = append(head, 'p', 'cw-route');
   append(why, 'span', 'muted', '场景依据');
   c.routing_evidence.forEach(text => {
@@ -6320,7 +6338,9 @@ function renderConsultationResult(c) {
     const b = texts(append(badges, 'span', 'cw-chip' + (passed < checks.length ? ' is-warn' : '')), '内部检查', ' ' + passed + '/' + checks.length, ' ', '通过');
     b.title = checks.map(x => (x.passed ? '✓ ' : '✗ ') + x.meaning).join('\n');
   }
-  append(badges, 'span', 'cw-chip' + (v.needs_human_review ? ' is-warn' : ''), v.needs_human_review ? '需要人工复核' : '没有标记需复核');
+  if (c.xsHourUnknown) append(badges, 'span', 'cw-chip is-warn', '时辰不详：按 12:00 占位');
+  const review = v.needs_human_review || c.xsHourUnknown;
+  if (c.status !== 'needs_input') append(badges, 'span', 'cw-chip' + (review ? ' is-warn' : ''), review ? '需要人工复核' : '没有标记需复核');
   append(badges, 'span', 'cw-chip', '未经独立认证');
   append(badges, 'span', 'cw-chip', '服务器不保存本次资料');
   const tools = append(head, 'div', 'cw-tools');
@@ -6336,15 +6356,15 @@ function renderConsultationResult(c) {
     append(result, 'h4', 'subheading', '需要补充');
     const missing = append(result, 'div', 'cw-missing'); missing.id = 'consult-missing';
     const openAdvanced = () => {consultAdvancedOpen = true; const d = $('#consult-advanced'); if (d) d.open = true;};
-    const page = name => () => activateTab(tabs.find(t => t.dataset.tab === name));
+    const page = (name, label) => () => cwOpenPage(name, label);
     const fixes = {
       birth: ['勾选使用出生资料', () => {const box = $('#consult-use-birth'); box.checked = true; consultDraft.useBirth = true; box.focus();}],
       lunar_year: ['填写农历年', () => $('#consult-year').focus()],
       candidate_times: ['填写候选时刻', () => {openAdvanced(); $('#consult-candidates').focus();}],
       partner: ['填写第二人出生时间', () => {openAdvanced(); const box = $('#consult-use-partner'); box.checked = true; consultDraft.usePartner = true; $('#consult-partner-date').focus();}],
-      dayun_direction_override: ['在出生资料里选性别', () => $('#gender').focus()],
-      matrix: ['去方案决策页填写', page('decision')],
-      alternative_birth: ['去规则差异对照页', page('rule-matrix')],
+      dayun_direction_override: ['在出生资料里选性别', () => focusBirthField('gender')],
+      matrix: ['去方案决策页填写', page('decision', '方案决策')],
+      alternative_birth: ['去规则差异对照页', page('rule-matrix', '规则差异对照')],
     };
     const FIELDS = {birth: '出生资料', partner: '第二人出生资料', lunar_year: '农历年', candidate_times: '候选时刻', matrix: '方案与评分', alternative_birth: '第二套出生时基', dayun_direction_override: '大运顺逆'};
     c.missing_inputs.forEach(x => {
@@ -6363,7 +6383,7 @@ function renderConsultationResult(c) {
     append(result, 'h4', 'subheading', '你提供的现实条件');
     const box = append(result, 'section', 'cw-given'); box.id = 'consult-given';
     const list = append(box, 'ul', 'cw-given-list');
-    given.forEach(o => {const li = append(list, 'li'); append(li, 'span', 'cw-type cw-type-user-provided', CW_FACTS[o.category] || o.category); append(li, 'span', null, o.text);});
+    given.forEach(o => append(list, 'li', null, o.text));
     append(box, 'p', 'field-help', given[0].limit);
   }
 
@@ -6380,24 +6400,25 @@ function renderConsultationResult(c) {
       append(top, 'code', null, step.tool);
       const tab = (CW_TOOLS[step.tool] || [])[1];
       if (tab && samePage) {
+        const name = (CW_TOOLS[step.tool] || [])[0];
         const open = append(top, 'button', 'tiny-button', '打开这一页'); open.type = 'button';
-        open.title = (CW_TOOLS[step.tool] || [])[0];
+        open.setAttribute('aria-label', '打开' + name);
         open.addEventListener('click', () => {
           const year = c.tool_results.annual_transformations && c.tool_results.annual_transformations.lunar_year;
           // The year page opens on the year the consultation read.
           if (tab === 'annual' && year && (!annualResult || annualResult.lunar_year !== year)) {annualDraft = year; annualResult = null; autoOpened.delete('annual');}
-          activateTab(tabs.find(t => t.dataset.tab === tab));
+          cwOpenPage(tab, name);
         });
       }
       append(body, 'p', 'cw-step-purpose', step.purpose);
-      const fact = cwToolFact(step.tool, c.tool_results[step.tool]);
+      const obs = c.observations.filter(o => o.tool === step.tool);
+      const fact = cwToolFact(step.tool, c.tool_results[step.tool], obs.length, c.xsHourUnknown);
       if (fact) {const line = append(body, 'p', 'cw-step-fact'); fact.forEach(x => line.append(x instanceof Node ? x : String(x)));}
       if ((step.field_paths || []).length) {
         const fields = append(body, 'p', 'cw-fields');
         append(fields, 'span', null, '读取字段');
         step.field_paths.forEach(path => append(fields, 'code', null, path));
       }
-      const obs = c.observations.filter(o => o.tool === step.tool);
       if (obs.length) {const list = append(body, 'ul', 'cw-obs'); obs.forEach(o => cwObservation(list, o));}
     });
     const traced = new Set(c.tool_trace.map(x => x.tool));
@@ -6407,27 +6428,44 @@ function renderConsultationResult(c) {
 
   // A question opening with 那, 然后, 再看 and the like carries on with this topic; the birth input is sent again each time.
   const cur = c.continuation;
-  if (cur) {
+  if (cur && c.status !== 'needs_input') {
     const next = append(result, 'section', 'cw-next'); next.id = 'consult-next';
     append(next, 'h4', 'subheading', '继续追问');
-    const p = texts(append(next, 'p'), '以「那」「然后」「再看」等开头续问时，沿用本次的场景', '「', CW_INTENTS[cur.intent] || cur.intent, '」');
-    if (cur.lunar_year) texts(p, '和农历年', ' ' + cur.lunar_year);
-    p.append('。');
+    const carrying = !!consultCursor, year = cur.intent === 'career' && cur.lunar_year;
+    const p = append(next, 'p');
+    if (carrying) {
+      // The cue words stay as typed: the server recognises them in either script.
+      p.append('以「那」「然后」「再看」等开头续问时，沿用本次的场景：');
+      append(p, 'b', null, CW_INTENTS[cur.intent] || cur.intent);
+      if (year) texts(p, '；农历年', ' ' + year);
+    } else p.textContent = '下一问按新话题识别，不沿用本次场景。';
     append(next, 'p', 'field-help', '出生资料每次都要重新勾选，服务器不保存；关键词明确时按新问题重新识别场景。');
     const row = append(next, 'div', 'cw-next-row');
-    const ask = text => {const q = $('#consult-question'); q.value = text; consultDraft.question = text; q.focus();};
-    if (cur.intent === 'career' && cur.lunar_year && cur.lunar_year < 2099) {
-      // The question itself stays in Chinese: the follow-up cue 那 is what carries the topic on.
-      const text = `那${cur.lunar_year + 1}年呢？`;
-      const b = append(row, 'button', 'tiny-button', text); b.type = 'button'; b.id = 'consult-next-year'; b.dataset.noI18n = '';
+    if (carrying && year && year < 2099) {
+      // The question itself stays in Chinese: the follow-up cue 那 is what carries the topic on. A filled 农历年 field
+      // would override the year in the question, so it moves on with it.
+      const text = `那${year + 1}年呢？`;
+      const b = append(row, 'button', 'tiny-button'); b.type = 'button'; b.id = 'consult-next-year';
+      const words = append(b, 'span', null, text); words.dataset.noI18n = '';
       b.title = '用同一场景续问下一年';
-      b.addEventListener('click', () => ask(text));
+      b.addEventListener('click', () => {
+        const q = $('#consult-question'), y = $('#consult-year');
+        q.value = text; consultDraft.question = text;
+        if (y && y.value.trim()) {y.value = String(year + 1); consultDraft.lunarYear = y.value;}
+        q.focus();
+      });
     }
-    const fresh = append(row, 'button', 'tiny-button', '换个话题（不沿用本次场景）'); fresh.type = 'button'; fresh.id = 'consult-fresh';
-    fresh.disabled = !consultCursor;
-    fresh.addEventListener('click', () => {consultCursor = null; fresh.disabled = true; fresh.textContent = '下一问按新话题识别'; $('#consult-question').focus();});
+    const fresh = append(row, 'button', 'tiny-button', carrying ? '换个话题（不沿用本次场景）' : '下一问按新话题识别'); fresh.type = 'button'; fresh.id = 'consult-fresh';
+    fresh.disabled = !carrying; fresh.dataset.focusFallback = 'consult-question';
+    fresh.addEventListener('click', () => {consultCursor = null; render(); $('#consult-question').focus(); announce('下一问按新话题识别');});
   }
   c.limitations.forEach(x => note(result, x));
+}
+// A link from the consultation to another page: the page opens, says so, and takes the focus.
+function cwOpenPage(tab, name) {
+  activateTab(tabs.find(t => t.dataset.tab === tab));
+  result.focus({preventScroll: true});
+  announce('已打开' + name);
 }
 
 function renderJson() {
@@ -6828,6 +6866,11 @@ $('#birth-summary-toggle').addEventListener('click',()=>{
   if(!collapsed)$('#birth_datetime').focus();
 });
 for(const type of ['input','change'])form.addEventListener(type,updateBirthSummary);
+// A link to a birth field opens the folded form first, so the focus lands on something visible.
+function focusBirthField(id){
+  setBirthPanelCollapsed(false);
+  const field=$('#'+id);field.scrollIntoView({block:'center'});field.focus();
+}
 const compactScreen=window.matchMedia?window.matchMedia('(max-width: 860px)'):null;
 setBirthPanelCollapsed(!!(compactScreen&&compactScreen.matches));
 updateGeoControls();

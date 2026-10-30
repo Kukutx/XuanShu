@@ -109,6 +109,10 @@ def test_followup_cursor_carries_no_birth_or_transcript_and_cannot_recompute_wit
     assert no_birth['status']=='needs_input' and no_birth['tool_trace']==[]
     assert no_birth['missing_inputs'][0]['field']=='birth'
 
+    # A follow-up in Traditional script (typed, or shown that way by the 繁體 interface) carries the topic on too.
+    for cue in ('然後呢？', '那麼呢？', '接著看看'):
+        assert run({'question':cue,'continuation':cursor,'birth':BIRTH})['intent']=='career', cue
+
 
 def test_ambiguous_or_multiple_years_do_not_invent_year():
     out=run({'question':'今年的事业怎么样','birth':BIRTH})

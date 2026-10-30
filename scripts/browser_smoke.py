@@ -225,15 +225,30 @@ def main() -> None:
             assert page.locator('#consult-step-3 .cw-step-fact').inner_text().startswith('2027 农历年')
             assert page.locator('#consult-step-2 .cw-ob').count() >= 3 and page.locator('#consult-step-2 .cw-ref').count() >= 1
             assert '可核验观察' in page.locator('#result').inner_text()
-            assert '需要稳定的收入' in page.locator('#consult-given').inner_text()
+            assert '需要稳定的收入' in page.locator('#consult-given').inner_text() and page.locator('#consult-given .cw-type').count() == 0
+            # The summary is drawn from the run (not the server's sentence), the result takes the focus, and the deep-evidence
+            # count says how many of its observations are listed.
+            assert page.locator('#consult-head .cw-summary').inner_text() == '4 步可复现计算已执行 · 没有缺少的必需输入'
+            assert page.evaluate("document.activeElement.id") == 'consult-head'
+            shown = page.locator('#consult-step-2 .cw-ob').count()
+            assert f'下面列出与问题相关的 {shown} 条' in page.locator('#consult-step-2 .cw-step-fact').inner_text()
+            assert page.locator('#consult-step-3 .cw-step-head button').get_attribute('aria-label') == '打开年干四化'
             page.screenshot(path=str(screenshot_dir / '26-consultation-desktop.png'), full_page=True)
-            # The follow-up keeps the scenario: the next-year question goes into the box, still in Chinese.
+            # The follow-up keeps the scenario: the next-year question goes into the box, still in Chinese, and a filled
+            # 农历年 field moves on with it (it would otherwise override the year in the question).
             assert page.locator('#consult-next-year').inner_text() == '那2028年呢？'
+            page.locator('#consult-year').fill('2027')
             page.locator('#consult-next-year').click()
-            assert page.locator('#consult-question').input_value() == '那2028年呢？'
+            assert page.locator('#consult-question').input_value() == '那2028年呢？' and page.locator('#consult-year').input_value() == '2028'
             page.locator('#consult-run').click()
             page.get_by_text('2028 农历年', exact=False).first.wait_for(timeout=30000)
             assert page.locator('#consult-head .cw-turn').inner_text() == '对话轮次 3'  # the run that asked for the birth details counts too
+            assert page.locator('#consult-next-year').inner_text() == '那2029年呢？'
+            # 换个话题 rewrites the follow-up box at once and the next-year shortcut goes away.
+            page.locator('#consult-fresh').click()
+            assert page.locator('#consult-next-year').count() == 0 and page.locator('#consult-fresh').is_disabled()
+            assert page.locator('#consult-next p').first.inner_text() == '下一问按新话题识别，不沿用本次场景。'
+            page.locator('#consult-year').fill('')
             page.locator('[data-tab="bazi"]').click()
             page.locator('#run-btn').click()
             page.locator('.pillar-stem').first.wait_for(timeout=30000)
