@@ -1326,6 +1326,8 @@ html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-
 .bt-seg.is-birth{box-shadow:inset 0 0 0 2px var(--gold)}
 .bt-seg-num{font-size:11px;color:var(--text2);font-weight:600}
 .bt-seg.is-narrow .bt-seg-num{display:none}
+/* 子时 split at midnight under the 00:00 day rule: a dashed line marks the change of day. */
+.bt-seg.ts-half+.bt-seg.ts-half{border-left:1px dashed var(--muted)}
 .bt-tick{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--text2)}
 .bt-tick>.bt-tick-num{position:absolute;bottom:100%;left:50%;transform:translate(-50%,-2px)}
 .bt-tick>.bt-tick-num.is-up1{transform:translate(-50%,-22px)}.bt-tick>.bt-tick-num.is-up2{transform:translate(-50%,-42px)}

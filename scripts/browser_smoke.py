@@ -920,12 +920,36 @@ def main() -> None:
                 item = page.locator('#time-scale-' + choice['mode'])
                 hour = int(choice['effective_reading'][11:13])
                 assert item.locator('.bt-type').inner_text() == '子丑寅卯辰巳午未申酉戌亥'[(hour + 1) % 24 // 2] + '时'
-                assert item.locator('.ts-gap').inner_text().startswith('最近交界 ')
+                assert item.locator('.ts-gap').inner_text().startswith(('最近交界 ', '最近日界 '))
             assert page.locator('#time-scale .bt-seg.is-birth').count() == 1
+            # Under the 00:00 day rule 子时 splits at midnight, where the day pillar and the hour stem change too;
+            # readings are cut to the minute like the cards, so 10:59:31 is still 巳时.
+            probe = page.evaluate('''() => {
+              const fake = (clock, mean) => ({original_time_mode: 'clock', choices: [
+                {mode: 'clock', effective_reading: clock}, {mode: 'mean_solar', effective_reading: mean}]});
+              const names = {clock: '钟表时间', mean_solar: '平太阳时'}, out = {};
+              const draw = (audit, lateZi) => {const box = document.createElement('div'); result.append(box); timeScale(box, audit, names, lateZi); return box;};
+              for (const [key, lateZi] of [['midnight', false], ['late', true]]) {
+                const box = draw(fake('2000-08-15T23:55:00+08:00', '2000-08-16T00:00:52+08:00'), lateZi);
+                out[key] = {bands: [...box.querySelectorAll('.bt-seg-num')].map(e => e.textContent),
+                  gaps: [...box.querySelectorAll('.ts-gap')].map(e => e.textContent), warn: (box.querySelector('.ts-warn') || {}).textContent || ''};
+                box.remove();
+              }
+              const box = draw(fake('2000-08-16T12:00:00+08:00', '2000-08-16T10:59:31+08:00'), false);
+              out.cut = [...box.querySelectorAll('li:last-child .ts-time, li:last-child .bt-type')].map(e => e.textContent);
+              box.remove();
+              return out;
+            }''')
+            assert '晚子' in probe['midnight']['bands'] and '早子' in probe['midnight']['bands']
+            assert all(g.startswith('最近日界 00:00') for g in probe['midnight']['gaps']) and '00:00 日界' in probe['midnight']['warn']
+            assert '晚子' not in probe['late']['bands'] and probe['late']['warn'] == ''
+            assert probe['late']['gaps'][0].startswith('最近交界 23:00') and probe['late']['gaps'][1].startswith('最近交界 01:00')
+            assert probe['cut'] == ['10:59', '巳时']
             # The time systems are compared by the cards; the other rules are one click away.
             assert page.locator('#compare-rules').count() == 0
             page.locator('#time-open-rules').click()
             assert page.locator('[data-tab="rule-matrix"]').get_attribute('aria-selected') == 'true'
+            assert page.evaluate("document.activeElement.id") == 'result' and '规则差异对照' in page.locator('#live-status').inner_text()
             page.locator('[data-tab="time"]').click()
             page.locator('#time-cards').wait_for(timeout=30000)
             # The sampler checks its inputs, then draws the structures it found like the boundary map does.
@@ -949,8 +973,18 @@ def main() -> None:
             # The boundary map opens with the same error and finds the exact moments.
             page.locator('#window-boundaries').click()
             assert page.locator('[data-tab="boundaries"]').get_attribute('aria-selected') == 'true'
+            assert page.evaluate("document.activeElement.id") == 'result' and '生时边界地图' in page.locator('#live-status').inner_text()
             page.wait_for_function('() => boundaryResult && boundaryResult.uncertainty_minutes === 60', timeout=30000)
             assert page.locator('#boundary-radius').input_value() == '60'
+            assert page.evaluate('() => boundaryResult.original_birth_local.slice(0, 16) === currentInput.birth_datetime.slice(0, 16)')
+            page.locator('[data-tab="time"]').click()
+            page.locator('#time-cards').wait_for(timeout=30000)
+            # With edits not yet cast the boundary map would read another birth than this sampling, so it opens without running.
+            cast_value = page.locator('#birth_datetime').input_value()
+            page.locator('#birth_datetime').fill('2000-08-16T09:30')
+            page.locator('#window-boundaries').click()
+            assert '尚未排盘' in page.locator('#live-status').inner_text() and page.evaluate('boundaryResult') is None
+            page.locator('#birth_datetime').fill(cast_value)
             page.locator('[data-tab="time"]').click()
             page.locator('#time-cards').wait_for(timeout=30000)
             # A new chart starts without the city picked for the previous one.

@@ -127,7 +127,7 @@ def birth_window(request: BirthWindowRequest) -> dict:
         'variants': list(groups.values()),
         'samples': sample_trace,
         'limitations': [
-            '只比较了采样点：两个采样点之间的切换可能漏掉，这不是完整的边界检查；精确的切换时刻用 birth_boundaries。',
+            '只比较了采样点：两个采样点之间的切换可能漏掉，这不是完整的边界检查；精确的切换时刻用生时边界地图（birth_boundary_map）。',
             '传统命盘标签的变化不代表任何现实预测。',
             '历史时区和地理太阳时校正取决于输入是否准确。',
         ],

@@ -158,13 +158,13 @@ const UI_EXTRA = {
 " min",
 " 分"
 ],
-" 分钟内每 ": [
-" min, sampled every ",
+" 分钟内间隔 ": [
+" min, at intervals of ",
 " 分以内を "
 ],
-" 分钟采样一次，共 ": [
-" min, ",
-" 分ごとに計算、計 "
+" 分钟采样（另含出生时刻与两端），共 ": [
+" min (plus the birth time and both ends), ",
+" 分間隔で計算（出生時刻と両端を含む）、計 "
 ],
 " 分钟）：": [
 " min): ",
@@ -2206,10 +2206,6 @@ const UI_EXTRA = {
 "Buddha Lamp Fire",
 "仏灯火"
 ],
-"作为对照的时制": [
-"Time standard for comparison",
-"比較対象の時制"
-],
 "你提供的": [
 "From you",
 "あなたの入力"
@@ -3782,10 +3778,6 @@ const UI_EXTRA = {
 "Changed",
 "変化"
 ],
-"变化的四柱：": [
-"Changed pillars: ",
-"変化した四柱："
-],
 "叠加农历年（留空不叠加）": [
 "Overlay lunar year (leave blank for none)",
 "重ねる旧暦年（空欄で重ねない）"
@@ -3890,9 +3882,9 @@ const UI_EXTRA = {
 "Only recognized fields are checked; a field that was not recognized is not thereby confirmed.",
 "認識できた項目だけを照合します。認識されなかった項目が一致しているとは限りません。"
 ],
-"只比较了采样点：两个采样点之间的切换可能漏掉，这不是完整的边界检查；精确的切换时刻用 birth_boundaries。": [
-"Only the samples were compared: a change between two samples can be missed, so this is not a full boundary check; use birth_boundaries for exact moments.",
-"比較したのは採取点だけです。二点の間の切り替わりは見落とすことがあり、完全な境界の確認ではありません。正確な時刻は birth_boundaries を使ってください。"
+"只比较了采样点：两个采样点之间的切换可能漏掉，这不是完整的边界检查；精确的切换时刻用生时边界地图（birth_boundary_map）。": [
+"Only the samples were compared: a change between two samples can be missed, so this is not a full boundary check; use the birth-time boundary map (birth_boundary_map) for exact moments.",
+"比較したのは採取点だけです。二点の間の切り替わりは見落とすことがあり、完全な境界の確認ではありません。正確な時刻は出生時刻境界マップ（birth_boundary_map）を使ってください。"
 ],
 "只比较用户提供的字段，不把缺失字段计入通过": [
 "Only the fields you provide are compared; missing fields never count as a match",
@@ -4393,10 +4385,6 @@ const UI_EXTRA = {
 "回答由语言模型根据工具结果组织，计算事实以 trace 中的工具调用为准；模型文字仍可能出错，请核对。": [
 "The answer is organized by a language model from tool results; calculated facts are those from the tool calls in the trace. Model text may still contain errors; please verify.",
 "回答は言語モデルがツールの結果をもとに構成したものです。計算上の事実は trace 内のツール呼び出しを基準とします。モデルの文章には誤りが含まれる可能性があるため、照合してください。"
-],
-"固定出生参数，仅切换时制": [
-"Birth parameters fixed; only the time standard changes",
-"出生パラメータを固定し時制のみ切り替え"
 ],
 "图片卡片": [
 "Image card",
@@ -5786,6 +5774,14 @@ const UI_EXTRA = {
 "Opened ",
 "開きました："
 ],
+"已打开生时边界地图。出生资料有尚未排盘的修改，重新生成命盘后再定位。": [
+"Opened the birth-time boundary map. The birth data has edits that have not been cast yet; generate the chart again, then locate.",
+"出生時刻境界マップを開きました。出生データにまだ命盤へ反映していない変更があります。命盤を生成し直してから特定してください。"
+],
+"已打开生时边界地图，正在定位": [
+"Opened the birth-time boundary map; locating",
+"出生時刻境界マップを開きました。特定しています"
+],
 "已按所选规则列出名义大运干支序列（非事件预测）。": [
 "Listed the nominal Luck Pillar stem-branch sequence under the selected rules (not an event prediction).",
 "選択した規則に従い、名目上の大運干支の並びを列挙しました（出来事の予測ではありません）。"
@@ -6230,6 +6226,10 @@ const UI_EXTRA = {
 "Used for this chart",
 "この命盤で使用"
 ],
+"当前排盘所用的时间离 00:00 日界不到 15 分钟：按 00:00 换日，出生时间稍有误差，日柱和时干就会改变。": [
+"The time used for this chart is less than 15 minutes from the 00:00 day boundary: with the day changing at 00:00, a small error in the birth time changes the day pillar and the hour stem.",
+"命盤に使った時刻は 00:00 の日界まで 15 分未満です。00:00 で日を改める設定では、出生時刻がわずかにずれるだけで日柱と時干が変わります。"
+],
 "当前排盘所用的时间离时辰交界不到 15 分钟：出生时间稍有误差，时柱就会换成相邻的时辰。": [
 "The time used for this chart is less than 15 minutes from a period boundary: a small error in the birth time changes the hour pillar to the neighbouring period.",
 "この命盤で使った時刻は時辰の境目まで 15 分未満です。出生時刻が少しずれるだけで時柱が隣の時辰に変わります。"
@@ -6525,10 +6525,6 @@ const UI_EXTRA = {
 "执行失败：": [
 "Execution failed: ",
 "実行失敗："
-],
-"执行规则差异对照": [
-"Run rule-difference comparison",
-"ルール差異の対照を実行"
 ],
 "执行证据分析": [
 "Run evidence analysis",
@@ -7566,6 +7562,14 @@ const UI_EXTRA = {
 "Hour unknown: the start age depends on the hour",
 "時刻不明：起運年齢は時刻によって変わる"
 ],
+"时辰不详：这里的出生时间 12:00 只是占位，采样结果不代表真实出生时刻前后的变化。": [
+"Hour unknown: the birth time 12:00 here is only a placeholder, so the samples say nothing about changes around the real birth time.",
+"時刻不明：ここでの出生時刻 12:00 は仮の値にすぎず、採取結果は実際の出生時刻前後の変化を表しません。"
+],
+"时辰不详：钟表时间 12:00 只是占位，这里的时辰和交界不代表真实出生时刻。": [
+"Hour unknown: the clock time 12:00 is only a placeholder, so the periods and boundaries here do not describe the real birth time.",
+"時刻不明：時計時刻 12:00 は仮の値にすぎず、ここでの時辰と境目は実際の出生時刻を表しません。"
+],
 "时辰交界": [
 "Double-hour boundary",
 "時辰の境界"
@@ -7805,6 +7809,10 @@ const UI_EXTRA = {
 "最近交界 ": [
 "Nearest boundary ",
 "最寄りの境目 "
+],
+"最近日界 ": [
+"Nearest day boundary ",
+"最寄りの日界 "
 ],
 "最近的交界": [
 "nearest boundary",
@@ -10602,14 +10610,6 @@ const UI_EXTRA = {
 "Seattle",
 "シアトル"
 ],
-"观测到 ": [
-"Observed ",
-"観測 "
-],
-"观测样本范围": [
-"Observed sample range",
-"観測サンプル範囲"
-],
 "规则": [
 "Rules",
 "規則"
@@ -11669,10 +11669,6 @@ const UI_EXTRA = {
 "采样失败：": [
 "Sampling failed: ",
 "サンプリング失敗："
-],
-"采样点 ": [
-"Sample point ",
-"サンプル点 "
 ],
 "采样计算": [
 "Run sampling",

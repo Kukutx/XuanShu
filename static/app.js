@@ -5508,13 +5508,14 @@ function renderBirthWindowSection(){
     } catch (e) {msg.textContent = calT('采样失败：') + e.message;}
     finally {go.disabled = false;}
   });
+  if (currentHourUnknown) append(section, 'p', 'field-help', '时辰不详：这里的出生时间 12:00 只是占位，采样结果不代表真实出生时刻前后的变化。');
   if (!windowResult) return;
   const w = windowResult, R = w.uncertainty_minutes, samples = w.samples;
   const birthSample = samples.find(x => x.offset_minutes === 0) || samples[Math.floor(samples.length / 2)];
   const base = w.variants[birthSample.variant_index - 1], day0 = w.center_local.slice(0, 10);
   const clock = iso => (iso.slice(0, 10) !== day0 ? iso.slice(5, 10).replace('-', '/') + ' ' : '') + iso.slice(11, 16);
   const summary = append(section, 'p', 'bw-summary'); summary.id = 'window-summary'; summary.tabIndex = -1;
-  texts(summary, '前后 ', R, ' 分钟内每 ', w.sample_every_minutes, ' 分钟采样一次，共 ', w.sample_count, ' 个点：');
+  texts(summary, '前后 ', R, ' 分钟内间隔 ', w.sample_every_minutes, ' 分钟采样（另含出生时刻与两端），共 ', w.sample_count, ' 个点：');
   if (w.variant_count === 1) texts(summary, '四柱、命宫、身宫和五行局都不变。');
   else texts(summary, '出现 ', w.variant_count, ' 种结构。');
   // Runs of neighbouring samples with the same structure; between two runs the change happened somewhere in the gap.
@@ -5537,10 +5538,11 @@ function renderBirthWindowSection(){
   // Dots stay inside the track at both ends.
   samples.forEach(x => {append(track, 'span', 'bw-dot').style.left = `calc(2px + (100% - 4px) * ${at(x.offset_minutes) / 100})`;});
   const changes = runs.slice(1).map((run, i) => ({before: runs[i], after: run}));
-  const rows = [];
+  // An 18px badge needs this much of the track before the next one, as on the boundary map.
+  const badgeGap = 2000 / Math.max(track.getBoundingClientRect().width, 200), rows = [];
   changes.forEach((c, i) => {
     const left = (at(c.before.to.offset_minutes) + at(c.after.from.offset_minutes)) / 2, tick = append(track, 'span', 'bt-tick bw-tick'); tick.style.left = left + '%';
-    let row = rows.findIndex(last => left - last >= 3.5); if (row < 0) row = rows.length; rows[row] = left;
+    let row = rows.findIndex(last => left - last >= badgeGap); if (row < 0) row = rows.length; rows[row] = left;
     append(tick, 'span', 'bt-tick-num' + (row ? ' is-up' + Math.min(row, 2) : ''), String(i + 1));
     if (row) line.classList.add('has-up' + Math.min(row, 2));
   });
@@ -5602,24 +5604,35 @@ function renderBirthWindowSection(){
   open.addEventListener('click', () => {
     boundaryDraft = {uncertainty_minutes: R}; boundaryResult = null; delete typedValues['boundary-radius'];
     autoOpened.add('boundaries');  // run once below, whether or not the page has opened on this chart before
+    // The boundary map reads the birth form, so with edits not yet cast it would map another birth than this sampling.
+    const edited = JSON.stringify(readInput()) !== JSON.stringify(currentInput);
     activateTab(tabs.find(t => t.dataset.tab === 'boundaries'));
+    result.focus({preventScroll: true});
+    if (edited) {announce(calT('已打开生时边界地图。出生资料有尚未排盘的修改，重新生成命盘后再定位。')); return;}
+    announce(calT('已打开生时边界地图，正在定位'));
     const run = $('#boundary-run'); if (run) run.click();
   });
   w.limitations.forEach(t => note(section, t));
 }
-// Where each time system's reading falls among the two-hour periods. The hour pillar changes at every odd hour
-// (23:00, 01:00 …), so a reading a few minutes from one changes the hour pillar with a small error in the birth time.
+// Where each time system's reading falls among the two-hour periods. The hour branch changes at every odd hour
+// (23:00, 01:00 …). With the day changing at midnight (the default rule), the day pillar and with it the hour stem
+// also change at 00:00, inside 子时; with the day changing at 23:00 the two coincide. A reading a few minutes from
+// either changes the chart with a small error in the birth time.
 const SHICHEN_NAMES = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
-function timeScale(parent, audit, names) {
+function timeScale(parent, audit, names, lateZi) {
   const clock = audit.choices.find(t => t.mode === 'clock') || audit.choices[0];
   const dayStart = Date.parse(clock.effective_reading.slice(0, 10) + 'T00:00:00Z');
   const minuteOf = t => (Date.parse(t.effective_reading.slice(0, 19) + 'Z') - dayStart) / 60000;
   const periodStart = m => Math.floor((m - 60) / 120) * 120 + 60;
   const periodAt = m => SHICHEN_NAMES[Math.floor(((Math.floor(m / 60) + 1) % 24 + 24) % 24 / 2)];
-  const hhmm = m => {const d = ((Math.round(m) % 1440) + 1440) % 1440; return String(Math.floor(d / 60)).padStart(2, '0') + ':' + String(d % 60).padStart(2, '0');};
+  const isZi = s => ((s % 1440) + 1440) % 1440 === 1380;
+  // Readings are cut to the minute, as on the cards above, so 10:59:31 reads 10:59 and not 11:00.
+  const hhmm = m => {const d = ((Math.floor(m) % 1440) + 1440) % 1440; return String(Math.floor(d / 60)).padStart(2, '0') + ':' + String(d % 60).padStart(2, '0');};
   const marks = audit.choices.map((t, i) => {
-    const m = minuteOf(t), start = periodStart(m), toStart = m - start, toEnd = start + 120 - m;
-    return {t, i, m, start, near: Math.min(toStart, toEnd), boundary: toStart < toEnd ? start : start + 120};
+    const m = minuteOf(t), start = periodStart(m);
+    const edges = [start, start + 120].concat(!lateZi && isZi(start) ? [start + 60] : []);
+    const boundary = edges.reduce((a, b) => Math.abs(b - m) < Math.abs(a - m) ? b : a);
+    return {t, i, m, start, near: Math.abs(boundary - m), boundary, midnight: boundary !== start && boundary !== start + 120};
   });
   // One period of margin on either side, so the nearest boundary is always on the scale.
   const lo = Math.min(...marks.map(x => x.start)) - 120, hi = Math.max(...marks.map(x => x.start)) + 240, at = m => (m - lo) / (hi - lo) * 100;
@@ -5628,17 +5641,22 @@ function timeScale(parent, audit, names) {
   const line = append(box, 'div', 'bt-line ts-line');
   const track = append(line, 'div', 'bt-track'); track.setAttribute('aria-hidden', 'true');
   const bands = append(track, 'div', 'bt-bands');
-  const usedStart = (marks.find(x => x.t.mode === audit.original_time_mode) || marks[0]).start;
+  const usedMark = marks.find(x => x.t.mode === audit.original_time_mode) || marks[0];
   for (let s = lo, k = 0; s < hi; s += 120, k++) {
-    const band = append(bands, 'span', 'bt-seg' + (k % 2 ? ' is-alt' : '') + (s === usedStart ? ' is-birth' : ''));
-    band.style.left = at(s) + '%'; band.style.width = (120 / (hi - lo) * 100) + '%';
-    append(band, 'span', 'bt-seg-num', periodAt(s));
+    // Under the midnight rule 子时 is two bands: late 子 before 00:00 and early 子 after it belong to different days.
+    const parts = !lateZi && isZi(s) ? [[s, 60, '晚子'], [s + 60, 60, '早子']] : [[s, 120, periodAt(s)]];
+    parts.forEach(([from, length, name]) => {
+      const birth = usedMark.m >= from && usedMark.m < from + length;
+      const band = append(bands, 'span', 'bt-seg' + (k % 2 ? ' is-alt' : '') + (birth ? ' is-birth' : '') + (length < 120 ? ' ts-half' : '') + (length / (hi - lo) < 0.07 ? ' is-narrow' : ''));
+      band.style.left = at(from) + '%'; band.style.width = (length / (hi - lo) * 100) + '%';
+      append(band, 'span', 'bt-seg-num', name);
+    });
   }
   // A badge that would overlap the one before it moves up a row, as on the boundary map.
-  const rows = [];
+  const badgeGap = 2000 / Math.max(track.getBoundingClientRect().width, 200), rows = [];
   [...marks].sort((a, b) => a.m - b.m).forEach(x => {
     const left = at(x.m), tick = append(track, 'span', 'bt-tick ts-tick'); tick.style.left = left + '%';
-    let row = rows.findIndex(last => left - last >= 3.5); if (row < 0) row = rows.length; rows[row] = left;
+    let row = rows.findIndex(last => left - last >= badgeGap); if (row < 0) row = rows.length; rows[row] = left;
     append(tick, 'span', 'bt-tick-num' + (row ? ' is-up' + Math.min(row, 2) : ''), String(x.i + 1));
     if (row) line.classList.add('has-up' + Math.min(row, 2));
   });
@@ -5654,11 +5672,14 @@ function timeScale(parent, audit, names) {
     append(body, 'span', 'ts-time', hhmm(x.m));
     append(body, 'span', 'bt-type', periodAt(x.start));
     const gap = append(body, 'span', 'ts-gap');
-    durationText(texts(gap, '最近交界 ', hhmm(x.boundary), ' · '), x.near);
+    durationText(texts(gap, x.midnight ? '最近日界 ' : '最近交界 ', hhmm(x.boundary), ' · '), x.near);
     if (x.t.mode === audit.original_time_mode) append(body, 'span', 'bt-badge', '当前排盘所用');
   });
   const used = marks.find(x => x.t.mode === audit.original_time_mode);
-  if (used && used.near < 15) append(box, 'p', 'ts-warn', '当前排盘所用的时间离时辰交界不到 15 分钟：出生时间稍有误差，时柱就会换成相邻的时辰。');
+  if (used && used.near < 15) append(box, 'p', 'ts-warn', used.midnight
+    ? '当前排盘所用的时间离 00:00 日界不到 15 分钟：按 00:00 换日，出生时间稍有误差，日柱和时干就会改变。'
+    : '当前排盘所用的时间离时辰交界不到 15 分钟：出生时间稍有误差，时柱就会换成相邻的时辰。');
+  if (currentHourUnknown) append(box, 'p', 'field-help', '时辰不详：钟表时间 12:00 只是占位，这里的时辰和交界不代表真实出生时刻。');
 }
 // The three clocks side by side. Without a longitude in the birth data, one can be picked here for this page only:
 // it never changes the birth data, so the chart and its exports stay as generated.
@@ -5760,12 +5781,12 @@ function renderTimeAudit() {
     append(result, 'p', 'field-help', !differ.length ? '三种时制下四柱、命宫、身宫与农历日期都相同。'
       : timeResult.original_time_mode === 'clock' ? '标色的项目和钟表时间不同；换用太阳时会改变这些结果。'
       : '标色的项目和钟表时间不同；当前命盘已按加框的太阳时排盘，改按钟表时间会得到不同结果。');
-    timeScale(result, timeResult, names);
+    timeScale(result, timeResult, names, !!used.late_zi_day_rollover);
     // The three cards already compare the time systems; the other rules are compared on their own page.
     const others = append(result, 'p', 'field-help tb-others');
     texts(others, '23:00 换日、闰月分界等其他规则的影响见「规则差异对照」。', ' ');
     const open = append(others, 'button', 'tiny-button', '打开规则差异对照'); open.type = 'button'; open.id = 'time-open-rules';
-    open.addEventListener('click', () => activateTab(tabs.find(t => t.dataset.tab === 'rule-matrix')));
+    open.addEventListener('click', () => cwOpenPage('rule-matrix', '规则差异对照'));
     timeResult.warnings.forEach(t=>note(result,t));
   } else append(result,'p','info-inline','不会自动保存出生资料或经度；审计结果包含具体时差与命盘差异。');
   renderBirthWindowSection();
