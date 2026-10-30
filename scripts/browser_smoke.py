@@ -2445,6 +2445,16 @@ def main() -> None:
             page.wait_for_function(f"() => {level} === {json.dumps(' '.join(m[0] + (chr(34) + '廟' + chr(34) if m[0] == '庙' else chr(34) + '陥' + chr(34) if m[0] == '陷' else m[1:]) for m in marks))}", timeout=10000)
             page.locator('#ui-language').select_option('zh-CN')
             page.wait_for_function(f"() => {level} === {json.dumps(' '.join(marks))}", timeout=10000)
+            # Windows contrast themes repaint every colour: a checked box and the selected tool keep a system-colour mark.
+            page.emulate_media(forced_colors='active')
+            marks = page.evaluate('''() => {
+              const box = document.getElementById('late_zi_day_rollover'), was = box.checked; box.checked = true;
+              const style = getComputedStyle(box), tab = getComputedStyle(document.querySelector('.tab.active'));
+              const out = [style.backgroundColor, getComputedStyle(document.body).backgroundColor, tab.outlineStyle,
+                           getComputedStyle(document.getElementById('run-btn')).borderTopStyle];
+              box.checked = was; return out;}''')
+            assert marks[0] != marks[1] and marks[2] == 'solid' and marks[3] == 'solid', marks
+            page.emulate_media(forced_colors='none')
             # Every IANA zone is listed (common ones first, then by region with the UTC offset); a saved zone the list
             # lacks is added back instead of leaving the select blank.
             assert page.locator('#timezone optgroup').count() >= 5

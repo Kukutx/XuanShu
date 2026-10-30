@@ -14,6 +14,7 @@ from ipaddress import ip_address
 from urllib.parse import urlsplit
 from pathlib import Path
 from .api_docs import enrich_openapi
+from .provenance import runtime_provenance
 from .asset_paths import resource_root
 from datetime import date
 
@@ -21,6 +22,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from starlette.middleware.gzip import GZipMiddleware
 
 from . import __version__
@@ -167,6 +169,11 @@ async def security_headers(request: Request, call_next):
     response.headers['Referrer-Policy'] = 'no-referrer'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    # No camera, microphone, location or payment features are used; pages never share a browsing context or
+    # resources with other sites.
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), browsing-topics=()'
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
     if request.url.path.startswith('/api/') or request.url.path == '/mcp':
         response.headers['Cache-Control'] = 'no-store'
     elif request.url.path in ('/', '/docs') or request.url.path.startswith('/static/'):
@@ -210,7 +217,7 @@ def api_docs():
 
 @app.get('/health')
 def health():
-    return {'status': 'ok', 'version': __version__, 'engine': 'swisseph', 'deployment': 'local-first'}
+    return {'status': 'ok', 'version': __version__, 'engine': 'swisseph', 'deployment': 'local-first', **runtime_provenance()}
 
 
 @app.post('/api/qimen')
@@ -613,6 +620,7 @@ def capabilities():
         'counts': {'mcp_tools': len(TOOL_DEFS), 'mcp_resources': len(RESOURCES),
                    'mcp_prompts': len(PROMPTS), 'agent_skills': len(list((ROOT/'skills').glob('*/SKILL.md')))},
         'privacy': 'No server-side birth-record persistence; browser localStorage opt-in.',
+        'provenance': runtime_provenance(),
         'professional_ziwei_provider_available': professional_provider_available(),
         'mcp_versions': sorted(SUPPORTED_PROTOCOLS, reverse=True),
         'limitations': ['Zi Wei is a partial school-specific calculation, not a full professional chart',
@@ -735,7 +743,8 @@ async def mcp(request: Request):
             return _mcp_http_error(payload, -32602, 'protocolVersion must be a string')
         if body_version not in SUPPORTED_PROTOCOLS:
             return JSONResponse(unsupported_version(payload.get('id') if type(payload.get('id')) in (str, int) else None, body_version), status_code=400)
-    response = process_rpc(payload)
+    # Tool calls are CPU-bound (boundary scans can take seconds); run them off the event loop like the REST routes.
+    response = await run_in_threadpool(process_rpc, payload)
     if response is None:
         return Response(status_code=202)
     if modern and response.get('error', {}).get('code') == -32601:

@@ -201,7 +201,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000
 - Web：`http://127.0.0.1:8000/`
 - API 文档：`http://127.0.0.1:8000/docs`（项目自带页面：字段表、示例与在线试运行；机器可读的 `/openapi.json`）
 - MCP HTTP：`http://127.0.0.1:8000/mcp`
-- 健康：`http://127.0.0.1:8000/health`
+- 健康：`http://127.0.0.1:8000/health`（同时写明星历算法与所用时区规则库的来源和版本）
 - 能力清单：`http://127.0.0.1:8000/api/capabilities`
 
 **Docker 首次启动：先运行 `python scripts/init_docker_local.py` 生成仅保存在 `.env` 的随机访问令牌，再运行 `docker compose up --build`。** 宿主端口仅映射 `127.0.0.1:8000`；由于容器网桥连接来源不是回环 IP，Compose 默认采用**强令牌鉴权**而不是破坏本地模式安全策略。打开 Web 后在「API 访问令牌」输入 `.env` 中的 `MCP_BEARER_TOKEN`（页面仅暂存在内存，不会写入档案）。`python scripts/docker_smoke.py` 可在启动后验证接入。Linux/macOS/Windows 不使用 Docker 时，仍可用 `./start.sh` 或 `start.ps1` 在真实本机回环模式免令牌启动。
