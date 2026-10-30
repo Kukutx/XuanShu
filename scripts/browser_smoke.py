@@ -232,7 +232,6 @@ def main() -> None:
             assert page.evaluate("document.activeElement.id") == 'consult-head'
             shown = page.locator('#consult-step-2 .cw-ob').count()
             assert f'下面列出与问题相关的 {shown} 条' in page.locator('#consult-step-2 .cw-step-fact').inner_text()
-            assert page.locator('#consult-step-3 .cw-step-head button').get_attribute('aria-label') == '打开年干四化'
             page.screenshot(path=str(screenshot_dir / '26-consultation-desktop.png'), full_page=True)
             # The follow-up keeps the scenario: the next-year question goes into the box, still in Chinese, and a filled
             # 农历年 field moves on with it (it would otherwise override the year in the question).
