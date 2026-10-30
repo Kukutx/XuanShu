@@ -2117,12 +2117,46 @@ def main() -> None:
             assert page.evaluate('''() => dayunDays.days.every((d, i, all) => i === 0 || Date.parse(d.date) - Date.parse(all[i - 1].date) === 864e5)
               && dayunDays.days[0].date === dayunMonths.months[0].start_local.slice(0, 10)''')
             page.locator('#dayun-days').screenshot(path=str(screenshot_dir / '50-dayun-days.png'))
+            # A day opens its thirteen double-hours, Zi at both ends, the stems by the five-rat rule from the day stem;
+            # the arrow keys move along the cards with a single Tab stop; opening the day again closes its hours.
+            first_day = page.locator('#dayun-day-grid .dy-day').first
+            first_day.click()
+            page.locator('#dayun-hour-table tbody tr').nth(12).wait_for(timeout=30000)
+            assert first_day.get_attribute('aria-expanded') == 'true' and page.evaluate('document.activeElement.id') == first_day.get_attribute('id')
+            assert page.locator('#dayun-hour-table tbody tr').count() == 13
+            assert page.evaluate('''() => {
+              const h = dayunHours.hours, stem = '甲乙丙丁戊己庚辛壬癸'.indexOf(dayunHours.day_pillar[0]);
+              return h[0].pillar === '甲丙戊庚壬'[stem % 5] + '子' && h.map(x => x.branch).join('') === '子丑寅卯辰巳午未申酉戌亥子'
+                && h[0].start === '00:00' && h[12].start === '23:00' && h[12].end === '24:00' && dayunHours.date === dayunDays.days[0].date;
+            }''')
+            assert page.locator('#dayun-day-grid .dy-day[tabindex="0"]').count() == 1
+            page.keyboard.press('ArrowRight')
+            assert page.evaluate('document.activeElement.id') == 'dayun-day-' + page.evaluate('dayunDays.days[1].date')
+            page.keyboard.press('End')
+            assert page.evaluate('document.activeElement.id') == 'dayun-day-' + page.evaluate('dayunDays.days[dayunDays.days.length - 1].date')
+            page.keyboard.press('Home')
+            assert page.evaluate('document.activeElement.id') == first_day.get_attribute('id')
+            assert page.locator('#dayun-day-grid .dy-day[tabindex="0"]').count() == 1
+            page.locator('#dayun-hours').screenshot(path=str(screenshot_dir / '51-dayun-hours.png'))
+            first_day.click()
+            page.wait_for_function("() => !document.getElementById('dayun-hours')", timeout=10000)
+            assert first_day.get_attribute('aria-expanded') == 'false'
             first_month.click()
             page.wait_for_function("() => !document.getElementById('dayun-days')", timeout=10000)
             assert first_month.get_attribute('aria-expanded') == 'false'
             first_year.click()
             page.wait_for_function("() => !document.getElementById('dayun-months')", timeout=10000)
             assert first_year.get_attribute('aria-expanded') == 'false' and page.evaluate('document.activeElement.id') == first_year.get_attribute('id')
+            # 展开今天 opens the chain down to today's hours in one go and moves the focus to today's card.
+            page.locator('#dayun-today').click()
+            page.locator('#dayun-hour-table tbody tr').nth(12).wait_for(timeout=30000)
+            assert page.evaluate('''() => dayunHours.date === flowNow().date && dayunDays.days.some(d => d.date === flowNow().date)
+              && document.activeElement.id === 'dayun-day-' + flowNow().date
+              && document.getElementById('dayun-year-' + dayunMonths.year).getAttribute('aria-expanded') === 'true'
+              && document.getElementById('dayun-month-' + dayunDays.month).getAttribute('aria-expanded') === 'true'
+              && document.querySelectorAll('#dayun-hour-table tr[aria-current="time"]').length === 1''')
+            page.locator('#dayun-year-' + str(page.evaluate('dayunMonths.year'))).click()
+            page.wait_for_function("() => !document.getElementById('dayun-months')", timeout=10000)
             page.locator('#dayun-band-5').click()
             page.wait_for_function("() => document.querySelector('#dayun-band-5').getAttribute('aria-pressed') === 'true' && document.activeElement.id === 'dayun-band-5'", timeout=30000)
             assert page.locator('#dayun-detail .dy-detail-gz').inner_text() == page.locator('#dayun-band-5 .dy-band-gz').inner_text()

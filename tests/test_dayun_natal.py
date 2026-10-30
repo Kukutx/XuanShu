@@ -57,12 +57,13 @@ def test_dayun_periods_and_years():
 
 
 def test_rest_and_mcp_agree():
-    args = {'birth': BIRTH, 'periods': 2, 'include_years': True, 'month_year': 2026}
+    args = {'birth': BIRTH, 'periods': 2, 'include_years': True, 'month_year': 2026, 'hour_date': '2026-10-30'}
     rest = TestClient(app).post('/api/dayun', json=args).json()
     reply = process_rpc({'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call', 'params': {'name': 'bazi_dayun', 'arguments': args}})
     mcp = reply['result']['structuredContent']
     assert rest['periods'] == mcp['periods'] and len(rest['periods'][1]['years']) == 10
     assert rest['flow_months'] == mcp['flow_months'] and len(mcp['flow_months']['months']) == 12
+    assert rest['flow_hours'] == mcp['flow_hours'] and len(mcp['flow_hours']['hours']) == 13
 
 
 def test_month_pillars_of_a_year():
@@ -107,8 +108,16 @@ def test_luck_page_years_open_their_months():
     assert 'if (dayunMonthsLoad === load && dayunKey === key)' in script and "dayunMonthsError.key === dayunKey && inDecade(dayunMonthsError.year)" in script
     assert 'if (dayunDaysLoad !== load || dayunKey !== key) return;' in script and 'if (same(dayunDaysLoad)) return;' in script
     # Opening another year drops the days' error and request; a failure names its month; nothing is expanded during a load.
-    assert 'dayunMonthsError = dayunDaysError = dayunDaysLoad = null;' in script and "m.months[failed.month - 1].jie, ' ', '流日计算失败：'" in script
+    assert 'dayunMonthsError = dayunDaysError = dayunDaysLoad = dayunHoursError = dayunHoursLoad = null;' in script and "m.months[failed.month - 1].jie, ' ', '流日计算失败：'" in script
     assert 'const expanded = !loading && !!days && days.month === month.month;' in script and "range.dataset.noI18n = '';" in script
+    # A day opens its hours the same way; one card holds the Tab stop; 展开今天 opens the chain down to today.
+    assert "hour_date: date" in script and "panel.id = 'dayun-hours'" in script and 'if (same(dayunHoursLoad)) return;' in script
+    assert "open.tabIndex = day.date === stop ? 0 : -1;" in script and "jump.id = 'dayun-today'" in script
+    assert "ask({month_year: load.year, day_month: month.month, hour_date: today})" in script
+    # Today and the hour now are read on the birth zone's clock; the year and month by today's date there.
+    assert "JSON.parse(dayunKey).birth.timezone" in script and "today >= data.flow_months.months[0].start_local.slice(0, 10)" in script
+    assert 'if (decade) dayunPick = decade.sequence;' in script and 'event.altKey || event.ctrlKey || event.metaKey' in script
+    assert 'const expanded = !loading && !!hours && hours.date === day.date;' in script and "failed.date.slice(5).replace('-', '/'), ' ', '流时计算失败：'" in script
     assert '.dy-year-toggle[aria-expanded="true"]' in open('static/style.css', encoding='utf-8').read()
     # Each month in turn opens its days as cards.
     assert 'day_month: month' in script and "box.id = 'dayun-days'" in script and "list.id = 'dayun-day-grid'" in script
@@ -136,3 +145,31 @@ def test_day_pillars_of_a_month():
     client = TestClient(app)
     assert client.post('/api/dayun', json={'birth': BIRTH, 'day_month': 3}).status_code == 422
     assert client.post('/api/dayun', json={'birth': BIRTH, 'month_year': 2026, 'day_month': 13}).status_code == 422
+
+
+def test_hour_pillars_of_a_day():
+    reply = dayun_sequence(DayunRequest(birth=BirthInput(**BIRTH), periods=1, hour_date='2026-10-30'))
+    hours = reply['flow_hours']
+    assert (hours['date'], hours['day_pillar'], hours['day_boundary']) == ('2026-10-30', '丁丑', '00:00')
+    rows = hours['hours']
+    # Zi at both ends of the civil day, a branch every two hours between them.
+    assert [(h['start'], h['end']) for h in rows[:2] + rows[-2:]] == [('00:00', '01:00'), ('01:00', '03:00'), ('21:00', '23:00'), ('23:00', '24:00')]
+    assert ''.join(h['branch'] for h in rows) == '子丑寅卯辰巳午未申酉戌亥子'
+    # 丁壬庚子居: a 丁 day's hours start from 庚子; each matches a chart cast inside that hour.
+    assert rows[0]['pillar'] == '庚子' and rows[6]['pillar'] == '丙午' and rows[12]['pillar'] == '庚子'
+    for h in rows:
+        moment = '2026-10-30T' + ('23:30' if h['start'] == '23:00' else h['start'][:2] + ':30')
+        assert calculate_bazi(BirthInput(birth_datetime=moment, timezone='Asia/Shanghai'))['pillars']['hour']['text'] == h['pillar']
+    assert 'hidden_stems' not in rows[0] and {s['name'] for h in rows for s in h['shensha']} <= {r['name'] for r in reply['shensha_rules']}
+    # With the 23:00 day change the last Zi already belongs to the next day: 戊寅, whose hours start from 壬子.
+    late = dayun_sequence(DayunRequest(birth=BirthInput(**BIRTH, late_zi_day_rollover=True), periods=1, hour_date='2026-10-30'))['flow_hours']
+    assert late['day_boundary'] == '23:00' and (late['hours'][0]['pillar'], late['hours'][-1]['pillar'], late['hours'][-1]['day_pillar']) == ('庚子', '壬子', '戊寅')
+    # A double-hour the clock jumps over is not listed: Havana went from 00:00 to 01:00 on 2026-03-08; Samoa skipped a day.
+    havana = dayun_sequence(DayunRequest(birth=BirthInput(**{**BIRTH, 'timezone': 'America/Havana'}), periods=1, hour_date='2026-03-08'))['flow_hours']['hours']
+    assert len(havana) == 12 and havana[0]['start'] == '01:00'
+    assert dayun_sequence(DayunRequest(birth=BirthInput(**{**BIRTH, 'timezone': 'Pacific/Apia'}), periods=1, hour_date='2011-12-30'))['flow_hours']['hours'] == []
+    new_york = dayun_sequence(DayunRequest(birth=BirthInput(**{**BIRTH, 'timezone': 'America/New_York'}), periods=1, hour_date='2026-03-08'))['flow_hours']['hours']
+    assert len(new_york) == 13 and new_york[1]['branch'] == '丑'  # 01:00-02:00 still happened
+    client = TestClient(app)
+    for bad in ('1900-12-31', '2100-01-01', '2026-02-30'):
+        assert client.post('/api/dayun', json={'birth': BIRTH, 'hour_date': bad}).status_code == 422
