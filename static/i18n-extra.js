@@ -130,6 +130,18 @@ const UI_EXTRA = {
 " people",
 " 人"
 ],
+" 件人生事件": [
+" life event(s)",
+" 件の人生の出来事"
+],
+" 份档案": [
+" profile(s)",
+" 件のプロフィール"
+],
+" 份档案。": [
+" profile(s). ",
+" 件のプロフィールがあります。"
+],
 " 位": [
 " places",
 " 件"
@@ -294,13 +306,13 @@ const UI_EXTRA = {
 " internal consistency checks",
 " 件の内部整合性チェック"
 ],
-" 条档案替换当前浏览器档案，确定吗？": [
-" profile(s) will replace the profiles in this browser. Continue?",
-" 件のプロフィールでこのブラウザのプロフィールを置き換えます。よろしいですか？"
-],
 " 条观察": [
 " observations",
 " 件の観察"
+],
+" 条记忆": [
+" memory note(s)",
+" 件の記憶"
 ],
 " 查农历则为 ": [
 " when looked up in the lunar calendar, it is ",
@@ -3526,6 +3538,10 @@ const UI_EXTRA = {
 "Encrypted backup content is invalid",
 "暗号化バックアップの内容が無効"
 ],
+"加密备份已恢复：": [
+"Encrypted backup restored: ",
+"暗号化バックアップを復元しました："
+],
 "加密备份已恢复；原档案已被替换。": [
 "Encrypted backup restored; existing profiles were replaced.",
 "暗号化バックアップを復元しました。元のプロフィールは置き換えられました。"
@@ -3814,10 +3830,6 @@ const UI_EXTRA = {
 "Wei (Danger)",
 "危"
 ],
-"即将使用备份中的 ": [
-"The backup’s ",
-"バックアップの "
-],
 "历史时区和地理太阳时校正取决于输入是否准确。": [
 "Historical time zones and solar-time correction depend on accurate input.",
 "歴史的なタイムゾーンと太陽時の補正は入力の正確さに左右されます。"
@@ -3861,6 +3873,10 @@ const UI_EXTRA = {
 "原局有不定的柱，不比较": [
 "Natal chart has an uncertain pillar; not compared",
 "原局に未確定の柱があるため比べない"
+],
+"原有内容已被替换。": [
+"the previous contents were replaced.",
+"元の内容は置き換えられました。"
 ],
 "原生对照要用同一份出生资料：请先用这份资料点「生成命盘」，再计算专业盘。": [
 "The comparison needs the same birth details: generate the chart with these details first, then compute the professional chart.",
@@ -4045,6 +4061,10 @@ const UI_EXTRA = {
 "叠加农历年（留空不叠加）": [
 "Overlay lunar year (leave blank for none)",
 "重ねる旧暦年（空欄で重ねない）"
+],
+"口令不会保存，也不会上传服务器。": [
+"the passphrase is neither saved nor uploaded to the server.",
+"パスフレーズは保存もサーバーへのアップロードもされません。"
 ],
 "另有": [
 "Another",
@@ -4978,13 +4998,29 @@ const UI_EXTRA = {
 "Backup contains malformed profiles",
 "バックアップに形式の誤ったプロフィールがあります"
 ],
-"备份文件超过 256 KB": [
-"Backup file exceeds 256 KB",
-"バックアップファイルが 256 KB を超えています"
+"备份中存在格式错误的记忆、人生事件或对话": [
+"The backup contains malformed memory, life events or conversations",
+"バックアップに形式が正しくない記憶・人生の出来事・会話があります"
+],
+"备份包含全部档案，以及每份档案的记忆、人生事件和已保存的对话；恢复时整体替换。": [
+"A backup holds every profile with its memory, life events and saved conversations; restoring replaces them all.",
+"バックアップにはすべてのプロフィールと、それぞれの記憶・人生の出来事・保存済みの会話が含まれます。復元するとまとめて置き換わります。"
+],
+"备份文件超过 4 MB": [
+"Backup file exceeds 4 MB",
+"バックアップファイルが 4 MB を超えています"
 ],
 "备份格式或 PBKDF2 参数不受支持": [
 "Unsupported backup format or PBKDF2 parameters",
 "バックアップ形式または PBKDF2 パラメータに未対応"
+],
+"备份超过 4 MB 上限，多半是已保存的对话太长；请先清空部分对话再导出": [
+"The backup exceeds the 4 MB limit, most likely because of long saved conversations; clear some of them and export again",
+"バックアップが上限の 4 MB を超えています。保存済みの会話が長いことが主な原因です。一部の会話を消去してから再度エクスポートしてください"
+],
+"备份里有 ": [
+"The backup holds ",
+"バックアップには "
 ],
 "备注只用于这一页和带进 AI 对话的草稿，不发给服务器；档案成员的备注点「保存到档案」后才存进本机浏览器，随档案一起删除和加密备份。": [
 "Notes are used only on this page and in the AI chat draft, never sent to the server. A profile member's note is stored in this browser only after you click “Save to profile”, and is deleted and backed up together with the profile.",
@@ -5946,9 +5982,21 @@ const UI_EXTRA = {
 "Chat input",
 "対話入力"
 ],
+"导入失败：": [
+"Import failed: ",
+"インポートに失敗しました："
+],
 "导入失败：口令错误、文件损坏或 ": [
 "Import failed: wrong passphrase, corrupted file, or ",
 "インポート失敗：パスフレーズの誤り、ファイルの破損、または "
+],
+"导入失败：口令错误或文件已损坏。": [
+"Import failed: wrong passphrase or damaged file.",
+"インポートに失敗しました：パスフレーズが違うか、ファイルが破損しています。"
+],
+"导入失败：这不是玄枢的加密备份文件。": [
+"Import failed: this is not a XuanShu encrypted backup file.",
+"インポートに失敗しました：玄枢の暗号化バックアップファイルではありません。"
 ],
 "导出咨询报告 Markdown ↓": [
 "Export consultation report Markdown ↓",
@@ -6261,6 +6309,10 @@ const UI_EXTRA = {
 "已清空此浏览器的所有本地档案及其对话、记忆和人生事件。": [
 "All local profiles in this browser and their chats, memory and life events were cleared.",
 "このブラウザのすべてのローカルプロフィールとその対話・記憶・人生の出来事を消去しました。"
+],
+"已生成 AES-256-GCM 加密备份：": [
+"AES-256-GCM encrypted backup created: ",
+"AES-256-GCM 暗号化バックアップを作成しました："
 ],
 "已生成 AES-256-GCM 加密备份；口令不会保存，也不会上传服务器。": [
 "AES-256-GCM encrypted backup created; the passphrase is neither saved nor uploaded to the server.",
@@ -9382,6 +9434,10 @@ const UI_EXTRA = {
 "Waning crescent",
 "有明月（欠けていく三日月）"
 ],
+"段已保存的对话": [
+"saved conversation(s)",
+"件の保存済み会話"
+],
 "每一行把当前出生资料换成一种常见的不同规则（或两种规则的组合）重新排盘，标出与当前设置不同的格子。": [
 "Each row recalculates the current birth details under one common alternative rule (or a pair of them) and highlights the cells that differ from the current settings.",
 "各行は現在の出生情報を一般的な別ルール（または 2 つの組み合わせ）で再計算し、現在の設定と異なるセルを示します。"
@@ -9858,6 +9914,10 @@ const UI_EXTRA = {
 "The browser blocked copying; use \"Download JSON\"",
 "ブラウザがコピーを許可しません。「JSON をダウンロード」を使ってください"
 ],
+"浏览器存储空间不足，未作任何更改": [
+"Not enough browser storage; nothing was changed",
+"ブラウザの保存容量が足りないため、何も変更していません"
+],
 "海中金": [
 "Sea Metal (Hai Zhong Jin)",
 "海中金"
@@ -10254,6 +10314,10 @@ const UI_EXTRA = {
 "Ask about the next year in the same scenario",
 "同じシナリオで翌年について質問"
 ],
+"用它们替换当前浏览器里的全部档案吗？": [
+"Replace all profiles in this browser with them?",
+"このブラウザ内のすべてのプロフィールを置き換えますか？"
+],
 "用当前出生资料生成命盘": [
 "Generate the chart from the current birth details",
 "現在の出生情報で命盤を作成"
@@ -10277,6 +10341,10 @@ const UI_EXTRA = {
 "用这个时间排盘": [
 "Cast a chart for this time",
 "この時間で命盤を出す"
+],
+"用这些档案及其记忆、人生事件和对话替换当前浏览器里的全部内容吗？": [
+"Replace everything in this browser with these profiles and their memory, life events and conversations?",
+"これらのプロフィールとその記憶・人生の出来事・会話で、このブラウザ内の内容をすべて置き換えますか？"
 ],
 "田宅": [
 "Property",

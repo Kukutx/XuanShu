@@ -84,6 +84,11 @@ function profileMemory(id) {
 function saveProfileMemory(id, value) {
   const all = chatStore(chatMemoryKey); all[id] = value; return chatSave(chatMemoryKey, all);
 }
+// A change starts from the stored copy at the moment of the click, so a backup restored (or another tab's change)
+// since the panel was drawn is not overwritten with what the panel showed.
+function changeProfileMemory(id, change) {
+  const stored = profileMemory(id); change(stored); return saveProfileMemory(id, stored);
+}
 function loadChatHistory(id) {
   const list = chatStore(chatHistoryKey)[id];
   return Array.isArray(list) ? list.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').slice(-60) : [];
@@ -127,6 +132,14 @@ function purgeChatStores() {
     }
   }
   syncChatOwner();
+}
+// After a backup is restored the open conversation and memory panel show what was replaced: start again from the
+// stored copy (a saved conversation can be loaded from the panel).
+function restartChat() {
+  if (chatController) chatController.abort();
+  chatOwner = null; chatMessages = []; lifePathResult = null;
+  syncChatOwner();
+  if (active === 'chat') render();
 }
 async function fetchChatStatus() {
   const token = $('#api_token').value;
@@ -503,17 +516,20 @@ function renderMemoryPanel(parent) {
   const keep = append(keepLabel, 'input'); keep.type = 'checkbox'; keep.id = 'chat-keep-history'; keep.checked = stored.keep_history;
   keepLabel.append(' 在本机保存这个档案的对话（明文）');
   keep.addEventListener('change', () => {
-    stored.keep_history = keep.checked; saveProfileMemory(profile.id, stored);
+    changeProfileMemory(profile.id, now => {now.keep_history = keep.checked;});
     if (keep.checked) persistChatHistory();
     else {const all = chatStore(chatHistoryKey); delete all[profile.id]; chatSave(chatHistoryKey, all);}
   });
   append(panel, 'h4', 'subheading', '档案记忆');
   if (!stored.memory.length) append(panel, 'p', 'field-help', '还没有记忆。AI 提议的内容或你手动添加的背景会显示在这里，并随每次提问发送给模型。');
-  stored.memory.forEach((item, index) => {
+  stored.memory.forEach(item => {
     const row = append(panel, 'div', 'chat-memory-row');
     append(row, 'span', 'user-text', item);
     const del = append(row, 'button', 'tiny-button danger-btn', '删除'); del.type = 'button';
-    del.addEventListener('click', () => {stored.memory.splice(index, 1); saveProfileMemory(profile.id, stored); render();});
+    del.addEventListener('click', () => {
+      changeProfileMemory(profile.id, now => {const at = now.memory.indexOf(item); if (at >= 0) now.memory.splice(at, 1);});
+      render();
+    });
   });
   const addRow = append(panel, 'div', 'inline-control');
   const memInput = append(addRow, 'input'); memInput.id = 'chat-memory-input'; memInput.maxLength = 300; memInput.placeholder = '例如：正在考虑转行做设计';
@@ -521,8 +537,9 @@ function renderMemoryPanel(parent) {
   const addBtn = append(addRow, 'button', 'tiny-button', '添加记忆'); addBtn.type = 'button'; addBtn.id = 'chat-memory-add';
   addBtn.addEventListener('click', () => {
     const value = memInput.value.trim().replace(/\s+/g, ' ');
-    if (!value || stored.memory.length >= 30) return;
-    stored.memory.push(value); saveProfileMemory(profile.id, stored); render();
+    if (!value) return;
+    changeProfileMemory(profile.id, now => {if (now.memory.length < 30) now.memory.push(value);});
+    render();
   });
   append(panel, 'h4', 'subheading', '人生事件（命途回溯锚点）');
   append(panel, 'p', 'field-help', '记录已经发生的重要事件，AI 会把事件日期和大运、流年干支、年度四化并列对照。只陈述结构对应，不声称因果。');
@@ -531,7 +548,11 @@ function renderMemoryPanel(parent) {
     append(row, 'span', 'user-text', event.date + ' · ' + event.title + (event.note ? '：' + event.note : ''));
     const del = append(row, 'button', 'tiny-button danger-btn', '删除'); del.type = 'button';
     del.addEventListener('click', () => {
-      stored.life_events = stored.life_events.filter(x => x !== event); saveProfileMemory(profile.id, stored); render();
+      changeProfileMemory(profile.id, now => {
+        const at = now.life_events.findIndex(x => x.date === event.date && x.title === event.title && (x.note || '') === (event.note || ''));
+        if (at >= 0) now.life_events.splice(at, 1);
+      });
+      lifePathResult = null; render();
     });
   });
   const eventRow = append(panel, 'div', 'inline-control');
@@ -542,9 +563,9 @@ function renderMemoryPanel(parent) {
   const evBtn = append(eventRow, 'button', 'tiny-button', '添加事件'); evBtn.type = 'button'; evBtn.id = 'chat-event-add';
   evBtn.addEventListener('click', () => {
     const title = evTitle.value.trim();
-    if (!evDate.value || !title || stored.life_events.length >= 30) return;
-    stored.life_events.push({date: evDate.value, title, note: evNote.value.trim()});
-    lifePathResult = null; saveProfileMemory(profile.id, stored); render();
+    if (!evDate.value || !title) return;
+    changeProfileMemory(profile.id, now => {if (now.life_events.length < 30) now.life_events.push({date: evDate.value, title, note: evNote.value.trim()});});
+    lifePathResult = null; render();
   });
   const reviewRow = append(panel, 'div', 'profile-actions');
   const review = append(reviewRow, 'button', 'tiny-button', '对照人生事件（不需要模型）'); review.type = 'button'; review.id = 'life-path-run';
@@ -554,7 +575,8 @@ function renderMemoryPanel(parent) {
     const birth = readInput(); if (birth.longitude === null) delete birth.longitude;
     review.disabled = true; reviewMsg.textContent = '';
     try {
-      lifePathResult = await postJSON('/api/life-path', {birth, events: stored.life_events.map(e => ({date: e.date, title: e.title, note: e.note || ''}))});
+      const events = profileMemory(profile.id).life_events;
+      lifePathResult = await postJSON('/api/life-path', {birth, events: events.map(e => ({date: e.date, title: e.title, note: e.note || ''}))});
       render();
     } catch (err) {reviewMsg.textContent = '对照失败：' + err.message; review.disabled = false;}
   });
