@@ -2234,6 +2234,12 @@ input::-webkit-calendar-picker-indicator:hover{background:var(--gold)}
 .xs-dp.is-sheet:not(:popover-open){transform:translateY(12px)}
 @media (prefers-reduced-motion:reduce){.xs-dp{transition:none}}
 
+/* A field the form found wrong (in place of the browser's validation bubble): a red edge and the reason below it. */
+:is(input,select,textarea)[aria-invalid=true]{border-color:var(--red)!important}
+:is(input,select,textarea)[aria-invalid=true]:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--red) 28%,transparent)!important}
+.field-problem{display:flex;align-items:flex-start;gap:7px;margin:7px 0 2px;color:var(--red);font-size:12.5px;line-height:1.55}
+.field-problem::before{content:'!' / '';flex:none;display:grid;place-items:center;width:16px;height:16px;margin-top:1px;border-radius:50%;background:var(--red);color:var(--panel);font-size:11px;font-weight:700;line-height:1}
+
 /* Text fields: vertical resize only, readable placeholders, themed autofill, a disabled look and one focus ring. */
 textarea{resize:vertical}
 ::placeholder{color:var(--faint);opacity:1}
@@ -2434,6 +2440,10 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
    get system-colour marks instead. */
 @media (forced-colors:active){
   .xs-tip,.xs-dp{border-color:CanvasText}
+  /* A field to fix has a dashed frame; Highlight stays the mark of the focused field alone. */
+  :is(input,select,textarea)[aria-invalid=true]{border:2px dashed CanvasText!important}
+  :is(input,select,textarea)[aria-invalid=true]:focus{border-style:solid!important;border-color:Highlight!important}
+  .field-problem::before{forced-color-adjust:none;background:CanvasText;color:Canvas}
   /* The chosen day is filled, today has a dashed frame, and the focus ring stays the only outline. */
   .xs-dp-day{border-color:Canvas}
   .xs-dp-grid td[aria-selected=true] .xs-dp-day{forced-color-adjust:none;background:Highlight;border-color:Highlight}
