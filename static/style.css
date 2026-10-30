@@ -2347,11 +2347,21 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
 }
 @media print{.api-page .header-right,.api-tools,.api-try,.skip-link{display:none!important}.api-op,.api-schema{break-inside:avoid;box-shadow:none}}
 
+/* Hover, focus and tap hints drawn by tips.js in place of the browser's title tooltips. */
+.xs-tip{position:fixed;inset:auto;margin:0;z-index:300;max-width:min(320px,calc(100vw - 16px));padding:7px 11px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--panel3);color:var(--text);box-shadow:var(--shadow-sm);font-family:inherit;font-size:12.5px;line-height:1.55;text-align:left;white-space:pre-line;overflow:visible;overflow-wrap:anywhere;animation:xs-tip-in .14s ease-out}
+.xs-tip[hidden]{display:none}
+.xs-tip[data-side=below]{animation-name:xs-tip-in-below}
+@keyframes xs-tip-in{from{opacity:0;transform:translateY(3px)}}
+@keyframes xs-tip-in-below{from{opacity:0;transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.xs-tip{animation:none}}
+@media print{.xs-tip{display:none!important}}
+
 /* ---- Windows contrast themes (forced colours) ----
    The browser repaints every colour from the system palette. State shown only by colour (the selected tool, a
    pressed chip, a checked box or switch, the date icon) and buttons drawn without a border would disappear, so they
    get system-colour marks instead. */
 @media (forced-colors:active){
+  .xs-tip{border-color:CanvasText}
   .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
   .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,
   .cal-day.is-selected,.ds-day.is-selected,.ds-day.is-pick,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,

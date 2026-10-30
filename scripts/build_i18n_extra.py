@@ -62,7 +62,7 @@ def source_strings() -> set[str]:
     for page in sorted(ROOT.glob('static/*.html')):  # the workbench and the API reference
         html = page.read_text(encoding='utf-8')
         found |= {m.strip() for m in re.findall(r'>([^<>{}\n]*[㐀-鿿][^<>{}\n]*)<', html)}
-        found |= set(re.findall(r'(?:placeholder|title|aria-label)="([^"]*[㐀-鿿][^"]*)"', html))
+        found |= set(re.findall(r'(?:placeholder|title|aria-label|data-tip)="([^"]*[㐀-鿿][^"]*)"', html))
     return found
 
 

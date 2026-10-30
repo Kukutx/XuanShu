@@ -17,6 +17,7 @@
   <script src="/static/app.js" defer></script>
   <script src="/static/vault.js" defer></script>
   <script src="/static/cities.js" defer></script>
+  <script src="/static/tips.js" defer></script>
   <script src="/static/i18n.js" defer></script>
 </head>
 <body>
@@ -93,7 +94,7 @@
             </div>
             <div>
               <label for="gender">性别（定顺逆）</label>
-              <select id="gender" name="gender" title="传统顺逆方向参数（紫微大限 / 八字大运）"><option value="unspecified">不指定</option><option value="male">男</option><option value="female" selected>女</option></select>
+              <select id="gender" name="gender" data-tip="传统顺逆方向参数（紫微大限 / 八字大运）"><option value="unspecified">不指定</option><option value="male">男</option><option value="female" selected>女</option></select>
             </div>
           </div>
           <label for="longitude">出生地经度（东正西负）</label>

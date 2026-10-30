@@ -194,7 +194,7 @@ function loadUiTable(lang) {
   });
   return uiTableLoads[file];
 }
-const UI_ATTRS = ['placeholder', 'title', 'aria-label', 'label'];  // label: <optgroup> names
+const UI_ATTRS = ['placeholder', 'title', 'aria-label', 'label', 'data-tip'];  // label: <optgroup> names; data-tip: tips.js hints
 const uiOriginal = new WeakMap();  // text node -> source text
 
 function toTraditional(text) {

@@ -176,6 +176,11 @@ function append(parent, tag, cls, text) {
   parent.append(node);
   return node;
 }
+// A hover, focus and tap hint drawn by tips.js in place of the browser's own title tooltip.
+function tip(node, text) {
+  node.setAttribute('data-tip', String(text));
+  return node;
+}
 function clear() {result.replaceChildren();}
 function title(parent, heading, detail = '') {
   const box = append(parent, 'div', 'result-intro');
@@ -760,7 +765,7 @@ function renderProfessionalResult(r) {
       const stem = pfStem(pfGet(p, 'heavenly_stem', 'heavenlyStem'));
       if (stem) append(gz, 'span', stemClass(stem), stem);
       append(gz, 'span', branchClass(b), b);
-      if (diffBranches.has(b)) {const mark = append(top, 'span', 'pf-diff-mark'); append(mark, 'span', null, '≠').setAttribute('aria-hidden', 'true'); append(mark, 'span', 'visually-hidden', '这一宫有与原生盘不同的项目'); mark.title = calT('这一宫有与原生盘不同的项目');}
+      if (diffBranches.has(b)) {const mark = append(top, 'span', 'pf-diff-mark'); append(mark, 'span', null, '≠').setAttribute('aria-hidden', 'true'); append(mark, 'span', 'visually-hidden', '这一宫有与原生盘不同的项目'); tip(mark, calT('这一宫有与原生盘不同的项目'));}
       const stars = append(cell, 'div', 'pf-stars');
       const star = (s, cls) => {
         const el = append(stars, 'span', cls); const n = append(el, 'span', null, s.name); if (!pfCjk(s.name)) n.dataset.noI18n = '';
@@ -1303,9 +1308,9 @@ function wuxingDiagram(parent, b, counts) {
   const nodes = PHASES.split('').map((e, i) => {
     const [x, y] = pos(i), r = radius(e), named = group(e);
     // A phase with none of the counted stems and branches gets a dashed rim, never a faded one.
-    const node = make('g', {class: 'wx-node wx-el-' + ELEMENT_CLASS[e] + (e === master ? ' is-master' : '') + (counts.surface[e] ? '' : ' is-empty'), role: 'radio', id: 'wuxing-' + ELEMENT_CLASS[e]});
+    // The name read out is the phase as a word (translated like any label; no browser tooltip); the panel below says the rest.
+    const node = make('g', {class: 'wx-node wx-el-' + ELEMENT_CLASS[e] + (e === master ? ' is-master' : '') + (counts.surface[e] ? '' : ' is-empty'), role: 'radio', id: 'wuxing-' + ELEMENT_CLASS[e], 'aria-label': e});
     node.dataset.element = e;
-    make('title', {}, node).textContent = e;  // the name read out, translated as a word; the panel below says the rest
     make('circle', {cx: x, cy: y, r: r + (e === master ? 10 : 6), class: 'wx-focus-ring'}, node);
     if (e === master) make('circle', {cx: x, cy: y, r: r + 5, class: 'wx-master-ring'}, node);
     make('circle', {cx: x, cy: y, r, class: 'wx-disc'}, node);
@@ -1388,7 +1393,7 @@ function elementMatrix(parent, people, id) {
   // The phases stay characters in every language, as in the pillars, so that the five columns fit on a phone.
   // The header's name (title and aria-label) is the translated word, for hover and for screen readers.
   PHASES.split('').forEach(e => {
-    const th = append(head, 'th'); th.scope = 'col'; th.title = e; th.setAttribute('aria-label', e);
+    const th = append(head, 'th'); th.scope = 'col'; tip(th, e); th.setAttribute('aria-label', e);
     append(th, 'b', elementClass(e), e).dataset.noI18n = '';
   });
   const body = append(table, 'tbody');
@@ -1477,7 +1482,7 @@ function renderLuckStrip(parent, b) {
     if (d.natal_interactions) append(btn, 'small', 'luck-stage', d.natal_interactions.growth_stage);
     append(btn, 'small', null, d.from + '–' + (d.to - 1));
     const age = append(btn, 'small', 'luck-age'); age.append('起运'); age.append(' ' + Math.round(d.approx_start_age_years));
-    if (d.natal_interactions) {natalMarks(btn, d.natal_interactions); btn.title = natalText(d.natal_interactions);}
+    if (d.natal_interactions) {natalMarks(btn, d.natal_interactions); tip(btn, natalText(d.natal_interactions));}
     btn.addEventListener('click', () => {luckDecade = i; render();});
   });
   const d = decades[luckDecade];
@@ -1490,13 +1495,13 @@ function renderLuckStrip(parent, b) {
     const btn = append(years, 'button', 'luck-cell luck-year' + (y === thisYear ? ' now' : ''));
     btn.type = 'button'; btn.id = 'luck-year-' + y;
     const supported = y >= 1901 && y <= 2099;
-    btn.title = supported ? '在紫微盘打开 ' + y + ' 年流年层' : '超出 1901–2099 的计算范围';
+    tip(btn, supported ? '在紫微盘打开 ' + y + ' 年流年层' : '超出 1901–2099 的计算范围');
     append(btn, 'small', null, String(y));
     const chars = append(btn, 'span', 'luck-pair');
     append(chars, 'b', stemClass(pillar[0]), pillar[0]); append(chars, 'b', branchClass(pillar[1]), pillar[1]);
     append(btn, 'small', 'luck-god', tenGodOf(b.day_master, pillar[0]));
     const age = append(btn, 'small', 'luck-age'); age.append('虚龄'); age.append(' ' + (y - birthYear + 1));
-    if (info) {append(btn, 'small', 'luck-stage', info.growth_stage); natalMarks(btn, info); btn.title = y + ' ' + pillar + ' · ' + natalText(info) + ' · ' + btn.title;}
+    if (info) {append(btn, 'small', 'luck-stage', info.growth_stage); natalMarks(btn, info); tip(btn, y + ' ' + pillar + ' · ' + natalText(info) + ' · ' + btn.getAttribute('data-tip'));}
     if (!supported) {btn.disabled = true; continue;}
     btn.addEventListener('click', () => {
       ziweiLayer = {mode: 'year', decade: null, year: y, date: null};
@@ -1559,7 +1564,7 @@ function renderBazi(b) {
     // A branch inside the day pillar's or the year pillar's 旬空 is marked on the branch itself.
     if ((p.void_of || []).length) {
       const mark = append(branch, 'span', 'void-mark', p.void_of.map(k => k === 'day' ? '日空' : '年空').join('·'));
-      mark.title = p.void_of.map(k => k === 'day' ? '落在日柱旬空' : '落在年柱旬空').join('；');
+      tip(mark, p.void_of.map(k => k === 'day' ? '落在日柱旬空' : '落在年柱旬空').join('；'));
     }
     append(box, 'div', 'pillar-sub', p.stem_element + ' / ' + p.branch_element);
     const hidden = append(box, 'div', 'pillar-hidden');
@@ -1582,7 +1587,7 @@ function renderBazi(b) {
     if (key === 'hour' && currentHourUnknown) append(sha, 'span', 'muted', '时辰不详');
     else if (shenshaUnsettled(b)) append(sha, 'span', 'muted', '随时辰而定');
     else if (!(p.shensha || []).length) append(sha, 'span', 'muted', '—');
-    else p.shensha.forEach(x => {const tag = append(sha, 'span', 'shensha-tag', x.name); tag.title = shenshaBasis(x);});
+    else p.shensha.forEach(x => {const tag = append(sha, 'span', 'shensha-tag', x.name); tip(tag, shenshaBasis(x));});
   }
   pillarLinks(result, links.branches, true);
   renderLuckStrip(result, b);
@@ -1704,7 +1709,7 @@ function renderShenshaRules(parent, b) {
     const where = append(tr, 'td');
     // One pillar per line, so no list separator needs translating.
     found.filter(x => x.name === r.name).forEach(x => {
-      const item = append(where, 'span', 'shensha-where', nameMap[x.pillar] + b.pillars[x.pillar].text); item.title = shenshaBasis(x);
+      const item = append(where, 'span', 'shensha-where', nameMap[x.pillar] + b.pillars[x.pillar].text); tip(item, shenshaBasis(x));
     });
     append(tr, 'td', null, r.rule);
     append(tr, 'td', 'muted', r.source);
@@ -1783,7 +1788,7 @@ function currentPalaceIndex(palace) {return current && current.ziwei ? current.z
 function huaBadge(parent, type, layer) {
   const prefix = layer ? LAYER_NAMES[layer].slice(-1) : '';
   const badge = append(parent, 'span', 'hua hua-' + (HUA_CLASS[type] || 'lu') + (layer ? ' layer' : ''), prefix + type.replace('化', ''));
-  badge.title = (layer ? LAYER_NAMES[layer] : '生年') + type;
+  tip(badge, (layer ? LAYER_NAMES[layer] : '生年') + type);
   return badge;
 }
 // Star brightness 庙旺得利平不陷 after the star name. The level is drawn by CSS from data-level, so each
@@ -1793,7 +1798,7 @@ const BRIGHT_CLASS = Object.fromEntries([...BRIGHT_LEVELS].map((level, i) => [le
 function brightMark(parent, level) {
   if (!BRIGHT_CLASS[level]) return null;
   const mark = append(parent, 'span', 'bright bright-' + BRIGHT_CLASS[level]);
-  mark.dataset.level = level; mark.title = '亮度：' + level;
+  mark.dataset.level = level; tip(mark, '亮度：' + level);
   return mark;
 }
 function withBrightness(palace, star) {
@@ -2075,7 +2080,7 @@ function renderLayerTable(z, live) {
     const tr = append(body, 'tr', chosen ? 'selected' : null);
     const th = append(tr, 'th'); th.scope = 'row';
     const pick = append(th, 'button', 'layer-table-pick', p.stem + p.branch); pick.type = 'button'; pick.id = 'layer-table-pick-' + index;
-    pick.setAttribute('aria-pressed', String(chosen)); pick.title = p.name;
+    pick.setAttribute('aria-pressed', String(chosen)); tip(pick, p.name);
     pick.addEventListener('click', () => {selectedPalace = p.name; render();});
     columns.forEach(c => {
       const td = append(tr, 'td', [c.anchor === index ? 'layer-ming' : '', c.key === live.mode ? 'active' : ''].join(' ').trim() || null);
@@ -2083,7 +2088,7 @@ function renderLayerTable(z, live) {
       cellHua(c, index).forEach(t => {
         const item = append(td, 'span', 'layer-table-hua'); item.append(t.star);
         const badge = append(item, 'span', 'hua hua-' + (HUA_CLASS[t.type] || 'lu') + (c.key === 'natal' ? '' : ' layer'), t.type.replace('化', ''));
-        badge.title = (c.key === 'natal' ? '生年' : c.label) + t.type;
+        tip(badge, (c.key === 'natal' ? '生年' : c.label) + t.type);
       });
     });
   });
@@ -2205,7 +2210,7 @@ function renderZiwei(z) {
     const layerHua = star => {
       if (!live) return;
       live.hua.filter(t => t.star === star).forEach(t => huaBadge(holders[star], t.type, live.mode));
-      if (stacked.has(star)) {holders[star].classList.add('hua-stack'); holders[star].title = '四化叠加：' + stacked.get(star).join('、');}
+      if (stacked.has(star)) {holders[star].classList.add('hua-stack'); tip(holders[star], '四化叠加：' + stacked.get(star).join('、'));}
     };
     const stars = append(node, 'div', 'star-primary');
     if (!p.main_stars.length) append(stars, 'span', 'star', '—');
@@ -2248,11 +2253,11 @@ function renderZiwei(z) {
     if (live && live.marks) live.marks.filter(m => m.index === index).forEach(m => append(marks, 'span', 'palace-mark layer-mark', m.text));
     if (showFlying) selected.palace_flying_transformations.filter(t => t.target_palace === p.name).forEach(t => {
       const mark = elt('span', 'palace-mark fly-mark fly-' + (HUA_CLASS[t.type] || 'lu'), FLY_MARKS[t.type][t.self_transform ? 1 : 0]);
-      mark.title = `${selected.name}：${t.star}${t.type}→${p.name}${t.self_transform ? '（自化）' : ''}`;
+      tip(mark, `${selected.name}：${t.star}${t.type}→${p.name}${t.self_transform ? '（自化）' : ''}`);
       marks.append(mark);
     });
     if (p.decade) append(foot, 'span', 'decade', `${p.decade.start_age}–${p.decade.end_age}岁`);
-    if (p.small_limit_nominal_ages) node.title = '小限虚岁：' + p.small_limit_nominal_ages.slice(0, 6).join('、') + '…';
+    if (p.small_limit_nominal_ages) tip(node, '小限虚岁：' + p.small_limit_nominal_ages.slice(0, 6).join('、') + '…');
     node.addEventListener('click', () => {selectedPalace = p.name; render();});
     node.addEventListener('keydown', event => {
       const next = ziweiNeighbour(index, event.key);
@@ -2281,7 +2286,7 @@ function renderZiwei(z) {
   tri.style.marginLeft = 'auto';
   const fly = append(legend, 'button', 'filter-chip fly-toggle', '飞化连线'); fly.type = 'button'; fly.id = 'ziwei-fly-toggle';
   fly.setAttribute('aria-pressed', String(showFlying));
-  fly.title = '彩色曲线：所选宫位的宫干四化飞入哪一宫';
+  tip(fly, '彩色曲线：所选宫位的宫干四化飞入哪一宫');
   if (layerFlying(z, selected, live)) append(legend, 'span', 'legend-lines', '点线：' + LAYER_NAMES[live.mode] + '四化飞入的宫位');
   fly.addEventListener('click', () => {showFlying = !showFlying; if (!showFlying) flyPinned = null; render();});
   if (live) {
@@ -2354,7 +2359,7 @@ function renderTransform(z) {
   const body = append(table, 'tbody');
   if (transformView === 'table') {
     // The badge's own title says 生年; these are palace-stem transformations, and the header already names the type.
-    HUA_TYPES.forEach(type => {const th = append(head, 'th', 'fh-type fh-' + HUA_CLASS[type]); th.scope = 'col'; huaBadge(th, type).removeAttribute('title'); th.append(' ' + type);});
+    HUA_TYPES.forEach(type => {const th = append(head, 'th', 'fh-type fh-' + HUA_CLASS[type]); th.scope = 'col'; huaBadge(th, type).removeAttribute('data-tip'); th.append(' ' + type);});
     order.forEach((p, i) => {
       const tr = append(body, 'tr', p.name === selected ? 'is-focus' : null);
       rowHead(tr, p, i);
@@ -2380,7 +2385,7 @@ function renderTransform(z) {
         const td = append(tr, 'td', (p === q ? 'is-diag' : '') + (q.name === selected ? ' is-focus-col' : ''));
         const here = p.palace_flying_transformations.filter(t => t.target_palace === q.name);
         here.forEach(t => {
-          const line = append(td, 'span', 'fh-hua'); huaBadge(line, t.type).title = `${p.name}（${p.stem}干）${t.star}${t.type}→${q.name}`;
+          const line = append(td, 'span', 'fh-hua'); tip(huaBadge(line, t.type), `${p.name}（${p.stem}干）${t.star}${t.type}→${q.name}`);
           append(line, 'span', null, t.star);
         });
         if (p === q && here.length) append(td, 'span', 'visually-hidden', '自化');
@@ -2597,7 +2602,7 @@ function renderCalendar() {
   // On a phone the words beside the arrows and above the two selects are hidden, so the four fit on one line.
   const arrow = (id, mark, words, before) => {
     const button = append(nav, 'button', 'tiny-button cal-step'); button.type = 'button'; button.id = id;
-    button.setAttribute('aria-label', words); button.title = words;
+    button.setAttribute('aria-label', words); tip(button, words);
     if (before) append(button, 'span', 'cal-arrow', mark);
     append(button, 'span', 'cal-step-words', words);
     if (!before) append(button, 'span', 'cal-arrow', mark);
@@ -2686,9 +2691,9 @@ function renderCalendar() {
   const hr = append(append(table, 'thead'), 'tr');
   const lang = calLang();
   WEEKDAY_NAMES.forEach((full, i) => {
-    const th = append(hr, 'th', i > 4 ? 'is-weekend' : null); th.scope = 'col'; th.title = full;
+    const th = append(hr, 'th', i > 4 ? 'is-weekend' : null); th.scope = 'col'; tip(th, full);
     const short = append(th, 'abbr', null, lang === 'en' ? CAL_WEEKDAYS_EN[i] : (CAL_WEEKDAYS[lang] || CAL_WEEKDAYS['zh-CN'])[i]);
-    short.dataset.noI18n = ''; short.title = calT(full);
+    short.dataset.noI18n = ''; tip(short, calT(full));
   });
   const body = append(table, 'tbody');
   const lead = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
@@ -2775,11 +2780,11 @@ const officerShort = o => calLang() === 'en' ? calT(o).replace(/\s*\([^)]*\)$/, 
 function officerJieText(parent, d, compact) {
   const jie = officerJie(d);
   if (!compact) {texts(parent, termText(jie.name), ' ', jie.time, ' · ', jie.after ? '节后' : '节前', ' '); append(parent, 'b', null, jie.other); return;}
-  parent.title = termText(jie.name) + ' ' + jie.time;
+  tip(parent, termText(jie.name) + ' ' + jie.time);
   const shown = append(parent, 'span', 'of-jie-short'); shown.setAttribute('aria-hidden', 'true'); shown.dataset.noI18n = '';
   append(shown, 'span', 'of-jie-name', termText(jie.name, true));
   const swap = append(shown, 'span', 'of-jie-swap'), other = elt('b', null, officerShort(jie.other));
-  other.title = calT(jie.other);
+  tip(other, calT(jie.other));
   if (jie.after) swap.append(jie.time + ' → ', other); else swap.append(other, ' → ' + jie.time);
   officerJieText(append(parent, 'span', 'visually-hidden'), d, false);
 }
@@ -2790,7 +2795,7 @@ function weekHeader(table) {
   WEEKDAY_NAMES.forEach((full, i) => {
     const th = append(head, 'th', i > 4 ? 'is-weekend' : null); th.scope = 'col';
     const short = append(th, 'abbr', null, lang === 'en' ? CAL_WEEKDAYS_EN[i] : (CAL_WEEKDAYS[lang] || CAL_WEEKDAYS['zh-CN'])[i]);
-    short.dataset.noI18n = ''; short.title = calT(full);
+    short.dataset.noI18n = ''; tip(short, calT(full));
   });
 }
 // The day number of a week-calendar cell: month/day on the first cell and on the first of a month.
@@ -2876,7 +2881,7 @@ function renderDayOfficers() {
       if (d.date === today) {td.setAttribute('aria-current', 'date'); append(td, 'span', 'visually-hidden', '今天');}
       const gz = append(td, 'b', 'of-gz'); gz.dataset.noI18n = '';
       append(gz, 'span', stemClass(d.day_pillar[0]), d.day_pillar[0]); append(gz, 'span', branchClass(d.day_pillar[1]), d.day_pillar[1]);
-      const officer = append(td, 'span', 'of-officer', officerShort(d.officer)); officer.dataset.noI18n = ''; officer.title = calT(d.officer);
+      const officer = append(td, 'span', 'of-officer', officerShort(d.officer)); officer.dataset.noI18n = ''; tip(officer, calT(d.officer));
       if (d.jie_on_date) officerJieText(append(td, 'small', 'of-jie'), d, true);
     });
     append(result, 'p', 'field-help', '一行一周，从星期一开始；格子里是日期、日干支和正午的值日，今天的日期填色。交节当天另写节气和交节时刻（北京时间）：「17:52 → 开」是交节后轮到开，「成 → 04:02」是交节前为成。');
@@ -3003,7 +3008,7 @@ function renderDateScanResult(r) {
       weekDateLabel(box, date, first);
       const gz = append(box, 'b', 'of-gz'); gz.dataset.noI18n = '';
       append(gz, 'span', stemClass(d.day_pillar[0]), d.day_pillar[0]); append(gz, 'span', branchClass(d.day_pillar[1]), d.day_pillar[1]);
-      const officer = append(box, 'span', 'of-officer', officerShort(d.officer)); officer.dataset.noI18n = ''; officer.title = calT(d.officer);
+      const officer = append(box, 'span', 'of-officer', officerShort(d.officer)); officer.dataset.noI18n = ''; tip(officer, calT(d.officer));
       if (d.jie_on_date) officerJieText(append(box, 'small', 'of-jie'), d, true);
       if (!entry.pick) {
         const why = append(box, 'span', 'ds-reason', SCAN_REASONS[d.reason]);
@@ -3039,7 +3044,7 @@ function renderDateScanResult(r) {
     const more = append(result, 'p', 'feature-note', '候选日或时家奇门盘已达上限，后面的日子没有扫描；可以缩短范围、减少候选时刻，或从最后扫描的日子之后再扫一次。');
     const next = shiftDate(r.scanned_through, 1);
     const go = append(more, 'button', 'tiny-button', '从下一天继续扫描'); go.type = 'button'; go.id = 'scan-continue';
-    go.title = next;
+    tip(go, next);
     go.addEventListener('click', () => {dateScanDraft = {...dateScanDraft, start_date: next}; render(); const run = $('#scan-run'); if (run) {run.focus(); run.click();}});
   }
   r.limitations.forEach(x => note(result, x));
@@ -3146,7 +3151,7 @@ function renderTimeline() {
       const now = year.lunar_year === nowYear;
       const th = append(head, 'th', 'yt-year-cell' + (now ? ' is-now' : '')); th.scope = 'col';
       const open = append(th, 'button', 'yt-year'); open.type = 'button'; open.id = 'timeline-year-' + year.lunar_year;
-      open.title = '在紫微盘打开 ' + year.lunar_year + ' 年流年层';
+      tip(open, '在紫微盘打开 ' + year.lunar_year + ' 年流年层');
       if (now) open.setAttribute('aria-current', 'date');
       append(open, 'small', null, String(year.lunar_year));
       const gz = append(open, 'b', 'yt-gz'); gz.dataset.noI18n = '';
@@ -3178,7 +3183,7 @@ function renderTimeline() {
         const td = append(tr, 'td', year.lunar_year === nowYear ? 'is-now' : null);
         year.transformations.filter(t => t.natal_palace === name).forEach(t => {
           const item = append(td, 'span', 'yt-hua');
-          huaBadge(item, t.type, 'year').title = year.lunar_year + ' ' + year.year_pillar + ' · ' + t.star + t.type;
+          tip(huaBadge(item, t.type, 'year'), year.lunar_year + ' ' + year.year_pillar + ' · ' + t.star + t.type);
           append(item, 'span', 'yt-star', t.star);
         });
       });
@@ -3294,7 +3299,7 @@ function renderDecision() {
     const name = append(top, 'input', 'criterion-name'); name.type = 'text'; name.value = c.name; name.maxLength = 40;
     name.id = 'decision-criterion-' + i; name.setAttribute('aria-label', '指标 ' + (i + 1));
     const remove = append(top, 'button', 'tiny-button remove-criterion', '×'); remove.type = 'button';
-    remove.title = '移除指标'; remove.setAttribute('aria-label', '移除指标 ' + (i + 1)); remove.disabled = decisionDraft.criteria.length <= 1;
+    tip(remove, '移除指标'); remove.setAttribute('aria-label', '移除指标 ' + (i + 1)); remove.disabled = decisionDraft.criteria.length <= 1;
     remove.addEventListener('click', () => restructure(d => {
       if (d.criteria.length <= 1) return false;
       d.criteria.splice(i, 1); d.options.forEach(o => o.ratings.splice(i, 1)); return true;
@@ -3313,7 +3318,7 @@ function renderDecision() {
     const name = append(th, 'input', 'option-name'); name.type = 'text'; name.value = o.name; name.maxLength = 80;
     name.id = 'decision-option-' + i; name.setAttribute('aria-label', '方案 ' + (i + 1));
     const remove = append(th, 'button', 'tiny-button remove-option', '×'); remove.type = 'button';
-    remove.title = '移除方案'; remove.setAttribute('aria-label', '移除方案 ' + (i + 1)); remove.disabled = decisionDraft.options.length <= 2;
+    tip(remove, '移除方案'); remove.setAttribute('aria-label', '移除方案 ' + (i + 1)); remove.disabled = decisionDraft.options.length <= 2;
     remove.addEventListener('click', () => restructure(d => {
       if (d.options.length <= 2) return false;
       d.options.splice(i, 1); return true;
@@ -3398,7 +3403,7 @@ function renderDecisionOutput(out) {
     const track = append(li, 'div', 'dm-track'); track.setAttribute('aria-hidden', 'true'); track.dataset.noI18n = '';  // the tooltips quote typed names
     o.contributions.forEach(c => {
       const seg = append(track, 'span', 'dm-seg dm-c' + colour[c.criterion]); seg.style.width = 100 * c.weighted_contribution / 5 + '%';
-      seg.title = c.criterion + ' ' + c.rating + ' × ' + dmShare(c.normalized_weight) + ' = ' + dmNum(c.weighted_contribution);
+      tip(seg, c.criterion + ' ' + c.rating + ' × ' + dmShare(c.normalized_weight) + ' = ' + dmNum(c.weighted_contribution));
     });
     const parts = append(li, 'ul', 'dm-parts');
     o.contributions.forEach(c => {
@@ -3481,7 +3486,7 @@ function ruleShift(parent, row, base) {
   if (!minutes) {append(parent, 'span', 'muted', '时刻不变'); return;}
   const shift = append(parent, 'span', 'rm-shift');
   shift.append(minutes < 0 ? '−' : '+'); durationText(shift, Math.abs(minutes));
-  shift.title = calT(minutes < 0 ? '比当前设置早' : '比当前设置晚');
+  tip(shift, calT(minutes < 0 ? '比当前设置早' : '比当前设置晚'));
 }
 function ruleApply(parent, row, id) {
   if (row.is_baseline || !row.differs.length) return;
@@ -3525,7 +3530,7 @@ function renderRuleMatrix() {
   s.sensitive_fields.forEach(f => {
     const chip = texts(append(movingChips, 'a', 'relation-chip rel-clash'), f.label, ' ', String(f.changed_by.length));
     chip.href = '#rm-field-' + f.field.replace('.', '-');
-    chip.title = f.changed_by.join('\n');
+    tip(chip, f.changed_by.join('\n'));
     // The link keeps #tool=rule-matrix in the address, so it scrolls itself and moves focus to the field card.
     chip.addEventListener('click', event => {
       event.preventDefault(); const target = $('#rm-field-' + f.field.replace('.', '-')); if (!target) return;
@@ -4352,22 +4357,22 @@ function luckTimeline(box, v, prefix, change) {
         const at = luckAt(row, year), td = append(tr, 'td', 'tl-cell');
         if (year === v.year) td.classList.add('tl-selected');
         td.addEventListener('click', () => change(year));
-        if (at.kind === 'unborn') {td.classList.add('tl-empty'); td.title = '尚未出生'; return;}
+        if (at.kind === 'unborn') {td.classList.add('tl-empty'); tip(td, '尚未出生'); return;}
         if (at.kind === 'not_started' || at.kind === 'beyond') {
           td.classList.add('tl-empty');
-          td.title = at.kind === 'not_started' ? '未起运' : '已排完';
+          tip(td, at.kind === 'not_started' ? '未起运' : '已排完');
           if (k === 0 || luckAt(row, year - 1).kind !== at.kind) append(label(td, k, at), 'small', 'tl-god', at.kind === 'not_started' ? '未起运' : '已排完');
           return;
         }
         if (at.kind === 'maybe') {
           td.classList.add('tl-maybe'); append(td, 'small', null, '?');
-          td.title = (at.before ? at.before.pillar : '未起运') + ' / ' + (at.after ? at.after.pillar : '已排完') + ' · 时辰不详，交运年随时辰而定';
+          tip(td, (at.before ? at.before.pillar : '未起运') + ' / ' + (at.after ? at.after.pillar : '已排完') + ' · 时辰不详，交运年随时辰而定');
           return;
         }
         const p = at.period;
         td.classList.add('tl-' + ELEMENT_CLASS[STEM_ELEMENTS[STEM_ORDER.indexOf(p.pillar[0])]]);
         if (at.first) td.classList.add('tl-change');
-        td.title = p.pillar + (p.ten_god ? ' ' + p.ten_god : '') + ' · ' + p.start_years.join('/') + '–' + p.end_years.join('/');
+        tip(td, p.pillar + (p.ten_god ? ' ' + p.ten_god : '') + ' · ' + p.start_years.join('/') + '–' + p.end_years.join('/'));
         // The pillar is written where a period begins, and again at the left edge for one already running.
         if (at.first || k === 0 || luckAt(row, year - 1).kind !== 'period') {
           const box = label(td, k, at), cell = append(box, 'span', 'tl-pillar');
@@ -4444,7 +4449,7 @@ function luckYearSection(v, {prefix, year: shownYear, pending, error, people, ch
     append(yearRow, 'span', 'pillar-stage-label', '流年');
     if (!n) {append(yearRow, 'span', 'muted', '原局有不定的柱，不与流年比较'); return;}
     append(yearRow, 'span', 'group-year-god', n.ten_god_of_stem);
-    yearRow.title = natalText(n);
+    tip(yearRow, natalText(n));
     natalMarks(yearRow, n);
     if (!natalMarkList(n).length && !n.branch_groups.length) append(yearRow, 'small', 'muted', '与原局地支无冲合');
     // Words in separate text nodes, so each translates on its own: 月柱 辛 丙辛合水, 补成 巳午未 三会方.
@@ -4456,7 +4461,7 @@ function luckYearSection(v, {prefix, year: shownYear, pending, error, people, ch
     if ((n.shensha || []).length) {
       const sha = append(card, 'div', 'pillar-shensha');
       append(sha, 'span', 'pillar-stage-label', '神煞');
-      n.shensha.forEach(x => {const tag = append(sha, 'span', 'shensha-tag', x.name); tag.title = shenshaBasis(x);});
+      n.shensha.forEach(x => {const tag = append(sha, 'span', 'shensha-tag', x.name); tip(tag, shenshaBasis(x));});
     }
   });
   append(box, 'h4', 'subheading', '大运之间');
@@ -4527,8 +4532,7 @@ function groupGraph(parent, g) {
       const label = make('text', {x: mx, y: my + 4, 'text-anchor': 'middle', class: 'edge-count'}, edge);
       label.textContent = String(count);
     }
-    const tip = make('title', {}, edge);
-    tip.textContent = p.a_label + ' ↔ ' + p.b_label;
+    tip(edge, p.a_label + ' ↔ ' + p.b_label);
     edge.addEventListener('click', () => {
       const item = document.getElementById(`group-pair-${p.a}-${p.b}`);
       if (item) {item.open = true; item.scrollIntoView({block: 'center', behavior: 'smooth'});}
@@ -5427,12 +5431,12 @@ let annualFocus = null;  // the control to focus again once the year asked for h
 // Where the name is written out beside the badge, the glyph is only drawn.
 function quietBadge(parent, type, year) {
   const badge = huaBadge(parent, type, year ? 'year' : undefined);
-  badge.title = (year ? '该年' : '生年') + type; badge.setAttribute('aria-hidden', 'true');
+  tip(badge, (year ? '该年' : '生年') + type); badge.setAttribute('aria-hidden', 'true');
   return badge;
 }
 function annualBadge(parent, type, year) {
   const badge = quietBadge(parent, type, year);
-  append(parent, 'span', 'visually-hidden', badge.title);
+  append(parent, 'span', 'visually-hidden', badge.getAttribute('data-tip'));
   return badge;
 }
 function renderAnnual() {
@@ -6292,7 +6296,7 @@ function renderReport() {
     const cell = append(pillars, 'div', 'rp-pillar' + (i === 2 ? ' is-master' : ''));
     append(cell, 'small', null, name);
     const gz = append(cell, 'b'); gz.dataset.noI18n = '';
-    if (i === 3 && r.xsHourUnknown) {append(gz, 'span', 'muted', '?'); append(gz, 'span', 'muted', '?'); cell.title = calT('时辰不详'); return;}
+    if (i === 3 && r.xsHourUnknown) {append(gz, 'span', 'muted', '?'); append(gz, 'span', 'muted', '?'); tip(cell, calT('时辰不详')); return;}
     append(gz, 'span', stemClass(r.overview.pillars[i][0]), r.overview.pillars[i][0]); append(gz, 'span', branchClass(r.overview.pillars[i][1]), r.overview.pillars[i][1]);
   });
   const facts = append(head, 'div', 'rp-head-facts');
@@ -6308,7 +6312,7 @@ function renderReport() {
   r.tool_trace.forEach(step => {
     const li = append(trace, 'li', 'rp-step' + (step.status === 'computed' ? ' is-done' : ''));
     append(li, 'span', 'rp-step-n', String(step.step));
-    const name = append(li, 'code', null, step.tool); name.title = step.engine;
+    const name = append(li, 'code', null, step.tool); tip(name, step.engine);
     if (step.status !== 'computed') append(li, 'small', null, step.status);
   });
   const layout = append(doc, 'div', 'rp-layout');
@@ -6365,7 +6369,7 @@ function renderReport() {
       const how = append(dd, 'p', 'rp-term-how');
       append(how, 'span', 'rp-term-label', '玄枢怎么算'); how.append(' ');
       append(how, 'span', null, x.in_xuanshu); how.append(' ');
-      const doc = append(how, 'code', 'rp-term-doc', x.rule_doc.replace('docs/rules/', '')); doc.title = x.rule_doc;
+      const doc = append(how, 'code', 'rp-term-doc', x.rule_doc.replace('docs/rules/', '')); tip(doc, x.rule_doc);
     });
     const source = append(panel, 'p', 'rp-source');
     append(source, 'span', 'muted', '来源'); append(source, 'span', 'rp-source-part', 'docs/rules/glossary.md');
@@ -6448,7 +6452,7 @@ function renderDayun() {
     if(i===live)append(cell,'span','dayun-now','约当前');
     if(!o.day){append(tr,'td',null,n?n.ten_god_of_stem:'—');append(tr,'td',null,n?n.growth_stage:'—');}
     append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td','nowrap',x.approx_start_local.slice(0,10));
-    const marks=append(tr,'td');if(n){natalMarks(marks,n);marks.title=natalText(n);}if(!marks.childNodes.length)marks.textContent='—';
+    const marks=append(tr,'td');if(n){natalMarks(marks,n);tip(marks,natalText(n));}if(!marks.childNodes.length)marks.textContent='—';
     append(tr,'td',null,o.stars?'随时辰而定':(n&&n.shensha||[]).map(s=>s.name).join('、')||'—');});
   d.limitations.forEach(x=>note(result,x));
 }
@@ -6593,7 +6597,7 @@ function dayunDetail(d, x, isNow, o, now) {
     append(stars, 'span', 'muted', '神煞');
     n.shensha.forEach(sh => {
       const item = append(stars, 'span', 'dy-star', sh.name);
-      const rule = rules.get(sh.name); if (rule) item.title = rule.rule + ' · ' + rule.source;
+      const rule = rules.get(sh.name); if (rule) tip(item, rule.rule + ' · ' + rule.source);
       sh.by.forEach(by => {const why = append(item, 'small'); why.append(' '); texts(why, SHENSHA_BASIS[by.basis] || by.basis, ' ', by.value);});
     });
   }
@@ -6615,7 +6619,7 @@ function dayunDetail(d, x, isNow, o, now) {
     if (!o.day) append(tr, 'td', null, ys.ten_god_of_stem);
     append(tr, 'td', null, String(y.year - birthYear + 1));
     if (!o.day) append(tr, 'td', null, ys.growth_stage);
-    const marks = append(tr, 'td'); natalMarks(marks, ys); marks.title = natalText(ys); if (!marks.childNodes.length) marks.textContent = '—';
+    const marks = append(tr, 'td'); natalMarks(marks, ys); tip(marks, natalText(ys)); if (!marks.childNodes.length) marks.textContent = '—';
     append(tr, 'td', null, o.stars ? '随时辰而定' : (ys.shensha || []).map(s => s.name).join('、') || '—');
   });
   append(box, 'p', 'field-help', '与原局一栏：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空，悬停可看全部关系。流年以立春换年，虚龄从农历出生年起算。只列关系与标签，不判断吉凶。');
@@ -6936,7 +6940,7 @@ function agParams(parent, tool) {
     const item = append(list, 'li', 'ag-param' + (required.has(name) ? ' is-required' : ''));
     append(item, 'code', null, name + (required.has(name) ? '*' : ''));
     append(item, 'small', null, type);
-    if (prop.description) item.title = prop.description;
+    if (prop.description) tip(item, prop.description);
   });
 }
 function agRunView(box, tool) {
@@ -7221,7 +7225,7 @@ function renderIntegration() {
       (p.arguments || []).forEach(a => {
         const li = append(args, 'li', 'ag-param' + (a.required ? ' is-required' : ''));
         append(li, 'code', null, a.name + (a.required ? '*' : ''));
-        if (a.description) li.title = a.description;
+        if (a.description) tip(li, a.description);
       });
     });
   } else if (catalog) append(promptsPart, 'p', 'inline-msg', '没有读到提示模板，见上方连接自检。');
@@ -7263,7 +7267,7 @@ function renderIntegration() {
       const head = append(item, 'div', 'ag-tool-head');
       append(head, 'code', 'ag-name', (s.frontmatter || {}).name || s.uri).dataset.noI18n = '';
       const digest = ((s.resources || [])[0] || {}).digest || '';
-      if (digest) {const d = append(head, 'small', 'ag-digest', digest.slice(0, 19) + '…'); d.title = digest; d.dataset.noI18n = '';}
+      if (digest) {const d = append(head, 'small', 'ag-digest', digest.slice(0, 19) + '…'); tip(d, digest); d.dataset.noI18n = '';}
       const desc = append(item, 'p', 'ag-desc', (s.frontmatter || {}).description || ''); desc.lang = 'en'; desc.dataset.noI18n = '';
     });
   } else if (catalog) append(skillsPart, 'p', 'inline-msg', '没有读到 Skills，见上方连接自检。');
@@ -7431,7 +7435,7 @@ function cwObservation(list, o) {
   if ((o.evidence_paths || []).length) {
     const ev = append(src, 'span', 'cw-ev');
     texts(ev, ' · ', '证据', ' ' + o.evidence_paths.length, ' 项');
-    ev.title = o.evidence_paths.map((path, i) => path + '  sha256 ' + ((o.evidence_hashes || [])[i] || '').slice(0, 16)).join('\n');
+    tip(ev, o.evidence_paths.map((path, i) => path + '  sha256 ' + ((o.evidence_hashes || [])[i] || '').slice(0, 16)).join('\n'));
   }
   (o.method_references || []).forEach(href => {
     const a = append(src, 'a', 'cw-ref', '方法出处 ↗'); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer';
@@ -7460,7 +7464,7 @@ function renderConsultationResult(c) {
   if (checks.length) {
     const passed = checks.filter(x => x.passed).length;
     const b = texts(append(badges, 'span', 'cw-chip' + (passed < checks.length ? ' is-warn' : '')), '内部检查', ' ' + passed + '/' + checks.length, ' ', '通过');
-    b.title = checks.map(x => (x.passed ? '✓ ' : '✗ ') + x.meaning).join('\n');
+    tip(b, checks.map(x => (x.passed ? '✓ ' : '✗ ') + x.meaning).join('\n'));
   }
   if (c.xsHourUnknown) append(badges, 'span', 'cw-chip is-warn', '时辰不详：按 12:00 占位');
   const review = v.needs_human_review || c.xsHourUnknown;
@@ -7571,7 +7575,7 @@ function renderConsultationResult(c) {
       const text = `那${year + 1}年呢？`;
       const b = append(row, 'button', 'tiny-button'); b.type = 'button'; b.id = 'consult-next-year';
       const words = append(b, 'span', null, text); words.dataset.noI18n = '';
-      b.title = '用同一场景续问下一年';
+      tip(b, '用同一场景续问下一年');
       b.addEventListener('click', () => {
         const q = $('#consult-question'), y = $('#consult-year');
         q.value = text; consultDraft.question = text;
@@ -7650,7 +7654,7 @@ const jvKeep = (keep, hits, path) => keep && hits.has(path) && !keep.has(path + 
 function jvNode(parent, key, value, path, depth, keep, hits) {
   const object = value !== null && typeof value === 'object';
   if (!object) {
-    const row = append(parent, 'div', 'jv-leaf' + (hits && hits.has(path) ? ' is-match' : '')); row.title = path;
+    const row = append(parent, 'div', 'jv-leaf' + (hits && hits.has(path) ? ' is-match' : '')); tip(row, path);
     if (key !== null) {append(row, 'span', 'jv-key', key); row.append(': ');}
     const type = value === null ? 'null' : typeof value;
     append(row, 'span', 'jv-' + type, type === 'string' ? JSON.stringify(value) : String(value));
@@ -7659,7 +7663,7 @@ function jvNode(parent, key, value, path, depth, keep, hits) {
   const array = Array.isArray(value), entries = array ? value.map((v, i) => [String(i), v]) : Object.entries(value);
   const node = append(parent, 'details', 'jv-node' + (hits && hits.has(path) ? ' is-match' : ''));
   node.id = 'jv-' + path.replace(/\s/g, '_');
-  const summary = append(node, 'summary'); summary.title = path;
+  const summary = append(node, 'summary'); tip(summary, path);
   if (key !== null) append(summary, 'span', 'jv-key', key);
   append(summary, 'span', 'jv-count', array ? '[' + entries.length + ']' : '{' + entries.length + '}');
   // A short list of plain values is previewed on the closed line.

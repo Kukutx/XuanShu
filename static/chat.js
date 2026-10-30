@@ -429,7 +429,7 @@ function renderTrace(parent, trace) {
     append(row, 'strong', null, t.step + '. ' + (t.agent ? agentLabel(t.agent) + ' · ' : '') + toolLabel(t.tool) + ' (' + t.tool + ')');
     append(row, 'span', null, t.ok ? (t.summary || '') : ('失败：' + (t.error || '')));
     const args = append(row, 'code', null, JSON.stringify(t.arguments));
-    args.title = '调用参数';
+    tip(args, '调用参数');
     if (t.result_sha256) append(row, 'small', null, '结果 SHA-256 ' + t.result_sha256.slice(0, 16) + '…');
   });
 }
@@ -454,7 +454,7 @@ function renderConfidence(parent, message) {
     append(row, 'small', null, '排盘置信度（出生时间误差 ±' + conf.birth_time_uncertainty_minutes + ' 分钟）：');
     conf.facts.forEach(f => {
       const tag = append(row, 'span', 'conf-tag conf-' + f.confidence, f.fact + ' ' + f.value + ' · ' + TIER_LABELS[f.confidence]);
-      tag.title = '距' + f.nearest_boundary + '约 ' + f.margin_minutes + ' 分钟';
+      tip(tag, '距' + f.nearest_boundary + '约 ' + f.margin_minutes + ' 分钟');
     });
   }
   const ver = message.verification;
