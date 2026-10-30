@@ -3526,6 +3526,10 @@ const UI_EXTRA = {
 "min",
 "分"
 ],
+"分钟（时间）": [
+"Minute",
+"分"
+],
 "切到大限、流年、流月或流日，宫名、四化和三方四正会按那一层重新标注。": [
 "Switch to a decade, year, month or day layer to relabel the palace names, transformations and trine-opposite lines for that layer.",
 "大限・流年・流月・流日に切り替えると、宮名・四化・三方四正がその層で付け直されます。"
@@ -6209,6 +6213,10 @@ const UI_EXTRA = {
 "小年": [
 "Little New Year",
 "小年"
+],
+"小时": [
+"Hour",
+"時"
 ],
 "小暑": [
 "Minor Heat (Xiaoshu)",
@@ -12769,6 +12777,14 @@ const UI_EXTRA = {
 "选择性别后显示大运": [
 "Choose a gender to show luck periods",
 "性別を選ぶと大運を表示します"
+],
+"选择日期": [
+"Choose a date",
+"日付を選択"
+],
+"选择日期和时间": [
+"Choose a date and time",
+"日付と時刻を選択"
 ],
 "选择核验后列出实测四柱、日期、节令距离和需要复核的输入假设。": [
 "After choosing verification, lists the computed Four Pillars, dates, solar term distances and input assumptions that need review.",

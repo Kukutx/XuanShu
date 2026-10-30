@@ -2520,17 +2520,18 @@ async function downloadIcs(year, moon, message, festivals = false) {
 }
 // Month calendar: one civil month at a time from /api/calendar (a month fits its 31-day range), kept per month so
 // going back and forth asks nothing twice. Every cell is a calendar fact: lunar date, day pillar and solar term.
-const calendarMonths = {}, calendarPending = new Set();
+const calendarMonths = {}, calendarPending = new Map();
 let calendarMonth = null, calendarSelected = null, calendarFocus = false;
 const monthKey = (year, month) => year + '-' + String(month).padStart(2, '0');
 const monthLength = (year, month) => new Date(Date.UTC(year, month, 0)).getUTCDate();
+// One request per month, shared with the date picker (static/datepicker.js); the promise gives the month's data.
 function ensureCalendarMonth(year, month) {
   const key = monthKey(year, month);
-  if (calendarMonths[key] || calendarPending.has(key)) return;
-  calendarPending.add(key);
-  postJSON('/api/calendar', {start_date: key + '-01', days: monthLength(year, month)})
+  if (calendarMonths[key]) return Promise.resolve(calendarMonths[key]);
+  if (calendarPending.has(key)) return calendarPending.get(key);
+  const asked = postJSON('/api/calendar', {start_date: key + '-01', days: monthLength(year, month)})
     .then(data => {calendarMonths[key] = data;})
-    .catch(err => {calendarMonths[key] = {error: err.message};})
+    .catch(err => {if (!calendarMonths[key]) calendarMonths[key] = {error: err.message};})
     .finally(() => {
       calendarPending.delete(key);
       if (active !== 'calendar' || !calendarMonth || monthKey(calendarMonth.year, calendarMonth.month) !== key) return;
@@ -2538,7 +2539,10 @@ function ensureCalendarMonth(year, month) {
       const focused = document.activeElement;
       if (focused && focused !== document.body && focused.id !== 'calendar-loading') calendarFocus = false;
       render();
-    });
+    })
+    .then(() => calendarMonths[key]);
+  calendarPending.set(key, asked);
+  return asked;
 }
 // Shows a month with one day picked; focus follows the pick when it came from the keyboard.
 function showCalendarDay(day, focus = false) {

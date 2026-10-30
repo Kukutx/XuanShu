@@ -166,6 +166,7 @@ def main() -> None:
     i18n_extra_js = (ROOT / 'static/i18n-extra.js').read_text(encoding='utf-8')
     api_js = (ROOT / 'static/api.js').read_text(encoding='utf-8')
     tips_js = (ROOT / 'static/tips.js').read_text(encoding='utf-8')
+    datepicker_js = (ROOT / 'static/datepicker.js').read_text(encoding='utf-8')
     client = TestClient(app)
     counts = {'requests': 0}
     group_bodies: list[str] = []
@@ -224,6 +225,7 @@ def main() -> None:
             page.add_script_tag(content=vault_js)
             page.add_script_tag(content=cities_js)
             page.add_script_tag(content=tips_js)
+            page.add_script_tag(content=datepicker_js)
             page.add_script_tag(content=i18n_js)
             # The full time-zone list keeps the page's default zone selected.
             assert page.locator('#timezone').input_value() == 'Asia/Shanghai'
@@ -594,6 +596,56 @@ def main() -> None:
             page.locator('#birth_datetime').fill('2000-08-16T04:00')
             page.locator('#run-btn').click()
             page.wait_for_function("() => currentInput && currentInput.birth_datetime === '2000-08-16T04:00'", timeout=30000)
+            # Date fields open the project's own calendar instead of the browser's picker: from the icon, Alt+Down or F4.
+            # Each day carries its lunar date, and the chosen day and time reach the field as typed input would.
+            picker_open = "() => document.querySelector('#xs-datepicker')?.matches(':popover-open') === true"
+            page.locator('#birth_datetime').scroll_into_view_if_needed()
+            field_box = page.locator('#birth_datetime').bounding_box()
+            page.mouse.click(field_box['x'] + field_box['width'] - 18, field_box['y'] + field_box['height'] / 2)
+            page.wait_for_function(picker_open, timeout=5000)
+            assert not page.evaluate("() => document.querySelector('#birth_datetime').matches(':open')"), 'the browser picker opened too'
+            page.wait_for_function("() => document.querySelector('#xs-datepicker [data-day=\"2000-08-16\"] .xs-dp-lunar')?.textContent === '十七'", timeout=30000)
+            assert page.evaluate('document.activeElement.dataset.day') == '2000-08-16'
+            assert page.evaluate("() => document.querySelector('#xs-datepicker td[aria-selected=true] button').dataset.day") == '2000-08-16'
+            assert '七月十七' in page.evaluate("document.activeElement.getAttribute('aria-label')")
+            assert page.locator('#xs-datepicker .xs-dp-shichen').text_content() == '寅时'
+            page.screenshot(path=str(screenshot_dir / '48-date-picker.png'))
+            page.keyboard.press('ArrowRight')
+            page.keyboard.press('Enter')
+            page.locator('#xs-datepicker .xs-dp-hour').select_option('05')
+            assert page.locator('#xs-datepicker .xs-dp-shichen').text_content() == '卯时'
+            page.locator('#xs-datepicker .xs-dp-ok').click()
+            page.wait_for_function("() => !document.querySelector('#xs-datepicker').matches(':popover-open')", timeout=5000)
+            assert page.locator('#birth_datetime').input_value() == '2000-08-17T05:00'
+            assert page.evaluate('document.activeElement.id') == 'birth_datetime'
+            assert page.evaluate("document.querySelector('#demo-birth-warning').hidden"), 'the picked time did not reach the input listeners'
+            page.keyboard.press('Alt+ArrowDown')
+            page.wait_for_function(picker_open, timeout=5000)
+            page.keyboard.press('PageDown')
+            assert page.evaluate('document.activeElement.dataset.day') == '2000-09-17'
+            # Tab goes round the calendar's own controls; it never drops focus on the page behind it.
+            in_picker = "() => document.querySelector('#xs-datepicker').contains(document.activeElement)"
+            for key in ['Tab'] * 9 + ['Shift+Tab'] * 9:
+                page.keyboard.press(key)
+                assert page.evaluate(in_picker), key
+            page.keyboard.press('Escape')
+            page.wait_for_function("() => !document.querySelector('#xs-datepicker').matches(':popover-open')", timeout=5000)
+            # At the first month of the range the pressed button turns disabled, and focus moves to the year beside it.
+            page.locator('#birth_datetime').fill('1901-02-15T10:00')
+            page.keyboard.press('Alt+ArrowDown')
+            page.wait_for_function(picker_open, timeout=5000)
+            page.locator('#xs-datepicker .xs-dp-nav.is-prev').click()
+            assert page.locator('#xs-datepicker .xs-dp-nav.is-prev').is_disabled()
+            assert page.evaluate("document.activeElement.classList.contains('xs-dp-year')")
+            page.keyboard.press('Escape')
+            page.wait_for_function("() => !document.querySelector('#xs-datepicker').matches(':popover-open')", timeout=5000)
+            page.locator('#birth_datetime').fill('2000-08-17T05:00')
+            page.keyboard.press('Alt+ArrowDown')
+            page.wait_for_function(picker_open, timeout=5000)
+            page.keyboard.press('Escape')
+            page.wait_for_function("() => !document.querySelector('#xs-datepicker').matches(':popover-open')", timeout=5000)
+            assert page.evaluate('document.activeElement.id') == 'birth_datetime' and page.locator('#birth_datetime').input_value() == '2000-08-17T05:00'
+            page.locator('#birth_datetime').fill('2000-08-16T04:00')
             # Brightness printed after a star is compared too; a different grade is a table difference, not a rule.
             page.locator('#import-text').fill('命宫 紫微庙\n夫妻宫：七杀（平）')
             page.locator('#import-check-run').click()
@@ -2489,6 +2541,17 @@ def main() -> None:
             page.locator('[data-tab="qimen"]').click()
             assert page.locator('.qimen-legend').is_visible()
             assert page.evaluate("[...document.querySelectorAll('.qimen-cell')].every(c => c.scrollWidth <= c.clientWidth + 1)")
+            # On a phone the long English term names (Awakening of Insects, Spring Equinox) take a third line in their
+            # month-calendar cell rather than losing their end.
+            page.locator('[data-tab="calendar"]').click()
+            page.evaluate("() => {calendarMonth = {year: 2024, month: 3}; calendarSelected = '2024-03-05'; render();}")
+            page.locator('#calendar-day-2024-03-05').wait_for(timeout=30000)
+            page.locator('#ui-language').select_option('en')
+            page.wait_for_function("() => document.getElementById('calendar-day-2024-03-05').textContent.includes('Awakening')", timeout=10000)
+            cut = page.evaluate("() => [...document.querySelectorAll('.cal-day .cal-lunar, .cal-day .cal-also')].filter(el => el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1).map(el => el.textContent)")
+            assert cut == [], cut
+            page.locator('#ui-language').select_option('zh-CN')
+            page.wait_for_function("() => document.getElementById('calendar-day-2024-03-05').textContent.includes('惊蛰')", timeout=10000)
             # Interface language: English shell, 繁體 conversion of computed text, and back.
             page.set_viewport_size({'width': 1440, 'height': 920})
             page.locator('[data-tab="pair"]').click()

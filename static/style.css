@@ -2020,6 +2020,11 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .cal-grid{width:calc(100% + 4px);border-spacing:2px;margin:2px -2px 8px}.cal-day{min-height:60px;padding:5px 1px;gap:1px;border-radius:7px}
   .of-grid{width:calc(100% + 4px);border-spacing:2px;margin:0 -2px}.of-day{height:72px;padding:4px 1px;border-radius:7px}.of-date{top:3px;left:4px;font-size:10px}.of-gz{margin-top:11px;font-size:11px;letter-spacing:0}.of-officer{font-size:18px}.of-jie{font-size:9.5px}html[lang="en"] .of-officer{font-size:10.5px}.ds-pick{min-height:70px;padding:4px 1px}.ds-reason,.ds-clash,.ds-hours{font-size:9.5px}.ds-clash{padding:0 3px}.ds-reason:not(.is-unscanned){display:none}.ds-reason-short{display:block}.ds-hour-bureau{display:none}
   .cal-num{font-size:15px}.cal-lunar{font-size:10px}.cal-also{font-size:9.5px}.cal-day .cal-gz{font-size:10px;letter-spacing:0}.cal-title{font-size:20px}
+  /* A phone cell is too narrow for Awakening of Insects on two lines: long names take a third line, English ones a
+     lighter, smaller face, and on the narrowest phones a plain Day 20 wraps rather than losing its number. */
+  .cal-day .cal-lunar{white-space:normal;line-height:1.15;text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow-wrap:break-word;hyphens:auto}
+  .cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{-webkit-line-clamp:3}
+  html[lang="en"] .cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{font-size:9.5px;font-weight:500}
   .brand-en,.brand small,.ui-lang span,.theme-toggle .theme-label{display:none}
   .header .brand-mark{width:36px;height:36px;font-size:21px;border-radius:var(--radius)}
   .header .brand strong{font-size:16px}
@@ -2047,6 +2052,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .pillar-shensha .pillar-stage-label{flex-basis:100%}  /* narrow columns: the label on its own line above the stars */
   .rp-module-fields.inline-control input{width:100%}
 }
+@media(max-width:340px){html[lang="en"] .cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{font-size:9px;-webkit-line-clamp:4}}
 
 /* ---- print: a clean report on paper ---- */
 @media print{
@@ -2174,10 +2180,59 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;width:14px;height:14px;cursor:pointer;background:var(--muted);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 4l8 8M12 4l-8 8' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 4l8 8M12 4l-8 8' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
 input[type=search]::-webkit-search-cancel-button:hover{background:var(--gold)}
-/* Date and time icons take the theme colour; the focused segment and the calendar popup are the browser's own. */
-input:is([type=date],[type=datetime-local],[type=month])::-webkit-calendar-picker-indicator{background:var(--muted);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='3' width='12' height='11' rx='2' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M2 7h12M5 1.5v3M11 1.5v3' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") center/15px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='3' width='12' height='11' rx='2' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M2 7h12M5 1.5v3M11 1.5v3' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") center/15px no-repeat;cursor:pointer}
+/* Date and time icons take the theme colour; the icon opens the project's own calendar (static/datepicker.js). */
+input:is([type=date],[type=datetime-local],[type=month])::-webkit-calendar-picker-indicator{background:var(--muted);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='3' width='12' height='11' rx='2' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M2 7h12M5 1.5v3M11 1.5v3' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") center/15px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='3' width='12' height='11' rx='2' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M2 7h12M5 1.5v3M11 1.5v3' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") center/15px no-repeat;cursor:pointer;width:16px;height:16px;padding:0;margin-inline-start:6px}
 input[type=time]::-webkit-calendar-picker-indicator{background:var(--muted);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.2' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M8 4.5V8l2.5 1.6' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center/15px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.2' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M8 4.5V8l2.5 1.6' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center/15px no-repeat;cursor:pointer}
 input::-webkit-calendar-picker-indicator:hover{background:var(--gold)}
+
+/* The calendar the date fields open (static/datepicker.js), in place of the browser's own picker. */
+.xs-dp{position:fixed;inset:auto;z-index:300;margin:0;width:min(372px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;padding:12px;border:1px solid var(--border-strong);border-radius:var(--radius-xl);background:var(--panel);color:var(--text);box-shadow:var(--shadow);font-size:13px;opacity:1;transform:none;transition:opacity .14s var(--ease),transform .14s var(--ease),overlay .14s allow-discrete,display .14s allow-discrete}
+@starting-style{.xs-dp:popover-open{opacity:0;transform:translateY(-4px)}}
+/* Closing fades out the same way (display and overlay wait for it). */
+.xs-dp:not(:popover-open){opacity:0;transform:translateY(-4px)}
+.xs-dp-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.xs-dp-head select{flex:1 1 0;min-width:0;min-height:34px;padding:4px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background-color:var(--panel2);color:var(--text);font-size:13px}
+.xs-dp-head select:hover{border-color:var(--gold)}
+.xs-dp-nav{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel2);color:var(--text);cursor:pointer;transition:border-color .15s,background .15s}
+.xs-dp-nav::before{content:'';width:7px;height:7px;border-left:1.5px solid currentColor;border-bottom:1.5px solid currentColor;rotate:45deg;translate:2px 0}
+.xs-dp-nav.is-next::before{rotate:-135deg;translate:-2px 0}
+.xs-dp-nav:hover:not(:disabled){border-color:var(--gold);background:var(--hover);color:var(--gold2)}
+.xs-dp-nav:disabled{opacity:.35;cursor:not-allowed}
+.xs-dp :is(button,select):focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.xs-dp-grid{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:2px}
+.xs-dp-grid th{padding:2px 0 4px;font-size:11.5px;font-weight:500;color:var(--muted);text-align:center}
+.xs-dp-grid th.is-weekend{color:var(--red)}
+.xs-dp-grid td{padding:0}
+.xs-dp-day{width:100%;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px 1px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--text);font:inherit;cursor:pointer;transition:background .12s,border-color .12s}
+.xs-dp-day:hover:not(:disabled){background:var(--hover);border-color:var(--accent-line)}
+.xs-dp-num{font-size:14px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+/* Up to three lines: English names such as Awakening of Insects need them in a cell this narrow. */
+.xs-dp-lunar{max-width:100%;overflow:hidden;font-size:10px;line-height:1.15;color:var(--muted);text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow-wrap:break-word;hyphens:auto}
+.xs-dp-day.is-weekend .xs-dp-num{color:var(--red)}
+.xs-dp-day.xs-dp-k-month .xs-dp-lunar{color:var(--gold2);font-weight:600}
+.xs-dp-day.xs-dp-k-term .xs-dp-lunar{color:var(--green);font-weight:600}
+.xs-dp-day.xs-dp-k-festival .xs-dp-lunar{color:var(--red);font-weight:600}
+.xs-dp-day.xs-dp-k-season .xs-dp-lunar{color:var(--water);font-weight:600}
+.xs-dp-day.is-outside{opacity:.42}
+.xs-dp-day.is-today{border-color:var(--gold)}
+.xs-dp-day.is-today .xs-dp-num{color:var(--gold2)}
+.xs-dp-grid td[aria-selected=true] .xs-dp-day{background:var(--gold);border-color:var(--gold);opacity:1}
+.xs-dp-grid td[aria-selected=true] .xs-dp-day :is(.xs-dp-num,.xs-dp-lunar){color:var(--on-gold)}
+.xs-dp-day:disabled{opacity:.25;cursor:not-allowed}
+.xs-dp-time{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:10px;border-top:1px solid var(--border)}
+.xs-dp-time select{min-height:34px;padding:4px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background-color:var(--panel2);color:var(--text);font-variant-numeric:tabular-nums}
+.xs-dp-time-label{color:var(--muted)}
+.xs-dp-shichen{margin-left:auto;padding:2px 9px;border:1px solid var(--accent-line);border-radius:999px;background:var(--accent-soft);color:var(--gold2);font-size:12px;white-space:nowrap}
+.xs-dp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.xs-dp-actions{display:flex;gap:6px}
+.xs-dp-foot .tiny-button{min-height:32px;padding:0 14px}
+.xs-dp-ok{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.xs-dp-ok:hover{background:var(--gold2);border-color:var(--gold2);color:var(--on-gold)}
+/* A narrow window gets the calendar as a sheet along the bottom edge. */
+.xs-dp.is-sheet{left:0;right:0;bottom:0;top:auto;width:100%;max-width:none;border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+@starting-style{.xs-dp.is-sheet:popover-open{transform:translateY(12px)}}
+.xs-dp.is-sheet:not(:popover-open){transform:translateY(12px)}
+@media (prefers-reduced-motion:reduce){.xs-dp{transition:none}}
 
 /* Text fields: vertical resize only, readable placeholders, themed autofill, a disabled look and one focus ring. */
 textarea{resize:vertical}
@@ -2378,7 +2433,13 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
    pressed chip, a checked box or switch, the date icon) and buttons drawn without a border would disappear, so they
    get system-colour marks instead. */
 @media (forced-colors:active){
-  .xs-tip{border-color:CanvasText}
+  .xs-tip,.xs-dp{border-color:CanvasText}
+  /* The chosen day is filled, today has a dashed frame, and the focus ring stays the only outline. */
+  .xs-dp-day{border-color:Canvas}
+  .xs-dp-grid td[aria-selected=true] .xs-dp-day{forced-color-adjust:none;background:Highlight;border-color:Highlight}
+  .xs-dp-grid td[aria-selected=true] .xs-dp-day :is(.xs-dp-num,.xs-dp-lunar){color:HighlightText}
+  .xs-dp-day.is-today{border:2px dashed CanvasText}
+  .xs-dp-nav{border-color:ButtonText}
   .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
   .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,
   .cal-day.is-selected,.ds-day.is-selected,.ds-day.is-pick,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,
