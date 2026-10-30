@@ -209,6 +209,7 @@ function ensureZone(select, zone) {
   if (zone && ![...select.options].some(o => o.value === zone)) append(select, 'option', null, zone).value = zone;
 }
 function copyZones(select, zone) {
+  select.classList.add('zone-select');
   select.append(...[...$('#timezone').children].map(node => node.cloneNode(true)));
   ensureZone(select, zone);
   if (zone) select.value = zone;
@@ -3456,13 +3457,13 @@ function renderDecision() {
     });
   });
   const controls = append(result, 'div', 'inline-control dm-controls');
-  const addCriterion = append(controls, 'button', null, '+ 增加指标'); addCriterion.id = 'decision-add-criterion'; addCriterion.type = 'button';
+  const addCriterion = append(controls, 'button', 'tiny-button', '+ 增加指标'); addCriterion.id = 'decision-add-criterion'; addCriterion.type = 'button';
   addCriterion.disabled = decisionDraft.criteria.length >= 8;
   addCriterion.addEventListener('click', () => restructure(d => {
     if (d.criteria.length >= 8) return false;
     d.criteria.push({name: '新指标' + (d.criteria.length + 1), weight: 1}); d.options.forEach(o => o.ratings.push(3)); return true;
   }, d => 'decision-criterion-' + (d.criteria.length - 1)));
-  const addOption = append(controls, 'button', null, '+ 增加方案'); addOption.id = 'decision-add-option'; addOption.type = 'button';
+  const addOption = append(controls, 'button', 'tiny-button', '+ 增加方案'); addOption.id = 'decision-add-option'; addOption.type = 'button';
   addOption.disabled = decisionDraft.options.length >= 8;
   addOption.addEventListener('click', () => restructure(d => {
     if (d.options.length >= 8) return false;
@@ -8207,6 +8208,14 @@ function activateTab(tab, updateUrl = true) {
     history.replaceState(null, '', '#tool=' + active);
   }
   updateToolNavigation();
+  // On a phone the tabs are one sideways strip: bring the opened one into view, as a #tool= link or an in-page
+  // "open …" button may pick a tab far outside it. Only the strip scrolls, never the page.
+  const strip = $('#workspace-tabs');
+  if (strip.scrollWidth > strip.clientWidth) {
+    const left = tab.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft, right = left + tab.offsetWidth;
+    if (left < strip.scrollLeft + 16 || right > strip.scrollLeft + strip.clientWidth - 24)
+      strip.scrollTo({left: Math.max(0, left - (strip.clientWidth - tab.offsetWidth) / 2), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  }
   // Restart the fade-in for the newly opened tool (style.css: #result.is-entering).
   result.classList.remove('is-entering'); void result.offsetWidth; result.classList.add('is-entering');
   render();
@@ -8445,6 +8454,7 @@ function showProfiles() {
   const select = $('#profiles'); const currentID = select.value;
   select.replaceChildren();
   const list = loadProfiles();
+  $('#load-profile').disabled = $('#remove-profile').disabled = !list.length;
   if (!list.length) {const op = append(select, 'option', null, '暂无本地档案'); op.value = ''; return;}
   list.forEach(x => {const op = append(select, 'option', 'user-text', x.label); op.value = x.id;});
   if (list.some(x => x.id === currentID)) select.value = currentID;

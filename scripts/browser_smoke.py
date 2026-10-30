@@ -229,6 +229,10 @@ def main() -> None:
             page.add_script_tag(content=i18n_js)
             # The full time-zone list keeps the page's default zone selected.
             assert page.locator('#timezone').input_value() == 'Asia/Shanghai'
+            # The load and delete buttons are greyed out while no profile is saved in this browser.
+            assert page.evaluate("[$('#load-profile').disabled, $('#remove-profile').disabled]") == [False, False]
+            assert page.evaluate('''() => {const kept = localStorage.getItem(profileKey); localStorage.setItem(profileKey, '[]'); showProfiles();
+              const off = [$('#load-profile').disabled, $('#remove-profile').disabled]; localStorage.setItem(profileKey, kept); showProfiles(); return off;}''') == [True, True]
             page.locator('#birth_city').select_option('温哥华')
             assert page.locator('#timezone').input_value() == 'America/Vancouver'
             assert page.locator('#longitude').input_value() == '-123.1207'
@@ -2584,6 +2588,13 @@ def main() -> None:
                 assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth"), tab
                 assert page.evaluate('''() => [...document.querySelectorAll('#result .inline-control > label > :is(input, select)')]
                   .every(f => f.getBoundingClientRect().right <= f.parentElement.getBoundingClientRect().right + 1)'''), tab
+            # The phone's tab strip scrolls the opened tab into view: a tab far along the row is wholly on screen once open.
+            tab_in_strip = '''() => {const s = document.getElementById('workspace-tabs').getBoundingClientRect(),
+              t = document.querySelector('[data-tab="professional"]').getBoundingClientRect(); return t.left >= s.left - 1 && t.right <= s.right + 1;}'''
+            page.evaluate("document.getElementById('workspace-tabs').scrollLeft = 0")
+            assert not page.evaluate(tab_in_strip)
+            page.evaluate("document.querySelector('[data-tab=\"professional\"]').click()")
+            page.wait_for_function(tab_in_strip, timeout=5000)
             # The nine-palace cells keep only the stem glyphs on a phone; a line above the board names them.
             page.locator('[data-tab="qimen"]').click()
             assert page.locator('.qimen-legend').is_visible()
