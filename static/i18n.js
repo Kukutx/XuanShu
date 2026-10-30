@@ -274,6 +274,7 @@ function translateAttrs(el) {
   }
 }
 let uiRequested = 'zh-CN';
+const uiTitle = document.title;  // each page's own source title
 function applyUiLanguage(lang) {
   const wanted = UI_LANGS[lang] ? lang : 'zh-CN';
   uiRequested = wanted;
@@ -287,7 +288,7 @@ function applyLoadedLanguage(lang) {
   document.documentElement.lang = uiLang;
   if (uiObserver) uiObserver.disconnect();
   translateNode(document.body);
-  document.title = uiLang === 'zh-TW' ? toTraditional('玄枢 · XuanShu v.0.1.0') : '玄枢 · XuanShu v.0.1.0';
+  document.title = uiLang === 'zh-TW' ? toTraditional(uiTitle) : uiLang === 'zh-CN' ? uiTitle : translateText(uiTitle);
   // Text the app sets later (re-rendered panels, status lines) is translated as it appears.
   uiObserver = new MutationObserver(records => {
     uiObserver.disconnect();

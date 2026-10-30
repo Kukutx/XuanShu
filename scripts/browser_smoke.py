@@ -148,6 +148,7 @@ def main() -> None:
     zh_tw_js = (ROOT / 'static/zh-tw-map.js').read_text(encoding='utf-8')
     i18n_js = (ROOT / 'static/i18n.js').read_text(encoding='utf-8')
     i18n_extra_js = (ROOT / 'static/i18n-extra.js').read_text(encoding='utf-8')
+    api_js = (ROOT / 'static/api.js').read_text(encoding='utf-8')
     client = TestClient(app)
     counts = {'requests': 0}
     group_bodies: list[str] = []
@@ -158,15 +159,17 @@ def main() -> None:
             wanted = ('accept', 'content-type', 'mcp-protocol-version', 'mcp-method', 'mcp-name', 'authorization')
             response = client.post('/mcp', json=data, headers={k: v for k, v in (headers or {}).items() if k.lower() in wanted})
             counts['requests'] += 1
-            return {'ok': response.is_success, 'status': response.status_code, 'data': response.json(), 'text': response.text}
+            return {'ok': response.is_success, 'status': response.status_code, 'data': response.json(), 'text': response.text,
+                    'type': response.headers.get('content-type', '')}
         # The page also reads one static data file (the cross-check summary) with fetch.
-        if not (path.startswith('/api/') or (data is None and path == '/static/crosscheck-summary.json')):
+        if not (path.startswith('/api/') or (data is None and path in ('/static/crosscheck-summary.json', '/openapi.json'))):
             raise ValueError('Only /api/ and /mcp calls can use the local browser bridge')
         if path == '/api/group-relations':
             group_bodies.append(json.dumps(data, ensure_ascii=False))
         response = client.get(path) if data is None else client.post(path, json=data)
         counts['requests'] += 1
-        return {'ok': response.is_success, 'status': response.status_code, 'data': response.json(), 'text': response.text}
+        return {'ok': response.is_success, 'status': response.status_code, 'data': response.json(), 'text': response.text,
+                'type': response.headers.get('content-type', '')}
 
     with sync_playwright() as engine:
         browser = engine.chromium.launch(executable_path=str(args.chromium), headless=True,
@@ -204,6 +207,8 @@ def main() -> None:
             page.add_script_tag(content=vault_js)
             page.add_script_tag(content=cities_js)
             page.add_script_tag(content=i18n_js)
+            # The full time-zone list keeps the page's default zone selected.
+            assert page.locator('#timezone').input_value() == 'Asia/Shanghai'
             page.locator('#birth_city').select_option('温哥华')
             assert page.locator('#timezone').input_value() == 'America/Vancouver'
             assert page.locator('#longitude').input_value() == '-123.1207'
@@ -2440,6 +2445,116 @@ def main() -> None:
             page.wait_for_function(f"() => {level} === {json.dumps(' '.join(m[0] + (chr(34) + '廟' + chr(34) if m[0] == '庙' else chr(34) + '陥' + chr(34) if m[0] == '陷' else m[1:]) for m in marks))}", timeout=10000)
             page.locator('#ui-language').select_option('zh-CN')
             page.wait_for_function(f"() => {level} === {json.dumps(' '.join(marks))}", timeout=10000)
+            # Every IANA zone is listed (common ones first, then by region with the UTC offset); a saved zone the list
+            # lacks is added back instead of leaving the select blank.
+            assert page.locator('#timezone optgroup').count() >= 5
+            assert page.locator('#timezone option[value="Asia/Singapore"]').count() == 1
+            assert 'UTC+8' in page.locator('#timezone option[value="Asia/Singapore"]').inner_text()
+            # Chromium's old CLDR names are listed under the current IANA name.
+            assert page.locator('#timezone option[value="Asia/Kolkata"]').count() == 1
+            assert page.locator('#timezone option[value="Asia/Calcutta"]').count() == 0
+            page.evaluate("() => setInput({birth_datetime: '1990-05-01T08:00', timezone: 'US/Pacific'})")
+            assert page.locator('#timezone').input_value() == 'US/Pacific'
+            # 1988-09-11 01:30 happened twice in China (daylight saving ended that night): the page asks which one,
+            # then casts with the offset chosen.
+            page.evaluate("() => setInput({birth_datetime: '1988-09-11T01:30', timezone: 'Asia/Shanghai', gender: 'female'})")
+            page.locator('#run-btn').click()
+            page.locator('#dst-choice-1').wait_for(timeout=10000)
+            assert page.evaluate("document.activeElement.id") == 'dst-choice-0'
+            assert '+09:00' in page.locator('#dst-choice-0').inner_text() and '+08:00' in page.locator('#dst-choice-1').inner_text()
+            page.screenshot(path=str(screenshot_dir / '42-dst-choice.png'))
+            page.locator('#dst-choice-1').click()
+            page.wait_for_function("() => currentInput && currentInput.birth_datetime === '1988-09-11T01:30+08:00'", timeout=30000)
+            assert page.locator('#dst-choice').is_hidden() and page.locator('#error').is_hidden()
+            # A different clock time asks again; the chosen offset belonged to 01:30 only.
+            page.locator('#birth_datetime').fill('1988-09-11T01:45')
+            assert page.evaluate('readInput().birth_datetime') == '1988-09-11T01:45'
+            # A skipped clock time: Samoa skipped all of 30 December 2011, so the equivalent clock reading is on
+            # another day and is shown with its date. The offsets come from the server's refusal, not the browser.
+            page.evaluate("() => setInput({birth_datetime: '2011-12-30T12:00', timezone: 'Pacific/Apia', gender: 'female'})")
+            page.locator('#run-btn').click()
+            page.locator('#dst-choice-1').wait_for(timeout=10000)
+            assert '2011-12-31 12:00' in page.locator('#dst-choice-0').inner_text(), page.locator('#dst-choice').inner_text()
+            assert '2011-12-29 12:00' in page.locator('#dst-choice-1').inner_text() and page.locator('#error').is_hidden()
+            # Any change of the time or zone takes the question away, also a value the page sets itself (时辰不详, a lunar date).
+            page.evaluate("() => {document.getElementById('birth_datetime').value = '2011-12-31T12:00'; updateStaleBirthNotice();}")
+            assert page.locator('#dst-choice').is_hidden()
+
+            # The API reference at /docs is the project's own page (Swagger's CDN scripts are blocked by the CSP):
+            # groups, field tables, and a "try it" request that really runs, on a phone-width screen.
+            api_html = (ROOT / 'static/api.html').read_text(encoding='utf-8')
+            api_html = re.sub(r'<script\s+src="/static/.*?"(\s+defer)?></script>', '', api_html)
+            api_html = re.sub(r'<link\s+rel="stylesheet"\s+href="/static/style.css"\s*/>', '', api_html)
+            docs = browser.new_page(viewport={'width': 390, 'height': 844}, device_scale_factor=1)
+            docs.on('pageerror', lambda error: errors.append('docs: ' + str(error)))
+            docs.set_content(api_html)
+            docs.add_style_tag(content=css)
+            docs.expose_function('apiBridge', call_api)
+            docs.evaluate('''() => {
+              const map={};
+              Object.defineProperty(window,'localStorage',{value:{getItem:k=>map[k]??null,setItem:(k,v)=>{map[k]=String(v)},removeItem:k=>{delete map[k]}},configurable:true});
+              window.fetch=async(path,opt)=>{
+                const data=opt && opt.body ? JSON.parse(opt.body) : null;
+                const result=await window.apiBridge(path,data,opt && opt.headers ? opt.headers : null);
+                return {ok:result.ok,status:result.status,json:async()=>result.data,text:async()=>result.text,
+                        headers:{get:name=>name.toLowerCase()==='content-type'?result.type:null}};
+              };
+            }''')
+            for script in (theme_js, i18n_extra_js, api_js, i18n_js):
+                docs.add_script_tag(content=script)
+            docs.locator('.api-op').first.wait_for(timeout=10000)
+            assert docs.locator('.api-group').count() == 8 and docs.locator('#api-groups a').count() == 8
+            assert docs.locator('#api-groups a').first.inner_text().startswith('命盘与报告')
+            op = docs.locator('#op-post-api-time-audit')
+            op.locator('summary').click()
+            op.locator('.api-fields').first.wait_for(timeout=10000)  # built when first opened
+            assert '太阳时审计' in op.locator('summary').inner_text()
+            assert json.loads(op.locator('textarea').input_value())['birth']['longitude'] == 104.07
+            op.locator('.api-send').click()
+            op.locator('.api-status .api-code').wait_for(timeout=30000)
+            assert op.locator('.api-status .api-code').inner_text() == '200', op.locator('.api-status').inner_text()
+            assert '"system": "time-basis-audit"' in op.locator('.api-out').inner_text()
+            # A broken body is caught in the page, with the focus put back on it.
+            op.locator('textarea').fill('{"birth": ')
+            op.locator('.api-send').click()
+            assert 'JSON 格式有误' in op.locator('.api-status').inner_text() and op.locator('.api-out').is_hidden()
+            assert docs.evaluate('document.activeElement.tagName') == 'TEXTAREA'
+            # Path parameters are filled in and sent in the URL.
+            lunar = docs.locator('#op-get-api-lunar-day')
+            lunar.locator('summary').click()
+            lunar.locator('input').fill('2026-02-17')
+            lunar.locator('.api-send').click()
+            lunar.locator('.api-status .api-code').wait_for(timeout=30000)
+            assert '"month": 1' in lunar.locator('.api-out').inner_text() and '"day": 1' in lunar.locator('.api-out').inner_text()
+            # A field name finds its endpoint; a type name jumps to the structure and opens it.
+            docs.locator('#api-filter').fill('reference_school')
+            assert docs.locator('.api-op:not([hidden])').count() == 1 and docs.locator('#api-count').inner_text().startswith('1 / ')
+            # Fields nested in the body count too: longitude sits inside birth.
+            docs.locator('#api-filter').fill('longitude')
+            assert docs.locator('#op-post-api-time-audit').is_visible()
+            docs.locator('#api-filter').fill('')
+            # A stray % in the address is ignored rather than breaking the page.
+            docs.evaluate("() => {location.hash = '100%';}")
+            docs.wait_for_timeout(200)
+            op.locator('.api-op-body h4 .api-ref').click()
+            docs.wait_for_function("() => document.getElementById('schema-TimeAuditRequest').open", timeout=5000)
+            assert docs.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth')
+            docs.locator('#ui-language').select_option('en')
+            docs.wait_for_function("() => document.documentElement.lang === 'en' && document.title === 'API reference · XuanShu'", timeout=10000)
+            assert 'Try it' in op.inner_text() and 'Birth-time checks' in docs.locator('#api-groups').inner_text()
+            out_name = op.locator('.api-out').get_attribute('aria-labelledby')
+            assert docs.locator('#' + out_name).inner_text() == 'Response body'
+            # A copy button gets its own label back after "Copied", still translatable into the next language.
+            curl = op.locator('.api-actions .api-ghost').first
+            curl.click()
+            docs.wait_for_function("(b) => b.textContent === 'Copy curl'", arg=curl.element_handle(), timeout=10000)
+            docs.locator('#ui-language').select_option('ja')
+            docs.wait_for_function("(b) => b.textContent !== 'Copy curl' && b.textContent.includes('curl')", arg=curl.element_handle(), timeout=10000)
+            docs.locator('#ui-language').select_option('en')
+            docs.wait_for_function("() => document.documentElement.lang === 'en'", timeout=10000)
+            assert docs.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth')
+            docs.screenshot(path=str(screenshot_dir / '43-api-docs-mobile-english.png'), full_page=True)
+            docs.close()
             if errors:
                 raise AssertionError(f'Chromium page errors: {errors}')
             if counts['requests'] < 15:

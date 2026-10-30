@@ -20,7 +20,7 @@ import opencc
 ROOT = Path(__file__).resolve().parents[1]
 # i18n-extra.js holds English/Japanese values; its Chinese keys already occur in the other sources.
 # The glossary's text reaches the page through structured_report, so it is converted too.
-SOURCES = [p for p in ROOT.glob('static/*.js') if p.name != 'i18n-extra.js'] + [ROOT / 'static/index.html', *ROOT.glob('app/*.py'),
+SOURCES = [p for p in ROOT.glob('static/*.js') if p.name != 'i18n-extra.js'] + [*ROOT.glob('static/*.html'), *ROOT.glob('app/*.py'),
                                                                               ROOT / 'docs/rules/glossary.md']
 OUT = ROOT / 'static/zh-tw-map.js'
 CJK = re.compile('[\u3400-\u9fff]')

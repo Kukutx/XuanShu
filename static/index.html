@@ -52,6 +52,8 @@
           <label for="birth_datetime">公历出生日期与时间</label>
           <input id="birth_datetime" name="birth_datetime" type="datetime-local" value="2000-08-16T04:00" min="1901-01-01T00:00" max="2099-12-31T23:59" required />
           <div class="field-help">填出生地当时的钟表时间（时间格式跟随浏览器语言，下午 3 点就是 15:00 或 3:00 PM）。只知道农历生日或不知道时辰，用下面两个选项。</div>
+          <input type="hidden" id="utc_offset" value="" />
+          <div id="dst-choice" class="dst-choice" role="group" aria-labelledby="dst-choice-title" hidden></div>
           <label class="check-line hour-unknown-line"><input type="checkbox" id="hour_unknown" /> 不知道出生时辰</label>
           <p class="field-help" id="hour-unknown-help" hidden>时间已按 12:00 占位。时柱和紫微宫位会随时辰变化，命盘页会列出十二个时辰的对照，并标出不受时辰影响的部分。</p>
           <details class="form-section" id="lunar-entry">
@@ -74,7 +76,7 @@
           <p class="demo-data-notice" id="demo-birth-warning" role="status">当前使用演示出生资料。个人分析前请替换为实际出生时间。</p>
           <label for="birth_city">出生城市（选填，自动填写时区和经度）</label>
           <select id="birth_city"><option value="">手动填写</option></select>
-          <div class="form-row">
+          <div class="form-row tz-row">
             <div>
               <label for="timezone">时区</label>
               <select id="timezone" name="timezone">
