@@ -4667,9 +4667,37 @@
   "(question particle)",
   "（疑問の助詞）"
  ],
+ "周一": [
+  "Mon",
+  "月"
+ ],
+ "周三": [
+  "Wed",
+  "水"
+ ],
+ "周二": [
+  "Tue",
+  "火"
+ ],
+ "周五": [
+  "Fri",
+  "金"
+ ],
+ "周六": [
+  "Sat",
+  "土"
+ ],
+ "周四": [
+  "Thu",
+  "木"
+ ],
  "周岁": [
   "years old",
   "歳"
+ ],
+ "周日": [
+  "Sun",
+  "日"
  ],
  "呼和浩特": [
   "Hohhot",
@@ -6414,6 +6442,10 @@
  "展开这一年的十二个流月": [
   "Show this year's twelve monthly pillars",
   "この年の十二か月の月柱を開く"
+ ],
+ "展开这个月每天的日柱": [
+  "Show this month's daily pillars",
+  "この月の毎日の日柱を開く"
  ],
  "山下火": [
   "Fire Below the Mountain",
@@ -8170,6 +8202,10 @@
  "日柱从 2000-01-01 戊午日起逐日累计。": [
   "The day pillar counts day by day from 2000-01-01, a Wu Wu day.",
   "日柱は 2000-01-01（戊午日）から一日ずつ数えます。"
+ ],
+ "日柱在午夜换日；交节当天列在本月": [
+  "The day pillar changes at midnight; the day of the jie is listed in this month",
+  "日柱は午前0時に替わります。節入りの日はこの月に入れています"
  ],
  "日柱日期界": [
   "Day pillar date boundary",
@@ -10239,6 +10275,14 @@
   "The few day- and hour-layer differences all fall in months where XuanShu and lunar_python give different lunar dates (iztro takes its lunar dates from lunar_python): one day apart means one palace apart.",
   "流日・流時のわずかな差は、すべて玄枢と lunar_python の旧暦日付が異なる月にあります（iztro の旧暦は lunar_python から）。日数が一日違えば宮も一つずれます。"
  ],
+ "流日干支": [
+  "Daily pillars",
+  "流日の干支"
+ ],
+ "流日按公历日列出，日柱在午夜换日；交节那天整天列在新月下，交节时刻之前其实仍属上个月。": [
+  "Daily pillars are listed by civil date, the day pillar changing at midnight; the day of a jie is listed whole under the new month, though before the jie's moment it still belongs to the previous one.",
+  "流日は暦日ごとに並べ、日柱は午前0時に替わります。節入りの日は丸ごと新しい月に入れていますが、節入りの時刻より前は実際には前の月に属します。"
+ ],
  "流日日期": [
   "Day layer date",
   "流日の日付"
@@ -10246,6 +10290,10 @@
  "流日流曜": [
   "Day period stars",
   "流日の流曜"
+ ],
+ "流日计算失败：": [
+  "Daily pillars failed: ",
+  "流日の計算に失敗しました："
  ],
  "流时": [
   "Hour layer",
@@ -10502,6 +10550,10 @@
  "点线：": [
   "Dotted lines:",
   "点線："
+ ],
+ "点节令可展开这个月每天的日柱。": [
+  "Click a solar term to show that month's daily pillars.",
+  "節気をクリックすると、その月の毎日の日柱を表示します。"
  ],
  "焦点宫宫干飞化": [
   "Focus palace stem transformations",

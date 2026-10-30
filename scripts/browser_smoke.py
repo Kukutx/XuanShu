@@ -2106,6 +2106,20 @@ def main() -> None:
             assert page.evaluate('''() => dayunMonths.months[0].pillar === '丙戊庚壬甲'['甲乙丙丁戊己庚辛壬癸'.indexOf(dayunMonths.pillar[0]) % 5] + '寅'
               && dayunMonths.months.every((m, i, all) => i === 11 || m.end_local_exclusive === all[i + 1].start_local)''')
             page.locator('#dayun-months').screenshot(path=str(screenshot_dir / '49-dayun-months.png'))
+            # A month opens its days the same way: one card per civil day from the day of its jie, consecutive dates,
+            # the first marked as the jie's day; opening it again closes them.
+            first_month = page.locator('#dayun-month-1')
+            first_month.click()
+            page.locator('#dayun-day-grid .dy-day').first.wait_for(timeout=30000)
+            assert first_month.get_attribute('aria-expanded') == 'true' and page.evaluate('document.activeElement.id') == 'dayun-month-1'
+            assert 28 <= page.locator('#dayun-day-grid .dy-day').count() <= 31 and page.locator('#dayun-day-grid .dy-day.is-jie').count() == 1
+            assert page.locator('#dayun-day-grid .dy-day').first.get_attribute('class').count('is-jie') == 1
+            assert page.evaluate('''() => dayunDays.days.every((d, i, all) => i === 0 || Date.parse(d.date) - Date.parse(all[i - 1].date) === 864e5)
+              && dayunDays.days[0].date === dayunMonths.months[0].start_local.slice(0, 10)''')
+            page.locator('#dayun-days').screenshot(path=str(screenshot_dir / '50-dayun-days.png'))
+            first_month.click()
+            page.wait_for_function("() => !document.getElementById('dayun-days')", timeout=10000)
+            assert first_month.get_attribute('aria-expanded') == 'false'
             first_year.click()
             page.wait_for_function("() => !document.getElementById('dayun-months')", timeout=10000)
             assert first_year.get_attribute('aria-expanded') == 'false' and page.evaluate('document.activeElement.id') == first_year.get_attribute('id')

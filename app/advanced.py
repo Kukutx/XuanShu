@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .astronomy import TERMS, from_jd, solar_term_jd, jie_months, jie_neighbors
 from .engines import (BirthInput, BRANCHES, STEMS, normalized_dt, calculate_bazi,
                       calculate_ziwei, hour_branch_index, natal_interactions)
+from .features import _day_pillar
 from .shensha import rule_notes
 from .timebasis import time_basis
 
@@ -29,15 +30,18 @@ class DayunRequest(BaseModel):
     include_years: bool = Field(default=False, description='Also list each civil year of every period with its pillar read against the natal chart')
     hour_unknown: bool = Field(default=False, description='Birth hour unknown: relations with the hour pillar are left out')
     month_year: int | None = Field(default=None, ge=1901, le=2099, description='Also list the twelve month pillars of this year, counted from Lichun, each from the jie that opens it to the next, read against the natal chart')
+    day_month: int | None = Field(default=None, ge=1, le=12, description='With month_year: also list every civil day of this month of that year (1 is the Yin month that opens at Lichun) with its day pillar read against the natal chart')
 
     @model_validator(mode='after')
     def require_direction(self):
         if self.birth.gender == 'unspecified' and self.direction_override is None:
             raise ValueError('Specify male/female in birth.gender or an explicit direction_override; direction is never guessed')
+        if self.day_month is not None and self.month_year is None:
+            raise ValueError('day_month needs month_year: it picks a month of that year')
         return self
 
 
-def month_pillars(year: int, natal: dict, keys: tuple[str, ...], zone) -> dict:
+def month_pillars(year: int, natal: dict, keys: tuple[str, ...], zone, day_month: int | None = None) -> dict:
     """The twelve month pillars of a 立春 year: the 寅 month opens at 立春 and each month runs to the next jie. The
     stems follow from the year stem by the five-tiger rule (五虎遁): 甲己之年丙作首, so 寅 takes 丙 in a 甲 or 己 year."""
     year_stem = (year - 4) % 10
@@ -51,6 +55,17 @@ def month_pillars(year: int, natal: dict, keys: tuple[str, ...], zone) -> dict:
                        'end_local_exclusive': jie[i + 1][1].astimezone(zone).isoformat(timespec='minutes'),
                        # As with the years, the hidden stems stay with the decade.
                        **{k: v for k, v in natal_interactions(pillar, natal, keys).items() if k != 'hidden_stems'}})
+    if day_month is not None:
+        # The civil days from the one the jie falls on to the one before the next jie: the jie's day is listed under
+        # the new month, though before the jie's moment it still belongs to the one before. Days change at midnight.
+        month = months[day_month - 1]
+        first_day = jie[day_month - 1][1].astimezone(zone).date()
+        count = (jie[day_month][1].astimezone(zone).date() - first_day).days
+        # A date the zone skipped (Samoa went from 29 to 31 December 2011) has no day to list.
+        exists = lambda day: datetime(day.year, day.month, day.day, 12, tzinfo=zone).astimezone(timezone.utc).astimezone(zone).date() == day
+        month['days'] = [{'date': day.isoformat(), 'jie_day': n == 0,
+                          **{k: v for k, v in natal_interactions(_day_pillar(day), natal, keys).items() if k != 'hidden_stems'}}
+                         for n in range(count) if exists(day := first_day + timedelta(days=n))]
     return {'year': year, 'year_pillar': STEMS[year_stem] + BRANCHES[(year - 4) % 12], 'months': months}
 
 
@@ -108,7 +123,8 @@ def dayun_sequence(request: DayunRequest) -> dict:
             periods[-1]['years'] = [{'year': y, **{k: v for k, v in natal_interactions(STEMS[(y - 4) % 10] + BRANCHES[(y - 4) % 12], natal, keys).items()
                                                    if k != 'hidden_stems'}}
                                     for y in range(first, last)]
-    flow_months = month_pillars(request.month_year, natal, keys, birthday.tzinfo) if request.month_year is not None else None
+    flow_months = (month_pillars(request.month_year, natal, keys, birthday.tzinfo, request.day_month)
+                   if request.month_year is not None else None)
     months_float = traditional_years * 12
     months_whole = floor(months_float)
     nominal_days = round((months_float - months_whole) * 30, 1)
@@ -133,13 +149,15 @@ def dayun_sequence(request: DayunRequest) -> dict:
         'shensha_rules': rule_notes({star['name'] for period in periods
                                      for item in [period['natal_interactions'], *period.get('years', [])]
                                      for star in item['shensha']}
-                                    | {star['name'] for month in (flow_months or {}).get('months', []) for star in month['shensha']}),
+                                    | {star['name'] for month in (flow_months or {}).get('months', [])
+                                       for item in [month, *month.get('days', [])] for star in item['shensha']}),
         'method': {'direction': 'year stem yin/yang + gender, or explicit override',
                    'jie': '12 month-boundary jie, not 24 solar terms',
                    'age_conversion': 'three exact elapsed days per nominal traditional year',
                    'civil_projection': '365.2425 days per nominal age-year; approximate, not a calendar school standard',
                    'annual_pillars': 'with include_years: the civil years from the one each period begins in to the one the next begins in; the year of a change is listed under the new period',
                    'month_pillars': 'with month_year: the twelve months of that year from Lichun, the Yin month first, each from its jie to the next; stems from the year stem by the five-tiger rule',
+                   'day_pillars': 'with day_month: the civil days of that month, from the day its jie falls on to the day before the next jie; the day pillar changes at midnight',
                    'shensha': 'stars on each luck or year pillar, read from the natal day stem, year stem, year and day branches and month branch (Kui Gang belongs to the natal day pillar only)'},
         'limitations': [
             '大运是传统十年干支标签，本工具不据此预测真实事件、吉凶、健康、财运或关系。',
@@ -150,6 +168,7 @@ def dayun_sequence(request: DayunRequest) -> dict:
             '大运流年的神煞按原局日干、年干、年支、日支、月支查，只列名称与查法出处，不断吉凶。',
             '流年按常见排法从交运那一年列起：交运当年整年记在新大运下，交运日之前的几个月实际仍属上一步大运。',
             '流月以十二节交接换月、立春起寅月，月干按五虎遁从年干起；与流年一样只读出关系标签，不断吉凶。',
+            '流日按公历日列出，日柱在午夜换日；交节那天整天列在新月下，交节时刻之前其实仍属上个月。',
         ],
     }
 
