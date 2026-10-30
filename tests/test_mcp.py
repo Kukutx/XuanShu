@@ -165,8 +165,15 @@ def test_completion_suggests_prompt_focus_and_template_years():
     years=complete({'type':'ref/resource','uri':'astro://solar-terms/{year}'},'year','')['result']['completion']
     assert len(years['values'])==100 and years['values'][0]=='1901' and years['total']==199 and years['hasMore'] is True
     assert complete({'type':'ref/resource','uri':'astro://solar-terms/{year}'},'year','209')['result']['completion']['values']==[str(y) for y in range(2090,2100)]
-    for ref in ({'type':'ref/prompt','name':'nope'},{'type':'ref/resource','uri':'astro://nope/{x}'},{'type':'ref/tool'}):
-        assert complete(ref,'focus','')['error']['code']==-32602, ref
+    # Unknown or malformed references are invalid parameters, never a server error.
+    for ref in ({'type':'ref/prompt','name':'nope'},{'type':'ref/resource','uri':'astro://nope/{x}'},{'type':'ref/tool'},
+                {'type':'ref/resource','uri':['astro://solar-terms/{year}']},{'type':'ref/resource','uri':{}},
+                {'type':'ref/prompt','name':['explain-ziwei']},{'type':['ref/prompt']}):
+        reply=CLIENT.post('/mcp',json=rpc('completion/complete',{'ref':ref,'argument':{'name':'focus','value':''}}))
+        assert reply.status_code==200 and reply.json()['error']['code']==-32602, ref
+    for argument in ({'name':'year','value':5}, {'name':['year']}, 'year'):
+        reply=CLIENT.post('/mcp',json=rpc('completion/complete',{'ref':{'type':'ref/resource','uri':'astro://solar-terms/{year}'},'argument':argument}))
+        assert reply.json()['error']['code']==-32602, argument
 
 
 def test_agent_page_reads_templates_and_follows_rule_links():

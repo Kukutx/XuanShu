@@ -182,12 +182,12 @@ def complete(params: dict) -> dict:
         raise ValueError('completion/complete requires ref and argument {name, value}')
     typed = argument.get('value', '')
     if ref.get('type') == 'ref/prompt':
-        if not any(item['name'] == ref.get('name') for item in PROMPTS):
+        if not isinstance(ref.get('name'), str) or not any(item['name'] == ref['name'] for item in PROMPTS):
             raise ValueError(f"Unknown prompt: {ref.get('name')}")
         options = PROMPT_FOCUS.get(ref['name'], ()) if argument['name'] == 'focus' else ()
         values = [v for v in options if v.startswith(typed)] or [v for v in options if typed in v]
     elif ref.get('type') == 'ref/resource':
-        if ref.get('uri') not in {t['uriTemplate'] for t in RESOURCE_TEMPLATES}:
+        if not isinstance(ref.get('uri'), str) or ref['uri'] not in {t['uriTemplate'] for t in RESOURCE_TEMPLATES}:
             raise ValueError(f"Unknown resource template: {ref.get('uri')}")
         values = [str(y) for y in range(1901, 2100) if str(y).startswith(typed)] if argument['name'] == 'year' else []
     else:
