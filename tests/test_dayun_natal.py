@@ -1,6 +1,8 @@
 """Luck and year pillars read against the natal chart."""
 from __future__ import annotations
 
+from datetime import datetime, timedelta
+
 from fastapi.testclient import TestClient
 
 from app.advanced import DayunRequest, dayun_sequence
@@ -55,8 +57,52 @@ def test_dayun_periods_and_years():
 
 
 def test_rest_and_mcp_agree():
-    args = {'birth': BIRTH, 'periods': 2, 'include_years': True}
+    args = {'birth': BIRTH, 'periods': 2, 'include_years': True, 'month_year': 2026}
     rest = TestClient(app).post('/api/dayun', json=args).json()
     reply = process_rpc({'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call', 'params': {'name': 'bazi_dayun', 'arguments': args}})
     mcp = reply['result']['structuredContent']
     assert rest['periods'] == mcp['periods'] and len(rest['periods'][1]['years']) == 10
+    assert rest['flow_months'] == mcp['flow_months'] and len(mcp['flow_months']['months']) == 12
+
+
+def test_month_pillars_of_a_year():
+    reply = dayun_sequence(DayunRequest(birth=BirthInput(**BIRTH), periods=1, month_year=2026))
+    flow = reply['flow_months']
+    months = flow['months']
+    assert (flow['year'], flow['year_pillar']) == (2026, '丙午') and [m['month'] for m in months] == list(range(1, 13))
+    # 丙辛之岁寻庚上: the 寅 month of a 丙 year is 庚寅, and the months run on through the cycle to 辛丑.
+    assert [m['pillar'] for m in months] == ['庚寅', '辛卯', '壬辰', '癸巳', '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑']
+    assert [m['jie'] for m in months] == ['立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪', '小寒']
+    # Each month ends where the next begins, at the exact jie, and the twelfth ends at the next 立春.
+    assert all(a['end_local_exclusive'] == b['start_local'] for a, b in zip(months, months[1:]))
+    assert months[0]['start_local'].startswith('2026-02-04') and months[-1]['end_local_exclusive'].startswith('2027-02-04')
+    # A chart cast two days into each month has that month pillar.
+    for m in months:
+        inside = (datetime.fromisoformat(m['start_local']) + timedelta(days=2)).replace(tzinfo=None).isoformat(timespec='minutes')
+        assert calculate_bazi(BirthInput(birth_datetime=inside, timezone='Asia/Shanghai'))['pillars']['month']['text'] == m['pillar']
+    # Read against the natal chart like the years, without the hidden stems; their stars have rules too.
+    assert months[4]['branch_relations'] == [{'pillar': 'day', 'branch': '午', 'labels': ['同支', '相刑']}] and 'hidden_stems' not in months[0]
+    assert {s['name'] for m in months for s in m['shensha']} <= {r['name'] for r in reply['shensha_rules']}
+    assert 'flow_months' not in dayun_sequence(DayunRequest(birth=BirthInput(**BIRTH), periods=1))
+
+
+def test_month_stems_follow_the_year_stem():
+    # 甲己之年丙作首, 乙庚之岁戊为头, 丙辛之岁寻庚上, 丁壬壬寅顺水流, 若问戊癸何处起, 甲寅之上好追求.
+    firsts = {year: dayun_sequence(DayunRequest(birth=BirthInput(**BIRTH), periods=1, month_year=year))['flow_months']['months'][0]['pillar']
+              for year in (2024, 2025, 2026, 2027, 2028, 2029, 2030)}
+    assert firsts == {2024: '丙寅', 2025: '戊寅', 2026: '庚寅', 2027: '壬寅', 2028: '甲寅', 2029: '丙寅', 2030: '戊寅'}
+    # The last supported year still ends at the following 立春.
+    last = dayun_sequence(DayunRequest(birth=BirthInput(**BIRTH), periods=1, month_year=2099))['flow_months']['months']
+    assert last[-1]['end_local_exclusive'].startswith('2100-02-0')
+    assert TestClient(app).post('/api/dayun', json={'birth': BIRTH, 'month_year': 1900}).status_code == 422
+
+
+def test_luck_page_years_open_their_months():
+    script = open('static/app.js', encoding='utf-8').read()
+    # Each year of the picked decade is a button that fetches and toggles its month pillars below the table.
+    assert "open.setAttribute('aria-expanded'" in script and 'month_year: year' in script and "panel.id = 'dayun-months'" in script
+    # Years past the supported range (the decades run on beyond 2099) stay plain; the request is matched by identity,
+    # so a reply for an earlier year or chart is dropped, and a failure belongs to its chart and year.
+    assert 'const FLOW_MONTH_LAST_YEAR = 2099;' in script and 'if (y.year > FLOW_MONTH_LAST_YEAR) first.textContent' in script
+    assert 'if (dayunMonthsLoad === load && dayunKey === key)' in script and "dayunMonthsError.key === dayunKey && inDecade(dayunMonthsError.year)" in script
+    assert '.dy-year-toggle[aria-expanded="true"]' in open('static/style.css', encoding='utf-8').read()

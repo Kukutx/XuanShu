@@ -6414,6 +6414,10 @@ const UI_EXTRA = {
 "Expand all ",
 "すべて展開 "
 ],
+"展开这一年的十二个流月": [
+"Show this year's twelve monthly pillars",
+"この年の十二か月の月柱を開く"
+],
 "山下火": [
 "Fire Below the Mountain",
 "山下火"
@@ -10286,6 +10290,14 @@ const UI_EXTRA = {
 "The month and day layers set Dou Jun from the birth hour, so they cannot be determined when the hour is unknown.",
 "流月・流日は生時で斗君を決めるため、時辰不明では決められません。"
 ],
+"流月以十二节交接换月、立春起寅月，月干按五虎遁从年干起；与流年一样只读出关系标签，不断吉凶。": [
+"Monthly pillars change at the twelve jie, the Yin month starting at Lichun, and their stems follow from the year stem by the five-tiger rule; like the years, only relation labels are read, with no good or bad fortune.",
+"流月は十二節の交わりで月が替わり、立春から寅月が始まります。月干は五虎遁により年干から起こします。流年と同じく関係のラベルだけを示し、吉凶は判断しません。"
+],
+"流月干支": [
+"Monthly pillars",
+"流月の干支"
+],
 "流月日期": [
 "Month layer date",
 "流月の日付"
@@ -10297,6 +10309,10 @@ const UI_EXTRA = {
 "流月的起法各派不同；这里用斗君，与 iztro 一致。": [
 "Schools start the month layer differently; this uses Dou Jun, as iztro does.",
 "流月の起こし方は流派で異なります。ここでは iztro と同じ斗君を使います。"
+],
+"流月计算失败：": [
+"Monthly pillars failed: ",
+"流月の計算に失敗しました："
 ],
 "流月（斗君）": [
 "Month layer (Dou Jun)",
@@ -10481,6 +10497,10 @@ const UI_EXTRA = {
 "点击左侧「生成命盘」开始计算": [
 "Click 'Generate chart' at left to start",
 "左側の「命盤を生成」をクリックして計算開始"
+],
+"点年份可展开这一年的十二个流月。": [
+"Click a year to show its twelve monthly pillars.",
+"年をクリックすると、その年の十二か月の月柱を表示します。"
 ],
 "点线：": [
 "Dotted lines:",
@@ -11217,6 +11237,10 @@ const UI_EXTRA = {
 "立春等节令交接": [
 "Solar-term transitions such as Start of Spring (Lichun)",
 "立春などの節気の切り替わり"
+],
+"立春起寅月，每月从节令交接时刻算起": [
+"Yin month from Lichun; each month starts at the exact moment of its jie",
+"立春から寅月、各月は節入りの時刻から数えます"
 ],
 "立秋": [
 "Start of Autumn (Liqiu)",

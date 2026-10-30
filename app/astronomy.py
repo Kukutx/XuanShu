@@ -210,6 +210,13 @@ def _jie_around_year(year: int) -> tuple[tuple[str, datetime], ...]:
     )
 
 
+def jie_months(year: int) -> tuple[tuple[str, datetime], ...]:
+    """The 13 jie that bound the twelve solar months of a 立春 year: 立春 of `year` through 小寒 of the next, then
+    the next 立春 (where the twelfth month ends)."""
+    following = _jie_around_year(year + 1)
+    return _jie_around_year(year)[1:] + following[:2]
+
+
 def jie_neighbors(instant: datetime) -> tuple[tuple[str, datetime], tuple[str, datetime]]:
     """Find the previous/current and next 12-jie boundaries by UTC instant.
 
