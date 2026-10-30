@@ -22,7 +22,7 @@ def _tables():
 def test_scripts_load_in_dependency_order():
     html = TestClient(app).get('/').text
     order = re.findall(r'<script src="/static/([\w.-]+)" defer>', html)
-    assert order == ['markdown.js', 'chat.js', 'app.js', 'vault.js', 'cities.js', 'tips.js', 'i18n.js']
+    assert order == ['markdown.js', 'chat.js', 'app.js', 'vault.js', 'cities.js', 'tips.js', 'datepicker.js', 'i18n.js']
     assert 'id="ui-language"' in html
     assert TestClient(app).get('/static/i18n.js').status_code == 200
 
