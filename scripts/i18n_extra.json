@@ -127,6 +127,18 @@
   " people",
   " 人"
  ],
+ " 件人生事件": [
+  " life event(s)",
+  " 件の人生の出来事"
+ ],
+ " 份档案": [
+  " profile(s)",
+  " 件のプロフィール"
+ ],
+ " 份档案。": [
+  " profile(s). ",
+  " 件のプロフィールがあります。"
+ ],
  " 位": [
   " places",
   " 件"
@@ -291,13 +303,13 @@
   " internal consistency checks",
   " 件の内部整合性チェック"
  ],
- " 条档案替换当前浏览器档案，确定吗？": [
-  " profile(s) will replace the profiles in this browser. Continue?",
-  " 件のプロフィールでこのブラウザのプロフィールを置き換えます。よろしいですか？"
- ],
  " 条观察": [
   " observations",
   " 件の観察"
+ ],
+ " 条记忆": [
+  " memory note(s)",
+  " 件の記憶"
  ],
  " 查农历则为 ": [
   " when looked up in the lunar calendar, it is ",
@@ -2207,17 +2219,9 @@
   "Transformations started from one palace's stem, seeing which palace each transformed star falls in; landing back in the same palace is called self-transformation.",
   "ある宮の宮干から四化を起こし、四化星がどの宮に入るかを見ること。本宮に戻るものを自化と呼びます。"
  ],
- "件人生事件、": [
-  "life event(s), ",
-  "件の人生の出来事、"
- ],
  "任意权重下首位都不变": [
   "The leader holds at any weight",
   "どの重みでも首位は変わりません"
- ],
- "份档案、": [
-  "profile(s), ",
-  "件のプロフィール、"
  ],
  "伏兵": [
   "Fu Bing",
@@ -3823,10 +3827,6 @@
   "Wei (Danger)",
   "危"
  ],
- "即将使用备份中的 ": [
-  "The backup’s ",
-  "バックアップの "
- ],
  "历史时区和地理太阳时校正取决于输入是否准确。": [
   "Historical time zones and solar-time correction depend on accurate input.",
   "歴史的なタイムゾーンと太陽時の補正は入力の正確さに左右されます。"
@@ -3870,6 +3870,10 @@
  "原局有不定的柱，不比较": [
   "Natal chart has an uncertain pillar; not compared",
   "原局に未確定の柱があるため比べない"
+ ],
+ "原有内容已被替换。": [
+  "the previous contents were replaced.",
+  "元の内容は置き換えられました。"
  ],
  "原生对照要用同一份出生资料：请先用这份资料点「生成命盘」，再计算专业盘。": [
   "The comparison needs the same birth details: generate the chart with these details first, then compute the professional chart.",
@@ -4054,6 +4058,10 @@
  "叠加农历年（留空不叠加）": [
   "Overlay lunar year (leave blank for none)",
   "重ねる旧暦年（空欄で重ねない）"
+ ],
+ "口令不会保存，也不会上传服务器。": [
+  "the passphrase is neither saved nor uploaded to the server.",
+  "パスフレーズは保存もサーバーへのアップロードもされません。"
  ],
  "另有": [
   "Another",
@@ -5002,6 +5010,14 @@
  "备份格式或 PBKDF2 参数不受支持": [
   "Unsupported backup format or PBKDF2 parameters",
   "バックアップ形式または PBKDF2 パラメータに未対応"
+ ],
+ "备份超过 4 MB 上限，多半是已保存的对话太长；请先清空部分对话再导出": [
+  "The backup exceeds the 4 MB limit, most likely because of long saved conversations; clear some of them and export again",
+  "バックアップが上限の 4 MB を超えています。保存済みの会話が長いことが主な原因です。一部の会話を消去してから再度エクスポートしてください"
+ ],
+ "备份里有 ": [
+  "The backup holds ",
+  "バックアップには "
  ],
  "备注只用于这一页和带进 AI 对话的草稿，不发给服务器；档案成员的备注点「保存到档案」后才存进本机浏览器，随档案一起删除和加密备份。": [
   "Notes are used only on this page and in the AI chat draft, never sent to the server. A profile member's note is stored in this browser only after you click “Save to profile”, and is deleted and backed up together with the profile.",
@@ -5963,9 +5979,21 @@
   "Chat input",
   "対話入力"
  ],
+ "导入失败：": [
+  "Import failed: ",
+  "インポートに失敗しました："
+ ],
  "导入失败：口令错误、文件损坏或 ": [
   "Import failed: wrong passphrase, corrupted file, or ",
   "インポート失敗：パスフレーズの誤り、ファイルの破損、または "
+ ],
+ "导入失败：口令错误或文件已损坏。": [
+  "Import failed: wrong passphrase or damaged file.",
+  "インポートに失敗しました：パスフレーズが違うか、ファイルが破損しています。"
+ ],
+ "导入失败：这不是玄枢的加密备份文件。": [
+  "Import failed: this is not a XuanShu encrypted backup file.",
+  "インポートに失敗しました：玄枢の暗号化バックアップファイルではありません。"
  ],
  "导出咨询报告 Markdown ↓": [
   "Export consultation report Markdown ↓",
@@ -8943,14 +8971,6 @@
   "Items",
   "件数"
  ],
- "条档案及其记忆、人生事件和对话替换当前浏览器里的这些内容，确定吗？": [
-  "profile(s), with their memory, life events and conversations, will replace those in this browser. Continue?",
-  "件のプロフィールとその記憶・人生の出来事・会話で、このブラウザ内の内容を置き換えます。よろしいですか？"
- ],
- "条记忆、": [
-  "memory note(s), ",
-  "件の記憶、"
- ],
  "来源": [
   "Source",
   "出典"
@@ -10291,6 +10311,10 @@
   "Ask about the next year in the same scenario",
   "同じシナリオで翌年について質問"
  ],
+ "用它们替换当前浏览器里的全部档案吗？": [
+  "Replace all profiles in this browser with them?",
+  "このブラウザ内のすべてのプロフィールを置き換えますか？"
+ ],
  "用当前出生资料生成命盘": [
   "Generate the chart from the current birth details",
   "現在の出生情報で命盤を作成"
@@ -10314,6 +10338,10 @@
  "用这个时间排盘": [
   "Cast a chart for this time",
   "この時間で命盤を出す"
+ ],
+ "用这些档案及其记忆、人生事件和对话替换当前浏览器里的全部内容吗？": [
+  "Replace everything in this browser with these profiles and their memory, life events and conversations?",
+  "これらのプロフィールとその記憶・人生の出来事・会話で、このブラウザ内の内容をすべて置き換えますか？"
  ],
  "田宅": [
   "Property",
@@ -13242,14 +13270,6 @@
  "；农历年": [
   "; lunar year",
   "；旧暦年"
- ],
- "；原有内容已被替换。": [
-  "; the previous contents were replaced.",
-  "。元の内容は置き換えられました。"
- ],
- "；口令不会保存，也不会上传服务器。": [
-  "; the passphrase is neither saved nor uploaded to the server.",
-  "。パスフレーズは保存もサーバーへのアップロードもされません。"
  ],
  "；同一瞬间北京日期 ": [
   "; Beijing date at the same instant ",

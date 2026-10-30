@@ -2448,6 +2448,33 @@ def main() -> None:
             page.keyboard.press('Escape')
             page.locator('#xs-confirm-no').wait_for(state='detached', timeout=5000)
             assert page.locator('#profiles option').count() == kept and page.evaluate("document.activeElement.id") == 'remove-profile'
+            # The encrypted backup's question and result translate piece by piece into whole English sentences.
+            pieces = page.evaluate("""() => [
+              ['备份里有 ', '1', ' 份档案。', '用这些档案及其记忆、人生事件和对话替换当前浏览器里的全部内容吗？'],
+              ['加密备份已恢复：', '1', ' 份档案', '、', '2', ' 条记忆', '、', '0', ' 件人生事件', '、', '1', ' 段已保存的对话', '；', '原有内容已被替换。'],
+            ].map(parts => parts.map(translateText).join(''))""")
+            assert pieces == ['The backup holds 1 profile(s). Replace everything in this browser with these profiles and their memory, life events and conversations?',
+                              'Encrypted backup restored: 1 profile(s), 2 memory note(s), 0 life event(s), 1 saved conversation(s); the previous contents were replaced.'], pieces
+            # After a restore the open conversation starts again from what was restored.
+            assert page.evaluate("() => {chatMessages = [{role: 'user', content: 'before the restore'}]; restartChat(); return chatMessages.length;}") == 0
+            # The memory panel starts each change from what is stored at the click: what a restore wrote while the panel
+            # was open is kept, and a row drawn before it removes nothing that came from the backup.
+            kept_memory = page.evaluate("""() => {
+              const id = document.getElementById('profiles').value, raw = localStorage.getItem(chatMemoryKey);
+              if (!id) return null;
+              const host = document.createElement('div'); document.body.append(host);
+              saveProfileMemory(id, {memory: ['旧的记忆'], life_events: [{date: '2018-09-01', title: '入职', note: ''}], keep_history: false});
+              renderMemoryPanel(host);
+              saveProfileMemory(id, {memory: ['恢复的记忆'], life_events: [{date: '2020-01-01', title: '搬家', note: ''}], keep_history: false});
+              host.querySelector('#chat-memory-input').value = '新的记忆';
+              host.querySelector('#chat-memory-add').click();
+              [...host.querySelectorAll('.chat-memory-row')].find(row => row.textContent.includes('入职')).querySelector('button').click();
+              const after = profileMemory(id);
+              host.remove();
+              if (raw === null) localStorage.removeItem(chatMemoryKey); else localStorage.setItem(chatMemoryKey, raw);
+              return after;
+            }""")
+            assert kept_memory['memory'] == ['恢复的记忆', '新的记忆'] and [e['title'] for e in kept_memory['life_events']] == ['搬家'], kept_memory
             page.screenshot(path=str(screenshot_dir / '30-results-english.png'), full_page=True)
             page.locator('#ui-language').select_option('ja')
             grid = page.locator('#ziwei-pair-grid').inner_text()
