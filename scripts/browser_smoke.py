@@ -27,6 +27,67 @@ from app.main import app
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def install_professional_stand_in(birth: dict) -> None:
+    """Put a stand-in for the optional iztro-py provider in sys.modules, built from XuanShu's own chart (test data
+    only). Like iztro-py 0.5 it dumps internal keys (soulPalace, ziweiMaj, wuHeavenly, ziEarthly) and carries an
+    i18n.t that turns them into Chinese, naming 仆役宫 交友宫 as iztro does; one star is moved to another palace, one
+    major star's brightness changed and one star only the stand-in places."""
+    import importlib.machinery
+    import types
+    from app.engines import BirthInput, calculate_ziwei
+    keys = dict(zip('子丑寅卯辰巳午未申酉戌亥', ('zi', 'chou', 'yin', 'mao', 'chen', 'si', 'wu', 'wei', 'shen', 'you', 'xu', 'hai')))
+    stems = dict(zip('甲乙丙丁戊己庚辛壬癸', ('jia', 'yi', 'bing', 'ding', 'wu', 'ji', 'geng', 'xin', 'ren', 'gui')))
+    palace_keys = {'命宫': 'soulPalace', '兄弟宫': 'siblingsPalace', '夫妻宫': 'spousePalace', '子女宫': 'childrenPalace',
+                   '财帛宫': 'wealthPalace', '疾厄宫': 'healthPalace', '迁移宫': 'surfacePalace', '仆役宫': 'friendsPalace',
+                   '官禄宫': 'careerPalace', '田宅宫': 'propertyPalace', '福德宫': 'spiritPalace', '父母宫': 'parentsPalace'}
+    star_keys = {'紫微': 'ziweiMaj', '天机': 'tianjiMaj', '太阳': 'taiyangMaj', '武曲': 'wuquMaj', '天同': 'tiantongMaj',
+                 '廉贞': 'lianzhenMaj', '天府': 'tianfuMaj', '太阴': 'taiyinMaj', '贪狼': 'tanlangMaj', '巨门': 'jumenMaj',
+                 '天相': 'tianxiangMaj', '天梁': 'tianliangMaj', '七杀': 'qishaMaj', '破军': 'pojunMaj',
+                 '左辅': 'zuofuMin', '右弼': 'youbiMin', '文昌': 'wenchangMin', '文曲': 'wenquMin'}
+    table = {('stars.major.' if v.endswith('Maj') else 'stars.minor.') + v: k for k, v in star_keys.items()}
+    table.update({'palaces.' + v: ('交友宫' if v == 'friendsPalace' else k) for k, v in palace_keys.items()})
+    table.update({'heavenlyStem.' + v + 'Heavenly': k for k, v in stems.items()})
+    table.update({'earthlyBranch.' + v + 'Earthly': k for k, v in keys.items()})
+    key = lambda n: star_keys.get(n, n)
+    minor = set('左辅 右弼 文昌 文曲 禄存 天马 擎羊 陀罗 火星 铃星 地空 地劫 天魁 天钺'.split())
+    z = calculate_ziwei(BirthInput(**birth))
+    hua = {t['star']: t['type'][-1] for t in z['birth_year_transformations']}
+    moved, dropped = '八座', '天贵'
+    palaces = []
+    for p in z['palaces']:
+        star = lambda n, kind: {'name': key(n), 'type': kind, 'brightness': p['star_brightness'].get(n, ''), 'mutagen': hua.get(n, '')}
+        aux = [n for n in p['auxiliary_stars'] if n not in (moved, dropped)]
+        palaces.append({'index': len(palaces), 'name': palace_keys[p['name']], 'is_body_palace': p['is_shen'],
+                        'heavenly_stem': stems[p['stem']] + 'Heavenly',
+                        'earthly_branch': keys[p['branch']] + 'Earthly', 'major_stars': [star(n, 'major') for n in p['main_stars']],
+                        'minor_stars': [star(n, 'soft') for n in aux if n in minor], 'adjective_stars': [star(n, 'adjective') for n in aux if n not in minor],
+                        'decadal': {'range': [p['decade']['start_age'], p['decade']['end_age']]}})
+    next(q for q in palaces if q['earthly_branch'] != keys[z['star_positions'][moved]] + 'Earthly')['adjective_stars'].append({'name': moved})
+    first = next(q['major_stars'][0] for q in palaces if q['major_stars'] and q['major_stars'][0]['brightness'])
+    first['brightness'] = '庙' if first['brightness'] == '平' else '平'
+    palaces[0]['adjective_stars'].append({'name': '天德'})
+    natal = {'solar_date': birth['birth_datetime'][:10], 'five_elements_class': z['five_elements_bureau'], 'soul': key(z['ming_master']), 'body': key(z['shen_master']),
+             'earthly_branch_of_soul_palace': keys[z['ming_palace']] + 'Earthly', 'earthly_branch_of_body_palace': keys[z['shen_palace']] + 'Earthly', 'palaces': palaces}
+    class Chart:
+        def model_dump(self, **kw):
+            return natal
+        def horoscope(self, date, hour):
+            return {'decadal': {'index': 3, 'heavenly_stem': 'wuHeavenly', 'earthly_branch': 'yinEarthly', 'mutagen': ['tanlangMaj', 'taiyinMaj', 'youbiMin', 'tianjiMaj']},
+                    'yearly': {'index': 5, 'heavenly_stem': 'bingHeavenly', 'earthly_branch': 'wuEarthly', 'mutagen': ['tiantongMaj', 'tianjiMaj', 'wenchangMin', 'lianzhenMaj']}}
+    class Astro:
+        def by_solar(self, *args):
+            return Chart()
+    module = types.ModuleType('iztro_py')
+    module.astro, module.__spec__ = Astro(), importlib.machinery.ModuleSpec('iztro_py', None)
+    module.i18n = types.SimpleNamespace(t=lambda name, lang=None: table.get(name, name))
+    sys.modules['iztro_py'], sys.modules['iztro_py.i18n'] = module, module.i18n
+
+
+def remove_professional_stand_in() -> None:
+    sys.modules.pop('iztro_py', None)
+    sys.modules.pop('iztro_py.i18n', None)
+
+
 def check_relation_card(page, kind: str, screenshot: Path) -> None:
     """Open a relation card, check what it draws and what it saves, and close it."""
     page.evaluate("""() => {
@@ -1267,15 +1328,57 @@ def main() -> None:
             from app.professional_ziwei import professional_provider_available
             page.locator('[data-tab="professional"]').click()
             page.locator('#gender').select_option('female')
-            page.locator('#professional-run').click()
-            if professional_provider_available():
-                page.wait_for_function("() => document.querySelector('#result pre.json-code')?.textContent.includes('iztro-py')", timeout=30000)
-                assert '专业紫微' in page.locator('#result').inner_text()
-                page.screenshot(path=str(screenshot_dir / '22-professional-provider-success.png'), full_page=True)
-            else:
-                page.wait_for_function("() => document.querySelector('#result').textContent.includes('专业引擎暂不可用')", timeout=30000)
-                assert 'No approximate chart was substituted' in page.locator('#result').inner_text()
+            installed = professional_provider_available()
+            if not installed:
+                # Without the provider the page says so, lists what the native chart already has, gives an install
+                # command that names the provider package (the project is not on PyPI) and keeps the run button off.
+                page.locator('#professional-status.is-missing').wait_for(timeout=30000)
+                assert page.locator('#professional-run').is_disabled()
+                assert page.locator('#professional-status code').first.inner_text() == 'python -m pip install "iztro-py>=0.1,<1"'
+                assert 'xuanshu[professional]' not in page.locator('#result').inner_text()
                 page.screenshot(path=str(screenshot_dir / '22-professional-provider-guard.png'), full_page=True)
+                # Gender sets the direction of the major limits, so without it the page asks for it.
+                page.locator('#gender').select_option('unspecified')
+                page.locator('#professional-gender').wait_for(timeout=30000)
+                page.locator('#professional-go-gender').click()
+                assert page.evaluate("document.activeElement.id") == 'gender'
+                page.locator('#gender').select_option('female')
+                page.wait_for_function("() => !document.querySelector('#professional-gender')", timeout=30000)
+                # A stand-in provider built from XuanShu's own chart, with two deliberate differences, exercises the result.
+                install_professional_stand_in(page.evaluate("readInput()"))
+                page.locator('#professional-recheck').click()
+                page.locator('#professional-status.is-ok').wait_for(timeout=30000)
+                assert page.evaluate("document.activeElement.id") == 'professional-status'
+            page.locator('#professional-run').click()
+            page.locator('#professional-result').wait_for(timeout=60000)
+            assert 'iztro-py' in page.locator('#professional-result').inner_text()
+            if not installed:
+                assert page.locator('#professional-board .pf-palace').count() == 12 and page.locator('#professional-board .pf-palace.is-ming').count() == 1
+                assert page.locator('#professional-compare-summary').inner_text().endswith('不同 2')
+                kinds = [r.split('\t')[0] for r in page.locator('#professional-compare-table tbody tr').all_inner_texts()]
+                assert kinds == ['亮度', '辅星落宫'] and page.locator('#professional-board .pf-palace.has-diff').count() == 2
+                assert page.locator('#professional-horoscope-table tbody tr').count() == 2
+                # The provider's keys arrive as Chinese names: 交友宫 is iztro's name for 仆役宫, not a difference.
+                board_text = page.locator('#professional-board').inner_text()
+                assert '交友宫' in board_text and 'soulPalace' not in board_text and 'Maj' not in board_text
+                assert page.locator('#professional-board').evaluate("e => e.closest('.pf-board-wrap').getAttribute('role')") == 'region'
+                hua_cells = page.locator('#professional-horoscope-table tbody tr').first.locator('td').all_inner_texts()[2:]
+                assert hua_cells == ['贪狼', '太阴', '右弼', '天机'], hua_cells
+                page.locator('#professional-only-diff').uncheck()
+                assert page.locator('#professional-compare-table tbody tr').count() > 90
+                page.locator('#professional-only-diff').check()
+                page.locator('#professional-raw summary').click()
+                page.locator('#professional-raw .jv-tree details').first.wait_for(timeout=30000)
+            page.screenshot(path=str(screenshot_dir / '22-professional-provider-success.png'), full_page=True)
+            if not installed:
+                # Any birth field changed afterwards marks the result as out of date, not only gender or the hour.
+                flip = "on => {const box = document.querySelector('#late_zi_day_rollover'); box.checked = on; box.dispatchEvent(new Event('change', {bubbles: true}));}"
+                page.evaluate(flip, True)
+                page.locator('#professional-stale').wait_for(timeout=30000)
+                page.evaluate(flip, False)
+                page.wait_for_function("() => !document.querySelector('#professional-stale')", timeout=30000)
+                remove_professional_stand_in()
+                page.evaluate("capabilities = null")
             page.locator('[data-tab="qimen-audit"]').click()
             # The reference is entered on a nine-palace form; the run button says what is missing until it can run.
             assert page.locator('#qimen-audit-board-form .qr-cell').count() == 9
