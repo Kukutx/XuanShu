@@ -10,6 +10,10 @@
 
 本实现只实现自身声明的上述子集。测试使用自编排的协议回归请求，**未声称通过官方 MCP 合规认证或完成全部 ChatGPT/Claude 远程插件安装**。
 
+## 在 Web 工作台里自检与生成配置
+
+打开工作台的「Agent 集成」页：页面用 2026-07-28 的 `server/discover` 和 2025-11-25 的 `initialize` 实际连接本服务，再读取 `tools/list`、`prompts/list`、`resources/list`、`skills/list`，逐步写出结果和耗时；选择客户端（Claude Desktop、Claude Code、Codex、HTTP 直连）和系统并填入项目文件夹，即可复制对应的配置或命令。工具目录里每个工具都有可复制的 `tools/call` 示例和「试运行」，示例使用固定的演示出生资料。页面填写的项目文件夹不保存、不上传；配置文本里的令牌只写成环境变量占位。
+
 ## 使用 Claude Desktop 连接本地 stdio
 
 在配置文件中把示例绝对路径替换为下载项目的实际路径：

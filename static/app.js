@@ -2128,7 +2128,7 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report'].includes(active)) render();});
+document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report', 'integration'].includes(active)) render();});
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱与节气（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气'], ...data.days.map(d => [d.date, d.weekday,
@@ -6101,11 +6101,250 @@ function renderBirthBoundaries(){
 // Printing opens the collapsed field sections (print CSS cannot open a closed <details>) and closes them afterwards.
 addEventListener('beforeprint', () => document.querySelectorAll('details.ev-more:not([open])').forEach(d => {d.open = true; d.dataset.printOpened = '';}));
 addEventListener('afterprint', () => document.querySelectorAll('details[data-print-opened]').forEach(d => {d.open = false; delete d.dataset.printOpened;}));
-// The counts on the integration page come from the running server, so they never fall behind a new tool.
+// The integration page asks the running server over MCP itself, so the connection check, the tool catalogue and every
+// example are what an agent connecting now would get; nothing on it is written into the page by hand.
 let capabilities = null, capabilitiesPending = false, capabilitiesError = '', capabilitiesToken = '';
+let agentCatalog = null, agentPending = false, agentSeq = 0;
+const agentRuns = {}, agentDocs = {};
+const agentDraft = {client: 'claude-desktop', os: /Windows/i.test(navigator.userAgent) ? 'windows' : 'posix', path: '', query: '', group: 'all',
+  expanded: new Set()};  // tools whose long description is shown in full
+const MCP_MODERN = '2026-07-28', MCP_LEGACY = '2025-11-25';
+// Tools by what they are for, and the workbench page that shows the same calculation.
+const AG_GROUPS = [
+  ['chart', '排盘', ['combined_chart', 'bazi_chart', 'ziwei_chart', 'ziwei_professional_chart', 'palace_detail', 'symbolic_reading']],
+  ['cycles', '运限', ['bazi_dayun', 'ziwei_horoscope', 'annual_transformations', 'annual_timeline', 'life_path_review']],
+  ['qimen', '奇门', ['qimen_hour_chart', 'qimen_reference_audit']],
+  ['calendar', '历法择日', ['daily_almanac', 'calendar_days', 'solar_terms', 'lunar_to_gregorian', 'day_officers', 'date_candidate_scan', 'pillars_to_dates']],
+  ['relations', '关系', ['pair_comparison', 'ziwei_pair_overlay', 'group_relations']],
+  ['audit', '核验审计', ['chart_quality_audit', 'time_basis_audit', 'birth_time_window', 'birth_boundary_map', 'rule_comparison', 'rule_sensitivity_matrix', 'chart_import_check']],
+  ['workflow', '工作流与报告', ['consultation_execute', 'deep_evidence_review', 'structured_report', 'decision_matrix']],
+];
+const AG_TABS = {combined_chart: 'bazi', bazi_chart: 'bazi', ziwei_chart: 'ziwei', ziwei_professional_chart: 'professional', symbolic_reading: 'reading',
+  bazi_dayun: 'dayun', annual_transformations: 'annual', annual_timeline: 'timeline', life_path_review: 'chat', qimen_hour_chart: 'qimen',
+  qimen_reference_audit: 'qimen-audit', daily_almanac: 'today', calendar_days: 'calendar', solar_terms: 'calendar', lunar_to_gregorian: 'calendar',
+  day_officers: 'officers', date_candidate_scan: 'date-scan', pillars_to_dates: 'pillar-search', pair_comparison: 'pair', ziwei_pair_overlay: 'pair',
+  group_relations: 'group', chart_quality_audit: 'quality', birth_time_window: 'quality', time_basis_audit: 'time', rule_comparison: 'time',
+  birth_boundary_map: 'boundaries', rule_sensitivity_matrix: 'rule-matrix', ziwei_horoscope: 'ziwei',
+  chart_import_check: 'import-check', consultation_execute: 'consult', deep_evidence_review: 'deep', structured_report: 'report', decision_matrix: 'decision'};
+// Example calls use a fixed demonstration birth, never the birth in the form, so copying or trying one shares nothing personal.
+const AG_BIRTH = {birth_datetime: '2000-08-16T04:00', timezone: 'Asia/Shanghai', gender: 'female'};
+const AG_PARTNER = {birth_datetime: '1998-03-21T09:30', timezone: 'Asia/Shanghai', gender: 'male'};
+const AG_MOMENT = {birth_datetime: '2024-06-15T14:30', timezone: 'Asia/Shanghai'};
+const AG_EXAMPLES = {
+  consultation_execute: {question: 'Which traditional structures relate to a 2027 career choice?', birth: AG_BIRTH},
+  qimen_hour_chart: {moment: AG_MOMENT},
+  qimen_reference_audit: {moment: AG_MOMENT, reference_source: 'Hand-copied reference chart (example)', reference_school: 'hour-qimen-chabu-rotating',
+    root_fields: {bureau: 6, day_pillar: '庚戌', hour_pillar: '癸未'}},
+  time_basis_audit: {birth: {...AG_BIRTH, longitude: 116.4}},
+  rule_comparison: {original: AG_BIRTH, alternative: {...AG_BIRTH, late_zi_day_rollover: true}},
+  decision_matrix: {question: 'Which offer to accept?', criteria: [{name: 'income', weight: 3}, {name: 'growth', weight: 2}],
+    options: [{name: 'Offer A', ratings: {income: 4, growth: 3}}, {name: 'Offer B', ratings: {income: 3, growth: 5}}]},
+  life_path_review: {birth: AG_BIRTH, events: [{date: '2018-09-01', title: 'Started university'}]},
+  pillars_to_dates: {year: '庚辰', month: '甲申', day: '丙午', hour: '庚寅'},
+  chart_import_check: {birth: AG_BIRTH, text: ['庚辰', '甲申', '丙午', '庚寅'].join(' ')},
+  pair_comparison: {person_a: AG_BIRTH, person_b: AG_PARTNER},
+  ziwei_pair_overlay: {person_a: AG_BIRTH, person_b: AG_PARTNER},
+  group_relations: {members: [{label: 'A', birth: AG_BIRTH}, {label: 'B', birth: AG_PARTNER}]},
+  daily_almanac: {moment: '2026-10-12T09:30', timezone: 'Asia/Shanghai'},
+};
+// Any other tool gets its required arguments from its input schema.
+function agExample(tool) {
+  if (AG_EXAMPLES[tool.name]) return AG_EXAMPLES[tool.name];
+  const schema = tool.inputSchema || {}, defs = schema.$defs || {};
+  const object = s => {
+    if (!s) return {};
+    if (s.title === 'BirthInput' || (s.properties && s.properties.birth_datetime)) return {...AG_BIRTH};
+    const out = {};
+    (s.required || []).forEach(key => {out[key] = value(key, (s.properties || {})[key] || {});});
+    return out;
+  };
+  const value = (name, prop) => {
+    if (prop.$ref) return object(defs[prop.$ref.split('/').pop()]);
+    if (prop.enum) return prop.enum[0];
+    if (prop.type === 'integer') return /year/.test(name) ? 2026 : prop.minimum ?? 1;
+    if (prop.type === 'number') return prop.minimum ?? 0;
+    if (prop.type === 'boolean') return false;
+    if (prop.format === 'date' || /date$/.test(name)) return '2026-01-01';
+    return prop.type === 'array' ? [] : prop.type === 'object' ? {} : 'example';
+  };
+  return object(schema);
+}
+// A tab's label as written in the page (the interface language may have replaced its text).
+function tabSource(tab) {
+  const node = [...tab.childNodes].find(n => n.nodeType === Node.TEXT_NODE && n.data.trim());
+  return ((node && typeof uiOriginal !== 'undefined' && uiOriginal.get(node)) || tab.textContent).trim();
+}
+const agCall = tool => ({jsonrpc: '2.0', id: 1, method: 'tools/call', params: {name: tool.name, arguments: agExample(tool)}});
+// One JSON-RPC request to POST /mcp, with the access token when one is entered. The 2026-07-28 form needs its version in
+// the header and in the request metadata; the 2025 form needs neither a handshake nor a session.
+async function mcpRequest(method, params, modern = false) {
+  const headers = {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream', 'MCP-Protocol-Version': modern ? MCP_MODERN : MCP_LEGACY};
+  const token = $('#api_token').value;
+  if (token) headers.Authorization = 'Bearer ' + token;
+  const body = {jsonrpc: '2.0', id: ++agentSeq, method};
+  if (modern) {
+    headers['Mcp-Method'] = method;
+    params = {...(params || {}), _meta: {'io.modelcontextprotocol/protocolVersion': MCP_MODERN,
+      'io.modelcontextprotocol/clientInfo': {name: 'xuanshu-web', version: '0.1.0'}, 'io.modelcontextprotocol/clientCapabilities': {}}};
+  }
+  if (params) body.params = params;
+  const started = performance.now();
+  const reply = await fetch('/mcp', {method: 'POST', headers, body: JSON.stringify(body)});
+  // The size shown is what the server sent, read before parsing.
+  const raw = await reply.text();
+  let data = null;
+  try {data = JSON.parse(raw);} catch (e) {data = null;}
+  const ms = Math.max(1, Math.round(performance.now() - started));
+  if (data && data.error && typeof data.error === 'object') throw new Error(data.error.message + ' (' + data.error.code + ')');
+  if (!reply.ok || !data) throw new Error('HTTP ' + reply.status);
+  return {result: data.result, ms, bytes: new Blob([raw]).size};
+}
+async function loadAgentCatalog() {
+  agentPending = true;
+  const catalog = {token: $('#api_token').value, steps: [], failed: false};
+  const step = async (method, modern, run, describe) => {
+    const entry = {method, protocol: modern ? MCP_MODERN : MCP_LEGACY};
+    catalog.steps.push(entry);
+    try {
+      const out = await run();
+      Object.assign(entry, {ok: true, ms: out.ms, detail: describe(out.result)});
+      return out.result;
+    } catch (e) {
+      Object.assign(entry, {ok: false, detail: [e.message]}); catalog.failed = true;
+      return null;
+    }
+  };
+  const plain = (method, params) => () => mcpRequest(method, params);
+  const found = await step('server/discover', true, () => mcpRequest('server/discover', {}, true), r => {
+    const info = (r._meta || {})['io.modelcontextprotocol/serverInfo'] || {};
+    catalog.server = {name: info.name || 'MCP', version: info.version || '', versions: r.supportedVersions || []};
+    return [catalog.server.name + ' ' + catalog.server.version];
+  });
+  await step('initialize', false, plain('initialize', {protocolVersion: MCP_LEGACY, capabilities: {}, clientInfo: {name: 'xuanshu-web', version: '0.1.0'}}),
+    r => {if (!found) catalog.server = {name: r.serverInfo.name, version: r.serverInfo.version, versions: [r.protocolVersion]}; return ['协商版本', ' ' + r.protocolVersion];});
+  catalog.tools = await step('tools/list', false, plain('tools/list'), r => [r.tools.length, ' ', '个工具']).then(r => r && r.tools);
+  catalog.prompts = await step('prompts/list', false, plain('prompts/list'), r => [r.prompts.length, ' ', '个提示模板']).then(r => r && r.prompts);
+  catalog.resources = await step('resources/list', false, plain('resources/list'), r => [r.resources.length, ' ', '个规则资源']).then(r => r && r.resources);
+  // The Skills extension pages its list; every page is read.
+  catalog.skills = await step('skills/list', false, async () => {
+    let skills = [], cursor = null, ms = 0;
+    for (let page = 0; page < 20; page++) {
+      const out = await mcpRequest('skills/list', cursor ? {cursor} : null);
+      ms += out.ms; skills = skills.concat(out.result.skills); cursor = out.result.nextCursor;
+      if (cursor == null) break;
+    }
+    return {result: {skills}, ms};
+  }, r => [r.skills.length, ' Skills']).then(r => r && r.skills);
+  agentCatalog = catalog; agentPending = false;
+  if (active === 'integration') {
+    render();
+    announce(catalog.failed ? calT('MCP 连接自检有步骤没有通过') : calT('MCP 连接自检通过'));
+  }
+}
+// Anything but plain path characters is quoted (globs and history marks included: zsh rejects an unquoted [v2]).
+const agShellQuote = (text, windows) => /^[\w./:@%+=,-]+$/.test(text) ? text : (windows ? '"' + text.replace(/"/g, '""') + '"' : "'" + text.replace(/'/g, "'\\''") + "'");
+// The configuration text for each client, built from the path typed on the page (kept in memory only).
+function agentSetup(origin) {
+  const windows = agentDraft.os === 'windows', sep = windows ? '\\' : '/';
+  const projectPath = agentDraft.path.trim().replace(/[\\/]+$/, '') || (windows ? 'C:\\path\\to\\xuanshu' : '/path/to/xuanshu');
+  const pythonPath = windows ? projectPath + '\\.venv\\Scripts\\python.exe' : projectPath + sep + '.venv/bin/python';
+  const token = Boolean($('#api_token').value);
+  const tokenVar = windows ? '%MCP_BEARER_TOKEN%' : '$MCP_BEARER_TOKEN';
+  const url = origin + '/mcp';
+  if (agentDraft.client === 'claude-desktop') {
+    const snippet = JSON.stringify({mcpServers: {xuanshu: {command: pythonPath, args: ['-m', 'app.stdio'], env: {PYTHONPATH: projectPath}}}}, null, 2);
+    return {where: windows ? '%APPDATA%\\Claude\\claude_desktop_config.json' : '~/Library/Application Support/Claude/claude_desktop_config.json',
+      how: '写进 Claude Desktop 的配置文件（设置 → 开发者 → 编辑配置），保存后完全退出并重新打开 Claude Desktop。', blocks: [{caption: '配置文件', code: snippet}]};
+  }
+  if (agentDraft.client === 'claude-code') {
+    const q = text => agShellQuote(text, windows);
+    return {how: '在终端运行这条命令；加 --scope project 会写进项目的 .mcp.json，便于团队共享。', blocks: [
+      {caption: '本机 stdio', code: `claude mcp add --transport stdio --env PYTHONPATH=${q(projectPath)} xuanshu -- ${q(pythonPath)} -m app.stdio`},
+      {caption: '已运行的 HTTP 服务', code: `claude mcp add --transport http xuanshu ${url}` + (token ? ` --header "Authorization: Bearer ${tokenVar}"` : '')}]};
+  }
+  if (agentDraft.client === 'codex') {
+    const toml = s => JSON.stringify(s);
+    return {where: windows ? '%USERPROFILE%\\.codex\\config.toml' : '~/.codex/config.toml', how: '写进 Codex 的配置文件，然后重新启动 Codex。',
+      blocks: [{caption: '配置文件', code: `[mcp_servers.xuanshu]\ncommand = ${toml(pythonPath)}\nargs = ["-m", "app.stdio"]\n\n[mcp_servers.xuanshu.env]\nPYTHONPATH = ${toml(projectPath)}`}]};
+  }
+  const auth = token ? ` -H "Authorization: Bearer ${tokenVar}"` : '';
+  const body = JSON.stringify({jsonrpc: '2.0', id: 1, method: 'tools/list'});
+  const curl = windows
+    ? `curl.exe -s ${url} -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -H "MCP-Protocol-Version: ${MCP_LEGACY}"${auth} -d "${body.replace(/"/g, '\\"')}"`
+    : `curl -s ${url} \\\n  -H 'Content-Type: application/json' \\\n  -H 'Accept: application/json, text/event-stream' \\\n  -H 'MCP-Protocol-Version: ${MCP_LEGACY}'${auth ? ' \\\n ' + auth : ''} \\\n  -d '${body}'`;
+  return {how: '支持 Streamable HTTP 的客户端直接连这个地址；公网使用要另行部署 HTTPS 和鉴权。', blocks: [
+    {caption: '端点', code: `POST ${url}`}, {caption: windows ? '终端验证：列出工具（命令提示符）' : '终端验证：列出工具', code: curl}]};
+}
+function agCopyButton(parent, label, text, id) {
+  const button = append(parent, 'button', 'tiny-button', label); button.type = 'button'; if (id) button.id = id;
+  button.addEventListener('click', async () => {
+    try {await navigator.clipboard.writeText(text()); button.textContent = '已复制';}
+    catch (e) {button.textContent = '无法自动复制，请手动选中';}
+    setTimeout(() => {if (button.isConnected) button.textContent = label;}, 1800);
+  });
+  return button;
+}
+function agParams(parent, tool) {
+  const schema = tool.inputSchema || {}, props = schema.properties || {}, required = new Set(schema.required || []);
+  const names = Object.keys(props).sort((a, b) => required.has(b) - required.has(a));
+  const list = append(parent, 'ul', 'ag-params'); list.dataset.noI18n = '';
+  if (!names.length) append(list, 'li', 'ag-param is-none', '—');
+  names.forEach(name => {
+    const prop = props[name];
+    const type = prop.$ref ? prop.$ref.split('/').pop() : prop.enum ? 'enum' : prop.anyOf ? prop.anyOf.map(x => x.$ref ? x.$ref.split('/').pop() : x.type).join(' | ') : prop.type || 'any';
+    const item = append(list, 'li', 'ag-param' + (required.has(name) ? ' is-required' : ''));
+    append(item, 'code', null, name + (required.has(name) ? '*' : ''));
+    append(item, 'small', null, type);
+    if (prop.description) item.title = prop.description;
+  });
+}
+function agRunView(box, tool) {
+  box.replaceChildren();
+  const run = agentRuns[tool.name];
+  if (!run) return;
+  if (run.pending) {append(box, 'p', 'ag-run-head', '正在调用…'); return;}
+  const head = append(box, 'p', 'ag-run-head ' + (run.error ? 'is-fail' : run.isError ? 'is-warn' : 'is-ok'));
+  append(head, 'span', 'ag-dot');
+  texts(head, run.error ? '请求失败' : run.isError ? '工具返回错误' : '调用成功');
+  if (!run.error) texts(append(head, 'small', 'muted'), run.ms + ' ms · ' + jvSize(run.bytes));
+  const text = run.error || run.text;
+  const pre = append(box, 'pre', 'json-code ag-output', text.length > 4000 ? text.slice(0, 4000) + '\n…' : text); pre.dataset.noI18n = '';
+  if (text.length > 4000) append(box, 'small', 'muted', '只显示前 4000 个字符；完整结果请在工作台页面或你的客户端里查看。');
+}
+// The page may have been redrawn (another language) while the call ran, so its result goes to the elements now shown.
+async function agTry(tool, box, button) {
+  // The button stays focusable while the call runs (aria-disabled), so a keyboard user keeps their place.
+  if (agentRuns[tool.name] && agentRuns[tool.name].pending) return;
+  agentRuns[tool.name] = {pending: true}; button.setAttribute('aria-disabled', 'true'); agRunView(box, tool);
+  try {
+    const out = await mcpRequest('tools/call', agCall(tool).params);
+    const result = out.result || {};
+    const text = result.structuredContent ? JSON.stringify(result.structuredContent, null, 2) : (result.content || []).map(c => c.text || '').join('\n');
+    agentRuns[tool.name] = {isError: Boolean(result.isError), ms: out.ms, bytes: out.bytes, text};
+  } catch (e) {agentRuns[tool.name] = {error: e.message};}
+  const shown = document.getElementById('integration-run-' + tool.name), again = document.getElementById('integration-try-' + tool.name);
+  if (again) again.removeAttribute('aria-disabled');
+  if (!shown) return;
+  agRunView(shown, tool);
+  const run = agentRuns[tool.name];
+  announce(tool.name + ' ' + calT(run.error ? '请求失败' : run.isError ? '工具返回错误' : '调用成功'));
+}
+function agDocView(doc, uri) {
+  const body = doc.querySelector('.ag-doc-body'), got = agentDocs[uri];
+  body.replaceChildren();
+  if (!got) return;
+  if (got.pending) {append(body, 'p', 'muted', '正在读取…'); return;}
+  if (got.error) {append(body, 'p', 'inline-msg', '读取失败：' + got.error); return;}
+  texts(append(body, 'small', 'muted'), 'resources/read · ' + got.ms + ' ms · ' + jvSize(got.bytes));
+  // The rule documents are Markdown; they are laid out with the same DOM-only renderer as chat answers.
+  const doc2 = append(body, 'div', 'ag-doc-text chat-md'); doc2.dataset.noI18n = ''; doc2.tabIndex = 0;
+  doc2.setAttribute('role', 'region'); doc2.setAttribute('aria-label', uri);
+  if (window.XuanShuMarkdown) window.XuanShuMarkdown.render(got.text, doc2); else {doc2.textContent = got.text; doc2.style.whiteSpace = 'pre-wrap';}
+  agCopyButton(body, '复制全文', () => got.text);
+}
 function renderIntegration() {
-  title(result,'Agent 接入中心','统一 MCP 服务 / 计算 Tool / 方法资源');
-  append(result,'p','info-inline','本项目兼容 MCP 2026-07-28 和旧版 2025 协议的 stdio / Streamable HTTP；本地 Web 运行不等于已上线公网或已登记到 ChatGPT/Claude。');
+  title(result, 'Agent 接入中心', 'MCP 连接自检 · 工具目录 · 客户端配置');
+  append(result, 'p', 'info-inline', '本项目兼容 MCP 2026-07-28 和旧版 2025 协议的 stdio / Streamable HTTP；本地 Web 运行不等于已上线公网或已登记到 ChatGPT/Claude。');
   const token = $('#api_token').value;
   // A failed lookup is tried again once another access token is entered.
   if ((capabilities === null || (capabilitiesError && token !== capabilitiesToken)) && !capabilitiesPending) {
@@ -6115,35 +6354,271 @@ function renderIntegration() {
       .then(data => {capabilities = data; capabilitiesError = '';}).catch(err => {capabilities = {}; capabilitiesError = err.message;})
       .finally(() => {capabilitiesPending = false; if (active === 'integration') render();});
   }
+  if ((agentCatalog === null || (agentCatalog.failed && token !== agentCatalog.token)) && !agentPending) loadAgentCatalog();
+  const catalog = agentCatalog;
   const counts = (capabilities && capabilities.counts) || {};
   const count = (key, unit) => typeof counts[key] === 'number' ? counts[key] + ' ' + unit : capabilities === null ? '…' : '—';
-  const box = rules(result,[
-    {label:'MCP 工具',value:count('mcp_tools', 'Tools'),detail:'八字 / 紫微 / 奇门 / 历法 / 关系 / 运限 / 审计'},
-    {label:'规则资源',value:count('mcp_resources', 'Resources'),detail:'方法规则、隐私和限制说明'},
-    {label:'Agent Skills',value:count('agent_skills', 'Skills'),detail:'放在源码 skills/ 目录'},
-    {label:'提示模板',value:count('mcp_prompts', 'Prompts'),detail:'可复用计算工作流'},
+  const box = rules(result, [
+    {label: 'MCP 工具', value: count('mcp_tools', 'Tools'), detail: '八字 / 紫微 / 奇门 / 历法 / 关系 / 运限 / 审计'},
+    {label: '规则资源', value: count('mcp_resources', 'Resources'), detail: '方法规则、隐私和限制说明'},
+    {label: 'Agent Skills', value: count('agent_skills', 'Skills'), detail: '放在源码 skills/ 目录'},
+    {label: '提示模板', value: count('mcp_prompts', 'Prompts'), detail: '可复用计算工作流'},
   ]);
   if (box) box.id = 'integration-counts';
   if (capabilitiesError) append(result, 'p', 'inline-msg', '读取服务能力失败：' + capabilitiesError + (capabilitiesError === 'HTTP 401' ? '，请检查 API 访问令牌。' : '。')).id = 'integration-error';
-  append(result,'h4','subheading','本地 HTTP 端点');
-  const origin = location.origin==='null' ? 'http://127.0.0.1:8000' : location.origin;
-  append(result,'pre','json-code','POST '+origin+'/mcp\nGET  '+origin+'/docs\nGET  '+origin+'/api/capabilities');
-  append(result,'h4','subheading','Claude / Codex stdio 示例');
-  const windows = /Windows/i.test(navigator.userAgent);
-  const projectPath=windows ? 'C:\\path\\to\\xuanshu' : '/path/to/xuanshu';
-  const pythonPath=windows ? projectPath+'\\.venv\\Scripts\\python.exe' : projectPath+'/.venv/bin/python';
-  const snippet=JSON.stringify({mcpServers:{xuanshu:{command:pythonPath,args:['-m','app.stdio'],env:{PYTHONPATH:projectPath}}}},null,2);
-  append(result,'pre','json-code',snippet);
-  const copy=append(result,'button','tiny-button','复制 Claude / Codex 本地配置');
-  copy.type='button';copy.id='integration-copy';
-  copy.addEventListener('click',async()=>{
-    try{
-      await navigator.clipboard.writeText(snippet);
-      copy.textContent='已复制，记得替换项目实际路径';
-    }catch(e){copy.textContent='无法自动复制，请手动选中上面的配置文本';}
+  // Contents: each part of the page, with its size once the server has answered.
+  const sizes = {tools: catalog && catalog.tools, prompts: catalog && catalog.prompts, resources: catalog && catalog.resources, skills: catalog && catalog.skills};
+  const nav = append(result, 'nav', 'ag-nav'); nav.setAttribute('aria-label', '本页内容');
+  [['check', '连接自检'], ['setup', '接入配置'], ['tools', '工具目录'], ['prompts', '提示模板'], ['resources', '规则资源'], ['skills', 'Skills']].forEach(([key, label]) => {
+    const link = append(nav, 'a', 'ag-nav-link'); link.href = '#integration-' + key;
+    texts(link, label); if (sizes[key]) append(link, 'small', null, String(sizes[key].length));
   });
-  append(result,'p','small-text','将配置中的占位路径替换成你自己的项目路径。运行 Python 的虚拟环境必须先安装项目依赖。');
-  append(result,'div','feature-note','公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
+  nav.addEventListener('click', e => {
+    const link = e.target.closest('a'); if (!link) return;
+    e.preventDefault(); const target = $(link.getAttribute('href')); target.scrollIntoView({block: 'start'}); target.focus({preventScroll: true});
+  });
+  const section = (key, heading, detail) => {
+    const part = append(result, 'section', 'ag-section'); part.id = 'integration-' + key; part.tabIndex = -1;
+    const head = append(part, 'div', 'ag-section-head');
+    append(head, 'h4', 'subheading', heading);
+    if (detail) append(head, 'small', 'muted', detail);
+    return part;
+  };
+
+  // 1. The connection check, step by step, in both protocol generations.
+  const check = section('check', '连接自检', '本页刚刚用两代协议实际调用了这台服务');
+  if (!catalog || agentPending) append(check, 'p', 'info-inline', catalog ? '正在重新检测，下面先保留上一次的结果…' : '正在通过 POST /mcp 检测…').setAttribute('role', 'status');
+  else {
+    const failures = catalog.steps.filter(s => !s.ok).length;
+    const line = append(check, 'p', 'ag-summary ' + (failures ? 'is-fail' : 'is-ok')); line.id = 'integration-summary';
+    append(line, 'span', 'ag-dot');
+    const summary = append(line, 'span');
+    if (!failures) {
+      texts(summary, '已连上', ' ');
+      append(summary, 'b', null, catalog.server.name + ' ' + catalog.server.version).dataset.noI18n = '';
+      texts(summary, '：', '全部', ' ' + catalog.steps.length + ' ', '步通过');
+    } else {
+      texts(summary, failures + ' ', '步没有通过，原因写在对应一行');
+      if (catalog.steps.some(s => !s.ok && /HTTP 401/.test(s.detail[0]))) texts(summary, '；', '请检查 API 访问令牌。');
+      else if (catalog.steps.some(s => !s.ok && /HTTP 403/.test(s.detail[0]))) texts(summary, '；', '服务拒绝了本页的来源（Origin），请检查允许的来源设置。');
+    }
+    const steps = append(check, 'ol', 'ag-steps'); steps.id = 'integration-steps';
+    catalog.steps.forEach(s => {
+      const item = append(steps, 'li', 'ag-step ' + (s.ok ? 'is-ok' : 'is-fail'));
+      append(item, 'span', 'ag-dot');
+      append(item, 'code', 'ag-method', s.method);
+      append(item, 'span', 'ag-proto', s.protocol);
+      const detail = texts(append(item, 'span', 'ag-detail'), ...s.detail);
+      if (!s.ok) detail.dataset.noI18n = '';
+      if (s.ok) append(item, 'small', 'ag-ms', s.ms + ' ms');
+      append(item, 'span', 'visually-hidden', s.ok ? '通过' : '未通过');
+    });
+    const facts = append(check, 'div', 'ag-facts');
+    if (catalog.server && catalog.server.versions.length) {
+      const line = append(facts, 'p'); append(line, 'span', 'muted', '服务支持的协议版本');
+      catalog.server.versions.forEach(v => append(line, 'code', 'ag-chip', v));
+    }
+    if (catalog.tools && typeof counts.mcp_tools === 'number') {
+      const same = counts.mcp_tools === catalog.tools.length;
+      const line = append(facts, 'p', same ? 'ag-same' : 'ag-differ'); line.id = 'integration-consistency';
+      texts(line, same ? '工具数与 /api/capabilities 的计数一致' : '工具数与 /api/capabilities 的计数不一致', '：', catalog.tools.length + ' / ' + counts.mcp_tools);
+    }
+  }
+  const recheck = append(check, 'button', 'tiny-button', '重新检测'); recheck.type = 'button'; recheck.id = 'integration-recheck';
+  // The last results stay on screen during a recheck, so the page does not jump and opened examples stay open.
+  if (agentPending) recheck.setAttribute('aria-disabled', 'true');
+  recheck.addEventListener('click', () => {if (agentPending) return; loadAgentCatalog(); render();});
+
+  // 2. Configuration for each client, from the project path typed here.
+  const setup = section('setup', '接入配置', '选择客户端和系统，填入项目所在的文件夹');
+  const pick = (parent, label, options, key, idPrefix) => {
+    const row = append(parent, 'div', 'ag-segment'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', label);
+    append(row, 'span', 'ag-segment-label', label).setAttribute('aria-hidden', 'true');
+    options.forEach(([value, text]) => {
+      const b = append(row, 'button', 'ag-seg', text); b.type = 'button'; b.id = idPrefix + value;
+      b.setAttribute('aria-pressed', String(agentDraft[key] === value));
+      b.addEventListener('click', () => {agentDraft[key] = value; drawSetup(); row.querySelectorAll('.ag-seg').forEach(x => x.setAttribute('aria-pressed', String(x === b)));});
+    });
+  };
+  pick(setup, '客户端', [['claude-desktop', 'Claude Desktop'], ['claude-code', 'Claude Code'], ['codex', 'Codex'], ['http', 'HTTP 直连']], 'client', 'integration-client-');
+  pick(setup, '系统', [['posix', 'macOS / Linux'], ['windows', 'Windows']], 'os', 'integration-os-');
+  const pathRow = append(setup, 'div', 'inline-control ag-path');
+  const pathInput = createInput('项目文件夹（只用于生成下面的文本，不保存、不上传）', 'text', agentDraft.path, pathRow);
+  pathInput.id = 'integration-path'; pathInput.spellcheck = false; pathInput.autocomplete = 'off'; pathInput.maxLength = 400;
+  pathInput.placeholder = agentDraft.os === 'windows' ? 'C:\\path\\to\\xuanshu' : '/path/to/xuanshu';
+  const setupBody = append(setup, 'div', 'ag-setup'); setupBody.id = 'integration-setup-body';
+  const origin = location.origin === 'null' ? 'http://127.0.0.1:8000' : location.origin;
+  const drawSetup = () => {
+    pathInput.placeholder = agentDraft.os === 'windows' ? 'C:\\path\\to\\xuanshu' : '/path/to/xuanshu';
+    const plan = agentSetup(origin);
+    setupBody.replaceChildren();
+    const how = append(setupBody, 'p', 'ag-how', plan.how);
+    if (plan.where) {const where = append(how, 'code', 'ag-where', plan.where); where.dataset.noI18n = ''; how.insertBefore(document.createTextNode(' '), where);}
+    plan.blocks.forEach((block, i) => {
+      const fig = append(setupBody, 'figure', 'ag-block');
+      const cap = append(fig, 'figcaption', null, block.caption);
+      const code = append(fig, 'pre', 'json-code', block.code); code.dataset.noI18n = ''; code.id = 'integration-snippet' + (i ? '-' + i : '');
+      const copy = agCopyButton(cap, i ? '复制' : '复制配置', () => block.code, i ? null : 'integration-copy');
+      copy.setAttribute('aria-label', calT('复制') + ' ' + calT(block.caption));
+    });
+    if (!agentDraft.path.trim() && agentDraft.client !== 'http') append(setupBody, 'p', 'small-text', '还没填项目文件夹，文本里是占位路径；运行 Python 的虚拟环境要先安装项目依赖。');
+    if ($('#api_token').value && agentDraft.client !== 'claude-desktop' && agentDraft.client !== 'codex') append(setupBody, 'p', 'small-text', '令牌写成环境变量 MCP_BEARER_TOKEN 的占位（与服务端令牌同名），不会把你填写的令牌放进这段文本。');
+  };
+  pathInput.addEventListener('input', () => {agentDraft.path = pathInput.value; drawSetup();});
+  drawSetup();
+
+  // 3. The tool catalogue: grouped, searchable, each with its parameters, an example call and a trial run.
+  const toolsPart = section('tools', '工具目录', 'Agent 通过 tools/list 看到的就是这些');
+  if (!catalog) append(toolsPart, 'p', 'muted', '…');
+  else if (!catalog.tools) append(toolsPart, 'p', 'inline-msg', '没有读到工具列表，见上方连接自检。');
+  else {
+    const tools = catalog.tools;
+    const groupOf = name => (AG_GROUPS.find(g => g[2].includes(name)) || ['other', '其他'])[0];
+    const groups = AG_GROUPS.map(([key, label, names]) => [key, label, names.map(n => tools.find(t => t.name === n)).filter(Boolean)]);
+    const others = tools.filter(t => groupOf(t.name) === 'other');
+    if (others.length) groups.push(['other', '其他', others]);
+    const bar = append(toolsPart, 'div', 'inline-control ag-toolbar');
+    const search = createInput('按名称、用途或参数筛选', 'search', agentDraft.query, bar); search.id = 'integration-search'; search.maxLength = 80;
+    search.setAttribute('aria-describedby', 'integration-tool-count');
+    const status = append(bar, 'span', 'ag-count'); status.id = 'integration-tool-count'; status.setAttribute('role', 'status');
+    const chips = append(toolsPart, 'div', 'ag-groups'); chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', '按用途');
+    [['all', '全部', tools], ...groups.filter(g => g[2].length)].forEach(([key, label, list]) => {
+      const chip = append(chips, 'button', 'ag-group-chip'); chip.type = 'button'; chip.id = 'integration-group-' + key;
+      texts(chip, label); append(chip, 'small', null, String(list.length));
+      chip.setAttribute('aria-pressed', String(agentDraft.group === key));
+      chip.addEventListener('click', () => {agentDraft.group = key; chips.querySelectorAll('.ag-group-chip').forEach(x => x.setAttribute('aria-pressed', String(x === chip))); filter();});
+    });
+    const listBox = append(toolsPart, 'div', 'ag-catalog'); listBox.id = 'integration-catalog';
+    groups.filter(g => g[2].length).forEach(([key, label, list]) => {
+      const group = append(listBox, 'section', 'ag-group'); group.id = 'integration-group-sec-' + key; group.dataset.group = key;
+      const h = append(group, 'h5', 'ag-group-title'); texts(h, label); append(h, 'small', null, String(list.length));
+      const grid = append(group, 'div', 'ag-tools');
+      list.forEach(tool => {
+        const card = append(grid, 'article', 'ag-tool'); card.id = 'integration-tool-' + tool.name; card.dataset.group = key;
+        const tab = AG_TABS[tool.name] && tabs.find(t => t.dataset.tab === AG_TABS[tool.name]);
+        const props = Object.keys((tool.inputSchema || {}).properties || {});
+        card.dataset.search = [tool.name, tool.title, calT(tool.title || ''), tool.description, label, calT(label), tab ? tabSource(tab) : '', tab ? tab.textContent : '', ...props].join(' ').toLowerCase();
+        const head = append(card, 'div', 'ag-tool-head');
+        append(head, 'b', 'ag-tool-title', tool.title || tool.name);
+        append(head, 'code', 'ag-name', tool.name).dataset.noI18n = '';
+        const desc = append(card, 'p', 'ag-desc'); desc.id = 'integration-desc-' + tool.name;
+        append(desc, 'span', 'muted', 'Agent 看到的说明');
+        const words = append(desc, 'span', null, ' ' + (tool.description || '')); words.lang = 'en'; words.dataset.noI18n = '';
+        // A long description is shown in three lines until opened.
+        if ((tool.description || '').length > 180) {
+          const full = agentDraft.expanded.has(tool.name);
+          desc.classList.toggle('is-clamped', !full);
+          const more = append(card, 'button', 'ag-more', full ? '收起' : '展开全文'); more.type = 'button'; more.id = 'integration-more-' + tool.name;
+          more.setAttribute('aria-expanded', String(full)); more.setAttribute('aria-controls', desc.id);
+          more.addEventListener('click', () => {
+            const open = desc.classList.toggle('is-clamped') === false;
+            if (open) agentDraft.expanded.add(tool.name); else agentDraft.expanded.delete(tool.name);
+            more.setAttribute('aria-expanded', String(open)); more.textContent = open ? '收起' : '展开全文';
+          });
+        }
+        agParams(card, tool);
+        const actions = append(card, 'div', 'ag-actions');
+        if (tab) {
+          const open = append(actions, 'button', 'tiny-button', ''); open.type = 'button'; open.id = 'integration-open-' + tool.name;
+          texts(open, '打开工作台页面', '：', tabSource(tab));
+          open.addEventListener('click', () => {activateTab(tab); tab.focus();});
+        }
+        const example = append(card, 'details', 'ag-example'); example.id = 'integration-example-' + tool.name;
+        append(example, 'summary', null, '调用示例与试运行').id = 'integration-example-summary-' + tool.name;
+        append(example, 'p', 'small-text', '示例用固定的演示出生资料，不读取你填写的出生信息。');
+        const request = JSON.stringify(agCall(tool), null, 2);
+        const pre = append(example, 'pre', 'json-code ag-request', request); pre.dataset.noI18n = '';
+        const row = append(example, 'div', 'ag-actions');
+        agCopyButton(row, '复制请求', () => request).setAttribute('aria-label', '复制请求 ' + tool.name);
+        const trial = append(row, 'button', 'tiny-button', '试运行'); trial.type = 'button'; trial.id = 'integration-try-' + tool.name;
+        const output = append(example, 'div', 'ag-run'); output.id = 'integration-run-' + tool.name;
+        agRunView(output, tool);
+        trial.setAttribute('aria-label', '试运行 ' + tool.name);
+        if (agentRuns[tool.name] && agentRuns[tool.name].pending) trial.setAttribute('aria-disabled', 'true');
+        trial.addEventListener('click', () => agTry(tool, output, trial));
+      });
+    });
+    const empty = append(toolsPart, 'p', 'info-inline', '没有符合条件的工具。'); empty.id = 'integration-empty';
+    const filter = () => {
+      const words = agentDraft.query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      listBox.querySelectorAll('.ag-group').forEach(group => {
+        let visible = 0;
+        group.querySelectorAll('.ag-tool').forEach(card => {
+          const keep = (agentDraft.group === 'all' || card.dataset.group === agentDraft.group) && words.every(w => card.dataset.search.includes(w));
+          card.hidden = !keep; if (keep) visible++;
+        });
+        group.hidden = !visible; shown += visible;
+      });
+      status.replaceChildren(); texts(status, '显示', ' ' + shown + ' / ' + tools.length + ' ', '个工具');
+      empty.hidden = shown > 0;
+    };
+    let timer = null;
+    search.addEventListener('input', () => {agentDraft.query = search.value; clearTimeout(timer); timer = setTimeout(filter, 150);});
+    filter();
+  }
+
+  // 4. Prompt templates.
+  const promptsPart = section('prompts', '提示模板', 'prompts/list：客户端可直接选用的工作流提示');
+  if (catalog && catalog.prompts) {
+    const list = append(promptsPart, 'ul', 'ag-list'); list.id = 'integration-prompt-list';
+    catalog.prompts.forEach(p => {
+      const item = append(list, 'li', 'ag-item');
+      const head = append(item, 'div', 'ag-tool-head');
+      append(head, 'b', 'ag-tool-title', p.title || p.name);
+      append(head, 'code', 'ag-name', p.name).dataset.noI18n = '';
+      const desc = append(item, 'p', 'ag-desc', p.description || ''); desc.lang = 'en'; desc.dataset.noI18n = '';
+      const args = append(item, 'ul', 'ag-params'); args.dataset.noI18n = '';
+      (p.arguments || []).forEach(a => {
+        const li = append(args, 'li', 'ag-param' + (a.required ? ' is-required' : ''));
+        append(li, 'code', null, a.name + (a.required ? '*' : ''));
+        if (a.description) li.title = a.description;
+      });
+    });
+  } else if (catalog) append(promptsPart, 'p', 'inline-msg', '没有读到提示模板，见上方连接自检。');
+
+  // 5. Rule resources, each readable here through resources/read.
+  const resourcesPart = section('resources', '规则资源', 'resources/list：Agent 可读取的方法规则与限制');
+  if (catalog && catalog.resources) {
+    const list = append(resourcesPart, 'div', 'ag-docs'); list.id = 'integration-resource-list';
+    catalog.resources.forEach(r => {
+      const doc = append(list, 'details', 'ag-doc'); doc.id = 'integration-doc-' + r.name;
+      const summary = append(doc, 'summary');
+      append(summary, 'code', 'ag-name', r.uri).dataset.noI18n = '';
+      append(summary, 'small', 'muted', r.mimeType || '');
+      append(doc, 'div', 'ag-doc-body');
+      doc.addEventListener('toggle', async () => {
+        if (!doc.open) return;
+        if (!agentDocs[r.uri] || agentDocs[r.uri].error) {
+          agentDocs[r.uri] = {pending: true}; agDocView(doc, r.uri);
+          try {
+            const out = await mcpRequest('resources/read', {uri: r.uri});
+            agentDocs[r.uri] = {text: (out.result.contents || []).map(c => c.text || '').join('\n'), ms: out.ms, bytes: out.bytes};
+          } catch (e) {agentDocs[r.uri] = {error: e.message};}
+          // The page may have been redrawn while reading; the details shown now get the text.
+          const shown = document.getElementById(doc.id);
+          if (shown) agDocView(shown, r.uri);
+        } else agDocView(doc, r.uri);
+      });
+      agDocView(doc, r.uri);
+    });
+  } else if (catalog) append(resourcesPart, 'p', 'inline-msg', '没有读到规则资源，见上方连接自检。');
+
+  // 6. Skills offered through the MCP Skills extension.
+  const skillsPart = section('skills', 'Skills', 'skills/list：可导入客户端的工作流说明');
+  if (catalog && catalog.skills) {
+    append(skillsPart, 'p', 'small-text', '通过 MCP 导入的目录只放几个高优先级工作流；完整的 Skills 在源码 skills/ 目录，数量见上方计数。');
+    const list = append(skillsPart, 'ul', 'ag-list'); list.id = 'integration-skill-list';
+    catalog.skills.forEach(s => {
+      const item = append(list, 'li', 'ag-item');
+      const head = append(item, 'div', 'ag-tool-head');
+      append(head, 'code', 'ag-name', (s.frontmatter || {}).name || s.uri).dataset.noI18n = '';
+      const digest = ((s.resources || [])[0] || {}).digest || '';
+      if (digest) {const d = append(head, 'small', 'ag-digest', digest.slice(0, 19) + '…'); d.title = digest; d.dataset.noI18n = '';}
+      const desc = append(item, 'p', 'ag-desc', (s.frontmatter || {}).description || ''); desc.lang = 'en'; desc.dataset.noI18n = '';
+    });
+  } else if (catalog) append(skillsPart, 'p', 'inline-msg', '没有读到 Skills，见上方连接自检。');
+  append(result, 'div', 'feature-note', '公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。');
 }
 function jsonData() {
   // A longitude picked on the time audit page is for that page only, so its result stays out of the export.
@@ -6835,7 +7310,7 @@ function updateStaleBirthNotice() {
 for (const type of ['input','change']) {
   form.addEventListener(type, event => {
     if (event.target.id !== 'api_token') updateStaleBirthNotice();
-    else if (type === 'change' && active === 'integration' && capabilitiesError) render();
+    else if (type === 'change' && active === 'integration' && (capabilitiesError || (agentCatalog && agentCatalog.failed))) render();
   });
 }
 form.addEventListener('submit', async event => {

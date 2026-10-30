@@ -91,15 +91,21 @@ def main() -> None:
     counts = {'requests': 0}
     group_bodies: list[str] = []
 
-    def call_api(path: str, data: dict):
+    def call_api(path: str, data: dict, headers: dict | None = None):
+        # The integration page speaks MCP to POST /mcp; its protocol headers are passed on as the browser sends them.
+        if path == '/mcp' and data is not None:
+            wanted = ('accept', 'content-type', 'mcp-protocol-version', 'mcp-method', 'mcp-name', 'authorization')
+            response = client.post('/mcp', json=data, headers={k: v for k, v in (headers or {}).items() if k.lower() in wanted})
+            counts['requests'] += 1
+            return {'ok': response.is_success, 'status': response.status_code, 'data': response.json(), 'text': response.text}
         # The page also reads one static data file (the cross-check summary) with fetch.
         if not (path.startswith('/api/') or (data is None and path == '/static/crosscheck-summary.json')):
-            raise ValueError('Only /api/ calls can use the local browser bridge')
+            raise ValueError('Only /api/ and /mcp calls can use the local browser bridge')
         if path == '/api/group-relations':
             group_bodies.append(json.dumps(data, ensure_ascii=False))
         response = client.get(path) if data is None else client.post(path, json=data)
         counts['requests'] += 1
-        return {'ok': response.is_success, 'status': response.status_code, 'data': response.json()}
+        return {'ok': response.is_success, 'status': response.status_code, 'data': response.json(), 'text': response.text}
 
     with sync_playwright() as engine:
         browser = engine.chromium.launch(executable_path=str(args.chromium), headless=True,
@@ -120,8 +126,9 @@ def main() -> None:
               },configurable:true});
               window.fetch=async(path,opt)=>{
                 const data=opt && opt.body ? JSON.parse(opt.body) : null;
-                const result=await window.apiBridge(path,data);
-                return {ok:result.ok,status:result.status,json:async()=>result.data};
+                const result=await window.apiBridge(path,data,opt && opt.headers ? opt.headers : null);
+                // text() is the body as the server sent it, which the Agent page measures.
+                return {ok:result.ok,status:result.status,json:async()=>result.data,text:async()=>result.text};
               };
             }''')
             # Exercise one-time profile migration when the project is rebranded.
@@ -1987,6 +1994,81 @@ def main() -> None:
             # The counts come from the running server's capabilities.
             tools = page.evaluate("fetch('/api/capabilities').then(r => r.json()).then(d => d.counts.mcp_tools)")
             page.wait_for_function(f"() => document.querySelector('#integration-counts').textContent.includes('{tools} Tools')", timeout=30000)
+            # The page checks the server itself over MCP: both protocol generations, every list, all passing.
+            page.wait_for_selector('#integration-summary.is-ok', timeout=30000)
+            assert page.locator('#integration-steps > li').count() == 6 and page.locator('#integration-steps > li.is-ok').count() == 6
+            assert [page.locator('#integration-steps .ag-method').nth(i).inner_text() for i in range(2)] == ['server/discover', 'initialize']
+            assert page.locator('#integration-consistency.ag-same').count() == 1
+            assert page.locator('.ag-nav-link').count() == 6
+            # The catalogue lists every tool once, grouped; search and the purpose chips narrow it in place.
+            assert page.locator('#integration-catalog .ag-tool').count() == tools
+            page.locator('#integration-search').fill('qimen_hour')
+            page.wait_for_function("() => [...document.querySelectorAll('#integration-catalog .ag-tool')].filter(c => !c.hidden).length === 1", timeout=5000)
+            assert page.locator('#integration-tool-qimen_hour_chart').is_visible()
+            assert page.locator('#integration-tool-count').inner_text().startswith('显示 1 / ')
+            page.locator('#integration-search').fill('')
+            page.locator('#integration-group-calendar').click()
+            page.wait_for_function("() => [...document.querySelectorAll('#integration-catalog .ag-tool')].filter(c => !c.hidden).length === 7", timeout=5000)
+            assert page.locator('#integration-group-sec-chart').is_hidden()
+            page.locator('#integration-group-all').click()
+            # A tool page link opens the workbench page; the example and trial run use the fixed demonstration birth.
+            assert page.locator('#integration-open-bazi_dayun').inner_text().endswith('大运干支')
+            page.locator('#integration-example-bazi_chart summary').click()
+            assert '"birth_datetime": "2000-08-16T04:00"' in page.locator('#integration-example-bazi_chart .ag-request').inner_text()
+            page.locator('#integration-try-bazi_chart').focus()
+            page.keyboard.press('Enter')
+            page.wait_for_selector('#integration-run-bazi_chart .ag-run-head.is-ok', timeout=30000)
+            assert '"pillars"' in page.locator('#integration-run-bazi_chart .ag-output').inner_text()
+            # The button kept the focus through the call, and the result stays inside its card.
+            assert page.evaluate("document.activeElement.id") == 'integration-try-bazi_chart'
+            assert page.evaluate('''() => {const card = document.querySelector('#integration-tool-bazi_chart').getBoundingClientRect();
+              return [...document.querySelectorAll('#integration-tool-bazi_chart pre')].every(p => p.getBoundingClientRect().right <= card.right + 1);}''')
+            # A long description opened in full stays open through a recheck, which keeps the last results on screen.
+            more = page.locator('#integration-catalog .ag-more').first
+            more_id = more.get_attribute('id')
+            more.click()
+            page.locator('#integration-recheck').focus()
+            page.keyboard.press('Enter')
+            assert page.locator('#integration-catalog .ag-tool').count() == tools  # still drawn while the check runs
+            page.wait_for_function("() => !agentPending", timeout=30000)
+            assert page.evaluate("document.activeElement.id") == 'integration-recheck'
+            assert page.locator('#' + more_id).get_attribute('aria-expanded') == 'true'
+            assert page.locator('#integration-example-bazi_chart').get_attribute('open') is not None
+            # Every example call is valid for its tool (the optional professional provider may be missing).
+            failures = page.evaluate('''async () => {
+              const bad = [];
+              for (const tool of agentCatalog.tools) {
+                try {
+                  const out = await mcpRequest('tools/call', agCall(tool).params);
+                  if (out.result.isError && tool.name !== 'ziwei_professional_chart') bad.push(tool.name + ': ' + out.result.content[0].text.slice(0, 120));
+                } catch (e) {bad.push(tool.name + ': ' + e.message);}
+              }
+              return bad;
+            }''')
+            assert failures == [], failures
+            # Client setup follows the typed project folder; nothing personal goes into it.
+            page.locator('#integration-client-codex').click()
+            page.locator('#integration-os-posix').click()
+            page.locator('#integration-path').fill('/opt/xuan shu/')
+            codex = page.locator('#integration-snippet').inner_text()
+            assert codex.startswith('[mcp_servers.xuanshu]') and 'command = "/opt/xuan shu/.venv/bin/python"' in codex
+            page.locator('#integration-client-claude-code').click()
+            assert page.locator('#integration-snippet').inner_text() == "claude mcp add --transport stdio --env PYTHONPATH='/opt/xuan shu' xuanshu -- '/opt/xuan shu/.venv/bin/python' -m app.stdio"
+            page.locator('#integration-client-http').click()
+            assert page.locator('#integration-snippet-1').inner_text().startswith('curl -s ') and 'tools/list' in page.locator('#integration-snippet-1').inner_text()
+            page.locator('#integration-client-claude-desktop').click()
+            page.locator('#integration-path').fill('')
+            assert '"args": [' in page.locator('#integration-snippet').inner_text() and page.locator('#integration-copy').is_visible()
+            # A rule resource is read on demand through resources/read.
+            page.locator('#integration-doc-evidence summary').click()
+            page.wait_for_selector('#integration-doc-evidence .ag-doc-text', timeout=30000)
+            assert '深度证据' in page.locator('#integration-doc-evidence .ag-doc-text').inner_text()
+            # The page follows the interface language and keeps what was open.
+            page.locator('#ui-language').select_option('en')
+            page.wait_for_function("() => document.querySelector('#integration-summary')?.textContent.includes('Connected to')", timeout=10000)
+            assert page.locator('#integration-doc-evidence').get_attribute('open') is not None
+            page.locator('#ui-language').select_option('zh-CN')
+            page.wait_for_function("() => document.querySelector('#integration-summary')?.textContent.includes('已连上')", timeout=10000)
             page.screenshot(path=str(screenshot_dir / '07-integration.png'), full_page=True)
 
             page.locator('#birth_datetime').fill('2057-09-28T12:00')
