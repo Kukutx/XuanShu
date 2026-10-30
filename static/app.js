@@ -7793,6 +7793,8 @@ function activateTab(tab, updateUrl = true) {
     history.replaceState(null, '', '#tool=' + active);
   }
   updateToolNavigation();
+  // Restart the fade-in for the newly opened tool (style.css: #result.is-entering).
+  result.classList.remove('is-entering'); void result.offsetWidth; result.classList.add('is-entering');
   render();
 }
 tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
@@ -7855,7 +7857,7 @@ form.addEventListener('submit', async event => {
     const [chart, reading] = await Promise.all([
       postJSON('/api/combined', data), postJSON('/api/analyze', data),
     ]);
-    current = {...chart, reading}; currentInput = data;
+    current = {...chart, reading}; currentInput = data; document.body.classList.add('has-chart');
     consultResult=null;consultCursor=null;consultRunKey=null;
     // A pasted-chart check belongs to the chart it ran on, unless this cast is the one its rule or hour asked for.
     if (!importRecheck) {importResult = null; importBirth = null; importHourPick = null; importFocusAfter = false;}

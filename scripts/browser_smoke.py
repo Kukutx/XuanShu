@@ -2168,7 +2168,15 @@ def main() -> None:
             # The contents list stays in view beside the report while it is read.
             page.evaluate("document.querySelector('#report-sec-2').scrollIntoView()")
             toc_top = page.evaluate("document.querySelector('#report-toc').getBoundingClientRect().top")
-            assert 0 <= toc_top <= 20, toc_top
+            # The header stays at the top of the window and the contents list sticks just below it, not under it.
+            header_bottom = page.evaluate("document.querySelector('.header').getBoundingClientRect().bottom")
+            assert page.evaluate("document.querySelector('.header').getBoundingClientRect().top") == 0
+            assert header_bottom <= toc_top <= header_bottom + 20, (toc_top, header_bottom)
+            # With a chart cast the introduction folds to one line; the cross-check link and today's chip stay.
+            assert page.locator('.hero p').is_hidden() and page.locator('.hero .eyebrow').is_hidden()
+            assert page.locator('#crosscheck-open').is_visible() and page.locator('#today-chip').is_visible()
+            # Opening a tool restarts the result area's one-time fade-in.
+            assert 'is-entering' in (page.locator('#result').get_attribute('class') or '')
             # Each copy button is named by its section, and sits beside the heading rather than inside it.
             first_title = page.evaluate("reportResult.sections[0].title")
             assert page.get_by_role('button', name=first_title).count() == 1
@@ -2312,6 +2320,9 @@ def main() -> None:
             page.locator('[data-tab="quality"]').click()
             assert page.locator('#quality-run').is_visible()
             page.screenshot(path=str(screenshot_dir / '13-quality-mobile.png'), full_page=True)
+            # On a phone the folded introduction keeps only today's chip; the heading is left for screen readers.
+            assert page.evaluate("document.querySelector('.hero h1').getBoundingClientRect().width") <= 1
+            assert page.locator('#today-chip').is_visible()
             # No page is wider than a phone screen, and no field sticks out of its label (a year field used to cover
             # the next-year button).
             for tab in ('report', 'bazi', 'ziwei', 'annual', 'dayun', 'qimen', 'officers'):
