@@ -29,7 +29,7 @@ def test_calendar_facts_for_a_fixed_moment():
     assert out['day_officer'] == {'officer': '成', 'jie_boundary_on_date': False}
     assert out['moon']['phase'] == '新月' and out['moon']['waxing'] is True
     assert out['moon']['next_full_moon'].startswith('2026-10-26T12:1')
-    assert out['personal'] is None and len(out['limitations']) == 3
+    assert out['personal'] is None and len(out['limitations']) == 4 and out['festivals'] == []
 
 
 def test_full_moon_term_day_and_another_zone():
@@ -72,7 +72,7 @@ def test_personal_labels_against_the_natal_chart():
     assert unspecified['personal']['decade_period'] is None
     infant = daily_almanac(DailyAlmanacRequest(moment='2026-10-11T09:30', birth=dict(BIRTH, birth_datetime='2026-09-01T08:00')))
     assert infant['personal']['decade_period']['note'] == '尚未起运' and infant['personal']['nominal_age'] == 1
-    assert len(out['limitations']) == 4
+    assert len(out['limitations']) == 5
 
 
 def test_bad_requests_are_rejected():

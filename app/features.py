@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .astronomy import CHINA, from_jd, solar_term_jd, TERMS, chinese_lunar_date
 from .engines import BirthInput, calculate_bazi, calculate_ziwei, STEMS, BRANCHES
+from .festivals import day_marks, lunar_or_rollover
 from .reference import BRANCH_HARMONY, BRANCH_CLASH, PALACE_TOPICS
 
 
@@ -67,19 +68,23 @@ def calendar_days(request: CalendarRequest) -> dict:
                 'name': name, 'time_china': moment.isoformat(timespec='minutes')
             })
     days = []
+    # One lunar date past the range tells whether its last day is 除夕.
+    lunars = [lunar_or_rollover(request.start_date + timedelta(days=offset)) for offset in range(request.days + 1)]
     for offset in range(request.days):
         current = request.start_date + timedelta(days=offset)
         days.append({
             'date': current.isoformat(),
             'weekday': '一二三四五六日'[current.weekday()],
-            'lunar': chinese_lunar_date(current),
+            'lunar': lunars[offset],
             'day_pillar': _day_pillar(current),
             'solar_terms': events_by_day.get(current, []),
+            'festivals': day_marks(current, lunars[offset], lunars[offset + 1]),
         })
     return {
         'timezone': 'Asia/Shanghai', 'start_date': request.start_date.isoformat(),
         'days': days, 'method': 'astronomical-lunar-with-day-cycle',
-        'notes': ['此接口只提供农历、日干支与节气日期；不提供黄历宜忌或吉凶择日结论。'],
+        'notes': ['此接口只提供农历、日干支、节气与传统节日、三伏、数九的日期；不提供黄历宜忌或吉凶择日结论。',
+                  '传统节日按农历日期（闰月不重复过节），三伏按夏至、立秋起数庚日，数九从冬至当天起数；每项都附推算规则。'],
     }
 
 
