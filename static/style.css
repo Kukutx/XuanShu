@@ -202,6 +202,21 @@ body.has-chart .today-chip{margin:0}
 .tool-finder input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--ring)}
 .tool-finder small{color:var(--muted);font-size:12px;white-space:nowrap}
 .tool-keyboard-hint{font-size:12px;color:var(--faint);white-space:nowrap;margin-left:auto}
+/* The hint opens the full list of shortcuts. */
+button.tool-keyboard-hint{display:inline-flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid transparent;border-radius:var(--radius-sm);background:none;font:inherit;font-size:12px;cursor:pointer}
+button.tool-keyboard-hint:hover{color:var(--gold2);border-color:var(--border)}
+button.tool-keyboard-hint:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+/* Keycaps: the same shape in the shortcut list, the hint and anywhere a key is named. */
+kbd{display:inline-block;min-width:1.9em;padding:3px 6px;border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:6px;background:var(--panel2);color:var(--text);font:600 11.5px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;text-align:center;white-space:nowrap}
+.tool-keyboard-hint kbd{min-width:1.6em;padding:1px 5px;font-size:11px}
+.share-dialog.shortcuts-dialog{width:min(720px,calc(100vw - 32px))}
+.sc-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:4px 28px;margin-top:6px}
+.sc-group h4{margin:14px 0 4px;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--gold2)}
+.sc-list{margin:0}
+.sc-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--border)}
+.sc-row dd{margin:0;text-align:right;color:var(--text2);font-size:13px}
+.sc-keys{display:flex;flex-wrap:wrap;align-items:center;gap:3px;flex:none;max-width:55%}
+.sc-join{color:var(--faint);font-size:11px}
 .tabbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 4px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 26px}
 .tab-group{font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--faint);padding:0 4px 0 14px;white-space:nowrap}
 .tab-group:first-child{padding-left:0}
@@ -1995,7 +2010,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .rule-summary{grid-template-columns:1fr}
   .workspace-top{padding:16px}
   .tool-finder{padding:10px 16px;gap:8px}
-  .tool-finder label,.tool-keyboard-hint{display:none}
+  .tool-finder label,.tool-keyboard-hint,button.tool-keyboard-hint{display:none}
   .tool-finder input{min-width:0;max-width:none;flex-basis:100%}
   .tabbar{padding:8px 16px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 24px),transparent)}
   .tabbar::-webkit-scrollbar{display:none}
@@ -2461,6 +2476,7 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .xs-dp-grid td[aria-selected=true] .xs-dp-day :is(.xs-dp-num,.xs-dp-lunar){color:HighlightText}
   .xs-dp-day.is-today{border:2px dashed CanvasText}
   .xs-dp-nav{border-color:ButtonText}
+  kbd{border-color:CanvasText}
   .cal-ghost{forced-color-adjust:none;background:GrayText;opacity:.5;animation:none}
   .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
   .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,

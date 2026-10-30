@@ -8229,7 +8229,59 @@ document.addEventListener('keydown', event => {
     $('#tool-search').focus();
     $('#tool-search').select();
   }
+  // ? lists every shortcut, except where it is typed (a text field) or another dialog is open.
+  const typing = event.target instanceof Element && event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable=false])');
+  if (event.key === '?' && !event.ctrlKey && !event.metaKey && !event.altKey && !typing && !document.querySelector('dialog[open]')) {
+    event.preventDefault();
+    openShortcuts();
+  }
 });
+// Every keyboard shortcut in one place, grouped by where it works. Keys are drawn as keycaps; on a Mac Ctrl is ⌘.
+const ON_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+const SHORTCUTS = [
+  ['任何地方', [[['Ctrl', 'K'], '查找功能'], [['?'], '打开这份快捷键说明'], [['Esc'], '关闭对话框、日历或提示']]],
+  ['功能标签', [[['←', '→'], '上一个 / 下一个功能'], [['Home', 'End'], '第一个 / 最后一个功能']]],
+  ['日期框和日历', [[['Alt', '↓'], '打开日历（也可以按 F4）'], [['←', '→', '↑', '↓'], '逐日、逐周移动'],
+    [['Home', 'End'], '本周第一天 / 最后一天'], [['Page Up', 'Page Down'], '上个月 / 下个月，加 Shift 换年'], [['Enter'], '选定这一天']]],
+  ['历法日历', [[['←', '→', '↑', '↓'], '逐日、逐周移动'], [['Home', 'End'], '本周第一天 / 最后一天'], [['Page Up', 'Page Down'], '上个月 / 下个月']]],
+  ['命盘', [[['←', '→', '↑', '↓'], '在紫微宫位或五行之间移动'], [['Enter'], '选中当前宫位或五行']]],
+  ['AI 对话', [[['Enter'], '发送'], [['Shift', 'Enter'], '换行'], [['Esc'], '停止生成']]],
+];
+function openShortcuts() {
+  let dialog = $('#shortcuts-dialog');
+  if (!dialog) {
+    dialog = elt('dialog', 'share-dialog shortcuts-dialog'); dialog.id = 'shortcuts-dialog';
+    dialog.setAttribute('aria-labelledby', 'shortcuts-title');
+    document.body.append(dialog);
+  }
+  dialog.replaceChildren();
+  const head = append(dialog, 'div', 'share-head');
+  append(head, 'h3', null, '键盘快捷键').id = 'shortcuts-title';
+  const close = append(head, 'button', 'tiny-button', '关闭'); close.type = 'button'; close.id = 'shortcuts-close';
+  close.addEventListener('click', () => dialog.close());
+  const groups = append(dialog, 'div', 'sc-groups');
+  SHORTCUTS.forEach(([name, rows]) => {
+    const group = append(groups, 'section', 'sc-group');
+    const title = append(group, 'h4', null, name);
+    title.id = 'sc-' + SHORTCUTS.findIndex(g => g[0] === name);
+    const list = append(group, 'dl', 'sc-list'); list.setAttribute('aria-labelledby', title.id);
+    rows.forEach(([keys, what]) => {
+      const row = append(list, 'div', 'sc-row');
+      const combo = append(row, 'dt', 'sc-keys'); combo.dataset.noI18n = '';
+      // Keys pressed together are joined by +; a set of arrows is one choice among them.
+      const together = keys.length === 2 && ['Ctrl', 'Alt', 'Shift'].includes(keys[0]);
+      keys.forEach((key, i) => {
+        if (i) append(combo, 'span', 'sc-join', together ? '+' : ' ');
+        append(combo, 'kbd', null, key === 'Ctrl' && ON_MAC ? '⌘' : key);
+      });
+      append(row, 'dd', null, what);
+    });
+  });
+  append(dialog, 'p', 'field-help', '在文本框里输入时，这些按键照常输入文字；? 只在焦点不在输入框时打开本说明。');
+  if (!dialog.open) dialog.showModal();
+  close.focus();
+}
+$('#shortcuts-open').addEventListener('click', openShortcuts);
 window.addEventListener('hashchange', () => {
   const tab = tabFromHash();
   if (tab && tab.dataset.tab !== active) activateTab(tab, false);

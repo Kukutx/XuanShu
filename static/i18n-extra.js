@@ -1254,6 +1254,10 @@ const UI_EXTRA = {
 "Which two-hour period each time system falls in",
 "三つの時制がどの時辰に入るか"
 ],
+"上一个 / 下一个功能": [
+"Previous / next feature",
+"前 / 次の機能"
+],
 "上一个大限": [
 "Previous major limit",
 "前の大限"
@@ -1273,6 +1277,14 @@ const UI_EXTRA = {
 "上个月": [
 "Previous month",
 "前の月"
+],
+"上个月 / 下个月": [
+"Previous / next month",
+"前月 / 翌月"
+],
+"上个月 / 下个月，加 Shift 换年": [
+"Previous / next month; with Shift, a year",
+"前月 / 翌月（Shift で年単位）"
 ],
 "上元": [
 "Upper Yuan",
@@ -2306,6 +2318,10 @@ const UI_EXTRA = {
 "Transformations started from one palace's stem, seeing which palace each transformed star falls in; landing back in the same palace is called self-transformation.",
 "ある宮の宮干から四化を起こし、四化星がどの宮に入るかを見ること。本宮に戻るものを自化と呼びます。"
 ],
+"任何地方": [
+"Anywhere",
+"どこでも"
+],
 "任意权重下首位都不变": [
 "The leader holds at any weight",
 "どの重みでも首位は変わりません"
@@ -3038,6 +3054,10 @@ const UI_EXTRA = {
 "Close",
 "閉じる"
 ],
+"关闭对话框、日历或提示": [
+"Close a dialog, calendar or hint",
+"ダイアログ・カレンダー・ヒントを閉じる"
+],
 "兴趣、休息与精神体验": [
 "Interests, rest and spiritual experience",
 "趣味、休息と精神的な体験"
@@ -3665,6 +3685,10 @@ const UI_EXTRA = {
 "力士": [
 "Li Shi",
 "力士"
+],
+"功能标签": [
+"Feature tabs",
+"機能タブ"
 ],
 "加入八字与紫微的可追溯观察和交叉核查；每条观察依据的字段、规则编号和适用边界在 JSON 数据页里。": [
 "Adds traceable BaZi and Zi Wei observations and a cross-check between the two; the fields, rule IDs and limits behind each observation are on the JSON data page.",
@@ -4958,6 +4982,10 @@ const UI_EXTRA = {
 "Within the sensitivity window",
 "感度ウィンドウ内"
 ],
+"在文本框里输入时，这些按键照常输入文字；? 只在焦点不在输入框时打开本说明。": [
+"While typing in a text field these keys type as usual; ? opens this list only when the focus is not in a field.",
+"テキスト欄で入力中はこれらのキーは通常どおり文字を入力します。? は入力欄にフォーカスがないときだけこの一覧を開きます。"
+],
 "在月历中查看": [
 "Show in the month calendar",
 "月暦で見る"
@@ -4973,6 +5001,10 @@ const UI_EXTRA = {
 "在盘上选中一宫时标出这四个宫。": [
 "Selecting a palace on the board marks these four palaces.",
 "盤上で宮を選ぶとこの四つの宮を示します。"
+],
+"在紫微宫位或五行之间移动": [
+"Move between Zi Wei palaces or the five phases",
+"紫微の宮や五行の間を移動"
 ],
 "在紫微盘上看飞化线": [
 "Show flying lines on the Zi Wei chart",
@@ -7254,6 +7286,10 @@ const UI_EXTRA = {
 "Open workbench page",
 "ワークベンチのページを開く"
 ],
+"打开日历（也可以按 F4）": [
+"Open the calendar (F4 works too)",
+"カレンダーを開く（F4 でも可）"
+],
 "打开紫微斗数": [
 "Open Zi Wei",
 "紫微斗数を開く"
@@ -7265,6 +7301,10 @@ const UI_EXTRA = {
 "打开这一页": [
 "Open this page",
 "このページを開く"
+],
+"打开这份快捷键说明": [
+"Open this list of shortcuts",
+"このショートカット一覧を開く"
 ],
 "扣除夏令时（按标准时）": [
 "Daylight saving removed (standard time)",
@@ -7573,6 +7613,10 @@ const UI_EXTRA = {
 "换算并填入公历": [
 "Convert and fill in",
 "換算して西暦を入力"
+],
+"换行": [
+"New line",
+"改行"
 ],
 "排在第一": [
 "Ranked first",
@@ -8013,6 +8057,10 @@ const UI_EXTRA = {
 "日期或时间没填完整：年、月、日、时、分都要填": [
 "The date or time is incomplete: fill in the year, month, day, hour and minute",
 "日付または時刻が未入力です。年・月・日・時・分をすべて入力してください"
+],
+"日期框和日历": [
+"Date fields and calendar",
+"日付欄とカレンダー"
 ],
 "日期须在 1901-01-01 至 2099-12-31 之间": [
 "The date must be between 1901-01-01 and 2099-12-31",
@@ -9010,6 +9058,10 @@ const UI_EXTRA = {
 "The first day after the ten days of the Last Fu",
 "末伏十日が明けた最初の日"
 ],
+"本周第一天 / 最后一天": [
+"First / last day of the week",
+"週の最初 / 最後の日"
+],
 "本命": [
 "Natal",
 "本命"
@@ -9233,6 +9285,10 @@ const UI_EXTRA = {
 "某个农历年的年支所在的宫，作为这一年的命宫。": [
 "The palace on a lunar year's branch, taken as that year's Life palace.",
 "ある旧暦年の年支がある宮。その年の命宮とします。"
+],
+"查找功能": [
+"Find a feature",
+"機能を探す"
 ],
 "查法": [
 "Rule",
@@ -11018,6 +11074,10 @@ const UI_EXTRA = {
 "Endpoint",
 "エンドポイント"
 ],
+"第一个 / 最后一个功能": [
+"First / last feature",
+"最初 / 最後の機能"
+],
 "第一步大运开始时的年龄。": [
 "The age at which the first luck pillar begins.",
 "最初の大運が始まる年齢。"
@@ -12802,6 +12862,10 @@ const UI_EXTRA = {
 "Reverse: counted back to the previous jie term",
 "逆行：前の節までさかのぼって数えます"
 ],
+"选中当前宫位或五行": [
+"Select the current palace or phase",
+"現在の宮・五行を選ぶ"
+],
 "选哪个": [
 "Which one to choose",
 "どれを選ぶ"
@@ -12809,6 +12873,10 @@ const UI_EXTRA = {
 "选哪份工作？": [
 "Which job should I take?",
 "どちらの仕事を選ぶ？"
+],
+"选定这一天": [
+"Choose this day",
+"この日を選ぶ"
 ],
 "选择「23:00 换日」后与 iztro 的“晚子时”一致": [
 "With \"day changes at 23:00\", matches iztro's \"late Zi\"",
@@ -12869,6 +12937,10 @@ const UI_EXTRA = {
 "逐年列表": [
 "By year",
 "年ごとの一覧"
+],
+"逐日、逐周移动": [
+"Move by a day or a week",
+"1 日・1 週ずつ移動"
 ],
 "逐日对照（每天正午）": [
 "Day by day (noon each day)",
@@ -13033,6 +13105,10 @@ const UI_EXTRA = {
 "银川": [
 "Yinchuan",
 "銀川"
+],
+"键盘快捷键": [
+"Keyboard shortcuts",
+"キーボードショートカット"
 ],
 "长度": [
 "Length",
