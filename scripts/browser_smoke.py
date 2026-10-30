@@ -2177,6 +2177,14 @@ def main() -> None:
             assert page.locator('#crosscheck-open').is_visible() and page.locator('#today-chip').is_visible()
             # Opening a tool restarts the result area's one-time fade-in.
             assert 'is-entering' in (page.locator('#result').get_attribute('class') or '')
+            # On a wide screen the birth form folds to a one-line summary when asked, and the workspace takes the full width.
+            narrow = page.evaluate("document.querySelector('#workspace').getBoundingClientRect().width")
+            page.locator('#birth-summary-toggle').click()
+            assert page.locator('#input-panel.collapsed').count() == 1 and page.locator('#birth-summary-text').is_visible()
+            assert page.evaluate("document.querySelector('#workspace').getBoundingClientRect().width") > narrow + 200
+            page.locator('#birth-summary-toggle').click()
+            assert page.locator('#input-panel.collapsed').count() == 0 and page.evaluate("document.activeElement.id") == 'birth_datetime'
+            assert page.evaluate("document.querySelector('#workspace').getBoundingClientRect().width") == narrow
             # Each copy button is named by its section, and sits beside the heading rather than inside it.
             first_title = page.evaluate("reportResult.sections[0].title")
             assert page.get_by_role('button', name=first_title).count() == 1

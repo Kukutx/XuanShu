@@ -7851,7 +7851,7 @@ for (const type of ['input','change']) {
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const run = $('#run-btn'); const error = $('#error');
-  error.hidden = true; run.disabled = true; run.querySelector('span').textContent = '正在计算…';
+  error.hidden = true; run.disabled = true; run.setAttribute('aria-busy', 'true'); run.querySelector('span').textContent = '正在计算…';
   const data = readInput();
   try {
     const [chart, reading] = await Promise.all([
@@ -7877,7 +7877,7 @@ form.addEventListener('submit', async event => {
     announce('命盘已生成：' + data.birth_datetime.replace('T', ' '));
     if (compactScreen && compactScreen.matches) {setBirthPanelCollapsed(true); $('#workspace').scrollIntoView({block: 'start'});}
   } catch (err) {error.textContent = '计算失败：' + err.message; error.hidden = false; importRecheck = false; importFocusAfter = false;}
-  finally {run.disabled = false; run.querySelector('span').textContent = '生成命盘';}
+  finally {run.disabled = false; run.removeAttribute('aria-busy'); run.querySelector('span').textContent = '生成命盘';}
 });
 $('#download-json').addEventListener('click', () => {
   if (!current || (currentInput && JSON.stringify(readInput()) !== JSON.stringify(currentInput))) return;
@@ -8041,7 +8041,8 @@ function updateGeoControls(){
   updateBirthSummary();
 }
 for(const id of ['#time_mode','#late_zi_day_rollover','#leap_month_second_half_as_next'])$(id).addEventListener('change',updateGeoControls);
-// Small screens: the form folds into a one-line summary so the workspace is reachable.
+// The form folds into a one-line summary: on a small screen after each cast so the workspace is reachable, on a wide
+// screen when the user folds it, and the workspace then takes the full width.
 const genderLabels={male:'男',female:'女',unspecified:'不指定顺逆'};
 function updateBirthSummary(){
   const input=readInput();
@@ -8051,6 +8052,7 @@ function updateBirthSummary(){
 }
 function setBirthPanelCollapsed(collapsed){
   $('#input-panel').classList.toggle('collapsed',collapsed);
+  $('#input-panel').parentElement.classList.toggle('birth-collapsed',collapsed);
   const toggle=$('#birth-summary-toggle');
   toggle.textContent=collapsed?'修改出生信息':'收起';
   toggle.setAttribute('aria-expanded',String(!collapsed));

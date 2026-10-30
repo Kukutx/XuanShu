@@ -138,7 +138,22 @@ body.has-chart .today-chip{margin:0}
 .primary-btn:disabled{opacity:.6;cursor:not-allowed}
 .error{color:var(--red);margin:10px 0}
 .demo-data-notice{font-size:12px;color:var(--warn);border-left:3px solid var(--gold);padding:7px 10px;background:var(--accent-soft);margin:10px 0 0}
-.birth-summary{display:none}
+/* The birth form folds into a one-line summary: on a phone after each cast, on a wide screen when the user asks,
+   and the workspace then takes the full width. */
+.birth-summary{display:none;align-items:center;justify-content:space-between;gap:10px;font-size:12px}
+.birth-summary .tiny-button{white-space:nowrap}
+.birth-summary span{color:var(--text2);overflow-wrap:anywhere}
+.input-panel.collapsed>:not(.birth-summary){display:none}
+.input-panel.collapsed .birth-summary{display:flex}
+@media(min-width:861px){
+  .main-grid.birth-collapsed{grid-template-columns:minmax(0,1fr)}
+  .input-panel.collapsed{position:static;max-height:none;padding:12px 16px 12px 22px;border-radius:var(--radius)}
+  .input-panel.collapsed .birth-summary span{font-size:13px}
+  .input-panel.collapsed .birth-summary span::before{content:'';display:inline-block;width:7px;height:7px;margin-right:10px;border-radius:50%;background:var(--green);vertical-align:1px;box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent)}
+  .input-panel:not(.collapsed) .birth-summary{display:flex;position:absolute;top:20px;right:18px}
+  .input-panel:not(.collapsed) .birth-summary span{display:none}
+  .input-panel:not(.collapsed)>.section-head{padding-right:58px}
+}
 .sidebar-note{margin-top:22px;display:flex;gap:10px;background:var(--accent-soft);border:1px solid var(--accent-line);padding:13px 12px;border-radius:var(--radius)}
 .sidebar-note>span{color:var(--gold);font-size:20px;line-height:1}
 .sidebar-note strong{font-size:12px;color:var(--gold2)}
@@ -1131,6 +1146,10 @@ html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:cent
 .mini-qimen-cell.empty{border-style:dashed}
 .ziwei-scroll-hint{display:none;font-size:12px;color:var(--muted);margin:0 0 6px}
 .inline-msg.progress{color:var(--muted)}
+/* A small spinner beside work in progress (a still ring when motion is reduced). */
+.inline-msg.progress::before,.primary-btn[aria-busy="true"]>span::before{content:'';display:inline-block;width:11px;height:11px;margin-right:8px;vertical-align:-1px;border:2px solid var(--accent-line);border-top-color:var(--gold);border-radius:50%;animation:xs-spin .8s linear infinite}
+.primary-btn[aria-busy="true"]>span::before{border-color:color-mix(in srgb,var(--on-gold) 35%,transparent);border-top-color:var(--on-gold)}
+@keyframes xs-spin{to{transform:rotate(360deg)}}
 .inline-msg.ok{color:var(--green)}
 .empty-state .tiny-button{margin-top:14px}
 
@@ -1927,15 +1946,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   /* On a phone the cast chart needs the room: the heading stays for screen readers only. */
   body.has-chart .hero h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   body.has-chart .hero{padding:12px 0 10px}
-  .birth-summary .tiny-button{white-space:nowrap}
   .main-grid{grid-template-columns:1fr;gap:12px}
   .input-panel{position:static;max-height:none;padding:18px}
   .workspace{min-height:560px}
-  /* On small screens the birth form folds into a one-line summary so the workspace is reachable. */
-  .input-panel.collapsed>:not(.birth-summary){display:none}
-  .input-panel.collapsed .birth-summary{display:flex}
-  .birth-summary{align-items:center;justify-content:space-between;gap:10px;font-size:12px}
-  .birth-summary span{color:var(--text2);overflow-wrap:anywhere}
   .input-panel:not(.collapsed) .birth-summary{display:flex;margin-bottom:6px}
   .input-panel:not(.collapsed) .birth-summary span{display:none}
   .input-panel:not(.collapsed) .birth-summary{justify-content:flex-end}
