@@ -246,8 +246,10 @@ let dayunPick = null;  // the decade shown in detail on the luck-pillar page; nu
 let dayunKey = null, dayunPending = false, dayunError = '';  // the request the shown periods belong to
 let dayunAxisScroll = null;  // {key, left}: where the luck axis was scrolled to, kept while the same decade is shown
 // The month pillars opened under a year ({key, year, pillar, months}), the request out for them ({key, year}, compared by
-// identity so a reply to an earlier request is dropped) and its failure ({key, year, text}).
+// identity so a reply to an earlier request is dropped) and its failure ({key, year, text}); the days opened under one of
+// those months the same way ({key, year, month, jie, pillar, days}, a request {key, year, month}, a failure with its text).
 let dayunMonths = null, dayunMonthsLoad = null, dayunMonthsError = null;
+let dayunDays = null, dayunDaysLoad = null, dayunDaysError = null;
 const FLOW_MONTH_LAST_YEAR = 2099;  // the supported range ends here; a later year's months are not offered
 let boundaryDraft = {uncertainty_minutes: 60};
 let qualityMinutesDraft = 15;
@@ -6930,8 +6932,10 @@ function dayunDetail(d, x, isNow, o, now) {
     if (y.year > FLOW_MONTH_LAST_YEAR) first.textContent = String(y.year);
     else {
       const open = append(first, 'button', 'dy-year-toggle', String(y.year)); open.type = 'button'; open.id = 'dayun-year-' + y.year;
-      open.setAttribute('aria-expanded', String(!!shown && shown.year === y.year));
-      if (shown && shown.year === y.year) open.setAttribute('aria-controls', 'dayun-months');
+      // While another year loads its placeholder stands where the months were: nothing is expanded then.
+      const expanded = !loading && !!shown && shown.year === y.year;
+      open.setAttribute('aria-expanded', String(expanded));
+      if (expanded) open.setAttribute('aria-controls', 'dayun-months');
       if (loading && loading.year === y.year) open.setAttribute('aria-busy', 'true');
       tip(open, '展开这一年的十二个流月');
       open.addEventListener('click', () => dayunMonthsToggle(y.year));
@@ -6955,22 +6959,40 @@ function dayunDetail(d, x, isNow, o, now) {
 // chart like the years. Fetched when a year is opened; opening it again closes it.
 function dayunMonthsToggle(year) {
   const key = dayunKey;
-  dayunMonthsError = null;
-  if (dayunMonths && dayunMonths.key === key && dayunMonths.year === year) {dayunMonths = null; dayunRefocus(year); return;}
+  dayunMonthsError = dayunDaysError = dayunDaysLoad = null;  // a reply still out for a month's days is dropped with it
+  if (dayunMonths && dayunMonths.key === key && dayunMonths.year === year) {dayunMonths = null; dayunRefocus('dayun-year-' + year); return;}
   if (dayunMonthsLoad && dayunMonthsLoad.key === key && dayunMonthsLoad.year === year) return;  // already on its way
   const load = dayunMonthsLoad = {key, year};
-  dayunRefocus(year);
+  dayunRefocus('dayun-year-' + year);
   postJSON('/api/dayun', {...JSON.parse(key), periods: 1, include_years: false, month_year: year})
     // Only the request made last counts: a reply to an earlier one (another year, or the chart before) is dropped.
     .then(data => {if (dayunMonthsLoad === load && dayunKey === key) dayunMonths = {key, year, pillar: data.flow_months.year_pillar, months: data.flow_months.months};})
     .catch(err => {if (dayunMonthsLoad === load) dayunMonthsError = {key, year, text: '流月计算失败：' + err.message};})
-    .finally(() => {if (dayunMonthsLoad === load) dayunMonthsLoad = null; if (active === 'dayun') dayunRefocus(year);});
+    .finally(() => {if (dayunMonthsLoad === load) dayunMonthsLoad = null; if (active === 'dayun') dayunRefocus('dayun-year-' + year);});
 }
-// Redraw, keeping the focus on a year's button when it was there.
-function dayunRefocus(year) {
-  const had = document.activeElement && document.activeElement.id === 'dayun-year-' + year;
+// The days of one of those months, opened from its row the same way.
+function dayunDaysToggle(year, month) {
+  const key = dayunKey, id = 'dayun-month-' + month;
+  const same = x => x && x.key === key && x.year === year && x.month === month;
+  dayunDaysError = null;
+  if (same(dayunDays)) {dayunDays = null; dayunRefocus(id); return;}
+  if (same(dayunDaysLoad)) return;  // already on its way
+  const load = dayunDaysLoad = {key, year, month};
+  dayunRefocus(id);
+  postJSON('/api/dayun', {...JSON.parse(key), periods: 1, include_years: false, month_year: year, day_month: month})
+    .then(data => {
+      if (dayunDaysLoad !== load || dayunKey !== key) return;
+      const m = data.flow_months.months[month - 1];
+      dayunDays = {key, year, month, jie: m.jie, pillar: m.pillar, days: m.days};
+    })
+    .catch(err => {if (dayunDaysLoad === load) dayunDaysError = {key, year, month, message: err.message};})
+    .finally(() => {if (dayunDaysLoad === load) dayunDaysLoad = null; if (active === 'dayun') dayunRefocus(id);});
+}
+// Redraw, keeping the focus on a year's or month's button when it was there.
+function dayunRefocus(id) {
+  const had = document.activeElement && document.activeElement.id === id;
   render();
-  const back = $('#dayun-year-' + year); if (had && back) back.focus({preventScroll: true});
+  const back = document.getElementById(id); if (had && back) back.focus({preventScroll: true});
 }
 function dayunMonthTable(box, m, o) {
   const panel = append(box, 'section', 'dy-months'); panel.id = 'dayun-months';
@@ -6985,20 +7007,69 @@ function dayunMonthTable(box, m, o) {
   const th = append(append(table, 'thead'), 'tr');
   ['节令', '干支', ...(o.day ? [] : ['十神', '星运']), '与原局', '神煞'].forEach(t => {append(th, 'th', null, t).scope = 'col';});
   const tbody = append(table, 'tbody'), at = Date.now();
+  const days = dayunDays && dayunDays.key === dayunKey && dayunDays.year === m.year ? dayunDays : null;
+  const loading = dayunDaysLoad && dayunDaysLoad.key === dayunKey && dayunDaysLoad.year === m.year ? dayunDaysLoad : null;
   m.months.forEach(month => {
     const live = Date.parse(month.start_local) <= at && at < Date.parse(month.end_local_exclusive);
     const tr = append(tbody, 'tr', live ? 'is-current' : null);
     if (live) tr.setAttribute('aria-current', 'date');
     const first = append(tr, 'th'); first.scope = 'row';
-    append(first, 'span', null, month.jie);
-    append(first, 'small', 'dy-month-date', month.start_local.slice(5, 16).replace('T', ' '));
-    tip(first, month.start_local.slice(0, 16).replace('T', ' ') + ' – ' + month.end_local_exclusive.slice(0, 16).replace('T', ' '));
+    const open = append(first, 'button', 'dy-year-toggle dy-month-toggle'); open.type = 'button'; open.id = 'dayun-month-' + month.month;
+    const label = append(open, 'span', 'dy-month-label');
+    append(label, 'span', null, month.jie);
+    append(label, 'small', 'dy-month-date', month.start_local.slice(5, 16).replace('T', ' '));
+    const expanded = !loading && !!days && days.month === month.month;
+    open.setAttribute('aria-expanded', String(expanded));
+    if (expanded) open.setAttribute('aria-controls', 'dayun-days');
+    if (loading && loading.month === month.month) open.setAttribute('aria-busy', 'true');
+    tip(open, month.start_local.slice(0, 16).replace('T', ' ') + ' – ' + month.end_local_exclusive.slice(0, 16).replace('T', ' '));
+    open.addEventListener('click', () => dayunDaysToggle(m.year, month.month));
     const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
     append(pair, 'span', stemClass(month.pillar[0]), month.pillar[0]); append(pair, 'span', branchClass(month.pillar[1]), month.pillar[1]);
     const ms = settledInteractions(month, o);
     if (!o.day) {append(tr, 'td', null, ms.ten_god_of_stem); append(tr, 'td', null, ms.growth_stage);}
     const marks = append(tr, 'td'); natalMarks(marks, ms); tip(marks, natalText(ms)); if (!marks.childNodes.length) marks.textContent = '—';
     append(tr, 'td', null, o.stars ? '随时辰而定' : (ms.shensha || []).map(sh => sh.name).join('、') || '—');
+  });
+  append(panel, 'p', 'field-help dy-years-hint', '点节令可展开这个月每天的日柱。');
+  const failed = dayunDaysError && dayunDaysError.key === dayunKey && dayunDaysError.year === m.year ? dayunDaysError : null;
+  // The failure names its month: the grid of another month may still be open above it.
+  if (failed) texts(append(panel, 'p', 'inline-msg'), m.months[failed.month - 1].jie, ' ', '流日计算失败：', failed.message);
+  if (loading) loadingGhost(panel, 'table');
+  else if (days) dayunDayGrid(panel, days, o);
+}
+// A day's weekday, short; the interface language translates it like any other text.
+const SHORT_WEEKDAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const shortWeekday = iso => SHORT_WEEKDAYS[(new Date(iso + 'T00:00:00Z').getUTCDay() + 6) % 7];
+// The days of a month as cards: date and weekday, the day pillar, its ten god and short marks against the natal chart;
+// the full relations and stars in the card's hint. Today and the day of the jie stand out.
+function dayunDayGrid(panel, d, o) {
+  const box = append(panel, 'section', 'dy-days'); box.id = 'dayun-days';
+  box.setAttribute('aria-labelledby', 'dayun-days-title');
+  const head = append(box, 'div', 'dy-months-head');
+  const heading = append(head, 'h6', 'dy-months-title'); heading.id = 'dayun-days-title';
+  texts(heading, String(d.year), ' ', d.jie, ' ', d.pillar, ' · ', '流日干支');
+  // The twelfth month (and part of the eleventh) falls in the next calendar year: the range says which.
+  const firstDate = d.days[0].date, lastDate = d.days[d.days.length - 1].date;
+  const range = append(head, 'span', 'dy-days-range', firstDate + ' – ' + (lastDate.slice(0, 4) === firstDate.slice(0, 4) ? lastDate.slice(5) : lastDate));
+  range.dataset.noI18n = '';
+  append(head, 'span', 'muted', '日柱在午夜换日；交节当天列在本月');
+  const list = append(box, 'ol', 'dy-day-grid'); list.id = 'dayun-day-grid';
+  const today = localToday();
+  d.days.forEach(day => {
+    const ds = settledInteractions(day, o);
+    const item = append(list, 'li', 'dy-day' + (day.date === today ? ' is-today' : '') + (day.jie_day ? ' is-jie' : ''));
+    if (day.date === today) item.setAttribute('aria-current', 'date');
+    const top = append(item, 'div', 'dy-day-top');
+    append(top, 'b', 'dy-day-date', (day.date.slice(5) === '01-01' ? day.date.slice(0, 4) + '/' : '') + day.date.slice(5).replace('-', '/'));
+    append(top, 'small', null, shortWeekday(day.date));
+    const pair = append(item, 'span', 'pillar-cell dy-day-gz');
+    append(pair, 'span', stemClass(day.pillar[0]), day.pillar[0]); append(pair, 'span', branchClass(day.pillar[1]), day.pillar[1]);
+    const foot = append(item, 'div', 'dy-day-foot');
+    if (day.jie_day) append(foot, 'small', 'dy-day-jie', d.jie);
+    if (!o.day) append(foot, 'small', 'dy-day-god', ds.ten_god_of_stem);
+    natalMarks(foot, ds);
+    tip(item, natalText(ds));
   });
 }
 function renderBirthBoundaries(){

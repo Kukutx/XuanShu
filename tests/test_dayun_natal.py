@@ -105,4 +105,34 @@ def test_luck_page_years_open_their_months():
     # so a reply for an earlier year or chart is dropped, and a failure belongs to its chart and year.
     assert 'const FLOW_MONTH_LAST_YEAR = 2099;' in script and 'if (y.year > FLOW_MONTH_LAST_YEAR) first.textContent' in script
     assert 'if (dayunMonthsLoad === load && dayunKey === key)' in script and "dayunMonthsError.key === dayunKey && inDecade(dayunMonthsError.year)" in script
+    assert 'if (dayunDaysLoad !== load || dayunKey !== key) return;' in script and 'if (same(dayunDaysLoad)) return;' in script
+    # Opening another year drops the days' error and request; a failure names its month; nothing is expanded during a load.
+    assert 'dayunMonthsError = dayunDaysError = dayunDaysLoad = null;' in script and "m.months[failed.month - 1].jie, ' ', '流日计算失败：'" in script
+    assert 'const expanded = !loading && !!days && days.month === month.month;' in script and "range.dataset.noI18n = '';" in script
     assert '.dy-year-toggle[aria-expanded="true"]' in open('static/style.css', encoding='utf-8').read()
+    # Each month in turn opens its days as cards.
+    assert 'day_month: month' in script and "box.id = 'dayun-days'" in script and "list.id = 'dayun-day-grid'" in script
+
+
+def test_day_pillars_of_a_month():
+    reply = dayun_sequence(DayunRequest(birth=BirthInput(**BIRTH), periods=1, month_year=2026, day_month=9))
+    months = reply['flow_months']['months']
+    days = months[8]['days']
+    # 寒露 2026 falls on 10-08 and 立冬 on 11-07: the days from the one to the day before the other.
+    assert (days[0]['date'], days[-1]['date'], len(days)) == ('2026-10-08', '2026-11-06', 30)
+    assert days[0]['jie_day'] and not any(d['jie_day'] for d in days[1:]) and all('days' not in m for i, m in enumerate(months) if i != 8)
+    # The day pillar of each date is the one a chart cast at its noon has.
+    for d in days[::7] + days[-1:]:
+        assert calculate_bazi(BirthInput(birth_datetime=d['date'] + 'T12:00', timezone='Asia/Shanghai'))['pillars']['day']['text'] == d['pillar']
+    assert days[2]['pillar'] == '丁巳' and [(r['pillar'], r['labels']) for r in days[2]['branch_relations']] == [('month', ['六合', '相刑']), ('hour', ['六害', '相刑'])]
+    assert 'hidden_stems' not in days[0] and {s['name'] for d in days for s in d['shensha']} <= {r['name'] for r in reply['shensha_rules']}
+    # The twelfth month runs into the next year; a day needs a month of a year.
+    late = dayun_sequence(DayunRequest(birth=BirthInput(**BIRTH), periods=1, month_year=2099, day_month=12))['flow_months']['months'][11]['days']
+    assert late[0]['date'].startswith('2100-01-') and late[-1]['date'].startswith('2100-02-0')
+    # Samoa skipped 30 December 2011: the date is not listed.
+    apia = BirthInput(**{**BIRTH, 'timezone': 'Pacific/Apia'})
+    skipped = [d['date'] for d in dayun_sequence(DayunRequest(birth=apia, periods=1, month_year=2011, day_month=11))['flow_months']['months'][10]['days']]
+    assert '2011-12-29' in skipped and '2011-12-31' in skipped and '2011-12-30' not in skipped
+    client = TestClient(app)
+    assert client.post('/api/dayun', json={'birth': BIRTH, 'day_month': 3}).status_code == 422
+    assert client.post('/api/dayun', json={'birth': BIRTH, 'month_year': 2026, 'day_month': 13}).status_code == 422
