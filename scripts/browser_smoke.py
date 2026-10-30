@@ -1028,6 +1028,11 @@ def main() -> None:
             assert page.locator('#live-status').inner_text() == '紫微盘已打开宫干飞化：财帛宫'
             page.evaluate("selectedPalace = '命宫'")
             page.locator('[data-tab="bazi"]').click()
+            # A long page lists its sections under the title; a click scrolls there and focuses the section heading.
+            assert page.locator('#page-index .page-index-link').all_inner_texts() == ['大运与流年', '五行生克', '五行分布', '地支关系标签与藏干统计', '神煞与查法出处']
+            page.locator('#page-index .page-index-link').last.click()
+            page.wait_for_function("document.activeElement.tagName === 'H4' && document.activeElement.textContent === '神煞与查法出处'", timeout=5000)
+            assert page.locator('#page-index .page-index-link').last.get_attribute('aria-controls') == page.evaluate('document.activeElement.id')
             # A screen past the tool tabs a round button appears; it scrolls back and focuses the opened tool's tab.
             assert not page.locator('#to-top').is_visible()
             page.evaluate('scrollTo(0, document.documentElement.scrollHeight)')
@@ -1913,6 +1918,8 @@ def main() -> None:
             assert page.evaluate("() => {document.getElementById('pair-run').click(); return document.querySelector('.xs-empty').classList.contains('is-busy');}")
             page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
             assert page.locator('.xs-empty').count() == 0
+            # A comparison this long lists its sections under the title too.
+            assert page.locator('#page-index .page-index-link').last.inner_text() == '紫微宫位叠盘'
             # The same luck and year-pillar cards as the group page, for A and B, switchable by year.
             assert page.locator('#pair-year .group-year-card').count() == 2 and '2026 流年 丙午' in page.locator('#pair-year').inner_text()
             assert page.evaluate("pairResult.year_view.members[1].gender") == 'female' and '女' in page.locator('#pair-year-card-1').inner_text()
@@ -2727,7 +2734,7 @@ def main() -> None:
             page.locator('[data-tab="pair"]').click()
             page.locator('#pair-run').click()
             page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
-            assert page.get_by_text('紫微宮位疊盤', exact=True).count() == 1
+            assert page.get_by_role('heading', name='紫微宮位疊盤', exact=True).count() == 1
             # The copied text follows 繁體 too, but a name the user typed is kept exactly as typed.
             assert page.locator('#pair-text-text').text_content().startswith('玄樞 · 雙人合盤對照')
             assert page.evaluate("finishText([asName('妈妈') + ' 对照'])") == '妈妈 對照'
@@ -2800,7 +2807,7 @@ def main() -> None:
             page.set_viewport_size({'width': 1440, 'height': 920})
             page.locator('#ui-language').select_option('zh-CN')
             assert page.locator('[data-tab="calendar"]').inner_text() == '历法日历'
-            assert page.get_by_text('紫微宫位叠盘', exact=True).count() == 1
+            assert page.get_by_role('heading', name='紫微宫位叠盘', exact=True).count() == 1
             # Each language draws its own short brightness form; the tooltip explains it.
             page.locator('[data-tab="ziwei"]').click()
             page.locator('#ziwei-board .bright').first.wait_for(timeout=30000)

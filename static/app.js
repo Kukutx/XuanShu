@@ -8134,6 +8134,26 @@ function renderJson() {
   expand.addEventListener('click', () => list.querySelectorAll('details[open]').forEach(d => {d.open = false;}));
   draw();
 }
+// A long page lists its sections under its title; a click scrolls to the section and moves the focus to its heading.
+// Pages with their own section navigation (the Agent page) and short pages go without.
+const PAGE_INDEX_MIN = 3;
+function pageIndex() {
+  const intro = result.querySelector(':scope > .result-intro');
+  // A section's heading counts too, as one level down (a sub-part's heading inside a section does not).
+  const heads = [...result.querySelectorAll(':scope > h4.subheading, :scope > section > h4.subheading')].filter(head => head.textContent.trim());
+  if (!intro || heads.length < PAGE_INDEX_MIN || result.querySelector('.ag-nav') || result.scrollHeight < innerHeight * 1.6) return;
+  const nav = elt('nav', 'page-index'); nav.id = 'page-index'; nav.setAttribute('aria-label', '本页目录');
+  heads.forEach((head, i) => {
+    head.id ||= 'section-' + active + '-' + i;
+    head.tabIndex = -1;
+    const jump = append(nav, 'button', 'page-index-link', head.textContent); jump.type = 'button'; jump.setAttribute('aria-controls', head.id);
+    jump.addEventListener('click', () => {
+      head.scrollIntoView({block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+      head.focus({preventScroll: true});
+    });
+  });
+  intro.after(nav);
+}
 // Rebuilding the result area must not lose the user's place: keyboard focus,
 // caret position and which collapsible sections were open survive a re-render.
 function render() {
@@ -8143,6 +8163,7 @@ function render() {
   const detailKey = d => d.id || (d.querySelector('summary') || {}).textContent || '';
   const openState = new Map([...result.querySelectorAll('details')].map(d => [detailKey(d), d.open]));
   renderView();
+  pageIndex();
   result.querySelectorAll('details').forEach(d => {const key = detailKey(d); if (openState.has(key)) d.open = openState.get(key);});
   if (focusId && !result.contains(document.activeElement)) {
     let again = document.getElementById(focusId);

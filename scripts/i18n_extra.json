@@ -9319,6 +9319,10 @@
   "This page just called this server in both protocol generations",
   "このページが両世代のプロトコルで実際にこのサーバーを呼び出した結果です"
  ],
+ "本页目录": [
+  "On this page",
+  "このページの目次"
+ ],
  "本页面不调用大模型预测，只展示八字、部分紫微的可计算结构与规则差异。方法参考链接不能代表对这张盘的外部验算。": [
   "This page does not call a large language model to make predictions; it only shows the computable structures and rule differences of BaZi and part of Zi Wei. Method reference links do not represent external verification of this chart.",
   "本ページは大規模言語モデルによる予測を行わず、八字と紫微の一部の計算可能な構造とルール差異のみを表示します。手法の参考リンクはこの盤の外部検算を意味しません。"

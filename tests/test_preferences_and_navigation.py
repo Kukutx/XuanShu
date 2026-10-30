@@ -37,3 +37,15 @@ def test_back_to_the_tool_tabs():
     assert '@media print{.to-top{display:none!important}}' in CSS and '@media (forced-colors:active){.to-top{border-color:ButtonText}' in CSS
     # A hint that repeats an icon button's name is not read twice.
     assert "if (text && text !== el.getAttribute('aria-label'))" in TIPS and "attributeFilter: ['data-tip', 'aria-label']" in TIPS
+
+
+def test_long_pages_list_their_sections():
+    assert 'function pageIndex() {' in APP and '  pageIndex();\n' in APP[APP.index('function render() {'):]
+    # Top-level headings and each section's own heading; the Agent page has its own navigation, short pages none.
+    assert "result.querySelectorAll(':scope > h4.subheading, :scope > section > h4.subheading')" in APP
+    assert "heads.length < PAGE_INDEX_MIN || result.querySelector('.ag-nav') || result.scrollHeight < innerHeight * 1.6" in APP
+    # Buttons, not #links, so the address keeps its #tool= route; the heading takes the focus.
+    assert "append(nav, 'button', 'page-index-link', head.textContent)" in APP and "head.focus({preventScroll: true});" in APP
+    assert "nav.setAttribute('aria-label', '本页目录');" in APP
+    assert '.page-index-link::after{' in CSS and '@media print{.page-index{display:none}}' in CSS
+
