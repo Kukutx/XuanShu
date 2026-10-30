@@ -279,6 +279,16 @@ html.theme-reveal::view-transition-old(root),html.theme-reveal::view-transition-
 .result-intro span{font-size:12px;color:var(--muted)}
 #result .result-intro:not(:first-child){margin-top:25px}
 .subheading{font-size:13px;font-weight:600;margin:26px 0 12px;color:var(--text2)}
+/* A long page's sections, as a row of quiet links under the title. */
+.page-index{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 16px}
+.page-index-link{display:inline-flex;align-items:center;gap:7px;padding:3px 11px;border:1px solid var(--border);border-radius:999px;background:transparent;color:var(--muted);font:inherit;font-size:12.5px;line-height:1.5;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
+.page-index-link:hover{color:var(--text);border-color:var(--accent-line);background:var(--accent-soft)}
+/* A small downward chevron: these jump within the page, unlike the plain tags elsewhere. */
+.page-index-link::after{content:'';width:5px;height:5px;margin-top:-3px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);opacity:.7}
+@media (forced-colors:active){.page-index-link{border-color:ButtonText}.page-index-link::after{border-color:ButtonText}}
+h4.subheading[tabindex="-1"]:focus{outline:none}
+h4.subheading[tabindex="-1"]:focus-visible{outline:2px solid var(--gold2);outline-offset:4px;border-radius:4px}
+@media print{.page-index{display:none}}
 .disclaimer{font-size:12px;color:var(--muted);border-left:2px solid var(--gold);padding-left:12px;margin-top:22px}
 .meta-tags{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 16px}
 .meta-tags span{font-size:12px;border:1px solid var(--border-strong);color:var(--muted);padding:4px 9px;border-radius:999px}
