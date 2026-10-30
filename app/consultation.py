@@ -37,16 +37,20 @@ STATUS_LABELS = {'completed': '已完成', 'partial': '部分完成，还缺输�
 # simplified, then traditional, then Japanese wording, matched as substrings;
 # the interface is offered in all of them, so a question typed in any of them
 # should reach the same workflow.
+# Words that name one person's own life (结婚, 恋爱, 夫妻宫, "when will I marry") stay out of the relationship list:
+# that workflow compares two charts and would ask for a partner nobody mentioned. 夫妻 alone also hits 夫妻宫, a palace
+# of the person's own chart. A second person shows in words such as 合盘, 两个人, 相性 or "the two of us".
 SIGNALS = {
     'rules': ('排盘不同', '流派', '规则差异', '时差', '校时', '真太阳时', '子初', '不一致', '交节', '为什么不同',
-              '排盤不同', '規則差異', '校時', '真太陽時', '交節', '為什麼不同',
+              '排盤不同', '規則差異', '時差', '校時', '真太陽時', '交節', '為什麼不同',
               '命式が違う', '盤が違う', '結果が違う', 'ルールの違い', '節入り', '時刻補正'),
     'timing': ('择日', '择时', '选日子', '开业时间', '时间窗口', '哪天', '几点', '候选时刻', '起卦',
                '擇日', '擇時', '選日子', '開業時間', '時間窗口', '幾點', '候選時刻',
-               '日取り', '日選び', '吉日', '何日', '何時に', '開業日', '候補の時刻'),
-    'relationship': ('婚恋', '感情', '合盘', '婚姻', '情侣', '伴侣', '我们两', '合作关系', '两个人', '结婚', '恋爱', '夫妻',
-                     '婚戀', '合盤', '情侶', '伴侶', '我們兩', '合作關係', '兩個人', '結婚', '戀愛',
-                     '相性', '恋愛', '夫婦', '恋人', 'パートナー', '二人', 'ふたり'),
+               '日取り', '日選び', '吉日', '何日がいい', '何日が良い', '何時がいい', '何時が良い', 'いつがいい', 'いつが良い',
+               '開業日', '候補の時刻'),
+    'relationship': ('婚恋', '感情', '合盘', '婚姻', '情侣', '伴侣', '我们两', '合作关系', '两个人',
+                     '婚戀', '合盤', '情侶', '伴侶', '我們兩', '合作關係', '兩個人',
+                     '相性', 'パートナー', '二人の', 'ふたりの'),
     'decision': ('决策矩阵', '方案比较', '权重', '评分', '两个方案', '怎么选', '哪个好', '选哪个',
                  '決策矩陣', '方案比較', '權重', '評分', '兩個方案', '怎麼選', '哪個好', '選哪個',
                  'どちらを選', 'どっちを選', 'どちらが良', 'どっちがいい', '選択肢', '重み付け'),
@@ -56,33 +60,47 @@ SIGNALS = {
     'natal': ('本命', '八字', '命宫', '紫微', '命盘', '四柱', '藏干', '星曜',
               '命宮', '命盤', '命式'),
 }
-# English wording, matched case-insensitively at the start of a word ('job' also finds 'jobs').
+# English wording, matched case-insensitively as whole words, with plural and verb endings ('job' finds 'jobs', not
+# 'jobless'); a trailing * marks a stem that matches any ending ('financ*': finance, financial, financially).
 # Only phrases that point at one topic: generic words such as 'school', 'different' or 'options'
-# would send ordinary questions to the wrong workflow, and a bare 'next year' would pull
-# 'What about next year?' away from the topic it follows up (the Chinese list has no 明年 either).
+# would send ordinary questions to the wrong workflow, a bare 'what day' or 'what time' catches "What day master am I?"
+# and "What time was I born?", and a bare 'next year' would pull 'What about next year?' away from the topic it
+# follows up (the Chinese list has no 明年 either).
 EN_SIGNALS = {
-    'rules': ('different chart', 'charts differ', 'different result', 'results differ', 'discrepanc', 'mismatch',
-              'inconsistent', 'true solar time', 'solar time', 'time zone', 'timezone', 'daylight saving',
-              'rat hour', 'zi hour', 'solar term boundar', 'which convention'),
-    'timing': ('which day', 'what day', 'best day', 'best date', 'good day', 'auspicious', 'date selection',
-               'pick a date', 'choose a date', 'what time', 'which time', 'opening date', 'candidate time',
-               'time window'),
-    'relationship': ('relationship', 'compatib', 'partner', 'marriage', 'marry', 'married', 'spouse', 'couple',
-                     'romance', 'romantic', 'love life', 'dating', 'girlfriend', 'boyfriend', 'husband', 'wife',
-                     'the two of us', 'both of us'),
+    'rules': ('different chart', 'charts differ', 'chart differ*', 'chart is different', 'chart looks different',
+              'different result', 'results differ', 'discrepanc*', 'mismatch', 'inconsistent', 'another app',
+              'other app', 'different app', 'another site', 'other site', 'different site', 'another website',
+              'other website', 'true solar time', 'solar time', 'time zone', 'timezone', 'daylight saving',
+              'rat hour', 'zi hour', 'solar term boundar*', 'which convention'),
+    'timing': ('which day', 'what day should', 'what date', 'which date', 'best day', 'best date', 'best time',
+               'good day to', 'good date', 'auspicious', 'date selection', 'pick a date', 'choose a date',
+               'what time should', 'which time', 'opening date', 'candidate time', 'time window'),
+    'relationship': ('relationship', 'compatib*', 'partner', 'marriage', 'spouse', 'romance', 'romantic', 'love life',
+                     'dating', 'girlfriend', 'boyfriend', 'husband', 'wife', 'wives', 'the two of us', 'both of us'),
     'decision': ('decision matrix', 'weighting', 'which option', 'which offer', 'pros and cons', 'choose between',
                  'decide between', 'which is better', 'which one should'),
-    'career': ('career', 'job', 'promotion', 'profession', 'employ', 'salary', 'income', 'wealth', 'finance',
-               'business', 'my work', 'at work', 'annual', 'year ahead', 'luck pillar'),
+    'career': ('career', 'job', 'promotion', 'profession*', 'employ*', 'unemploy*', 'salary', 'salaries', 'income',
+               'wealth', 'financ*', 'business*', 'my work', 'at work', 'annual*', 'year ahead', 'luck pillar'),
     'natal': ('natal', 'birth chart', 'bazi', 'ba zi', 'four pillars', 'ziwei', 'zi wei', 'purple star',
               'day master', 'life palace', 'hidden stem', 'my chart'),
 }
-_EN_PATTERNS = {key: [(word, re.compile(r'(?<![a-z])' + re.escape(word).replace(r'\ ', r'\s+'), re.I))
-                      for word in words] for key, words in EN_SIGNALS.items()}
+
+
+def _en_pattern(word: str) -> re.Pattern:
+    stem = word.endswith('*')
+    body = re.escape(word.rstrip('*')).replace(r'\ ', r'\s+')
+    return re.compile(r'(?<![a-z])' + body + ('' if stem else r'(?:s|es|ed|ing)?(?![a-z])'), re.I)
+
+
+_EN_PATTERNS = {key: [(word, _en_pattern(word)) for word in words] for key, words in EN_SIGNALS.items()}
 # Traditional forms too, so a follow-up typed in 繁體 (or shown that way by the interface) carries the topic on.
 FOLLOWUP_CUES = ('那', '那么', '那麼', '再看', '然后', '然後', '继续', '繼續', '也', '呢', '刚才', '剛才', '之前', '接着', '接著',
-                 'では', 'じゃあ', 'それなら', 'それでは', 'それと', 'あと', 'ついでに', 'さっき')
+                 'では', 'じゃ', 'それなら', 'それでは', 'それと', 'あと', 'ついでに', 'さっき')
 EN_FOLLOWUP = re.compile(r'(?:what about|how about|and|then|also|so|same for|what if)\b', re.I)
+# A year named relative to the previous topic's year ("What about next year?" after a question on 2027 means 2028).
+# 前年 is left out: it is the year before last in Chinese but last year in Japanese.
+RELATIVE_YEARS = (('再来年', 2), ('year after next', 2), ('the year after', 2), ('后年', 2), ('後年', 2), ('一昨年', -2),
+                  ('明年', 1), ('来年', 1), ('來年', 1), ('next year', 1), ('去年', -1), ('昨年', -1), ('last year', -1))
 # i18n: end of input vocabulary
 YEAR_PATTERN = re.compile(r'(?<!\d)(19\d{2}|20\d{2})(?=年|\b)')
 
@@ -166,7 +184,7 @@ def route(question: str, *, chosen: Intent = 'auto', continuation: Continuation 
     for key in ('rules', 'timing', 'relationship', 'decision', 'career', 'natal'):
         if matched[key]:
             return key, [f'question mentions: {word}' for word in matched[key][:3]]
-    if continuation and is_followup(question):
+    if continuation and (is_followup(question) or relative_year(question) is not None):
         return continuation.intent, ['no domain keywords; inherited client-provided topic cursor']
     return 'natal', ['no domain keywords; default to natal structural review']
 
@@ -175,6 +193,12 @@ def is_followup(question: str) -> bool:
     """Whether a question opens like a follow-up to the previous topic, in any interface language."""
     question = question.lstrip()
     return question.startswith(FOLLOWUP_CUES) or EN_FOLLOWUP.match(question) is not None
+
+
+def relative_year(question: str) -> int | None:
+    """The offset of a year named relative to the previous one ("next year", "the year after"), if any."""
+    lowered = question.lower()
+    return next((offset for word, offset in RELATIVE_YEARS if word in lowered), None)
 
 
 def _year_from_question(question: str) -> int | None:
@@ -202,9 +226,15 @@ def execute_consultation(req: ConsultationRequest) -> dict:
     focus = req.focus_palace or (req.continuation.focus_palace if req.continuation else '命宫')
     year = req.lunar_year if req.lunar_year is not None else _year_from_question(req.question)
     # Do not carry an old year forward when this question explicitly gives a
-    # different one. A bare 'then?' may retain the last topic's lunar year.
-    if year is None and req.continuation and is_followup(req.question):
-        year = req.continuation.lunar_year
+    # different one. A bare 'then?' may retain the last topic's lunar year, and
+    # 'next year' / 去年 moves from it.
+    if year is None and req.continuation and req.continuation.lunar_year is not None:
+        offset = relative_year(req.question)
+        if offset is not None:
+            moved = req.continuation.lunar_year + offset
+            year = moved if 1901 <= moved <= 2099 else None
+        elif is_followup(req.question):
+            year = req.continuation.lunar_year
 
     missing: list[dict[str, str]] = []
     trace: list[dict] = []

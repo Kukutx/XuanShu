@@ -11,7 +11,7 @@ from .asset_paths import resource_root
 from .mcp_skill_import import list_importable_skills, get_importable_skill, get_skill_resource
 from typing import Any
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from . import __version__
 from .analysis import symbolic_reading
@@ -129,13 +129,17 @@ PROMPTS = [
 ]
 
 
+class SolarTermsArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    year: int = Field(ge=1901, le=2099)
+
+
 def call_tool(name: str, args: dict) -> Any:
     if name not in TOOLS:
         raise ValueError(f'Unknown MCP tool: {name}')
     if name == 'solar_terms':
-        if set(args) != {'year'} or type(args.get('year')) is not int or not (1901 <= args['year'] <= 2099):
-            raise ValueError('solar_terms requires integer year between 1901 and 2099')
-        return {'year': args['year'], 'timezone': 'Asia/Shanghai', 'terms': get_solar_terms(args['year'])}
+        year = SolarTermsArgs.model_validate(args).year  # bad arguments name their field like every other tool's
+        return {'year': year, 'timezone': 'Asia/Shanghai', 'terms': get_solar_terms(year)}
     mapping = {
         'consultation_execute': (ConsultationRequest, execute_consultation),
         'deep_evidence_review': (DeepReviewRequest, deep_evidence_review),
@@ -329,7 +333,8 @@ def process_rpc(payload: Any) -> dict | None:
             }
         except ValidationError as exc:
             # One line per bad field, so an agent can correct exactly those arguments and call again.
-            fields = [{'path': '.'.join(str(part) for part in item['loc']), 'message': item['msg'], 'type': item['type']}
+            fields = [{'path': '.'.join(str(part) for part in item['loc']),
+                       'message': item['msg'].removeprefix('Value error, '), 'type': item['type']}
                       for item in exc.errors(include_url=False)]
             text = 'Invalid arguments: ' + '; '.join(f"{f['path'] or '(arguments)'}: {f['message']}" for f in fields)
             result = {'content': [{'type': 'text', 'text': text}], 'isError': True,

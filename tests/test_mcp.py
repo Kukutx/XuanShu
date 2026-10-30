@@ -68,6 +68,12 @@ def test_mcp_tools_are_annotated_read_only_and_errors_name_fields():
     assert [f['path'] for f in error['fields']]==['birth_datetime','extra']
     assert [f['type'] for f in error['fields']]==['value_error','extra_forbidden']
     assert 'birth_datetime' in bad['content'][0]['text'] and 'extra' in bad['content'][0]['text']
+    assert not error['fields'][0]['message'].startswith('Value error')  # the reason itself, without Pydantic's prefix
+    # solar_terms names its bad fields like every other tool, rather than refusing the calculation.
+    for args, path in (({}, 'year'), ({'year': '2024'}, 'year'), ({'year': 2024, 'x': 1}, 'x'), ({'year': True}, 'year'), ({'year': 1800}, 'year')):
+        terms=CLIENT.post('/mcp',json=rpc('tools/call',{'name':'solar_terms','arguments':args})).json()['result']
+        assert terms['structuredContent']['error']['code']=='invalid_arguments', args
+        assert [f['path'] for f in terms['structuredContent']['error']['fields']]==[path], args
     refused=CLIENT.post('/mcp',json=rpc('tools/call',{'name':'bazi_chart','arguments':{'birth_datetime':'1800-01-01T00:00'}})).json()['result']
     assert refused['isError'] is True and refused['structuredContent']['error']['code']=='calculation_refused'
     assert CLIENT.post('/mcp',json=rpc('resources/templates/list')).json()['result']['resourceTemplates']==[]

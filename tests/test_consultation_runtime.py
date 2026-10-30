@@ -119,6 +119,11 @@ def test_followup_cursor_carries_no_birth_or_transcript_and_cannot_recompute_wit
         assert out['tool_results']['annual_transformations']['lunar_year']==(2029 if '2029' in cue else 2027), cue
     # A word that only starts like a cue is not one.
     assert route('Android settings?', continuation=Continuation(intent='career'))[0]=='natal'
+    # A year named relative to the previous one moves from it, in every interface language.
+    for cue, year in (('What about next year?', 2028), ('じゃあ来年は？', 2028), ('那明年呢？', 2028), ('来年はどうですか？', 2028),
+                      ('And the year after?', 2029), ('那后年呢？', 2029), ('去年呢？', 2026)):
+        out=run({'question':cue,'continuation':cursor,'birth':BIRTH})
+        assert out['intent']=='career' and out['tool_results']['annual_transformations']['lunar_year']==year, cue
 
 
 @pytest.mark.parametrize('question,intent', [
@@ -137,6 +142,19 @@ def test_followup_cursor_carries_no_birth_or_transcript_and_cannot_recompute_wit
     # Generic words stay out of the vocabulary, so these fall through to the default.
     ('Which school of thought is this?', 'natal'),
     ('I have two different questions', 'natal'),
+    # One person's own marriage or love life, and the 夫妻宫 of their own chart, are not a two-person comparison.
+    ('我的夫妻宫有什么星？', 'natal'), ('我什么时候结婚？', 'natal'), ('恋爱运如何？', 'natal'),
+    ('父母的夫妻关系对我有影响吗', 'natal'), ('结婚后事业怎么样？', 'career'), ('When will I marry?', 'natal'),
+    ('二人目の子供はいつ？', 'natal'), ('My husband and I want to compare charts', 'relationship'),
+    # Whole words only, and no bare 'what day' / 'what time' / 'good day' / 'couple'.
+    ('What day master am I?', 'natal'), ('I have a couple of questions about my career', 'career'),
+    ('I had a good day today, what does my chart say?', 'natal'),
+    ('What time was I born according to the chart?', 'natal'), ('何時に生まれたか分からない', 'natal'),
+    ('Any husbandry advice?', 'natal'), ('What time should I sign the lease?', 'timing'),
+    # Wording the lists missed.
+    ('時差會影響排盤嗎？', 'rules'), ('時差は影響しますか？', 'rules'), ('Why is my chart different in another app?', 'rules'),
+    ('Why does my chart differ from another site?', 'rules'), ('Unemployed for a year, what next?', 'career'),
+    ('How am I doing financially?', 'career'),
 ])
 def test_route_understands_every_interface_language(question, intent):
     assert route(question)[0]==intent

@@ -7121,7 +7121,7 @@ function renderIntegration() {
     const tools = catalog.tools;
     // The server marks each tool read-only and repeatable (MCP annotations); say it once rather than on every card.
     if (tools.every(t => t.annotations && t.annotations.readOnlyHint && t.annotations.idempotentHint && t.annotations.openWorldHint === false))
-      append(toolsPart, 'p', 'small-text ag-hints', '全部工具都标注为只读：不写入、不联网，同样的参数总得到同样的结果，支持这项标注的客户端可以不逐次确认就让 Agent 调用。').id = 'integration-hints';
+      append(toolsPart, 'p', 'small-text ag-hints', '全部工具都标注为只读：不写入、不联网，重复调用不改变任何东西（不传时刻的工具按当前时间计算），支持这项标注的客户端可以不逐次确认就让 Agent 调用。').id = 'integration-hints';
     const groupOf = name => (AG_GROUPS.find(g => g[2].includes(name)) || ['other', '其他'])[0];
     const groups = AG_GROUPS.map(([key, label, names]) => [key, label, names.map(n => tools.find(t => t.name === n)).filter(Boolean)]);
     const others = tools.filter(t => groupOf(t.name) === 'other');
