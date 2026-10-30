@@ -134,5 +134,5 @@ def test_no_native_confirm_dialogs():
     import re
     for name in ('app.js', 'chat.js', 'vault.js'):
         js = (ROOT / 'static' / name).read_text(encoding='utf-8')
-        assert not re.search(r'(?<![\w.])(?:window\.)?confirm\(', js), name
+        assert not re.search(r'(?<![\w.])(?:(?:window|globalThis|self|top|parent)\.)?(?:confirm|alert|prompt)\(', js), name
     assert 'function xsConfirm' in (ROOT / 'static/chat.js').read_text(encoding='utf-8')

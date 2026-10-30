@@ -745,7 +745,10 @@ function renderChat() {
   reset.disabled = !chatMessages.length || chatBusy;
   reset.addEventListener('click', async () => {
     if (!await xsConfirm('清空当前对话？如果这个档案开启了本机保存，已保存的对话也会一起删除。', {confirmLabel: '清空对话', danger: true})) return;
+    // The button is redrawn disabled, so the focus moves on to where the next question is typed.
     chatMessages = []; persistChatHistory(); render();
+    const input = document.getElementById('chat-input'); if (input) input.focus();
+    announce('对话已清空');
   });
   note(area, '对话由你配置的语言模型生成；命盘计算只来自本地确定性工具。服务器不保存对话、记忆或出生资料。传统术数未经科学预测效力验证。');
   log.scrollTop = log.scrollHeight;

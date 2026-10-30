@@ -295,7 +295,7 @@ const UI_EXTRA = {
 " 件の内部整合性チェック"
 ],
 " 条档案替换当前浏览器档案，确定吗？": [
-" profiles to replace the profiles in this browser. Are you sure?",
+" profile(s) will replace the profiles in this browser. Continue?",
 " 件のプロフィールでこのブラウザのプロフィールを置き換えます。よろしいですか？"
 ],
 " 条观察": [
@@ -2436,7 +2436,7 @@ const UI_EXTRA = {
 ],
 "先在「本机档案」保存并选择一个档案。每个档案的记忆、人生事件和对话彼此独立，只保存在这个浏览器。": [
 "First save and select a profile under “Local profiles”. Each profile keeps its own memory, life events and conversation, stored only in this browser.",
-"まず「ローカルプロファイル」でプロファイルを保存して選択してください。各プロファイルの記憶・人生の出来事・会話は互いに独立し、このブラウザにのみ保存されます。"
+"まず「ローカルプロフィール」でプロフィールを保存して選択してください。各プロフィールの記憶・人生の出来事・会話は互いに独立し、このブラウザにのみ保存されます。"
 ],
 "先在左侧「本机档案」保存并选择一个档案。每个档案的记忆、人生事件和对话彼此独立，只保存在这个浏览器。": [
 "First save and select a profile under 'Local profiles' at left. Each profile's memory, life events and chats are independent and stored only in this browser.",
@@ -3356,7 +3356,7 @@ const UI_EXTRA = {
 ],
 "删除所选档案？它在本机保存的对话、记忆和人生事件也会一起删除。": [
 "Delete the selected profile? Its conversation, memory and life events saved on this device are deleted too.",
-"選択したプロファイルを削除しますか？この端末に保存された会話・記憶・人生の出来事も削除されます。"
+"選択したプロフィールを削除しますか？この端末に保存された会話・記憶・人生の出来事も削除されます。"
 ],
 "前一天": [
 "Previous day",
@@ -3707,7 +3707,7 @@ const UI_EXTRA = {
 "危"
 ],
 "即将使用备份中的 ": [
-"This will use the backup's ",
+"The backup’s ",
 "バックアップの "
 ],
 "历史时区和地理太阳时校正取决于输入是否准确。": [
@@ -5734,6 +5734,10 @@ const UI_EXTRA = {
 "conversation chat ai chat Q&A memory life-events life path retrospective multilingual english",
 "対話 チャット ai chat 質疑応答 記憶 人生の出来事 life path 振り返り 多言語 english"
 ],
+"对话已清空": [
+"Conversation cleared",
+"会話を消去しました"
+],
 "对话服务未启用：": [
 "Chat service not enabled: ",
 "対話サービスが無効："
@@ -7300,7 +7304,7 @@ const UI_EXTRA = {
 ],
 "新的档案记忆": [
 "New profile memory",
-"新しいプロファイル記憶"
+"新しいプロフィール記憶"
 ],
 "方位": [
 "Direction",
@@ -9596,7 +9600,7 @@ const UI_EXTRA = {
 ],
 "清空当前对话？如果这个档案开启了本机保存，已保存的对话也会一起删除。": [
 "Clear this conversation? If this profile saves conversations locally, the saved copy is deleted too.",
-"現在の会話を消去しますか？このプロファイルでローカル保存が有効なら、保存済みの会話も削除されます。"
+"現在の会話を消去しますか？このプロフィールでローカル保存が有効なら、保存済みの会話も削除されます。"
 ],
 "清空盘面": [
 "Clear the chart",

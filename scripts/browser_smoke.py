@@ -210,6 +210,17 @@ def main() -> None:
             page.locator('#birth_city').select_option('')
             page.locator('#timezone').select_option('Asia/Shanghai')
             page.locator('#longitude').fill('')
+            # In a Windows contrast theme the token-drawn checkbox and switch still show whether they are on.
+            page.emulate_media(forced_colors='active')
+            # Colour transitions are switched off for the check, so the computed colours are the settled ones.
+            page.evaluate("() => {const s = document.createElement('style'); s.id = 'smoke-still'; s.textContent = '#hour_unknown,#hour_unknown::before,#late_zi_day_rollover,#late_zi_day_rollover::before{transition:none!important}'; document.head.append(s);}")
+            paint = "(id) => {const el = document.getElementById(id); return [getComputedStyle(el).backgroundColor, getComputedStyle(el, '::before').backgroundColor];}"
+            off = [page.evaluate(paint, i) for i in ('hour_unknown', 'late_zi_day_rollover')]
+            page.evaluate("() => ['hour_unknown', 'late_zi_day_rollover'].forEach(id => {document.getElementById(id).checked = true;})")
+            on = [page.evaluate(paint, i) for i in ('hour_unknown', 'late_zi_day_rollover')]
+            page.evaluate("() => {['hour_unknown', 'late_zi_day_rollover'].forEach(id => {document.getElementById(id).checked = false;}); document.getElementById('smoke-still').remove();}")
+            page.emulate_media(forced_colors='none')
+            assert off[0] != on[0] and off[1] != on[1], (off, on)
             # AI chat is the initial view; without a configured model it explains how to enable it.
             page.locator('#chat-status').get_by_text('对话服务未启用', exact=False).wait_for(timeout=30000)
             assert page.locator('#chat-send').is_disabled()
@@ -1511,6 +1522,9 @@ def main() -> None:
             assert page.locator('#qimen-ref-1-star').input_value() == '天芮禽' and page.locator('#qimen-ref-2-door').input_value() == ''
             assert '天芮禽（JSON）' in page.locator('#qimen-ref-1-star option:checked').inner_text()
             assert page.locator('#qimen-audit-load-msg').inner_text() == '已填入 5 项'
+            # A finished count is not drawn as work in progress, and the JSON box keeps its own role and name.
+            assert 'ok' in page.locator('#qimen-audit-load-msg').get_attribute('class').split()
+            assert page.locator('#qimen-audit-input').get_attribute('role') is None and page.locator('#qimen-audit-input').get_attribute('aria-label') is None
             assert page.locator('#qimen-audit-input').input_value().startswith('{"moment"')
             assert '值符原宫 3' in page.locator('.qr-extra-root').inner_text()
             assert '值符' in page.locator('#qimen-audit-board-form .qr-cell.center .qr-extra').inner_text()
@@ -2182,6 +2196,15 @@ def main() -> None:
             page.locator('#birth-summary-toggle').click()
             assert page.locator('#input-panel.collapsed').count() == 1 and page.locator('#birth-summary-text').is_visible()
             assert page.evaluate("document.querySelector('#workspace').getBoundingClientRect().width") > narrow + 200
+            # The green dot says the chart on screen comes from this data; editing the data takes it away.
+            dot = "getComputedStyle(document.querySelector('#birth-summary-text'), '::before').content"
+            assert page.locator('#input-panel.is-current').count() == 1 and page.evaluate(dot) != 'none'
+            saved_when = page.locator('#birth_datetime').input_value()
+            page.evaluate("() => {const f = document.querySelector('#birth_datetime'); f.value = '1990-01-01T10:00'; f.dispatchEvent(new Event('input', {bubbles: true}));}")
+            assert page.locator('#input-panel.is-current').count() == 0 and page.evaluate(dot) == 'none'
+            assert page.locator('#birth-summary-text').inner_text().startswith('1990-01-01 10:00 · ')
+            page.evaluate("(v) => {const f = document.querySelector('#birth_datetime'); f.value = v; f.dispatchEvent(new Event('input', {bubbles: true}));}", saved_when)
+            assert page.locator('#input-panel.is-current').count() == 1
             page.locator('#birth-summary-toggle').click()
             assert page.locator('#input-panel.collapsed').count() == 0 and page.evaluate("document.activeElement.id") == 'birth_datetime'
             assert page.evaluate("document.querySelector('#workspace').getBoundingClientRect().width") == narrow

@@ -908,7 +908,7 @@ function renderQimenAudit() {
   const loadMsg = append(json, 'p', 'inline-msg'); loadMsg.id = 'qimen-audit-load-msg'; loadMsg.setAttribute('role', 'status');
   if (qimenAuditLoaded) {
     json.open = true;
-    loadMsg.className = 'inline-msg progress';
+    loadMsg.className = 'inline-msg ok';
     loadMsg.textContent = qimenAuditLoaded.count === 1 ? calT('已填入 1 项') : calT('已填入') + ' ' + qimenAuditLoaded.count + calT(' 项');
     qimenAuditLoaded.warnings.forEach(w => append(json, 'p', 'inline-msg', w));
     qimenAuditLoaded = null;
@@ -7695,14 +7695,25 @@ function scrollEdges(el) {
 }
 function markScrollAreas() {
   document.querySelectorAll(SCROLL_AREAS).forEach(el => {
+    // A text box scrolls by itself and keeps its own role and name.
+    if (el.matches('textarea,input,select')) return;
     const sideways = el.scrollWidth > el.clientWidth + 1, scrolls = sideways || el.scrollHeight > el.clientHeight + 1;
-    const marked = 'xsScroll' in el.dataset;
-    if (scrolls && !el.hasAttribute('tabindex')) {
+    // A strip of buttons scrolls as the focus moves along it, so it needs no tab stop of its own.
+    const wanted = scrolls && !el.querySelector('a[href],button,input,select,textarea,summary,[tabindex]:not([tabindex="-1"])');
+    if (wanted && !('xsScroll' in el.dataset) && !el.hasAttribute('tabindex')) {
       el.tabIndex = 0; el.dataset.xsScroll = '';
-      if (!el.hasAttribute('role')) el.setAttribute('role', 'region');
-      if (!el.hasAttribute('aria-label') && !el.hasAttribute('aria-labelledby')) el.setAttribute('aria-label', sideways ? '可左右滚动的内容' : '可滚动的内容');
-    } else if (!scrolls && marked) {
-      ['tabindex', 'role', 'aria-label', 'data-xs-scroll'].forEach(a => el.removeAttribute(a));
+      if (!el.hasAttribute('role')) {el.setAttribute('role', 'region'); el.dataset.xsRole = '';}
+      if (!el.hasAttribute('aria-label') && !el.hasAttribute('aria-labelledby')) el.dataset.xsLabel = '';
+    } else if (!wanted && 'xsScroll' in el.dataset) {
+      ['tabindex', 'data-xs-scroll'].forEach(a => el.removeAttribute(a));
+      if ('xsRole' in el.dataset) ['role', 'data-xs-role'].forEach(a => el.removeAttribute(a));
+      if ('xsLabel' in el.dataset) ['aria-label', 'data-xs-label', 'data-i18n-aria-label'].forEach(a => el.removeAttribute(a));
+    }
+    if ('xsLabel' in el.dataset) {
+      // The translator leaves <pre> and code alone, so their name is translated here, and again after a language switch.
+      const source = sideways ? '可左右滚动的内容' : '可滚动的内容';
+      const name = el.closest('pre,code,[data-no-i18n]') ? calT(source) : source;
+      if (el.getAttribute('aria-label') !== name && el.getAttribute('data-i18n-aria-label') !== name) el.setAttribute('aria-label', name);
     }
     el.classList.toggle('xs-hscroll', sideways);
     if (sideways) {
@@ -7712,7 +7723,10 @@ function markScrollAreas() {
   });
 }
 let scrollAreaFrame = 0;
-window.addEventListener('resize', () => {cancelAnimationFrame(scrollAreaFrame); scrollAreaFrame = requestAnimationFrame(markScrollAreas);});
+const remarkScrollAreas = () => {cancelAnimationFrame(scrollAreaFrame); scrollAreaFrame = requestAnimationFrame(markScrollAreas);};
+window.addEventListener('resize', remarkScrollAreas);
+// Translated text is longer or shorter, so what overflows changes with the language even without a redraw.
+document.addEventListener('xuanshu-language', remarkScrollAreas);
 // A reply that comes back after another chart was cast belongs to the old chart, so it is dropped (STALE). So is one
 // overtaken by a newer request to the same tool: a redraw while an automatic run is on its way brings back an enabled
 // button, and a run pressed then must not be overwritten when the older reply lands after it.
@@ -7857,6 +7871,8 @@ function updateStaleBirthNotice() {
   const outdatedQimen=!!qimenResult && !!qimenFingerprint && fingerprint !== qimenFingerprint;
   const outdated=outdatedChart || outdatedQimen || dateScanStale() || importStale();
   $('#stale-birth-warning').hidden = !outdated;
+  // The collapsed summary's dot means the chart on screen was cast from exactly this data.
+  $('#input-panel').classList.toggle('is-current', !!currentInput && !outdatedChart);
   const importNotice = document.getElementById('import-stale'); if (importNotice) importNotice.hidden = !importStale();
   if (outdated) {
     $('#result-subtitle').textContent = '出生资料已更改：旧命盘需要重新生成';
@@ -7905,7 +7921,11 @@ form.addEventListener('submit', async event => {
     else render();
     announce('命盘已生成：' + data.birth_datetime.replace('T', ' '));
     if (compactScreen && compactScreen.matches) {setBirthPanelCollapsed(true); $('#workspace').scrollIntoView({block: 'start'});}
-  } catch (err) {error.textContent = '计算失败：' + err.message; error.hidden = false; importRecheck = false; importFocusAfter = false;}
+  } catch (err) {
+    error.textContent = '计算失败：' + err.message; error.hidden = false; importRecheck = false; importFocusAfter = false;
+    // The message sits in the form, so a folded form opens to show it; screen readers hear it either way.
+    setBirthPanelCollapsed(false); announce(error.textContent);
+  }
   finally {run.disabled = false; run.removeAttribute('aria-busy'); run.querySelector('span').textContent = '生成命盘';}
 });
 $('#download-json').addEventListener('click', () => {
@@ -8074,10 +8094,18 @@ for(const id of ['#time_mode','#late_zi_day_rollover','#leap_month_second_half_a
 // screen when the user folds it, and the workspace then takes the full width.
 const genderLabels={male:'男',female:'女',unspecified:'不指定顺逆'};
 function updateBirthSummary(){
-  const input=readInput();
-  const city=$('#birth_city').value ? $('#birth_city').selectedOptions[0].textContent+' · ' : '';
-  const when=$('#hour_unknown').checked?input.birth_datetime.slice(0,10)+' · 时辰不详':input.birth_datetime.replace('T',' ');
-  $('#birth-summary-text').textContent=when+' · '+city+input.timezone+' · '+(genderLabels[input.gender]||input.gender);
+  const input=readInput(), pieces=[];
+  pieces.push($('#hour_unknown').checked?[input.birth_datetime.slice(0,10),'时辰不详']:[input.birth_datetime.replace('T',' ')]);
+  // The city's own (Chinese) name, so the translator renders it in whatever language is chosen now.
+  if($('#birth_city').value)pieces.push([$('#birth_city').value]);
+  pieces.push([input.timezone],[genderLabels[input.gender]||input.gender]);
+  // A rule that differs from the defaults (clock time, no 23:00 rollover, leap month follows on) changes the chart.
+  const mode=$('#time_mode').value;
+  if(mode!=='clock')pieces.push([{mean_solar:'平太阳时',apparent_solar:'真太阳时'}[mode]]);
+  if($('#late_zi_day_rollover').checked)pieces.push(['23:00 换日']);
+  if(!$('#leap_month_second_half_as_next').checked)pieces.push(['闰月不顺延']);
+  const box=$('#birth-summary-text');box.replaceChildren();
+  pieces.flat().forEach((text,i)=>{if(i)box.append(' · ');box.append(text);});
 }
 function setBirthPanelCollapsed(collapsed){
   $('#input-panel').classList.toggle('collapsed',collapsed);
@@ -8092,6 +8120,7 @@ $('#birth-summary-toggle').addEventListener('click',()=>{
   if(!collapsed)$('#birth_datetime').focus();
 });
 for(const type of ['input','change'])form.addEventListener(type,updateBirthSummary);
+document.addEventListener('xuanshu-language',updateBirthSummary);
 // A link to a birth field opens the folded form first, so the focus lands on something visible.
 function focusBirthField(id){
   setBirthPanelCollapsed(false);
