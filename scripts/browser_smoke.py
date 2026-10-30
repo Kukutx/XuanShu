@@ -631,10 +631,33 @@ def main() -> None:
             page.locator('#run-btn').focus()
             page.keyboard.press('Shift+Slash')
             page.locator('#shortcuts-dialog[open]').wait_for(timeout=5000)
-            assert page.locator('#shortcuts-dialog .sc-group').count() == 6 and page.evaluate('document.activeElement.id') == 'shortcuts-close'
+            assert page.locator('#shortcuts-dialog .sc-group').count() == 7 and page.evaluate('document.activeElement.id') == 'shortcuts-close'
             assert 'Ctrl' in page.locator('#shortcuts-dialog .sc-row').first.inner_text() or '⌘' in page.locator('#shortcuts-dialog .sc-row').first.inner_text()
             page.keyboard.press('Escape')
             assert page.locator('#shortcuts-dialog[open]').count() == 0 and page.evaluate('document.activeElement.id') == 'run-btn'
+            # Ctrl+K's finder is a command palette: the typed word lists matching tools and actions, the arrows move the
+            # choice (announced through aria-activedescendant) and Enter opens the tool, clearing the search.
+            before = page.evaluate('active')
+            page.keyboard.press('Control+k')
+            page.keyboard.type('值日')
+            page.locator('#tool-palette:not([hidden]) .palette-opt').first.wait_for(timeout=5000)
+            assert page.locator('#tool-search').get_attribute('aria-expanded') == 'true'
+            assert page.locator('#tool-palette .palette-opt.is-active').inner_text().split('\n')[:2] == ['功能页', '建除值日']
+            page.keyboard.press('Enter')
+            page.wait_for_function("active === 'officers' && document.activeElement.dataset.tab === 'officers'", timeout=5000)
+            assert page.locator('#tool-search').input_value() == '' and page.locator('#tool-palette').is_hidden()
+            # An action presses the button it names: here the shortcut list opens.
+            page.keyboard.press('Control+k')
+            page.keyboard.type('快捷键')
+            page.locator('#tool-palette .palette-kind-action').first.wait_for(timeout=5000)
+            page.keyboard.press('ArrowDown'); page.keyboard.press('ArrowUp')
+            assert page.locator('#tool-palette .palette-opt.is-active .palette-label').inner_text() == '键盘快捷键'
+            assert page.evaluate("document.getElementById('tool-search').getAttribute('aria-activedescendant')") == page.locator('#tool-palette .palette-opt.is-active').get_attribute('id')
+            page.keyboard.press('Enter')
+            page.locator('#shortcuts-dialog[open]').wait_for(timeout=5000)
+            page.keyboard.press('Escape')
+            page.locator('#shortcuts-dialog').wait_for(state='hidden', timeout=3000)
+            page.evaluate(f"activateTab(tabs.find(t => t.dataset.tab === {json.dumps(before)}))")
             # Date fields open the project's own calendar instead of the browser's picker: from the icon, Alt+Down or F4.
             # Each day carries its lunar date, and the chosen day and time reach the field as typed input would.
             picker_open = "() => document.querySelector('#xs-datepicker')?.matches(':popover-open') === true"

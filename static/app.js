@@ -62,9 +62,109 @@ function updateToolNavigation() {
   $('#tool-toggle-all').setAttribute('aria-expanded', String(expandedTools));
 }
 $('#tool-toggle-all').addEventListener('click', () => {expandedTools = !expandedTools; updateToolNavigation();});
-$('#tool-search').addEventListener('input', updateToolNavigation);
-$('#tool-search').addEventListener('keydown',event=>{
-  if(event.key==='Escape'){event.currentTarget.value='';updateToolNavigation();}
+$('#tool-search').addEventListener('input', () => {updateToolNavigation(); showPalette();});
+// The finder is also a command palette: what is typed lists the matching tools and page actions under the box;
+// ↑ / ↓ choose one, Enter opens or runs it, Esc clears. Actions name the button they press, so nothing new happens.
+// What each palette action answers to when typed, in any interface language; matched, never shown.
+// # i18n: input vocabulary, not interface text
+const PALETTE_KEYS = {
+  run: 'run cast chart generate 排盘 重新',
+  birth: 'birth edit date time 出生 生日 时间 资料',
+  json: 'json export download 下载 数据',
+  share: 'share card image png 图片',
+  print: 'print pdf 打印',
+  theme: 'theme color dark light 深色 浅色 主题 配色',
+  shortcuts: 'shortcuts keyboard keys 快捷键 按键 ?',
+  crosscheck: 'crosscheck verify check 核验 交叉',
+  all: 'all expand more advanced 全部 高级',
+  docs: 'api docs openapi rest 文档 接口',
+  language: 'language lang 语言 界面',
+};
+// # i18n: end of input vocabulary
+const PALETTE_ACTIONS = [
+  {label: '生成命盘', keys: PALETTE_KEYS.run, run: () => $('#run-btn').click(), ok: () => !$('#run-btn').disabled},
+  {label: '修改出生信息', keys: PALETTE_KEYS.birth, run: () => focusBirthField('birth_datetime')},
+  {label: '导出 JSON ↓', keys: PALETTE_KEYS.json, run: () => $('#download-json').click(), ok: () => !$('#download-json').disabled},
+  {label: '分享卡片', keys: PALETTE_KEYS.share, run: () => $('#share-card').click()},
+  {label: '打印 / 存为 PDF', keys: PALETTE_KEYS.print, run: () => $('#print-view').click()},
+  {label: '切换配色', keys: PALETTE_KEYS.theme, run: () => $('#theme-toggle').click()},
+  {label: '键盘快捷键', keys: PALETTE_KEYS.shortcuts, run: () => $('#shortcuts-open').click()},
+  {label: '历法与排盘逐日交叉核验', keys: PALETTE_KEYS.crosscheck, run: () => $('#crosscheck-open').click()},
+  {label: () => expandedTools ? '收起高级功能' : `展开全部 ${tabs.length} 项`, keys: PALETTE_KEYS.all, run: () => $('#tool-toggle-all').click()},
+  {label: 'API 文档 ↗', keys: PALETTE_KEYS.docs, run: () => window.open('/docs', '_blank', 'noopener')},
+  ...['zh-CN', 'zh-TW', 'en', 'ja'].map(lang => ({lang, keys: PALETTE_KEYS.language + ' ' + lang,
+    run: () => {const select = $('#ui-language'); select.value = lang; select.dispatchEvent(new Event('change'));},
+    ok: () => $('#ui-language').value !== lang})),
+];
+const PALETTE_LIMIT = 14;
+let paletteItems = [], paletteIndex = 0;
+// Each tool's group heading, shown beside it in the palette.
+const toolGroup = new Map();
+{let heading = null; document.querySelectorAll('#workspace-tabs :is(.tab-group, .tab)').forEach(node => {
+  if (node.classList.contains('tab-group')) heading = node; else if (heading) toolGroup.set(node, heading);
+});}
+function paletteLabel(action) {
+  if (action.lang) return ['界面语言', '：', (typeof UI_LANGS !== 'undefined' && UI_LANGS[action.lang]) || action.lang];
+  return [typeof action.label === 'function' ? action.label() : action.label];
+}
+function showPalette() {
+  const input = $('#tool-search'), list = $('#tool-palette'), term = input.value.trim().toLocaleLowerCase();
+  if (!term) {hidePalette(); return;}
+  const tools = tabs.filter(tab => (tab.textContent + ' ' + (toolKeywords[tab.dataset.tab] || '')).toLocaleLowerCase().includes(term))
+    .map(tab => ({kind: '功能页', label: [tab.textContent], note: toolGroup.get(tab)?.textContent || '', run: () => {activateTab(tab); tab.focus();}}));
+  const actions = PALETTE_ACTIONS.filter(a => (!a.ok || a.ok()) && (paletteLabel(a).map(calT).join('') + ' ' + paletteLabel(a).join('') + ' ' + a.keys).toLocaleLowerCase().includes(term))
+    .map(a => ({kind: '快捷操作', label: paletteLabel(a), note: '', run: a.run}));
+  paletteItems = tools.concat(actions).slice(0, PALETTE_LIMIT); paletteIndex = 0;
+  list.replaceChildren();
+  if (!paletteItems.length) {append(list, 'li', 'palette-empty', '没有匹配项，请尝试八字、择时、MCP 等关键词').setAttribute('role', 'presentation');}
+  paletteItems.forEach((item, i) => {
+    const option = append(list, 'li', 'palette-opt'); option.id = 'palette-opt-' + i; option.setAttribute('role', 'option');
+    append(option, 'span', 'palette-kind palette-kind-' + (item.kind === '功能页' ? 'tool' : 'action'), item.kind);
+    texts(append(option, 'span', 'palette-label'), ...item.label);
+    if (item.note) append(option, 'small', null, item.note);
+    option.addEventListener('pointermove', () => {if (paletteIndex !== i) {paletteIndex = i; markPalette();}});
+    option.addEventListener('click', () => runPalette(i));
+  });
+  list.hidden = false; input.setAttribute('aria-expanded', 'true');
+  markPalette();
+}
+function markPalette() {
+  const input = $('#tool-search');
+  $('#tool-palette').querySelectorAll('.palette-opt').forEach((option, i) => {
+    const on = i === paletteIndex;
+    option.classList.toggle('is-active', on); option.setAttribute('aria-selected', String(on));
+    if (on) {input.setAttribute('aria-activedescendant', option.id); option.scrollIntoView({block: 'nearest'});}
+  });
+  if (!paletteItems.length) input.removeAttribute('aria-activedescendant');
+}
+function hidePalette() {
+  const input = $('#tool-search'), list = $('#tool-palette');
+  list.hidden = true; list.replaceChildren(); paletteItems = [];
+  input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant');
+}
+function runPalette(i) {
+  const item = paletteItems[i];
+  if (!item) return;
+  // The search is done: the strip shows its usual tools again, then the choice opens or runs.
+  $('#tool-search').value = ''; hidePalette(); updateToolNavigation();
+  item.run();
+}
+// A press on the list keeps the focus in the box, so the list stays open until the click lands.
+$('#tool-palette').addEventListener('pointerdown', event => event.preventDefault());
+$('#tool-search').addEventListener('blur', hidePalette);
+$('#tool-search').addEventListener('focus', () => {if ($('#tool-search').value.trim()) showPalette();});
+$('#tool-search').addEventListener('keydown', event => {
+  if (event.isComposing) return;
+  if (event.key === 'Escape') {event.currentTarget.value = ''; hidePalette(); updateToolNavigation(); return;}
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    if ($('#tool-palette').hidden) showPalette();
+    if (!paletteItems.length) return;
+    event.preventDefault();
+    paletteIndex = (paletteIndex + (event.key === 'ArrowDown' ? 1 : -1) + paletteItems.length) % paletteItems.length;
+    markPalette();
+  } else if (event.key === 'Enter' && paletteItems.length) {
+    event.preventDefault(); runPalette(paletteIndex);
+  }
 });
 const profileKey = 'xuanshu-profiles-v2';
 // Read existing pre-rename local profiles once; keep the original as a safe fallback.
@@ -8373,7 +8473,8 @@ document.addEventListener('keydown', event => {
 // Every keyboard shortcut in one place, grouped by where it works. Keys are drawn as keycaps; on a Mac Ctrl is ⌘.
 const ON_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
 const SHORTCUTS = [
-  ['任何地方', [[['Ctrl', 'K'], '查找功能'], [['?'], '打开这份快捷键说明'], [['Esc'], '关闭对话框、日历或提示']]],
+  ['任何地方', [[['Ctrl', 'K'], '查找功能或操作'], [['?'], '打开这份快捷键说明'], [['Esc'], '关闭对话框、日历或提示']]],
+  ['功能查找', [[['↑', '↓'], '在匹配的功能和操作之间移动'], [['Enter'], '打开功能或执行操作'], [['Esc'], '清空查找']]],
   ['功能标签', [[['←', '→'], '上一个 / 下一个功能'], [['Home', 'End'], '第一个 / 最后一个功能']]],
   ['日期框和日历', [[['Alt', '↓'], '打开日历（也可以按 F4）'], [['←', '→', '↑', '↓'], '逐日、逐周移动'],
     [['Home', 'End'], '本周第一天 / 最后一天'], [['Page Up', 'Page Down'], '上个月 / 下个月，加 Shift 换年'], [['Enter'], '选定这一天']]],

@@ -63,7 +63,7 @@ def test_tab_headings_keep_to_their_first_tool():
 def test_header_search_box_and_footer_docs_link():
     assert '@media(max-width:1240px){.ui-lang>span{display:none}}' in CSS
     assert '@media(max-width:1080px){.brand small{display:none}}' in CSS
-    assert '.tool-finder input{flex:1;min-width:min(100%,310px);' in CSS
+    assert '.tool-search-box{position:relative;flex:1;min-width:min(100%,310px);' in CSS
     # The header's API link is hidden on a phone, so the footer carries one there.
     assert '<a class="footer-link footer-docs" href="/docs" target="_blank" rel="noopener">API 文档 ↗</a>' in HTML
     assert '.footer-docs{display:inline}' in CSS
