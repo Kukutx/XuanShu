@@ -82,6 +82,14 @@ const UI_EXTRA = {
 " visible",
 " 個"
 ],
+" 个字段": [
+" fields",
+" 個のフィールド"
+],
+" 个工具有结果": [
+" tools with results",
+" 個のツールに結果あり"
+],
 " 个时段": [
 " intervals",
 " 区間"
@@ -161,6 +169,14 @@ const UI_EXTRA = {
 " 分钟；需核对 23:00/00:00 换日流派及出生时间。": [
 " min; check the 23:00/00:00 day-change convention and the birth time.",
 " 分。23:00/00:00 の日替わり流派と出生時刻を確認してください。"
+],
+" 处": [
+" matches",
+" 件"
+],
+" 处匹配": [
+" matches",
+" 件一致"
 ],
 " 大运 · ": [
 " decade period · ",
@@ -466,6 +482,14 @@ const UI_EXTRA = {
 "Day turns at 00:00",
 "00:00 で日替わり"
 ],
+"1 个字段": [
+"1 field",
+"1 項目"
+],
+"1 个工具有结果": [
+"1 tool with results",
+"1 件のツールに結果あり"
+],
 "1 个时段": [
 "1 interval",
 "1 件の時間帯"
@@ -473,6 +497,10 @@ const UI_EXTRA = {
 "1 个月": [
 "1 month",
 "1 か月"
+],
+"1 处匹配": [
+"1 match",
+"1 件一致"
 ],
 "1 天": [
 "1 day",
@@ -665,6 +693,14 @@ const UI_EXTRA = {
 "Interface language / 界面语言": [
 "Interface language / 界面语言",
 "Interface language / 表示言語"
+],
+"JSON 含出生日期和时间，以及用过的工具里填写的内容：咨询问题与现实条件、其他人的称呼与出生资料等，复制或下载后由你保管；备注不在其中。下载与命盘工作台右上角的「导出 JSON」相同，资料过期时不能下载。": [
+"The JSON holds the birth date and time and what was entered in the tools used: consultation questions and real-world conditions, other people's names and birth details and so on. Once copied or downloaded it is in your keeping; notes are not included. The download is the same as Export JSON at the top right of the workspace, and is unavailable while data is out of date.",
+"JSON には出生日時と、使ったツールに入力した内容（相談の質問と現実の条件、他の人の呼び名と出生データなど）が含まれます。コピーやダウンロードの後はご自身で管理してください。メモは含まれません。ダウンロードはワークベンチ右上の「JSON を書き出す」と同じで、データが古いときは使えません。"
+],
+"JSON 含出生日期和时间，复制或下载后由你保管；备注不在其中。下载与命盘工作台右上角的「导出 JSON」相同，出生资料改过但还没重新生成命盘时不能下载。": [
+"The JSON includes the birth date and time; once copied or downloaded it is yours to keep safe. Notes are not in it. Downloading is the same as Export JSON at the top right of the workbench, and is unavailable after the birth details change until the chart is generated again.",
+"JSON には出生日時が含まれます。コピーやダウンロードの後はご自身で管理してください。メモは含まれません。ダウンロードはワークベンチ右上の「JSON を書き出す」と同じで、出生情報を変更してから命盤を再生成するまではダウンロードできません。"
 ],
 "JSON 里的时刻按太阳时排盘；这里按该时区的钟表时间起局，请核对时刻。": [
 "The JSON moment uses solar time; this check raises the plate at clock time in that zone, so check the moment.",
@@ -1110,6 +1146,10 @@ const UI_EXTRA = {
 "Download TXT",
 "TXT をダウンロード"
 ],
+"下载全部 JSON ↓": [
+"Download all JSON ↓",
+"JSON をすべてダウンロード ↓"
+],
 "下载失败：": [
 "Download failed: ",
 "ダウンロード失敗："
@@ -1117,6 +1157,14 @@ const UI_EXTRA = {
 "下载本年节气与月相日历（ICS）": [
 "Download this year's solar terms and moon phases (ICS)",
 "今年の節気と月相カレンダーをダウンロード（ICS）"
+],
+"下载本节": [
+"Download section",
+"この節をダウンロード"
+],
+"下载本节 ↓": [
+"Download section ↓",
+"この節をダウンロード ↓"
 ],
 "下面列出与问题相关的": [
 "listed below as relevant to the question:",
@@ -2266,6 +2314,10 @@ const UI_EXTRA = {
 "All provided fields match",
 "提供された全フィールドが一致"
 ],
+"全部收起": [
+"Collapse all",
+"すべて閉じる"
+],
 "全部规则组合": [
 "All rule combinations",
 "すべての規則の組み合わせ"
@@ -2562,6 +2614,10 @@ const UI_EXTRA = {
 "lunar calendar solar-term date",
 "旧暦 カレンダー 節気 日付"
 ],
+"农历反查": [
+"Lunar date lookup",
+"旧暦の逆引き"
+],
 "农历反查公历": [
 "Lunar to Gregorian lookup",
 "旧暦から西暦への逆引き"
@@ -2818,6 +2874,10 @@ const UI_EXTRA = {
 "Birth time and calendar quality audit flags need review; confirm the warnings before interpreting the chart.",
 "出生時刻と暦法の品質監査フラグに再確認が必要です。警告を確認してから命盤を解釈してください。"
 ],
+"出生时间窗口": [
+"Birth time window",
+"出生時刻の幅"
+],
 "出生时间误差": [
 "Birth-time uncertainty",
 "出生時刻の誤差"
@@ -2853,6 +2913,10 @@ const UI_EXTRA = {
 "出生资料在这次核对之后改过：下面的结果对应改动前的资料，请重新核对。": [
 "The birth details changed after this check: the results below belong to the old details. Run the check again.",
 "この照合の後に出生データが変更されました。以下の結果は変更前のデータのものです。もう一度照合してください。"
+],
+"出生资料已修改：下面仍是上一张命盘的数据。": [
+"The birth details have changed: the data below is still from the previous chart.",
+"出生情報が変更されました。以下はまだ前の命盤のデータです。"
 ],
 "出生资料每次都要重新勾选，服务器不保存；关键词明确时按新问题重新识别场景。": [
 "Tick the birth details again each time; the server keeps nothing. A question with clear keywords is classified afresh.",
@@ -3302,6 +3366,10 @@ const UI_EXTRA = {
 "Calendar calculation and explanation of traditional divination symbols (not scientific prediction)",
 "暦法計算と伝統術数の記号の説明（科学的予測ではない）"
 ],
+"原始文本": [
+"Raw text",
+"生テキスト"
+],
 "原局四柱神煞": [
 "Shen Sha on the natal pillars",
 "原局四柱の神煞"
@@ -3509,6 +3577,10 @@ const UI_EXTRA = {
 "只是提议：用户在浏览器里点击确认后才会保存。不要提议保存出生资料以外的敏感信息。": [
 "Only a proposal: it is saved only after the user clicks confirm in the browser. Do not propose saving sensitive information other than birth data.",
 "提案のみです。ユーザーがブラウザで確認をクリックした後にのみ保存されます。出生情報以外の機微な情報の保存は提案しないでください。"
+],
+"只显示前": [
+"showing the first",
+"表示は最初の"
 ],
 "只有 lunardate 不同；旧历书的算法容易把这样的朔算到午夜另一侧。": [
 "Only lunardate differs; older almanac methods easily put such a new moon on the other side of midnight.",
@@ -4270,13 +4342,13 @@ const UI_EXTRA = {
 "Copy Claude / Codex local config",
 "Claude / Codex のローカル設定をコピー"
 ],
-"复制 JSON": [
-"Copy JSON",
-"JSON をコピー"
-],
 "复制全文 Markdown": [
 "Copy all as Markdown",
 "全文を Markdown でコピー"
+],
+"复制全部 JSON": [
+"Copy all JSON",
+"JSON をすべてコピー"
 ],
 "复制咨询报告 Markdown": [
 "Copy consultation report Markdown",
@@ -5694,6 +5766,10 @@ const UI_EXTRA = {
 "Current chart",
 "現在の命盤"
 ],
+"当前命盘与各工具最近一次结果 · 只在本机 · 复制或下载才离开页面": [
+"The current chart and each tool's latest result · on this device only · leaves the page only when copied or downloaded",
+"現在の命盤と各ツールの最新結果 · この端末のみ · コピーかダウンロードした時だけページの外へ"
+],
 "当前命盘没有性别：自动方向排不出，请在这里选顺排、逆排，或填性别后重新生成命盘。": [
 "The current chart has no gender, so the direction cannot be set automatically. Choose forward or reverse here, or fill in the gender and cast the chart again.",
 "現在の命盤には性別がないため、方向を自動で決められません。ここで順行・逆行を選ぶか、性別を入力して命盤を作り直してください。"
@@ -5713,6 +5789,10 @@ const UI_EXTRA = {
 "当前命盘（先生成命盘）": [
 "Current chart (generate a chart first)",
 "現在の命盤（先に命盤を作成）"
+],
+"当前命盘（八字、紫微与解读）": [
+"Current chart (BaZi, Zi Wei and reading)",
+"現在の命盤（八字・紫微・解説）"
 ],
 "当前四柱无所列特定关系标签": [
 "The current Four Pillars have none of the listed relationship labels",
@@ -7366,6 +7446,10 @@ const UI_EXTRA = {
 " star' that it caused something.",
 "星がある」ことから因果関係を推論することはできません。"
 ],
+"有结果属于上一张命盘（见上方提示）：重新运行后才能下载。": [
+"Some results belong to the previous chart (see the notice above): run them again to download.",
+"前の命盤の結果があります（上の注意を参照）。再実行するとダウンロードできます。"
+],
 "有规则引用的八字紫微跨体系深度分析": [
 "Rule-cited in-depth cross-system analysis of BaZi and Zi Wei",
 "規則の引用を伴う八字・紫微のクロスシステム詳細分析"
@@ -7741,6 +7825,10 @@ const UI_EXTRA = {
 "标色的项目和钟表时间不同；换用太阳时会改变这些结果。": [
 "Coloured items differ from clock time; switching to solar time would change them.",
 "色付きの項目は時計時刻と異なります。太陽時に切り替えるとこれらの結果が変わります。"
+],
+"树状": [
+"Tree",
+"ツリー"
 ],
 "校时": [
 "Time correction",
@@ -8169,6 +8257,10 @@ const UI_EXTRA = {
 "沙中金": [
 "Sand Metal (Sha Zhong Jin)",
 "沙中金"
+],
+"没有匹配的字段或数值": [
+"No matching field or value",
+"一致するフィールドや値はありません"
 ],
 "没有匹配项，请尝试八字、择时、MCP 等关键词": [
 "No matches; try keywords like BaZi, timing or MCP",
@@ -9254,6 +9346,10 @@ const UI_EXTRA = {
 "Timed out and stopped.",
 "タイムアウトしたため停止しました。"
 ],
+"筛选字段名或数值": [
+"Filter by field name or value",
+"フィールド名や値で絞り込み"
+],
 "简体中文": [
 "简体中文",
 "简体中文"
@@ -9293,6 +9389,10 @@ const UI_EXTRA = {
 "紫微十二宫与四化": [
 "Zi Wei twelve palaces and Four Transformations",
 "紫微十二宮と四化"
+],
+"紫微叠盘": [
+"Zi Wei overlay",
+"紫微の重ね合わせ"
 ],
 "紫微命/身宫": [
 "Zi Wei Life/Body Palace",
@@ -9394,6 +9494,10 @@ const UI_EXTRA = {
 "Checking the minor stars against iztro found two wrong tables: in Xin years Tian Kui and Tian Yue were swapped, and Feng Gao counted backwards. Both now follow the cited rules (Xin year: Tian Kui in 午, Tian Yue in 寅; Feng Gao from 寅 at the Zi hour, counting forward); every minor star agrees on the rerun.",
 "補星を iztro と照合して二つの配置表の誤りが見つかりました：辛年の天魁・天鉞が逆、封誥が逆行。引用した規則どおり修正し（辛年は天魁が午、天鉞が寅；封誥は寅宮の子時から順行）、再実行で全補星が一致しました。"
 ],
+"紫微运限": [
+"Zi Wei time layers",
+"紫微の運限"
+],
 "紫微运限对照": [
 "Zi Wei period layers",
 "紫微の運限の照合"
@@ -9474,9 +9578,9 @@ const UI_EXTRA = {
 "End year",
 "終了年"
 ],
-"结构化 JSON · 可供 MCP / REST 读取": [
-"Structured JSON · readable via MCP / REST",
-"構造化 JSON · MCP / REST で読み取り可能"
+"结构化 JSON 数据": [
+"Structured JSON data",
+"構造化 JSON データ"
 ],
 "结果": [
 "Result",
@@ -10569,6 +10673,10 @@ const UI_EXTRA = {
 "还可以补充哪些人生事件来对照？": [
 "What other life events could I add for comparison?",
 "比較のためにほかにどんな人生の出来事を加えられますか？"
+],
+"还没有任何结果：生成命盘或使用任一工具后，数据会出现在这里。": [
+"No results yet: generate a chart or use any tool and the data appears here.",
+"まだ結果がありません。命盤を生成するか、いずれかのツールを使うとここにデータが表示されます。"
 ],
 "还没有本机档案。在出生资料下方保存档案后，可以在这里勾选。": [
 "No local profiles yet. Save one below the birth details and it can be ticked here.",
