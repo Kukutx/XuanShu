@@ -151,7 +151,7 @@ def test_new_rest_endpoints():
 
 def test_new_mcp_tools_and_resources_prompts():
     init = process_rpc(rpc('initialize', {'protocolVersion':PROTOCOL}))['result']
-    assert set(init['capabilities']) == {'tools','prompts','resources','extensions'}
+    assert set(init['capabilities']) == {'tools','prompts','resources','completions','extensions'}
     result = process_rpc(rpc('tools/list'))['result']['tools']
     assert len(result) == 34
     for name, args, field in [

@@ -7058,6 +7058,7 @@ async function loadAgentCatalog() {
   catalog.tools = await step('tools/list', false, plain('tools/list'), r => [r.tools.length, ' ', '个工具']).then(r => r && r.tools);
   catalog.prompts = await step('prompts/list', false, plain('prompts/list'), r => [r.prompts.length, ' ', '个提示模板']).then(r => r && r.prompts);
   catalog.resources = await step('resources/list', false, plain('resources/list'), r => [r.resources.length, ' ', '个规则资源']).then(r => r && r.resources);
+  catalog.templates = await step('resources/templates/list', false, plain('resources/templates/list'), r => [r.resourceTemplates.length, ' ', '个资源模板']).then(r => r && r.resourceTemplates);
   // The Skills extension pages its list; every page is read.
   catalog.skills = await step('skills/list', false, async () => {
     let skills = [], cursor = null, ms = 0;
@@ -7140,6 +7141,20 @@ function agRunView(box, tool) {
   append(head, 'span', 'ag-dot');
   texts(head, run.error ? '请求失败' : run.isError ? '工具返回错误' : '调用成功');
   if (!run.error) texts(append(head, 'small', 'muted'), run.ms + ' ms · ' + jvSize(run.bytes));
+  if (run.links && run.links.length) {
+    const line = append(box, 'p', 'ag-run-links');
+    texts(line, '依据的规则文档', '：');
+    run.links.forEach(uri => {
+      const button = append(line, 'button', 'tiny-button', uri); button.type = 'button'; button.dataset.noI18n = '';
+      button.addEventListener('click', () => {
+        const doc = document.getElementById('integration-doc-' + uri.split('/').pop());
+        if (!doc) return;
+        doc.open = true;
+        doc.scrollIntoView({block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+        doc.querySelector('summary').focus({preventScroll: true});
+      });
+    });
+  }
   const text = run.error || run.text;
   const pre = append(box, 'pre', 'json-code ag-output', text.length > 4000 ? text.slice(0, 4000) + '\n…' : text); pre.dataset.noI18n = '';
   if (text.length > 4000) append(box, 'small', 'muted', '只显示前 4000 个字符；完整结果请在工作台页面或你的客户端里查看。');
@@ -7153,7 +7168,9 @@ async function agTry(tool, box, button) {
     const out = await mcpRequest('tools/call', agCall(tool).params);
     const result = out.result || {};
     const text = result.structuredContent ? JSON.stringify(result.structuredContent, null, 2) : (result.content || []).map(c => c.text || '').join('\n');
-    agentRuns[tool.name] = {isError: Boolean(result.isError), ms: out.ms, bytes: out.bytes, text};
+    // The rule documents the result links (resource_link, from 2025-06-18) open in the resource list below.
+    const links = (result.content || []).filter(c => c && c.type === 'resource_link' && typeof c.uri === 'string').map(c => c.uri);
+    agentRuns[tool.name] = {isError: Boolean(result.isError), ms: out.ms, bytes: out.bytes, text, links};
   } catch (e) {agentRuns[tool.name] = {error: e.message};}
   const shown = document.getElementById('integration-run-' + tool.name), again = document.getElementById('integration-try-' + tool.name);
   if (again) again.removeAttribute('aria-disabled');
@@ -7169,6 +7186,15 @@ function agDocView(doc, uri) {
   if (got.pending) {append(body, 'p', 'muted', '正在读取…'); return;}
   if (got.error) {append(body, 'p', 'inline-msg', '读取失败：' + got.error); return;}
   texts(append(body, 'small', 'muted'), 'resources/read · ' + got.ms + ' ms · ' + jvSize(got.bytes));
+  if (got.json) {
+    // A computed fact comes back as JSON: shown indented, as data rather than as a document.
+    let shown = got.text;
+    try {shown = JSON.stringify(JSON.parse(got.text), null, 2);} catch (_) { /* shown as it came */ }
+    const pre = append(body, 'pre', 'ag-doc-text ag-doc-json'); pre.dataset.noI18n = ''; pre.tabIndex = 0;
+    pre.setAttribute('role', 'region'); pre.setAttribute('aria-label', uri); pre.textContent = shown;
+    agCopyButton(body, '复制全文', () => got.text);
+    return;
+  }
   // The rule documents are Markdown; they are laid out with the same DOM-only renderer as chat answers.
   const doc2 = append(body, 'div', 'ag-doc-text chat-md'); doc2.dataset.noI18n = ''; doc2.tabIndex = 0;
   doc2.setAttribute('role', 'region'); doc2.setAttribute('aria-label', uri);
@@ -7420,30 +7446,45 @@ function renderIntegration() {
 
   // 5. Rule resources, each readable here through resources/read.
   const resourcesPart = section('resources', '规则资源', 'resources/list：Agent 可读取的方法规则与限制');
+  // One resource as a row that reads it through resources/read when opened.
+  const docRow = (list, id, uri, label, note) => {
+    const doc = append(list, 'details', 'ag-doc'); doc.id = id;
+    const summary = append(doc, 'summary');
+    append(summary, 'code', 'ag-name', label).dataset.noI18n = '';
+    append(summary, 'small', 'muted', note);
+    append(doc, 'div', 'ag-doc-body');
+    doc.addEventListener('toggle', async () => {
+      if (!doc.open) return;
+      if (!agentDocs[uri] || agentDocs[uri].error) {
+        agentDocs[uri] = {pending: true}; agDocView(doc, uri);
+        try {
+          const out = await mcpRequest('resources/read', {uri});
+          const contents = out.result.contents || [];
+          agentDocs[uri] = {text: contents.map(c => c.text || '').join('\n'), ms: out.ms, bytes: out.bytes,
+            json: contents.length > 0 && contents.every(c => c.mimeType === 'application/json')};
+        } catch (e) {agentDocs[uri] = {error: e.message};}
+        // The page may have been redrawn while reading; the details shown now get the text.
+        const shown = document.getElementById(doc.id);
+        if (shown) agDocView(shown, uri);
+      } else agDocView(doc, uri);
+    });
+    agDocView(doc, uri);
+  };
   if (catalog && catalog.resources) {
     const list = append(resourcesPart, 'div', 'ag-docs'); list.id = 'integration-resource-list';
-    catalog.resources.forEach(r => {
-      const doc = append(list, 'details', 'ag-doc'); doc.id = 'integration-doc-' + r.name;
-      const summary = append(doc, 'summary');
-      append(summary, 'code', 'ag-name', r.uri).dataset.noI18n = '';
-      append(summary, 'small', 'muted', r.mimeType || '');
-      append(doc, 'div', 'ag-doc-body');
-      doc.addEventListener('toggle', async () => {
-        if (!doc.open) return;
-        if (!agentDocs[r.uri] || agentDocs[r.uri].error) {
-          agentDocs[r.uri] = {pending: true}; agDocView(doc, r.uri);
-          try {
-            const out = await mcpRequest('resources/read', {uri: r.uri});
-            agentDocs[r.uri] = {text: (out.result.contents || []).map(c => c.text || '').join('\n'), ms: out.ms, bytes: out.bytes};
-          } catch (e) {agentDocs[r.uri] = {error: e.message};}
-          // The page may have been redrawn while reading; the details shown now get the text.
-          const shown = document.getElementById(doc.id);
-          if (shown) agDocView(shown, r.uri);
-        } else agDocView(doc, r.uri);
-      });
-      agDocView(doc, r.uri);
-    });
+    catalog.resources.forEach(r => docRow(list, 'integration-doc-' + r.name, r.uri, r.uri, r.mimeType || ''));
   } else if (catalog) append(resourcesPart, 'p', 'inline-msg', '没有读到规则资源，见上方连接自检。');
+  // Resource templates address computed facts (a year's solar terms, a day's lunar date); each row opens on an
+  // example address filled with today.
+  if (catalog && catalog.templates && catalog.templates.length) {
+    texts(append(resourcesPart, 'p', 'field-help'), 'resources/templates/list', '：', '按地址读取的计算结果，打开时以今天为例读取。');
+    const list = append(resourcesPart, 'div', 'ag-docs'); list.id = 'integration-template-list';
+    const today = localToday();
+    catalog.templates.forEach(t => {
+      const example = t.uriTemplate.replace('{year}', today.slice(0, 4)).replace('{date}', today);
+      docRow(list, 'integration-template-' + t.name, example, t.uriTemplate, t.title || t.name);
+    });
+  }
 
   // 6. Skills offered through the MCP Skills extension.
   const skillsPart = section('skills', 'Skills', 'skills/list：可导入客户端的工作流说明');

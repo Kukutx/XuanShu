@@ -747,7 +747,7 @@ async def mcp(request: Request):
         if body_version not in SUPPORTED_PROTOCOLS:
             return JSONResponse(unsupported_version(payload.get('id') if type(payload.get('id')) in (str, int) else None, body_version), status_code=400)
     # Tool calls are CPU-bound (boundary scans can take seconds); run them off the event loop like the REST routes.
-    response = await run_in_threadpool(process_rpc, payload)
+    response = await run_in_threadpool(process_rpc, payload, header_version)
     if response is None:
         return Response(status_code=202)
     if modern and response.get('error', {}).get('code') == -32601:

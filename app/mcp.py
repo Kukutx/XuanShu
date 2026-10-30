@@ -6,6 +6,8 @@ Supports the 2026-07-28 stateless request-metadata dialect and older
 from __future__ import annotations
 
 import json
+import re
+from datetime import date
 from pathlib import Path
 from .asset_paths import resource_root
 from .mcp_skill_import import list_importable_skills, get_importable_skill, get_skill_resource
@@ -30,13 +32,13 @@ from .ziwei_horoscope import ZiweiHoroscopeRequest, ziwei_horoscope
 from .professional_ziwei import ProfessionalZiweiRequest, professional_ziwei_chart
 from .chart_audit import QimenAuditRequest, qimen_reference_audit
 from .extended import LunarToGregorianRequest, BirthWindowRequest, lunar_to_gregorian, birth_window
-from .astronomy import get_solar_terms
+from .astronomy import chinese_lunar_date, get_solar_terms
 from .report import ReportRequest, structured_report
 from .quality import QualityAuditRequest, calculation_quality_audit
 from .advanced import DayunRequest, BirthBoundaryRequest, dayun_sequence, birth_boundary_map
 from .workflows import (DayOfficerRequest, TimelineRequest, DecisionMatrixRequest,
                         day_officer_calendar, annual_timeline, decision_matrix)
-from .engines import BirthInput, calculate_bazi, calculate_ziwei, combined_chart
+from .engines import BirthInput, PALACE_NAMES, calculate_bazi, calculate_ziwei, combined_chart
 from .features import CalendarRequest, PairComparisonInput, PairInput, PalaceRequest, AnnualRequest, TimeAuditRequest, RuleComparisonRequest, calendar_days, compare_charts, palace_detail, annual_transformations, time_audit, rule_comparison
 
 PROTOCOL = '2025-11-25'  # legacy initialization fallback
@@ -110,6 +112,89 @@ RESOURCES = [
     {'uri': uri, 'name': file.rsplit('/', 1)[-1].removesuffix('.md'), 'description': f'XuanShu rule reference: {uri}', 'mimeType': 'text/markdown'}
     for uri, file in RESOURCE_TEXT.items()
 ]
+# The rule documents behind each tool. From 2025-06-18 a tool result links them as resource_link items, so an agent
+# can read the rule a value came from without guessing which resource covers it.
+TOOL_RULES = {
+    'consultation_execute': ('consultation', 'limitations'), 'deep_evidence_review': ('evidence', 'bazi', 'ziwei'),
+    'ziwei_professional_chart': ('ziwei',), 'qimen_reference_audit': ('qimen',), 'qimen_hour_chart': ('qimen',),
+    'bazi_chart': ('bazi',), 'ziwei_chart': ('ziwei',), 'combined_chart': ('bazi', 'ziwei'),
+    'symbolic_reading': ('bazi', 'ziwei'), 'pair_comparison': ('bazi',), 'ziwei_pair_overlay': ('ziwei',),
+    'palace_detail': ('ziwei',), 'annual_transformations': ('ziwei',), 'time_basis_audit': ('solar-time',),
+    'rule_comparison': ('bazi', 'ziwei'), 'structured_report': ('glossary',), 'lunar_to_gregorian': ('lunar-inverse',),
+    'birth_time_window': ('birth-window',), 'chart_quality_audit': ('quality',), 'day_officers': ('jianchu',),
+    'annual_timeline': ('timeline',), 'decision_matrix': ('decision',), 'bazi_dayun': ('dayun',),
+    'birth_boundary_map': ('boundary-map',), 'date_candidate_scan': ('jianchu', 'qimen'), 'life_path_review': ('dayun', 'timeline'),
+    'pillars_to_dates': ('bazi',), 'chart_import_check': ('bazi', 'ziwei'), 'daily_almanac': ('jianchu',),
+    'group_relations': ('bazi',), 'rule_sensitivity_matrix': ('solar-time',), 'ziwei_horoscope': ('ziwei',),
+}
+RESOURCE_LINK_SINCE = '2025-06-18'
+
+
+def rule_links(name: str) -> list[dict]:
+    return [{'type': 'resource_link', 'uri': f'astro://rules/{doc}', 'name': doc, 'mimeType': 'text/markdown',
+             'description': f'XuanShu rule reference for {name}'} for doc in TOOL_RULES.get(name, ())]
+
+
+# Computed facts addressable as resources: a year's solar terms and one day's lunar date, both in China time.
+RESOURCE_TEMPLATES = [
+    {'uriTemplate': 'astro://solar-terms/{year}', 'name': 'solar-terms', 'title': '某年二十四节气',
+     'description': 'China-time instants of the 24 solar terms in one Gregorian year (1901–2099), as solar_terms returns them.',
+     'mimeType': 'application/json'},
+    {'uriTemplate': 'astro://lunar/{date}', 'name': 'lunar-date', 'title': '某日农历',
+     'description': 'Modern China lunar date of one Gregorian day (YYYY-MM-DD, 1901–2099), with the leap-month flag.',
+     'mimeType': 'application/json'},
+]
+
+
+def read_template(uri: str) -> dict | None:
+    """The contents of a templated resource, None when the URI matches no template, ValueError when out of range."""
+    if match := re.fullmatch(r'astro://solar-terms/(\d{4})', uri):
+        year = int(match.group(1))
+        if not 1901 <= year <= 2099:
+            raise ValueError('Solar-term years run from 1901 to 2099')
+        data = {'year': year, 'timezone': 'Asia/Shanghai', 'terms': get_solar_terms(year)}
+    elif match := re.fullmatch(r'astro://lunar/(\d{4}-\d{2}-\d{2})', uri):
+        try:
+            day = date.fromisoformat(match.group(1))
+        except ValueError as exc:
+            raise ValueError('astro://lunar/ takes a real Gregorian date as YYYY-MM-DD') from exc
+        data = {'date': day.isoformat(), 'lunar': chinese_lunar_date(day)}
+    else:
+        return None
+    return {'contents': [{'uri': uri, 'mimeType': 'application/json', 'text': json.dumps(data, ensure_ascii=False)}]}
+
+
+# Suggestions for completion/complete: what each prompt's focus usually names, and the years a template accepts.
+PROMPT_FOCUS = {
+    'deep-evidence-review': PALACE_NAMES,
+    'explain-ziwei': PALACE_NAMES,
+    'explain-bazi': ('藏干', '十神', '纳音', '节气', '星运', '旬空', '神煞', '大运'),
+    'explain-qimen': ('阴阳遁', '三元', '九宫', '八门', '九星', '八神', '值符', '值使'),
+    'audit-solar-time': ('经度', '平太阳时', '真太阳时', '均时差', '夏令时'),
+}
+COMPLETION_LIMIT = 100  # the most values one completion result may carry
+
+
+def complete(params: dict) -> dict:
+    ref, argument = params.get('ref'), params.get('argument')
+    if not isinstance(ref, dict) or not isinstance(argument, dict) or not isinstance(argument.get('name'), str) \
+            or not isinstance(argument.get('value', ''), str):
+        raise ValueError('completion/complete requires ref and argument {name, value}')
+    typed = argument.get('value', '')
+    if ref.get('type') == 'ref/prompt':
+        if not any(item['name'] == ref.get('name') for item in PROMPTS):
+            raise ValueError(f"Unknown prompt: {ref.get('name')}")
+        options = PROMPT_FOCUS.get(ref['name'], ()) if argument['name'] == 'focus' else ()
+        values = [v for v in options if v.startswith(typed)] or [v for v in options if typed in v]
+    elif ref.get('type') == 'ref/resource':
+        if ref.get('uri') not in {t['uriTemplate'] for t in RESOURCE_TEMPLATES}:
+            raise ValueError(f"Unknown resource template: {ref.get('uri')}")
+        values = [str(y) for y in range(1901, 2100) if str(y).startswith(typed)] if argument['name'] == 'year' else []
+    else:
+        raise ValueError('ref.type must be ref/prompt or ref/resource')
+    return {'completion': {'values': values[:COMPLETION_LIMIT], 'total': len(values), 'hasMore': len(values) > COMPLETION_LIMIT}}
+
+
 PROMPTS = [
     {'name': 'deep-evidence-review', 'title': '有来源的结构推演与反证', 'description': 'Use computed BaZi and Zi Wei to trace each conclusion to rule and field evidence.', 'arguments': [{'name': 'focus', 'description': 'Selected palace or specific question', 'required': False}]},
     {'name':'explain-qimen', 'title':'奇门九宫结构解读', 'description':'Explain the specified rotating school labels without predicting outcomes.', 'arguments':[{'name':'focus','description':'Optional palace or rule','required':False}]},
@@ -223,7 +308,9 @@ def _prompt_get(params: dict) -> dict:
     return {'description': prompt['description'], 'messages': [{'role': 'user', 'content': {'type': 'text', 'text': body}}]}
 
 
-def process_rpc(payload: Any) -> dict | None:
+def process_rpc(payload: Any, protocol: str | None = None) -> dict | None:
+    """protocol is the version the transport knows (the HTTP header, or what stdio negotiated); a version in the
+    request's own metadata takes precedence."""
     if not isinstance(payload, dict) or payload.get('jsonrpc') != '2.0' or not isinstance(payload.get('method'), str):
         return error_response(payload.get('id') if isinstance(payload, dict) else None, -32600, 'Invalid JSON-RPC request')
     method, id_ = payload['method'], payload.get('id')
@@ -242,6 +329,7 @@ def process_rpc(payload: Any) -> dict | None:
     if declared_version is not None and declared_version not in SUPPORTED_PROTOCOLS:
         return unsupported_version(id_, declared_version)
     modern = declared_version == MODERN_PROTOCOL
+    version = declared_version or (protocol if protocol in SUPPORTED_PROTOCOLS else None)
     if modern and (not isinstance(meta, dict) or not isinstance(meta.get('io.modelcontextprotocol/clientCapabilities'), dict)):
         return error_response(id_, -32602, '2026-07-28 requests require object clientCapabilities in params._meta')
     if 'id' not in payload:
@@ -252,7 +340,7 @@ def process_rpc(payload: Any) -> dict | None:
     if method == 'server/discover':
         result = {
             'supportedVersions': sorted(SUPPORTED_PROTOCOLS, reverse=True),
-            'capabilities': {'tools': {}, 'resources': {}, 'prompts': {}, 'extensions': {'io.modelcontextprotocol/skills': {}}},
+            'capabilities': {'tools': {}, 'resources': {}, 'prompts': {}, 'completions': {}, 'extensions': {'io.modelcontextprotocol/skills': {}}},
             'instructions': 'Deterministic cultural calculations; Zi Wei is partial and all prediction claims are unverified.',
             'ttlMs': 300000, 'cacheScope': 'public',
         }
@@ -263,7 +351,7 @@ def process_rpc(payload: Any) -> dict | None:
         negotiated = desired if desired in SUPPORTED_PROTOCOLS - {MODERN_PROTOCOL} else PROTOCOL
         result = {
             'protocolVersion': negotiated,
-            'capabilities': {'tools': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'prompts': {'listChanged': False}, 'extensions': {'io.modelcontextprotocol/skills': {}}},
+            'capabilities': {'tools': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'prompts': {'listChanged': False}, 'completions': {}, 'extensions': {'io.modelcontextprotocol/skills': {}}},
             'serverInfo': {'name': 'xuanshu', 'version': __version__},
             'instructions': 'Traditional calendar algorithms and symbolic labels; Zi Wei is partial and school-specific. No scientifically verified fortune predictions.',
         }
@@ -278,8 +366,7 @@ def process_rpc(payload: Any) -> dict | None:
         if modern:
             result.update({'ttlMs': 300000, 'cacheScope': 'public'})
     elif method == 'resources/templates/list':
-        # Every resource has a fixed URI; answering with an empty list spares clients a method-not-found error.
-        result = {'resourceTemplates': []}
+        result = {'resourceTemplates': RESOURCE_TEMPLATES}
         if modern:
             result.update({'ttlMs': 300000, 'cacheScope': 'public'})
     elif method == 'skills/list':
@@ -304,7 +391,12 @@ def process_rpc(payload: Any) -> dict | None:
         if uri in RESOURCE_TEXT:
             result = {'contents': [{'uri': uri, 'mimeType': 'text/markdown', 'text': (ROOT / RESOURCE_TEXT[uri]).read_text(encoding='utf-8')}]}
         else:
-            result = get_skill_resource(uri)
+            try:
+                result = read_template(uri)
+            except ValueError as exc:
+                return error_response(id_, -32602, str(exc))
+            if result is None:
+                result = get_skill_resource(uri)
             if result is None:
                 return error_response(id_, -32602, 'Unknown resource URI')
         if modern:
@@ -313,6 +405,11 @@ def process_rpc(payload: Any) -> dict | None:
         result = {'prompts': PROMPTS}
         if modern:
             result.update({'ttlMs': 300000, 'cacheScope': 'public'})
+    elif method == 'completion/complete':
+        try:
+            result = complete(params)
+        except ValueError as exc:
+            return error_response(id_, -32602, str(exc))
     elif method == 'prompts/get':
         try:
             result = _prompt_get(params)
@@ -326,8 +423,9 @@ def process_rpc(payload: Any) -> dict | None:
             return error_response(id_, -32602, f'Unknown tool: {name}')
         try:
             data = call_tool(name, args)
+            links = rule_links(name) if version and version >= RESOURCE_LINK_SINCE else []
             result = {
-                'content': [{'type': 'text', 'text': json.dumps(data, ensure_ascii=False)}],
+                'content': [{'type': 'text', 'text': json.dumps(data, ensure_ascii=False)}, *links],
                 'structuredContent': data,
                 'isError': False,
             }

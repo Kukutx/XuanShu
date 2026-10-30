@@ -2467,7 +2467,7 @@ def main() -> None:
             page.wait_for_function(f"() => document.querySelector('#integration-counts').textContent.includes('{tools} Tools')", timeout=30000)
             # The page checks the server itself over MCP: both protocol generations, every list, all passing.
             page.wait_for_selector('#integration-summary.is-ok', timeout=30000)
-            assert page.locator('#integration-steps > li').count() == 6 and page.locator('#integration-steps > li.is-ok').count() == 6
+            assert page.locator('#integration-steps > li').count() == 7 and page.locator('#integration-steps > li.is-ok').count() == 7
             assert [page.locator('#integration-steps .ag-method').nth(i).inner_text() for i in range(2)] == ['server/discover', 'initialize']
             assert page.locator('#integration-consistency.ag-same').count() == 1
             assert page.locator('.ag-nav-link').count() == 6
@@ -2535,6 +2535,20 @@ def main() -> None:
             page.locator('#integration-doc-evidence summary').click()
             page.wait_for_selector('#integration-doc-evidence .ag-doc-text', timeout=30000)
             assert '深度证据' in page.locator('#integration-doc-evidence .ag-doc-text').inner_text()
+            # A tool run lists the rule documents its result links; one click opens that document below.
+            page.locator('#integration-search').fill('day_officers')
+            page.locator('#integration-example-summary-day_officers').click()
+            page.locator('#integration-try-day_officers').click()
+            page.locator('#integration-run-day_officers .ag-run-links button').first.wait_for(timeout=30000)
+            assert page.locator('#integration-run-day_officers .ag-run-links button').all_inner_texts() == ['astro://rules/jianchu']
+            page.locator('#integration-run-day_officers .ag-run-links button').click()
+            page.wait_for_selector('#integration-doc-jianchu[open] .ag-doc-text', timeout=30000)
+            page.locator('#integration-search').fill('')
+            # A resource template opens on today's address and shows the computed JSON, indented.
+            page.locator('#integration-template-solar-terms summary').click()
+            page.wait_for_selector('#integration-template-solar-terms .ag-doc-json', timeout=30000)
+            solar = json.loads(page.locator('#integration-template-solar-terms .ag-doc-json').inner_text())
+            assert len(solar['terms']) == 24 and solar['timezone'] == 'Asia/Shanghai', solar
             # The page follows the interface language and keeps what was open.
             page.locator('#ui-language').select_option('en')
             page.wait_for_function("() => document.querySelector('#integration-summary')?.textContent.includes('Connected to')", timeout=10000)
