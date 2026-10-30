@@ -71,7 +71,7 @@ def test_birth_window_has_sample_trace_no_false_exhaustive_claim():
     assert sum(item['sample_count'] for item in out['variants'])==out['sample_count']
     assert 1<=out['variant_count']<=out['sample_count']
     assert [x['offset_minutes'] for x in out['samples']]==list(range(-50,51,5))
-    assert any('not an exhaustive' in x for x in out['limitations'])
+    assert any('不是完整的边界检查' in x for x in out['limitations'])
     assert all(1<=row['variant_index']<=out['variant_count'] for row in out['samples'])
 
 

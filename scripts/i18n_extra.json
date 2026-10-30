@@ -95,6 +95,10 @@
   " months",
   " か月"
  ],
+ " 个点：": [
+  " points: ",
+  " 点："
+ ],
  " 个规则切换点": [
   " rule switch points",
   " 個の規則切替点"
@@ -102,6 +106,10 @@
  " 个边界、": [
   " boundaries, ",
   " 個の境界、"
+ ],
+ " 个采样点": [
+  " samples",
+  " 点"
  ],
  " 主星 + ": [
   " main stars + ",
@@ -146,6 +154,14 @@
  " 分钟": [
   " min",
   " 分"
+ ],
+ " 分钟内间隔 ": [
+  " min, at intervals of ",
+  " 分以内を "
+ ],
+ " 分钟采样（另含出生时刻与两端），共 ": [
+  " min (plus the birth time and both ends), ",
+  " 分間隔で計算（出生時刻と両端を含む）、計 "
  ],
  " 分钟）：": [
   " min): ",
@@ -327,6 +343,10 @@
   " structures",
   " 種の構造"
  ],
+ " 种结构。": [
+  " structures.",
+  " 種類。"
+ ],
  " 秒": [
   " s",
   " 秒"
@@ -495,6 +515,10 @@
   "1 month",
   "1 か月"
  ],
+ "1 个采样点": [
+  "1 sample",
+  "1 点"
+ ],
  "1 处匹配": [
   "1 match",
   "1 件一致"
@@ -527,6 +551,10 @@
   "In 1914, 1916 and 1920 one month each started a day later than in all three references: early Republican calendars were computed for Beijing local mean time (116°25′E). Fixed.",
   "1914・1916・1920 年にそれぞれ 1 か月、朔日が 3 つの参照より 1 日遅れていました。民国初期の暦は北京地方平時（東経 116°25′）で編まれていたためで、修正済みです。"
  ],
+ "1929 年起按东经 120° 子午线（UTC+8），1912–1928 年按北京子午线（东经 116°25′）；1912 年以前的清代历书和地方历书可能不同。": [
+  "Uses the 120°E meridian (UTC+8) since 1929 and the Beijing meridian 116°25′E for 1912–1928; the Qing calendar before 1912 and regional almanacs may differ.",
+  "1929 年以降は東経 120° の子午線（UTC+8）、1912–1928 年は北京子午線（東経 116°25′）を用います。1912 年以前の清代の暦や地方の暦とは異なる場合があります。"
+ ],
  "2025 年以后各库用各自的地球自转差（ΔT）预报，差距随年份变大；只有离交节或午夜只差几分钟时才会影响结果。": [
   "After 2025 each library relies on its own forecast of Earth's rotation (ΔT), so the gap grows over the years. It only changes a result when a solar term or midnight is a few minutes away.",
   "2025 年以降は各ライブラリが独自の地球自転差（ΔT）予測を使うため、年を追うごとに差が広がります。節入りや真夜中まで数分しかない場合にだけ結果に影響します。"
@@ -542,6 +570,10 @@
  "23:00 换日": [
   "Day turns at 23:00",
   "23:00 で日替わり"
+ ],
+ "23:00 换日、闰月分界等其他规则的影响见「规则差异对照」。": [
+  "For other rules, such as the 23:00 day change or the leap-month split, see Rule differences.",
+  "23:00 の日替わりや閏月の区切りなど他の規則の影響は「ルール差の対照」で確認できます。"
  ],
  "23:00 换日（早晚子时）": [
   "Day changes at 23:00 (early/late Zi hour)",
@@ -1111,6 +1143,10 @@
   "The four pillars, Life and Body palaces and lunar date are the same under all three time bases.",
   "三つの時制で四柱・命宮・身宮・旧暦日付はすべて同じです。"
  ],
+ "三种时制落在哪个时辰": [
+  "Which two-hour period each time system falls in",
+  "三つの時制がどの時辰に入るか"
+ ],
  "上一个大限": [
   "Previous major limit",
   "前の大限"
@@ -1334,6 +1370,10 @@
  "与出生所在区间不同": [
   "differs from the birth segment",
   "出生時刻の区間と異なる"
+ ],
+ "与出生时间不同": [
+  "differs from the birth time",
+  "出生時刻と異なる"
  ],
  "与原局": [
   "With the natal chart",
@@ -2023,6 +2063,10 @@
   "These rule choices could not be charted and are not listed: ",
   "次の規則は換算後に命盤を作れないため表示していません："
  ],
+ "以出生时间为中心，在前后误差内每隔几分钟排一次盘，列出出现过的不同四柱、命宫、身宫和五行局。两个采样点之间的切换可能漏掉，精确时刻见「生时边界地图」。": [
+  "Around the birth time, a chart is cast every few minutes within the error, listing the different four pillars, Ming and Shen palaces and five-element bureaus that occur. A change between two samples can be missed; the exact moments are on the Birth boundary map.",
+  "出生時刻を中心に、誤差の範囲で数分ごとに盤を出し、現れた四柱・命宮・身宮・五行局の違いを並べます。二つの採取点の間の切り替わりは見落とすことがあります。正確な時刻は「出生時刻境界マップ」で確認できます。"
+ ],
  "以出生资料里的时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。": [
   "Samples the error window around the birth time and lists the distinct BaZi charts and Life/Body palaces found. Differences between sample points can still be missed.",
   "出生情報の時刻を中心に誤差範囲を離散的にサンプリングし、実際に現れる八字と命宮・身宮を列挙します。サンプル点の間に検出されない違いが残る可能性があります。"
@@ -2078,6 +2122,10 @@
  "传统命理符号是文化解释框架，尚无可靠科学证据支持个人命运预测。": [
   "Traditional fate-calculation symbols are a cultural interpretive framework; there is no reliable scientific evidence supporting personal destiny prediction.",
   "伝統命理の記号は文化的な解釈の枠組みであり、個人の運命予測を裏付ける信頼できる科学的根拠はありません。"
+ ],
+ "传统命盘标签的变化不代表任何现实预测。": [
+  "A change in traditional chart labels is not a real-world prediction.",
+  "伝統的な命盤のラベルが変わっても、現実の予測を意味しません。"
  ],
  "传统地支合冲刑害的结构标记": [
   "Structural markers of traditional branch combinations, clashes, punishments and harms",
@@ -2154,10 +2202,6 @@
  "佛灯火": [
   "Buddha Lamp Fire",
   "仏灯火"
- ],
- "作为对照的时制": [
-  "Time standard for comparison",
-  "比較対象の時制"
  ],
  "你提供的": [
   "From you",
@@ -2863,6 +2907,14 @@
   "Source",
   "出典"
  ],
+ "出现 ": [
+  "found ",
+  "構造は "
+ ],
+ "出现过的结构": [
+  "Structures found",
+  "現れた構造"
+ ],
  "出生": [
   "Birth",
   "出生"
@@ -3035,6 +3087,10 @@
   "Birth time error range",
   "出生時刻の誤差範囲"
  ],
+ "出生时间误差采样": [
+  "Birth-time error sampling",
+  "出生時刻の誤差サンプリング"
+ ],
  "出生时间误差采样 · 不确定时刻对照": [
   "Birth time error sampling · uncertain time comparison",
   "出生時刻の誤差サンプリング · 不確定時刻の対照"
@@ -3127,6 +3183,10 @@
   "Switch to a major limit or a year and the palace names, four transformations and trine lines are relabelled for that layer.",
   "大限または流年に切り替えると、宮名・四化・三方四正がその層で付け直されます。"
  ],
+ "切换在这两个采样点之间": [
+  "changes between these two samples",
+  "この二点の間で切り替わる"
+ ],
  "切换配色": [
   "Change colour theme",
   "配色を切り替え"
@@ -3199,6 +3259,10 @@
   "First six stem-branch pairs:",
   "最初の六つの干支："
  ],
+ "前后 ": [
+  "Within ±",
+  "前後 "
+ ],
  "前后分钟数（1–120）": [
   "Minutes either side (1–120)",
   "前後の分数（1–120）"
@@ -3206,6 +3270,10 @@
  "前后翻页的日期是 target_date，配合同一个 target_time 使用；选了 23:00 换日时已扣回提前的一天。": [
   "The previous and next dates are target_date values to use with the same target_time; with the 23:00 day change the day already added is taken back off.",
   "前後の日付は同じ target_time と組み合わせる target_date です。23:00 換日を選んだ場合は繰り上げた一日を差し引いています。"
+ ],
+ "前后误差需为 5–120 的整数分钟。": [
+  "The error must be a whole number of minutes, 5–120.",
+  "前後の誤差は 5〜120 の整数（分）にしてください。"
  ],
  "前后误差（分钟）": [
   "± error (min)",
@@ -3519,6 +3587,10 @@
   "This will use the backup's ",
   "バックアップの "
  ],
+ "历史时区和地理太阳时校正取决于输入是否准确。": [
+  "Historical time zones and solar-time correction depend on accurate input.",
+  "歴史的なタイムゾーンと太陽時の補正は入力の正確さに左右されます。"
+ ],
  "历法与排盘逐日交叉核验": [
   "Calendar and charts cross-checked day by day",
   "暦と命盤を毎日クロスチェック"
@@ -3703,10 +3775,6 @@
   "Changed",
   "変化"
  ],
- "变化的四柱：": [
-  "Changed pillars: ",
-  "変化した四柱："
- ],
  "叠加农历年（留空不叠加）": [
   "Overlay lunar year (leave blank for none)",
   "重ねる旧暦年（空欄で重ねない）"
@@ -3810,6 +3878,10 @@
  "只核对识别到的字段；没识别到的字段不代表一致。": [
   "Only recognized fields are checked; a field that was not recognized is not thereby confirmed.",
   "認識できた項目だけを照合します。認識されなかった項目が一致しているとは限りません。"
+ ],
+ "只比较了采样点：两个采样点之间的切换可能漏掉，这不是完整的边界检查；精确的切换时刻用生时边界地图（birth_boundary_map）。": [
+  "Only the samples were compared: a change between two samples can be missed, so this is not a full boundary check; use the birth-time boundary map (birth_boundary_map) for exact moments.",
+  "比較したのは採取点だけです。二点の間の切り替わりは見落とすことがあり、完全な境界の確認ではありません。正確な時刻は出生時刻境界マップ（birth_boundary_map）を使ってください。"
  ],
  "只比较用户提供的字段，不把缺失字段计入通过": [
   "Only the fields you provide are compared; missing fields never count as a match",
@@ -4039,6 +4111,10 @@
   "Propose to the user saving long-term background that appeared in the conversation (e.g. occupation, major experiences, areas of concern) to the current profile memory.",
   "会話に現れた長期的な背景（職業、重要な経験、関心の方向など）を現在のプロフィールのメモリに保存するようユーザーに提案します。"
  ],
+ "含出生时间": [
+  "Includes birth time",
+  "出生時刻を含む"
+ ],
  "呢": [
   "(question particle)",
   "（疑問の助詞）"
@@ -4227,6 +4303,10 @@
   "Four Pillars",
   "四柱"
  ],
+ "四柱、命宫、身宫和五行局都不变。": [
+  "the four pillars, Ming and Shen palaces and five-element bureau stay the same.",
+  "四柱・命宮・身宮・五行局はすべて変わりません。"
+ ],
  "四柱与十二节令界定": [
   "Four Pillars and twelve Jie term boundaries",
   "四柱と十二節令の区切り"
@@ -4303,10 +4383,6 @@
   "The answer is organized by a language model from tool results; calculated facts are those from the tool calls in the trace. Model text may still contain errors; please verify.",
   "回答は言語モデルがツールの結果をもとに構成したものです。計算上の事実は trace 内のツール呼び出しを基準とします。モデルの文章には誤りが含まれる可能性があるため、照合してください。"
  ],
- "固定出生参数，仅切换时制": [
-  "Birth parameters fixed; only the time standard changes",
-  "出生パラメータを固定し時制のみ切り替え"
- ],
  "图片卡片": [
   "Image card",
   "画像カード"
@@ -4358,6 +4434,10 @@
  "在源码目录里也可以：": [
   "Or, in the source folder:",
   "ソースフォルダでは次でも可："
+ ],
+ "在生时边界地图上找精确时刻": [
+  "Find the exact moments on the Birth boundary map",
+  "出生時刻境界マップで正確な時刻を探す"
  ],
  "在紫微盘上看飞化线": [
   "Show flying lines on the Zi Wei chart",
@@ -5155,6 +5235,10 @@
   "子 year at 卯, counting the twelve branches backwards (丑 year at 寅, 寅 year at 丑 … 亥 year at 辰); read from the year branch",
   "子年は卯、十二支を逆にたどる（丑年は寅、寅年は丑……亥年は辰）。年支から求める"
  ],
+ "子时": [
+  "Zi hour",
+  "子の刻"
+ ],
  "子时（按当天）": [
   "Zi hour (same day)",
   "子の刻（当日）"
@@ -5687,6 +5771,14 @@
   "Opened ",
   "開きました："
  ],
+ "已打开生时边界地图。出生资料有尚未排盘的修改，重新生成命盘后再定位。": [
+  "Opened the birth-time boundary map. The birth data has edits that have not been cast yet; generate the chart again, then locate.",
+  "出生時刻境界マップを開きました。出生データにまだ命盤へ反映していない変更があります。命盤を生成し直してから特定してください。"
+ ],
+ "已打开生时边界地图，正在定位": [
+  "Opened the birth-time boundary map; locating",
+  "出生時刻境界マップを開きました。特定しています"
+ ],
  "已按所选规则列出名义大运干支序列（非事件预测）。": [
   "Listed the nominal Luck Pillar stem-branch sequence under the selected rules (not an event prediction).",
   "選択した規則に従い、名目上の大運干支の並びを列挙しました（出来事の予測ではありません）。"
@@ -6131,6 +6223,14 @@
   "Used for this chart",
   "この命盤で使用"
  ],
+ "当前排盘所用的时间离 00:00 日界不到 15 分钟：按 00:00 换日，出生时间稍有误差，日柱和时干就会改变。": [
+  "The time used for this chart is less than 15 minutes from the 00:00 day boundary: with the day changing at 00:00, a small error in the birth time changes the day pillar and the hour stem.",
+  "命盤に使った時刻は 00:00 の日界まで 15 分未満です。00:00 で日を改める設定では、出生時刻がわずかにずれるだけで日柱と時干が変わります。"
+ ],
+ "当前排盘所用的时间离时辰交界不到 15 分钟：出生时间稍有误差，时柱就会换成相邻的时辰。": [
+  "The time used for this chart is less than 15 minutes from a period boundary: a small error in the birth time changes the hour pillar to the neighbouring period.",
+  "この命盤で使った時刻は時辰の境目まで 15 分未満です。出生時刻が少しずれるだけで時柱が隣の時辰に変わります。"
+ ],
  "当前时间": [
   "Current time",
   "現在の時刻"
@@ -6399,6 +6499,10 @@
   "Open Zi Wei",
   "紫微斗数を開く"
  ],
+ "打开规则差异对照": [
+  "Open Rule differences",
+  "ルール差の対照を開く"
+ ],
  "打开这一页": [
   "Open this page",
   "このページを開く"
@@ -6418,10 +6522,6 @@
  "执行失败：": [
   "Execution failed: ",
   "実行失敗："
- ],
- "执行规则差异对照": [
-  "Run rule-difference comparison",
-  "ルール差異の対照を実行"
  ],
  "执行证据分析": [
   "Run evidence analysis",
@@ -7459,6 +7559,14 @@
   "Hour unknown: the start age depends on the hour",
   "時刻不明：起運年齢は時刻によって変わる"
  ],
+ "时辰不详：这里的出生时间 12:00 只是占位，采样结果不代表真实出生时刻前后的变化。": [
+  "Hour unknown: the birth time 12:00 here is only a placeholder, so the samples say nothing about changes around the real birth time.",
+  "時刻不明：ここでの出生時刻 12:00 は仮の値にすぎず、採取結果は実際の出生時刻前後の変化を表しません。"
+ ],
+ "时辰不详：钟表时间 12:00 只是占位，这里的时辰和交界不代表真实出生时刻。": [
+  "Hour unknown: the clock time 12:00 is only a placeholder, so the periods and boundaries here do not describe the real birth time.",
+  "時刻不明：時計時刻 12:00 は仮の値にすぎず、ここでの時辰と境目は実際の出生時刻を表しません。"
+ ],
  "时辰交界": [
   "Double-hour boundary",
   "時辰の境界"
@@ -7694,6 +7802,14 @@
  "最接近：": [
   "Closest: ",
   "最も近い時辰："
+ ],
+ "最近交界 ": [
+  "Nearest boundary ",
+  "最寄りの境目 "
+ ],
+ "最近日界 ": [
+  "Nearest day boundary ",
+  "最寄りの日界 "
  ],
  "最近的交界": [
   "nearest boundary",
@@ -10491,14 +10607,6 @@
   "Seattle",
   "シアトル"
  ],
- "观测到 ": [
-  "Observed ",
-  "観測 "
- ],
- "观测样本范围": [
-  "Observed sample range",
-  "観測サンプル範囲"
- ],
  "规则": [
   "Rules",
   "規則"
@@ -11547,17 +11655,25 @@
   "Theme: ",
   "配色："
  ],
+ "采样之间的切换": [
+  "Changes between samples",
+  "採取点の間の切り替わり"
+ ],
+ "采样只能说明切换发生在哪两个点之间。": [
+  "Sampling can only tell which two samples a change lies between.",
+  "サンプリングでは、切り替わりがどの二点の間にあるかしか分かりません。"
+ ],
  "采样失败：": [
   "Sampling failed: ",
   "サンプリング失敗："
  ],
- "采样点 ": [
-  "Sample point ",
-  "サンプル点 "
- ],
  "采样计算": [
   "Run sampling",
   "サンプリング計算"
+ ],
+ "采样间隔需为 5–60 的整数分钟。": [
+  "The sampling interval must be a whole number of minutes, 5–60.",
+  "採取間隔は 5〜60 の整数（分）にしてください。"
  ],
  "采样间隔（分钟）": [
   "Sampling interval (min)",

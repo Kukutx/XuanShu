@@ -34,6 +34,7 @@ def test_traditional_table_keeps_domain_terms():
     assert not any(set(k) & set('干丑斗台咸凶占') for k in phrases)
     assert chars['冲'] == '沖' and chars['钟'] == '鐘'
     assert '合中' not in phrases  # 三合中位 stays 三合, not 閤
+    assert '换发' not in phrases  # 切换发生 stays 切換發生, not 髮
     assert chars['宫'] == '宮' and chars['历'] == '歷' and phrases['农历'] == '農曆' and phrases['日历'] == '日曆'
 
 
