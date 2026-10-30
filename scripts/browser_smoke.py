@@ -371,6 +371,22 @@ def main() -> None:
             assert page.evaluate("!document.getElementById('xs-tip').hidden")
             tag.click()
             page.wait_for_function("() => document.getElementById('xs-tip').hidden", timeout=3000)
+            # Screen readers have the hint as the mark's description all the time, not only while it shows.
+            assert tag.get_attribute('aria-description') == '查法起点：年支 辰'
+            # The pointer can move onto the hint and rest there to read it; leaving it closes the hint.
+            page.mouse.move(2, 2)
+            tag.hover()
+            page.wait_for_function("() => !document.getElementById('xs-tip').hidden", timeout=3000)
+            tip_box = page.locator('#xs-tip').bounding_box()
+            page.mouse.move(tip_box['x'] + tip_box['width'] / 2, tip_box['y'] + tip_box['height'] / 2, steps=4)
+            page.wait_for_timeout(500)
+            assert page.evaluate("!document.getElementById('xs-tip').hidden")
+            # Escape closes the hint only; the key does not reach the page behind it (an open dialog, a running reply).
+            page.evaluate("() => {window.__esc = 0; document.addEventListener('keydown', e => {if (e.key === 'Escape') window.__esc += 1;});}")
+            page.keyboard.press('Escape')
+            page.wait_for_function("() => document.getElementById('xs-tip').hidden", timeout=3000)
+            assert page.evaluate('window.__esc') == 0
+            page.mouse.move(2, 2)
             rules_rows = page.locator('#shensha-rules tbody tr')
             assert [rules_rows.nth(i).locator('td').first.inner_text() for i in range(rules_rows.count())] == ['羊刃', '驿马', '将星', '华盖']
             assert rules_rows.nth(1).locator('.shensha-where').all_inner_texts() == ['月柱甲申', '时柱庚寅']
@@ -2456,6 +2472,14 @@ def main() -> None:
             assert all(f'({english[x]})' in panel for x in selected_levels) and not re.search('（[庙旺得利平不陷]）', panel), panel[:300]
             assert '、' not in panel and '；' not in panel, panel[:300]
             page.screenshot(path=str(screenshot_dir / '41-ziwei-brightness-english.png'), full_page=True)
+            # On a touch screen a tap on a star's mark selects the palace and also opens the mark's hint (the palace
+            # redraws, so the hint is found again on the redrawn mark).
+            mark_tip = page.evaluate("() => document.querySelector('#palace-3 .bright').getAttribute('data-tip')")
+            page.evaluate("() => {const m = document.querySelector('#palace-3 .bright'); m.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true, pointerType: 'touch'})); m.click();}")
+            page.wait_for_function("(text) => {const t = document.getElementById('xs-tip'); return t && !t.hidden && t.textContent === text;}", arg=mark_tip, timeout=3000)
+            assert page.locator('#palace-3').get_attribute('aria-pressed') == 'true'
+            page.mouse.click(2, 2)
+            page.wait_for_function("() => document.getElementById('xs-tip').hidden", timeout=3000)
             # A board drawn while English is active keeps its Chinese source text: the tooltips follow the next switch.
             page.locator('.palace-btn').nth(1).click()
             page.wait_for_function("() => document.querySelector('#ziwei-board .bright').dataset.tip.startsWith('Brightness: ')", timeout=10000)

@@ -1308,9 +1308,9 @@ function wuxingDiagram(parent, b, counts) {
   const nodes = PHASES.split('').map((e, i) => {
     const [x, y] = pos(i), r = radius(e), named = group(e);
     // A phase with none of the counted stems and branches gets a dashed rim, never a faded one.
-    const node = make('g', {class: 'wx-node wx-el-' + ELEMENT_CLASS[e] + (e === master ? ' is-master' : '') + (counts.surface[e] ? '' : ' is-empty'), role: 'radio', id: 'wuxing-' + ELEMENT_CLASS[e]});
+    // The name read out is the phase as a word (translated like any label; no browser tooltip); the panel below says the rest.
+    const node = make('g', {class: 'wx-node wx-el-' + ELEMENT_CLASS[e] + (e === master ? ' is-master' : '') + (counts.surface[e] ? '' : ' is-empty'), role: 'radio', id: 'wuxing-' + ELEMENT_CLASS[e], 'aria-label': e});
     node.dataset.element = e;
-    make('title', {}, node).textContent = e;  // the name read out, translated as a word; the panel below says the rest
     make('circle', {cx: x, cy: y, r: r + (e === master ? 10 : 6), class: 'wx-focus-ring'}, node);
     if (e === master) make('circle', {cx: x, cy: y, r: r + 5, class: 'wx-master-ring'}, node);
     make('circle', {cx: x, cy: y, r, class: 'wx-disc'}, node);
@@ -4532,8 +4532,7 @@ function groupGraph(parent, g) {
       const label = make('text', {x: mx, y: my + 4, 'text-anchor': 'middle', class: 'edge-count'}, edge);
       label.textContent = String(count);
     }
-    const tip = make('title', {}, edge);
-    tip.textContent = p.a_label + ' ↔ ' + p.b_label;
+    tip(edge, p.a_label + ' ↔ ' + p.b_label);
     edge.addEventListener('click', () => {
       const item = document.getElementById(`group-pair-${p.a}-${p.b}`);
       if (item) {item.open = true; item.scrollIntoView({block: 'center', behavior: 'smooth'});}
@@ -6453,7 +6452,7 @@ function renderDayun() {
     if(i===live)append(cell,'span','dayun-now','约当前');
     if(!o.day){append(tr,'td',null,n?n.ten_god_of_stem:'—');append(tr,'td',null,n?n.growth_stage:'—');}
     append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td','nowrap',x.approx_start_local.slice(0,10));
-    const marks=append(tr,'td');if(n){natalMarks(marks,n);marks.title=natalText(n);}if(!marks.childNodes.length)marks.textContent='—';
+    const marks=append(tr,'td');if(n){natalMarks(marks,n);tip(marks,natalText(n));}if(!marks.childNodes.length)marks.textContent='—';
     append(tr,'td',null,o.stars?'随时辰而定':(n&&n.shensha||[]).map(s=>s.name).join('、')||'—');});
   d.limitations.forEach(x=>note(result,x));
 }
