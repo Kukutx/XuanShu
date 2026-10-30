@@ -121,8 +121,10 @@
               <input id="api_token" type="password" autocomplete="off" placeholder="仅 Docker 或私有部署需要" />
             </div>
           </details>
-          <button class="primary-btn" type="submit" id="run-btn"><span>生成命盘</span><span>↗</span></button>
-          <p id="error" class="error" role="alert" hidden></p>
+          <div class="run-bar">
+            <button class="primary-btn" type="submit" id="run-btn"><span>生成命盘</span><span>↗</span></button>
+            <p id="error" class="error" role="alert" hidden></p>
+          </div>
         </form>
 
         <div class="profile-zone">
@@ -161,29 +163,24 @@
           <button id="shortcuts-open" type="button" class="tool-keyboard-hint" aria-haspopup="dialog" aria-keyshortcuts="Shift+Slash"><span>Ctrl+K 搜索 · ← / → 切换功能</span> <kbd data-no-i18n>?</kbd></button>
         </div>
         <div class="tabbar" id="workspace-tabs" role="tablist" aria-label="工作台功能">
-          <span class="tab-group" aria-hidden="true">对话</span>
-          <button class="tab active" data-tab="chat" role="tab" aria-selected="true">AI 对话</button>
+          <span class="tab-lead"><span class="tab-group" aria-hidden="true">对话</span><button class="tab active" data-tab="chat" role="tab" aria-selected="true">AI 对话</button></span>
           <button class="tab" data-tab="consult" role="tab" aria-selected="false">AI 咨询工作流</button>
-          <span class="tab-group" aria-hidden="true">命盘</span>
-          <button class="tab" data-tab="bazi" role="tab" aria-selected="false">四柱八字</button>
+          <span class="tab-lead"><span class="tab-group" aria-hidden="true">命盘</span><button class="tab" data-tab="bazi" role="tab" aria-selected="false">四柱八字</button></span>
           <button class="tab" data-tab="ziwei" role="tab" aria-selected="false">紫微十二宫</button>
           <button class="tab" data-tab="qimen" role="tab" aria-selected="false">奇门遁甲</button>
           <button class="tab" data-tab="professional" role="tab" aria-selected="false">专业紫微（可选）</button>
           <button class="tab" data-tab="transform" role="tab" aria-selected="false">四化飞星</button>
           <button class="tab" data-tab="annual" role="tab" aria-selected="false">年干四化</button>
           <button class="tab" data-tab="dayun" role="tab" aria-selected="false">大运干支</button>
-          <span class="tab-group" aria-hidden="true">择时与历法</span>
-          <button class="tab" data-tab="today" role="tab" aria-selected="false">今日历法</button>
+          <span class="tab-lead"><span class="tab-group" aria-hidden="true">择时与历法</span><button class="tab" data-tab="today" role="tab" aria-selected="false">今日历法</button></span>
           <button class="tab" data-tab="date-scan" role="tab" aria-selected="false">择日择时</button>
           <button class="tab" data-tab="officers" role="tab" aria-selected="false">建除值日</button>
           <button class="tab" data-tab="calendar" role="tab" aria-selected="false">历法日历</button>
           <button class="tab" data-tab="timeline" role="tab" aria-selected="false">年度轨迹</button>
-          <span class="tab-group" aria-hidden="true">关系与决策</span>
-          <button class="tab" data-tab="pair" role="tab" aria-selected="false">双人对照</button>
+          <span class="tab-lead"><span class="tab-group" aria-hidden="true">关系与决策</span><button class="tab" data-tab="pair" role="tab" aria-selected="false">双人对照</button></span>
           <button class="tab" data-tab="group" role="tab" aria-selected="false">多人关系</button>
           <button class="tab" data-tab="decision" role="tab" aria-selected="false">方案决策</button>
-          <span class="tab-group" aria-hidden="true">核验</span>
-          <button class="tab" data-tab="time" role="tab" aria-selected="false">太阳时审计</button>
+          <span class="tab-lead"><span class="tab-group" aria-hidden="true">核验</span><button class="tab" data-tab="time" role="tab" aria-selected="false">太阳时审计</button></span>
           <button class="tab" data-tab="rule-matrix" role="tab" aria-selected="false">规则差异对照</button>
           <button class="tab" data-tab="boundaries" role="tab" aria-selected="false">生时边界地图</button>
           <button class="tab" data-tab="quality" role="tab" aria-selected="false">排盘质量审计</button>
@@ -191,17 +188,16 @@
           <button class="tab" data-tab="deep" role="tab" aria-selected="false">深度证据</button>
           <button class="tab" data-tab="pillar-search" role="tab" aria-selected="false">四柱反查</button>
           <button class="tab" data-tab="import-check" role="tab" aria-selected="false">命盘导入核对</button>
-          <span class="tab-group" aria-hidden="true">报告与集成</span>
-          <button class="tab" data-tab="reading" role="tab" aria-selected="false">文化解读</button>
+          <span class="tab-lead"><span class="tab-group" aria-hidden="true">报告与集成</span><button class="tab" data-tab="reading" role="tab" aria-selected="false">文化解读</button></span>
           <button class="tab" data-tab="report" role="tab" aria-selected="false">综合报告</button>
           <button class="tab" data-tab="integration" role="tab" aria-selected="false">Agent 集成</button>
           <button class="tab" data-tab="json" role="tab" aria-selected="false">JSON 数据</button>
         </div>
         <div id="live-status" class="visually-hidden" role="status" aria-live="polite"></div>
-        <div id="result" role="tabpanel" tabindex="-1"><div class="empty-state"><div class="empty-orbit">☯</div><h3>历法可核验，规则可追溯</h3><p>确认出生资料后生成命盘，八字、紫微和四化会一起算好。</p></div></div>
+        <div id="result" role="tabpanel" tabindex="-1"><div class="empty-state"><div class="empty-orbit"><svg class="taiji" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="3"/><path fill="currentColor" fill-rule="evenodd" d="M50 3A47 47 0 0 1 50 97A23.5 23.5 0 0 1 50 50A23.5 23.5 0 0 0 50 3ZM56 26.5a6 6 0 1 0-12 0a6 6 0 1 0 12 0ZM56 73.5a6 6 0 1 0-12 0a6 6 0 1 0 12 0Z"/></svg></div><h3>历法可核验，规则可追溯</h3><p>确认出生资料后生成命盘，八字、紫微和四化会一起算好。</p></div></div>
       </section>
     </div>
-    <footer><span>玄枢 · XuanShu v.0.1.0 · AGPL-3.0</span><button type="button" class="footer-link" id="crosscheck-footer" aria-haspopup="dialog">计算核验</button><div class="feature-strips" aria-label="Agent 接入能力"><span>34 MCP TOOLS</span><span>15 PROMPTS</span><span>18 RESOURCES</span><span>18 AGENT SKILLS</span></div><span>部分紫微排盘 · 传统术数未经科学预测验证，不作医疗、金融或其他关键决策依据</span></footer>
+    <footer><span>玄枢 · XuanShu v.0.1.0 · AGPL-3.0</span><button type="button" class="footer-link" id="crosscheck-footer" aria-haspopup="dialog">计算核验</button><a class="footer-link footer-docs" href="/docs" target="_blank" rel="noopener">API 文档 ↗</a><div class="feature-strips" aria-label="Agent 接入能力"><span>34 MCP TOOLS</span><span>15 PROMPTS</span><span>18 RESOURCES</span><span>18 AGENT SKILLS</span></div><span>部分紫微排盘 · 传统术数未经科学预测验证，不作医疗、金融或其他关键决策依据</span></footer>
   </main>
 </body>
 </html>

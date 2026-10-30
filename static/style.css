@@ -5,6 +5,7 @@
   color-scheme:dark;
   --bg:#0b0e13;--panel:#13171e;--panel2:#181c24;--panel3:#1e232c;--border:#272d37;--border-strong:#66717f;
   --text:#e8eaeb;--text2:#d0d5da;--muted:#98a0aa;--faint:#858e99;
+  --sans:'Noto Sans SC','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
   --gold:#c6a06c;--gold2:#f0cb91;--on-gold:#151312;--accent-soft:rgba(198,160,108,.075);--accent-line:rgba(198,160,108,.28);
   --green:#91bca6;--red:#e0968a;--warn:#f0c18c;--warn-soft:rgba(172,102,38,.12);--warn-line:rgba(225,158,83,.46);
@@ -55,7 +56,7 @@
 /* ---- base ---- */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--header-h) + 14px)}
-body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 'Noto Sans SC','PingFang SC','Hiragino Sans GB','Microsoft YaHei',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;transition:background .25s,color .25s;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 var(--sans);transition:background .25s,color .25s;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 ::selection{background:var(--ring);color:var(--text)}
 /* Hints in empty fields: the theme's quiet text colour in both themes (Firefox would also fade it to half). */
 ::placeholder{color:var(--faint);opacity:1}
@@ -82,6 +83,13 @@ a{color:inherit;text-decoration:none}
 .header-right a{color:var(--text2)}
 .header-right a:hover{color:var(--gold2)}
 .status{color:var(--green)}
+/* Between a phone and a wide desk the header keeps to one line: the language select names itself, the tagline goes first on
+   narrower screens, and in English the tagline loses its wide tracking and the brand its doubled Latin name. */
+:lang(en) .brand small{letter-spacing:.02em}
+:lang(en) .brand-en{display:none}
+@media(max-width:1240px){.ui-lang>span{display:none}}
+@media(max-width:1080px){.brand small{display:none}}
+.footer-docs{display:none}
 .ui-lang{display:flex;align-items:center;gap:6px}
 .ui-lang select,.theme-toggle{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 10px;font-size:12px;min-height:32px;transition:border-color .15s,background .15s}
 .theme-toggle{display:inline-flex;align-items:center;gap:6px}
@@ -131,9 +139,11 @@ body.has-chart .today-chip{margin:0}
 .switch-row input{accent-color:var(--gold);width:17px;height:17px;flex:none}
 .form-section{margin:16px 0 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--accent-soft);transition:border-color .15s}
 .form-section:hover{border-color:var(--accent-line)}
-.form-section>summary{cursor:pointer;list-style:none;padding:10px 12px;font-size:12px;font-weight:600;color:var(--gold2);display:flex;justify-content:space-between;gap:8px}
+/* The note on the right moves to a line of its own rather than squeezing the title into a narrow column (longer English or
+   Japanese titles); the open/close sign stays in the top corner. */
+.form-section>summary{cursor:pointer;list-style:none;position:relative;padding:10px 32px 10px 12px;font-size:12px;font-weight:600;color:var(--gold2);display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px}
 .form-section>summary::-webkit-details-marker{display:none}
-.form-section>summary::after{content:'＋';color:var(--muted);font-weight:400}
+.form-section>summary::after{content:'＋';position:absolute;top:10px;right:12px;color:var(--muted);font-weight:400}
 .form-section[open]>summary::after{content:'－'}
 .form-section>summary small{color:var(--muted);font-weight:400;margin-left:auto}
 .form-section .form-section-body{padding:0 12px 12px}
@@ -142,6 +152,9 @@ body.has-chart .today-chip{margin:0}
 .primary-btn:hover{filter:brightness(1.06);box-shadow:0 14px 28px -12px var(--gold),inset 0 1px 0 rgba(255,255,255,.22)}
 .primary-btn:active{transform:translateY(1px)}
 .primary-btn:disabled{opacity:.6;cursor:not-allowed}
+/* On a desk the form scrolls inside the sticky sidebar; its main button keeps to the panel's bottom edge, with the fields
+   fading out under it, so a short screen never scrolls it out of reach. */
+@media(min-width:861px){.run-bar{position:sticky;bottom:-22px;z-index:1;margin:0 -22px;padding:0 22px 22px;background:linear-gradient(transparent,var(--panel) 18px)}}
 .error{color:var(--red);margin:10px 0}
 .demo-data-notice{font-size:12px;color:var(--warn);border-left:3px solid var(--gold);padding:7px 10px;background:var(--accent-soft);margin:10px 0 0}
 /* The birth form folds into a one-line summary: on a phone after each cast, on a wide screen when the user asks,
@@ -194,7 +207,8 @@ body.has-chart .today-chip{margin:0}
 .stale-birth-warning{margin:0 26px 10px;padding:11px 14px;color:var(--warn);background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:var(--radius);font-size:12px;line-height:1.65}
 .tool-finder{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 26px;border-top:1px solid var(--border);background:var(--panel2)}
 .tool-finder label{color:var(--muted);font-size:12px;white-space:nowrap}
-.tool-finder input{flex:1;min-width:130px;max-width:360px;padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel) no-repeat 12px 50%/15px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8f96' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+/* The search box wraps to its own row before its placeholder would be cut off. */
+.tool-finder input{flex:1;min-width:min(100%,310px);max-width:360px;padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel) no-repeat 12px 50%/15px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8f96' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
 .tool-finder input:hover{border-color:var(--border-strong)}
 .tool-finder input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--ring)}
 .tool-finder small{color:var(--muted);font-size:12px;white-space:nowrap}
@@ -216,7 +230,11 @@ kbd{display:inline-block;min-width:1.9em;padding:3px 6px;border:1px solid var(--
 .sc-join{color:var(--faint);font-size:11px}
 .tabbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 4px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 26px}
 .tab-group{font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--faint);padding:0 4px 0 14px;white-space:nowrap}
-.tab-group:first-child{padding-left:0}
+.tab-lead:first-child .tab-group{padding-left:0}
+/* A group heading keeps to its first tool, so a row never ends on a heading whose tools start the next row. */
+.tab-lead{display:inline-flex;align-items:center;column-gap:4px;white-space:nowrap}
+/* Spaced-out characters suit 命盘; a spaced-out English heading reads as separate letters. */
+:lang(en) .tab-group{letter-spacing:.03em}
 .tab{background:none;border:1px solid transparent;color:var(--muted);white-space:nowrap;padding:6px 12px;font-size:12.5px;border-radius:999px;transition:color .15s,background .15s,border-color .15s,box-shadow .15s}
 .tab:hover{color:var(--text);background:var(--hover);border-color:var(--border)}
 .tab.active{color:var(--on-gold);background:linear-gradient(135deg,var(--gold2),var(--gold));border-color:transparent;font-weight:600;box-shadow:0 6px 14px -8px var(--gold)}
@@ -225,7 +243,7 @@ kbd{display:inline-block;min-width:1.9em;padding:3px 6px;border:1px solid var(--
 #result.is-entering{animation:xs-enter .26s var(--ease) backwards}
 @keyframes xs-enter{from{opacity:0;transform:translateY(6px)}}
 .empty-state{text-align:center;padding:96px 20px}
-.empty-orbit{width:112px;height:112px;margin:0 auto;display:grid;place-items:center;border-radius:50%;font-size:60px;line-height:1;color:var(--gold);font-family:serif;border:1px solid var(--accent-line);background:radial-gradient(circle,var(--accent-soft) 30%,transparent 72%);box-shadow:0 0 0 10px color-mix(in srgb,var(--accent-soft) 60%,transparent),0 0 60px -10px var(--accent-line)}
+.empty-orbit{width:112px;height:112px;margin:0 auto;display:grid;place-items:center;border-radius:50%;line-height:0;color:var(--gold);border:1px solid var(--accent-line);background:radial-gradient(circle,var(--accent-soft) 30%,transparent 72%);box-shadow:0 0 0 10px color-mix(in srgb,var(--accent-soft) 60%,transparent),0 0 60px -10px var(--accent-line)}
 .empty-state h3{font-size:18px;font-weight:600;margin:22px 0 6px}
 .empty-state p{font-size:13px;color:var(--muted)}
 
@@ -439,8 +457,10 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .pf-have-list{margin:4px 0 8px;padding-left:1.3em;line-height:1.7}
 .pf-steps{margin:12px 0 0;padding-left:1.4em;display:grid;gap:8px;line-height:1.6}
 .pf-steps li>span{display:block}
+/* A step never grows wider than the card: its command scrolls sideways inside its own box, next to the copy button. */
+.pf-steps>li{min-width:0}
 .pf-command{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0}
-.pf-command code{flex:1 1 260px;min-width:0;padding:6px 10px;border-radius:var(--radius-sm);background:var(--code-bg);color:var(--code-text);font:12.5px/1.5 var(--mono);white-space:nowrap;overflow-x:auto}
+.pf-command code{flex:1 1 0;min-width:0;padding:6px 10px;border-radius:var(--radius-sm);background:var(--code-bg);color:var(--code-text);font:12.5px/1.5 var(--mono);white-space:nowrap;overflow-x:auto}
 .pf-form{margin:0 0 12px}
 .pf-row{flex-wrap:wrap;align-items:flex-end}
 .pf-row.inline-control select{width:auto}
@@ -551,21 +571,23 @@ button:disabled{cursor:not-allowed}
 .dy-warn p{margin:0 0 4px}.dy-warn p:last-child{margin:0}
 .dy-axis-wrap{overflow-x:auto;margin:4px 0 14px;padding-bottom:4px}
 /* Wide enough to read on a phone, where the axis scrolls sideways; a desktop panel shows it whole. */
-.dy-axis{position:relative;height:104px;min-width:600px}
-.dy-band{position:absolute;top:18px;bottom:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:6px 2px 4px;border:1px solid var(--border);border-top:4px solid var(--band,var(--border));border-radius:var(--radius-sm);background:var(--panel2);color:var(--text);font:inherit;min-width:0;overflow:hidden}
+.dy-axis{position:relative;height:120px;min-width:600px}
+.dy-band{position:absolute;top:18px;bottom:24px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:6px 2px 4px;border:1px solid var(--border);border-top:4px solid var(--band,var(--border));border-radius:var(--radius-sm);background:var(--panel2);color:var(--text);font:inherit;min-width:0;overflow:hidden}
 .dy-before{border-top-color:var(--border);border-style:dashed;color:var(--muted);justify-content:center;font-size:11px}
-.dy-before small{writing-mode:vertical-rl;height:100%;max-height:100%;overflow:hidden;text-overflow:ellipsis}
+/* The years before the first decade are often too narrow a band for any words, so their label runs along under the axis. */
+.dy-before-label{position:absolute;left:0;bottom:3px;padding-left:6px;border-left:1px dashed var(--border-strong);font-size:11px;line-height:16px;color:var(--muted);white-space:nowrap}
 .dy-decade{cursor:pointer}
 .dy-decade:hover{border-color:var(--gold);border-top-color:var(--band)}
 .dy-decade:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .dy-decade.is-picked{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--gold)}
 .dy-band-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.2}
 .dy-band small{font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
-.dy-decade.is-now .dy-band-age::after{content:' ●';content:' ●' / '';color:var(--gold2)}
+/* The current decade's dot sits in the band's corner, clear of a long age line. */
+.dy-decade.is-now::after{content:'';position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--gold2)}
 /* Today: a line in the gutter above the bands and a tick below them, never across a decade's labels. */
 .dy-today{position:absolute;top:0;bottom:0;width:0;z-index:1;pointer-events:none}
 .dy-today::before,.dy-today::after{content:'';position:absolute;left:-1px;border-left:2px solid var(--gold2)}
-.dy-today::before{top:0;height:24px}.dy-today::after{bottom:0;height:12px}
+.dy-today::before{top:0;height:24px}.dy-today::after{bottom:0;height:28px}
 .dy-today small{position:absolute;top:0;left:3px;font-size:11px;font-weight:700;color:var(--gold2);white-space:nowrap}
 .dy-detail{margin:0 0 18px;padding:14px 16px;border:1px solid var(--gold);border-radius:var(--radius)}
 .dy-detail-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
@@ -754,8 +776,11 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .pillar-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
 .pillar{position:relative;border:1px solid var(--border);padding:16px 8px 14px;text-align:center;background:var(--panel2);border-radius:var(--radius-sm)}
 .pillar.day-master{border-color:var(--gold);background:linear-gradient(180deg,var(--accent-soft),transparent),var(--panel2)}
-.pillar-badge{position:absolute;top:8px;right:8px;font-size:11px;color:var(--on-gold);background:var(--gold);border-radius:999px;padding:1px 7px}
+/* The day pillar's badge sits on its top edge, so a long heading (Day pillar) never runs under it. */
+.pillar-badge{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);white-space:nowrap;font-size:11px;line-height:18px;font-weight:600;color:var(--on-gold);background:var(--gold);border-radius:999px;padding:0 9px;box-shadow:0 0 0 3px var(--panel)}
 .pillar-head{font-size:12px;color:var(--muted);letter-spacing:.2em}
+/* Spaced-out characters suit 年柱; a spaced-out English word reads as separate letters. */
+:lang(en) .pillar-head{letter-spacing:.02em}
 .pillar-god{font-size:12px;color:var(--gold);margin-top:8px;min-height:18px}
 .pillar-stem,.pillar-branch{font-family:'Songti SC','STSong','Noto Serif SC',serif;line-height:1.15}
 .pillar-stem{font-size:40px;margin-top:2px;color:var(--gold2)}
@@ -768,7 +793,12 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .pillar-stage b{font-weight:500}
 .pillar-stage-label{color:var(--muted)}
 .pillar-branch{position:relative}
-.void-mark{position:absolute;top:2px;right:2px;font-family:inherit;font-size:11px;line-height:1.4;padding:0 5px;border:1px dashed var(--border-strong);border-radius:999px;color:var(--muted);background:var(--panel)}
+.void-mark{position:absolute;top:2px;right:2px;font-family:var(--sans);font-size:11px;line-height:1.4;padding:0 5px;border:1px dashed var(--border-strong);border-radius:999px;color:var(--muted);background:var(--panel)}
+/* In a narrow pillar the void mark goes under the branch instead of over its right side; an English mark (year void) needs
+   a wider column to sit beside the glyph than a two-character one. */
+.pillar{container:pillar / inline-size}
+@container pillar (max-width:150px){.void-mark{position:static;display:block;width:max-content;margin:2px auto 0}}
+@container pillar (max-width:240px){:lang(en) .void-mark{position:static;display:block;width:max-content;margin:2px auto 0}}
 .pillar-links{--gap:11px;display:flex;flex-direction:column;gap:2px;margin:2px 0 6px}
 .pillar-links.below{margin:6px 0 2px}
 .pillar-link-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:var(--gap)}
@@ -884,6 +914,8 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .wuxing-detail{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel2);padding:12px 14px;min-height:150px}
 .wuxing-detail h5{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:0 0 8px;font-size:15px}
 .wuxing-detail h5 b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:24px}
+/* English names of the phases, stars and months are set in the sans face rather than the Chinese serif's Latin (often Times). */
+:lang(en) :is(.wuxing-detail h5 b,.wuxing-flow b,.element-bar>b,.qimen-grid .q-label,.transform-star,.today-lunar,.cal-title,.share-text){font-family:var(--sans)}
 .wuxing-master{font-size:12px;color:var(--gold2);border:1px solid var(--accent-line);border-radius:999px;padding:1px 8px}
 .wuxing-line{display:grid;grid-template-columns:8.5em 1.4em minmax(0,1fr);gap:0 6px;align-items:baseline;margin:6px 0;font-size:13px;line-height:1.6;color:var(--text2)}
 .wuxing-label{color:var(--muted)}
@@ -905,9 +937,11 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .em-3{background:color-mix(in srgb,var(--em) 26%,transparent)}.em-4{background:color-mix(in srgb,var(--em) 32%,transparent)}
 .em-0 b{color:var(--faint)}
 .em-master{box-shadow:inset 0 0 0 2px var(--gold)}
-.element-bars{display:grid;gap:8px;max-width:640px}
-.element-bar{display:grid;grid-template-columns:28px minmax(0,1fr) 80px;gap:10px;align-items:center;font-size:12px}
+/* The rows share one set of columns, so a long phase name (Water) widens the label column for every bar and the bars still line up. */
+.element-bars{display:grid;grid-template-columns:minmax(28px,max-content) minmax(0,1fr) minmax(80px,max-content);gap:8px 10px;max-width:640px}
+.element-bar{display:grid;grid-column:1 / -1;grid-template-columns:subgrid;align-items:center;font-size:12px}
 .element-bar>b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:16px;font-weight:500;text-align:center}
+:lang(en) .element-bar>b{text-align:start}
 .element-track{position:relative;height:12px;border-radius:999px;background:var(--panel3);overflow:hidden}
 .element-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;min-width:2px}
 .element-fill.secondary{opacity:.35}
@@ -998,7 +1032,12 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .star-secondary .star{white-space:nowrap}
 .board-center{position:relative;z-index:1;grid-area:2 / 2 / 4 / 4;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;background:radial-gradient(circle,var(--accent-soft),transparent 75%);padding:12px;pointer-events:none}
 .board-center.see-through{background:transparent;border-style:dashed}
-.center-symbol{font-family:serif;font-size:40px;color:var(--gold);line-height:1.2}
+.center-symbol{color:var(--gold);line-height:0;margin-bottom:4px}
+.center-symbol .taiji{width:38px;height:38px}
+.empty-orbit .taiji{width:56px;height:56px}
+/* The centre's lines of text sit on small plates of the panel colour, so flying-star lines pass behind them, not through them. */
+.board-center.see-through>:not(.center-symbol){padding:0 6px;border-radius:4px;background:var(--panel)}
+.board-center.see-through>.center-symbol{padding:3px;border-radius:50%;background:var(--panel)}
 .center-title{font-size:15px;letter-spacing:2px}
 .center-sub{font-size:12px;color:var(--muted)}
 .hua-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 0 0}
@@ -1534,11 +1573,14 @@ small.yt-now{font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:.0
 .of-officer{display:block;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:22px;font-weight:600;line-height:1.15;color:var(--text)}
 .of-jie{display:block;margin-top:2px;font-size:10.5px;line-height:1.3;color:var(--green)}
 .of-jie b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:12px;color:var(--text)}
-.of-jie-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* A long English term name (Start of Winter) wraps inside its day rather than losing its end. */
+.of-jie-name{display:block;overflow-wrap:anywhere}
 .of-jie-swap{display:block;font-variant-numeric:tabular-nums}
 .of-day.is-jie{border-color:var(--green)}
 /* Today fills its date; a marked day is outlined, so the two stay apart when both apply. */
 .of-day.is-today .of-date{top:4px;left:4px;padding:0 5px;border-radius:999px;background:var(--gold);color:var(--on-gold);font-weight:700}
+/* Today's pill is taller and wider than a plain date, so the stem-branch below it moves down to stay clear. */
+.of-day.is-today .of-gz{margin-top:18px}
 .of-day.is-mark{background:var(--accent-soft);border-color:var(--gold)}
 .of-day.is-mark .of-officer{color:var(--gold2)}
 .of-day.is-mark-jie .of-officer{color:var(--text)}
@@ -1987,6 +2029,8 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .shell{padding:0 16px}
   .header{margin:0 -16px;padding:0 16px}
   .header-right .status,.header-right .docs-link{display:none}
+  /* The header's API link has no room on a phone; the footer carries it instead. */
+  .footer-docs{display:inline}
   .hero{padding:18px 0 14px;gap:12px}
   .hero p,.hero-points,.eyebrow{display:none}
   .hero h1{font-size:18px;margin:0;letter-spacing:0}
@@ -2040,7 +2084,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .qimen-cell strong{font-size:12px}
   .qimen-grid .q-name{font-size:12px}.qimen-grid .q-stem{font-size:15px}
   .qimen-grid .q-stem .q-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-  .element-bar{grid-template-columns:24px minmax(0,1fr) 64px}
+  .element-bars{grid-template-columns:minmax(24px,max-content) minmax(0,1fr) minmax(64px,max-content)}
 }
 @media(max-width:510px){
   .cal-nav{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) auto;gap:6px}.cal-nav>label{min-width:0}.cal-nav .cal-field select{width:100%;min-width:0}
@@ -2320,8 +2364,9 @@ details:not(.form-section,.jv-node,.ag-doc)[open]>summary::before{transform:rota
 .xs-confirm-actions .is-primary{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
 .xs-confirm-actions .danger-btn{border-color:color-mix(in srgb,var(--red) 55%,transparent)}
 @media print{.xs-hscroll{-webkit-mask-image:none!important;mask-image:none!important}}
-/* A modal dialog keeps the page behind it still. */
-html:has(dialog:modal){overflow:hidden;scrollbar-gutter:stable}
+/* A modal dialog keeps the page behind it still. The backdrop does not reach over the scrollbar's gutter, so the gutter takes
+   the backdrop's dimmed tone instead of leaving a light strip down the edge (the page itself keeps its own background). */
+html:has(dialog:modal){overflow:hidden;scrollbar-gutter:stable;background:color-mix(in srgb,var(--bg) 50%,rgb(4,6,10))}
 /* A clock time that repeats or is skipped at a daylight-saving change: the two readings to choose from. */
 .dst-choice{margin:8px 0 4px;padding:10px 12px;border:1px solid var(--warn-line);border-radius:var(--radius);background:var(--warn-soft)}
 .dst-choice-title{margin:0 0 8px;font-size:12.5px;line-height:1.6;color:var(--text)}

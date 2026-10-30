@@ -229,6 +229,11 @@ def main() -> None:
             page.add_script_tag(content=i18n_js)
             # The full time-zone list keeps the page's default zone selected.
             assert page.locator('#timezone').input_value() == 'Asia/Shanghai'
+            # On a desk the sidebar's main button stays in view on the panel's bottom edge, however far its fields scroll.
+            page.evaluate("window.scrollTo(0, document.querySelector('.input-panel').getBoundingClientRect().top + scrollY - 80)")
+            assert page.evaluate('''() => {const p = document.querySelector('.input-panel'), b = document.querySelector('#run-btn').getBoundingClientRect(),
+              r = p.getBoundingClientRect(); return p.scrollHeight <= p.clientHeight || (b.bottom <= r.bottom && b.bottom <= innerHeight);}''')
+            page.evaluate("window.scrollTo(0, 0)")
             # The load and delete buttons are greyed out while no profile is saved in this browser.
             assert page.evaluate("[$('#load-profile').disabled, $('#remove-profile').disabled]") == [False, False]
             assert page.evaluate('''() => {const kept = localStorage.getItem(profileKey); localStorage.setItem(profileKey, '[]'); showProfiles();
@@ -1440,6 +1445,9 @@ def main() -> None:
             assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 41
             assert page.locator('#crosscheck-dialog h4', has_text='八字神煞对照').count() == 1
             assert '100.000%' in page.locator('#crosscheck-dialog').inner_text()
+            # The dialog's wide tables are marked like the page's own: an edge fade wherever one scrolls sideways.
+            page.wait_for_timeout(100)
+            assert page.evaluate("[...document.querySelectorAll('#crosscheck-dialog .table-wrap')].every(w => (w.scrollWidth > w.clientWidth + 1) === w.classList.contains('xs-hscroll'))")
             page.locator('#crosscheck-dialog').screenshot(path=str(screenshot_dir / '38-crosscheck.png'))
             page.locator('#crosscheck-close').click()
             assert not page.locator('#crosscheck-dialog').is_visible()
@@ -2027,9 +2035,12 @@ def main() -> None:
             # Whole days carry into a month and months into a year, so the age never reads 30 days or 12 months.
             assert page.evaluate("JSON.stringify(startAgeParts({start_age_traditional_parts: {years: 7, months: 5, days_nominal_30_day_month: 29.6}}))") == '{"years":7,"months":6,"days":0}'
             assert page.evaluate("JSON.stringify(startAgeParts({start_age_traditional_parts: {years: 6, months: 11, days_nominal_30_day_month: 29.7}}))") == '{"years":7,"months":0,"days":0}'
-            # Today is read before the decades and drawn only in the gutters; the band before the first decade shows its label.
+            # Today is read before the decades and drawn only in the gutters; the years before the first decade keep their
+            # whole label under the axis, however narrow their band, and the label clears the bands.
             assert page.evaluate("[...document.querySelector('#dayun-axis').children].findIndex(c => c.classList.contains('dy-today'))") in (-1, 0)
-            assert page.evaluate("document.querySelector('#dayun-axis .dy-before small').getBoundingClientRect().height") > 0
+            assert page.evaluate('''() => {const l = document.querySelector('#dayun-axis .dy-before-label'), r = l.getBoundingClientRect(),
+              band = document.querySelector('#dayun-axis .dy-decade').getBoundingClientRect();
+              return r.height > 0 && l.scrollWidth <= l.clientWidth + 1 && r.top >= band.bottom;}''')
             assert page.evaluate("getComputedStyle(document.querySelector('#dayun-axis .dy-today') || document.body, '::before').height") in ('24px', 'auto')
             # Picking a decade is announced, and the detail has its own heading.
             page.locator('#dayun-band-3').click()
@@ -2588,6 +2599,9 @@ def main() -> None:
                 assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth"), tab
                 assert page.evaluate('''() => [...document.querySelectorAll('#result .inline-control > label > :is(input, select)')]
                   .every(f => f.getBoundingClientRect().right <= f.parentElement.getBoundingClientRect().right + 1)'''), tab
+            # Today's pill in the officers month never covers that day's stem-branch.
+            assert page.evaluate('''() => {const d = document.querySelector('.of-day.is-today'); return !d ||
+              d.querySelector('.of-date').getBoundingClientRect().bottom <= d.querySelector('.of-gz').getBoundingClientRect().top + 1;}''')
             # The phone's tab strip scrolls the opened tab into view: a tab far along the row is wholly on screen once open.
             tab_in_strip = '''() => {const s = document.getElementById('workspace-tabs').getBoundingClientRect(),
               t = document.querySelector('[data-tab="professional"]').getBoundingClientRect(); return t.left >= s.left - 1 && t.right <= s.right + 1;}'''
@@ -2595,6 +2609,9 @@ def main() -> None:
             assert not page.evaluate(tab_in_strip)
             page.evaluate("document.querySelector('[data-tab=\"professional\"]').click()")
             page.wait_for_function(tab_in_strip, timeout=5000)
+            # Its install steps keep inside the card: each command scrolls in its own box beside its copy button.
+            page.locator('#professional-status').wait_for(timeout=30000)
+            assert page.evaluate("[...document.querySelectorAll('.pf-steps>li')].every(li => li.getBoundingClientRect().right <= li.parentElement.getBoundingClientRect().right + 1)")
             # The nine-palace cells keep only the stem glyphs on a phone; a line above the board names them.
             page.locator('[data-tab="qimen"]').click()
             assert page.locator('.qimen-legend').is_visible()
@@ -2615,6 +2632,9 @@ def main() -> None:
             page.locator('[data-tab="pair"]').click()
             page.locator('#ui-language').select_option('en')
             assert page.locator('[data-tab="pair"]').inner_text() == 'Two-person comparison'
+            # A tab group's heading never ends a row apart from its first tool.
+            assert page.evaluate('''[...document.querySelectorAll('.tab-group:not([hidden])')].every(h => {const a = h.getBoundingClientRect(),
+              b = h.nextElementSibling.getBoundingClientRect(); return Math.abs(a.top + a.bottom - b.top - b.bottom) < 16;})''')
             assert page.locator('#run-btn span').first.inner_text() == 'Generate chart'
             assert page.locator('#profile_name').get_attribute('placeholder') == 'e.g. Test chart A'
             page.locator('[data-tab="chat"]').click()
