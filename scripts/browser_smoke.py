@@ -2415,6 +2415,7 @@ def main() -> None:
             # Findings come grouped as cards, the evidence tables drawn as such, the exact fields one click away.
             groups = page.locator('.ev-group').count()
             assert groups >= 4 and page.locator('.ev-toc-link').count() == groups
+            assert page.locator('#page-index').count() == 0  # the group links already index the page
             assert page.locator('.ev-card').count() == int(page.get_by_text('组可追溯观察').first.inner_text().split()[0])
             assert page.locator('#deep-bazi-pillars .ev-pillar').count() == 4 and page.locator('#deep-bazi-hidden tr').count() == 4
             assert page.locator('#deep-ziwei-four [class*="reading-hua-"]').count() == 8  # four natal and four from the focus palace stem

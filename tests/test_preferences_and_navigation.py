@@ -41,9 +41,11 @@ def test_back_to_the_tool_tabs():
 
 def test_long_pages_list_their_sections():
     assert 'function pageIndex() {' in APP and '  pageIndex();\n' in APP[APP.index('function render() {'):]
-    # Top-level headings and each section's own heading; the Agent page has its own navigation, short pages none.
+    # Top-level headings and each section's own heading; the Agent page and the deep review have their own navigation,
+    # short pages none.
     assert "result.querySelectorAll(':scope > h4.subheading, :scope > section > h4.subheading')" in APP
-    assert "heads.length < PAGE_INDEX_MIN || result.querySelector('.ag-nav') || result.scrollHeight < innerHeight * 1.6" in APP
+    assert "heads.length < PAGE_INDEX_MIN || result.querySelector('.ag-nav, .ev-toc') || result.scrollHeight < innerHeight * 1.6" in APP
+    assert "jump.id = head.id + '-jump';" in APP
     # Buttons, not #links, so the address keeps its #tool= route; the heading takes the focus.
     assert "append(nav, 'button', 'page-index-link', head.textContent)" in APP and "head.focus({preventScroll: true});" in APP
     assert "nav.setAttribute('aria-label', '本页目录');" in APP
