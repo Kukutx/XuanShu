@@ -482,6 +482,14 @@ const UI_EXTRA = {
 "Day turns at 00:00",
 "00:00 で日替わり"
 ],
+"1 个字段": [
+"1 field",
+"1 項目"
+],
+"1 个工具有结果": [
+"1 tool with results",
+"1 件のツールに結果あり"
+],
 "1 个时段": [
 "1 interval",
 "1 件の時間帯"
@@ -489,6 +497,10 @@ const UI_EXTRA = {
 "1 个月": [
 "1 month",
 "1 か月"
+],
+"1 处匹配": [
+"1 match",
+"1 件一致"
 ],
 "1 天": [
 "1 day",
@@ -681,6 +693,10 @@ const UI_EXTRA = {
 "Interface language / 界面语言": [
 "Interface language / 界面语言",
 "Interface language / 表示言語"
+],
+"JSON 含出生日期和时间，以及用过的工具里填写的内容：咨询问题与现实条件、其他人的称呼与出生资料等，复制或下载后由你保管；备注不在其中。下载与命盘工作台右上角的「导出 JSON」相同，资料过期时不能下载。": [
+"The JSON holds the birth date and time and what was entered in the tools used: consultation questions and real-world conditions, other people's names and birth details and so on. Once copied or downloaded it is in your keeping; notes are not included. The download is the same as Export JSON at the top right of the workspace, and is unavailable while data is out of date.",
+"JSON には出生日時と、使ったツールに入力した内容（相談の質問と現実の条件、他の人の呼び名と出生データなど）が含まれます。コピーやダウンロードの後はご自身で管理してください。メモは含まれません。ダウンロードはワークベンチ右上の「JSON を書き出す」と同じで、データが古いときは使えません。"
 ],
 "JSON 含出生日期和时间，复制或下载后由你保管；备注不在其中。下载与命盘工作台右上角的「导出 JSON」相同，出生资料改过但还没重新生成命盘时不能下载。": [
 "The JSON includes the birth date and time; once copied or downloaded it is yours to keep safe. Notes are not in it. Downloading is the same as Export JSON at the top right of the workbench, and is unavailable after the birth details change until the chart is generated again.",
@@ -4326,10 +4342,6 @@ const UI_EXTRA = {
 "Copy Claude / Codex local config",
 "Claude / Codex のローカル設定をコピー"
 ],
-"复制 JSON": [
-"Copy JSON",
-"JSON をコピー"
-],
 "复制全文 Markdown": [
 "Copy all as Markdown",
 "全文を Markdown でコピー"
@@ -7434,6 +7446,10 @@ const UI_EXTRA = {
 " star' that it caused something.",
 "星がある」ことから因果関係を推論することはできません。"
 ],
+"有结果属于上一张命盘（见上方提示）：重新运行后才能下载。": [
+"Some results belong to the previous chart (see the notice above): run them again to download.",
+"前の命盤の結果があります（上の注意を参照）。再実行するとダウンロードできます。"
+],
 "有规则引用的八字紫微跨体系深度分析": [
 "Rule-cited in-depth cross-system analysis of BaZi and Zi Wei",
 "規則の引用を伴う八字・紫微のクロスシステム詳細分析"
@@ -9561,10 +9577,6 @@ const UI_EXTRA = {
 "结束年": [
 "End year",
 "終了年"
-],
-"结构化 JSON · 可供 MCP / REST 读取": [
-"Structured JSON · readable via MCP / REST",
-"構造化 JSON · MCP / REST で読み取り可能"
 ],
 "结构化 JSON 数据": [
 "Structured JSON data",

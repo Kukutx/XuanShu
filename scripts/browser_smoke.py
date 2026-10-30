@@ -1639,6 +1639,7 @@ def main() -> None:
             page.wait_for_function("() => document.querySelector('#json-filter-count').textContent.includes('处匹配')", timeout=10000)
             match = page.locator('#json-section-bazi_dayun .jv-leaf.is-match')
             assert match.count() == 1 and match.get_attribute('title') == 'bazi_dayun.natal_month_pillar' and '甲申' in match.inner_text()
+            assert page.locator('#json-filter-count').inner_text() == '1 处匹配'
             assert page.locator('#json-section-chart').count() == 0
             page.locator('#json-filter').fill('zzz-no-such-field')
             page.wait_for_function("() => document.querySelector('#json-filter-count').textContent.includes('没有匹配')", timeout=10000)
@@ -1647,6 +1648,30 @@ def main() -> None:
             page.locator('#json-view-raw').click()
             assert '"bazi_dayun"' in page.locator('#json-raw').inner_text() and page.locator('#json-view-raw').get_attribute('aria-pressed') == 'true'
             page.locator('#json-view-tree').click()
+            # The count is every match across the cards, against a walk of the same data; at most 400 are drawn, and a card
+            # whose name contains the query (bazi_dayun for "day") is still filtered to its matches.
+            page.locator('#json-filter').fill('day')
+            page.wait_for_function("() => document.querySelector('#json-filter-count').textContent.includes('处匹配')", timeout=10000)
+            brute = page.evaluate('''() => {let n = 0; const q = 'day';
+              const walk = v => {if (!(v && typeof v === 'object')) return; for (const [k, x] of Object.entries(v)) {
+                if (!Array.isArray(v) && k.toLowerCase().includes(q)) n++; else if (!(x && typeof x === 'object') && String(x).toLowerCase().includes(q)) n++;
+                walk(x);}};
+              Object.entries(jsonData()).forEach(([k, v]) => {if (k !== 'birth_hour_unknown' && v != null) walk(v);}); return n;}''')
+            count_text = page.locator('#json-filter-count').inner_text()
+            assert str(brute) in count_text and (('只显示前' in count_text) == (brute > 400)), (brute, count_text)
+            assert page.locator('#json-sections .is-match').count() == min(brute, 400)
+            assert page.locator('#json-section-bazi_dayun .is-match').count() > 0
+            page.locator('#json-filter').fill('')
+            page.wait_for_function("() => document.querySelectorAll('#json-sections .jv-card').length > 1", timeout=10000)
+            # Labels are source text, so they follow a language switch; the card size is that of its download.
+            assert page.locator('#json-section-chart .jv-actions button').first.get_attribute('aria-label') == '复制本节 当前命盘（八字、紫微与解读）'
+            # Editing the birth data on this page withdraws the downloads at once, and reverting brings them back.
+            birth_now = page.locator('#birth_datetime').input_value()
+            page.locator('#birth_datetime').fill('1990-01-01T10:00')
+            page.wait_for_function("() => document.getElementById('json-download').disabled", timeout=10000)
+            assert '出生资料已修改' in page.locator('#result').inner_text() and page.locator('#json-section-chart .jv-actions button').nth(1).is_disabled()
+            page.locator('#birth_datetime').fill(birth_now)
+            page.wait_for_function("() => !document.getElementById('json-download').disabled", timeout=10000)
             page.locator('[data-tab="boundaries"]').click()
             page.locator('#boundary-radius').fill('8')
             page.locator('#boundary-run').click()

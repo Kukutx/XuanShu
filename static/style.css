@@ -248,7 +248,8 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .jv-name{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
 .jv-name b{font-size:15px;color:var(--text)}
 .jv-name code{font-size:11px;padding:0 5px;border-radius:4px;background:var(--panel2);color:var(--muted)}
-.jv-name small{font-size:12px;font-variant-numeric:tabular-nums}
+.jv-name small{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.jv-copy-fallback{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;white-space:pre}
 .jv-tree{padding:8px 12px 10px;font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--code-text,var(--text));overflow-x:auto}
 .jv-node>summary{cursor:pointer;list-style:none;white-space:nowrap;border-radius:4px;padding:0 4px;margin-left:-4px}
 .jv-node>summary::-webkit-details-marker{display:none}
@@ -260,10 +261,12 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .jv-leaf{padding-left:1em;white-space:pre-wrap;overflow-wrap:anywhere}
 .jv-key{color:var(--gold2)}
 .jv-count{margin-left:6px;color:var(--muted)}
+.jv-node[open]>summary>.jv-preview{display:none}
 .jv-preview{margin-left:8px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:46ch;vertical-align:bottom}
 .jv-string{color:var(--green)}
 .jv-number{color:var(--water,var(--gold2))}
-.jv-boolean,.jv-null{color:var(--red)}
+.jv-boolean{color:var(--quan,var(--gold2))}
+.jv-null,.jv-leaf.muted{color:var(--muted)}
 .jv-leaf.is-match,.jv-node.is-match>summary{background:var(--warn-soft);box-shadow:inset 2px 0 0 var(--warn)}
 @media(max-width:640px){
   .jv-tree{padding:6px 8px 8px;font-size:12px}
