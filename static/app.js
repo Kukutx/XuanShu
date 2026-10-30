@@ -6106,7 +6106,8 @@ addEventListener('afterprint', () => document.querySelectorAll('details[data-pri
 let capabilities = null, capabilitiesPending = false, capabilitiesError = '', capabilitiesToken = '';
 let agentCatalog = null, agentPending = false, agentSeq = 0;
 const agentRuns = {}, agentDocs = {};
-const agentDraft = {client: 'claude-desktop', os: /Windows/i.test(navigator.userAgent) ? 'windows' : 'posix', path: '', query: '', group: 'all'};
+const agentDraft = {client: 'claude-desktop', os: /Windows/i.test(navigator.userAgent) ? 'windows' : 'posix', path: '', query: '', group: 'all',
+  expanded: new Set()};  // tools whose long description is shown in full
 const MCP_MODERN = '2026-07-28', MCP_LEGACY = '2025-11-25';
 // Tools by what they are for, and the workbench page that shows the same calculation.
 const AG_GROUPS = [
@@ -6189,12 +6190,14 @@ async function mcpRequest(method, params, modern = false) {
   if (params) body.params = params;
   const started = performance.now();
   const reply = await fetch('/mcp', {method: 'POST', headers, body: JSON.stringify(body)});
+  // The size shown is what the server sent, read before parsing.
+  const raw = await reply.text();
   let data = null;
-  try {data = await reply.json();} catch (e) {data = null;}
+  try {data = JSON.parse(raw);} catch (e) {data = null;}
   const ms = Math.max(1, Math.round(performance.now() - started));
   if (data && data.error && typeof data.error === 'object') throw new Error(data.error.message + ' (' + data.error.code + ')');
   if (!reply.ok || !data) throw new Error('HTTP ' + reply.status);
-  return {result: data.result, ms, bytes: jvBytes(data)};
+  return {result: data.result, ms, bytes: new Blob([raw]).size};
 }
 async function loadAgentCatalog() {
   agentPending = true;
@@ -6238,7 +6241,8 @@ async function loadAgentCatalog() {
     announce(catalog.failed ? calT('MCP 连接自检有步骤没有通过') : calT('MCP 连接自检通过'));
   }
 }
-const agShellQuote = (text, windows) => /[\s"'$\x60&|;<>()]/.test(text) ? (windows ? '"' + text.replace(/"/g, '""') + '"' : "'" + text.replace(/'/g, "'\\''") + "'") : text;
+// Anything but plain path characters is quoted (globs and history marks included: zsh rejects an unquoted [v2]).
+const agShellQuote = (text, windows) => /^[\w./:@%+=,-]+$/.test(text) ? text : (windows ? '"' + text.replace(/"/g, '""') + '"' : "'" + text.replace(/'/g, "'\\''") + "'");
 // The configuration text for each client, built from the path typed on the page (kept in memory only).
 function agentSetup(origin) {
   const windows = agentDraft.os === 'windows', sep = windows ? '\\' : '/';
@@ -6309,7 +6313,9 @@ function agRunView(box, tool) {
 }
 // The page may have been redrawn (another language) while the call ran, so its result goes to the elements now shown.
 async function agTry(tool, box, button) {
-  agentRuns[tool.name] = {pending: true}; button.disabled = true; agRunView(box, tool);
+  // The button stays focusable while the call runs (aria-disabled), so a keyboard user keeps their place.
+  if (agentRuns[tool.name] && agentRuns[tool.name].pending) return;
+  agentRuns[tool.name] = {pending: true}; button.setAttribute('aria-disabled', 'true'); agRunView(box, tool);
   try {
     const out = await mcpRequest('tools/call', agCall(tool).params);
     const result = out.result || {};
@@ -6317,7 +6323,7 @@ async function agTry(tool, box, button) {
     agentRuns[tool.name] = {isError: Boolean(result.isError), ms: out.ms, bytes: out.bytes, text};
   } catch (e) {agentRuns[tool.name] = {error: e.message};}
   const shown = document.getElementById('integration-run-' + tool.name), again = document.getElementById('integration-try-' + tool.name);
-  if (again) again.disabled = false;
+  if (again) again.removeAttribute('aria-disabled');
   if (!shown) return;
   agRunView(shown, tool);
   const run = agentRuns[tool.name];
@@ -6381,7 +6387,7 @@ function renderIntegration() {
 
   // 1. The connection check, step by step, in both protocol generations.
   const check = section('check', '连接自检', '本页刚刚用两代协议实际调用了这台服务');
-  if (!catalog) append(check, 'p', 'info-inline', '正在通过 POST /mcp 检测…').setAttribute('role', 'status');
+  if (!catalog || agentPending) append(check, 'p', 'info-inline', catalog ? '正在重新检测，下面先保留上一次的结果…' : '正在通过 POST /mcp 检测…').setAttribute('role', 'status');
   else {
     const failures = catalog.steps.filter(s => !s.ok).length;
     const line = append(check, 'p', 'ag-summary ' + (failures ? 'is-fail' : 'is-ok')); line.id = 'integration-summary';
@@ -6419,8 +6425,9 @@ function renderIntegration() {
     }
   }
   const recheck = append(check, 'button', 'tiny-button', '重新检测'); recheck.type = 'button'; recheck.id = 'integration-recheck';
-  recheck.disabled = agentPending;
-  recheck.addEventListener('click', () => {agentCatalog = null; render();});
+  // The last results stay on screen during a recheck, so the page does not jump and opened examples stay open.
+  if (agentPending) recheck.setAttribute('aria-disabled', 'true');
+  recheck.addEventListener('click', () => {if (agentPending) return; loadAgentCatalog(); render();});
 
   // 2. Configuration for each client, from the project path typed here.
   const setup = section('setup', '接入配置', '选择客户端和系统，填入项目所在的文件夹');
@@ -6499,11 +6506,13 @@ function renderIntegration() {
         const words = append(desc, 'span', null, ' ' + (tool.description || '')); words.lang = 'en'; words.dataset.noI18n = '';
         // A long description is shown in three lines until opened.
         if ((tool.description || '').length > 180) {
-          desc.classList.add('is-clamped');
-          const more = append(card, 'button', 'ag-more', '展开全文'); more.type = 'button';
-          more.setAttribute('aria-expanded', 'false'); more.setAttribute('aria-controls', desc.id);
+          const full = agentDraft.expanded.has(tool.name);
+          desc.classList.toggle('is-clamped', !full);
+          const more = append(card, 'button', 'ag-more', full ? '收起' : '展开全文'); more.type = 'button'; more.id = 'integration-more-' + tool.name;
+          more.setAttribute('aria-expanded', String(full)); more.setAttribute('aria-controls', desc.id);
           more.addEventListener('click', () => {
             const open = desc.classList.toggle('is-clamped') === false;
+            if (open) agentDraft.expanded.add(tool.name); else agentDraft.expanded.delete(tool.name);
             more.setAttribute('aria-expanded', String(open)); more.textContent = open ? '收起' : '展开全文';
           });
         }
@@ -6512,19 +6521,20 @@ function renderIntegration() {
         if (tab) {
           const open = append(actions, 'button', 'tiny-button', ''); open.type = 'button'; open.id = 'integration-open-' + tool.name;
           texts(open, '打开工作台页面', '：', tabSource(tab));
-          open.addEventListener('click', () => activateTab(tab));
+          open.addEventListener('click', () => {activateTab(tab); tab.focus();});
         }
         const example = append(card, 'details', 'ag-example'); example.id = 'integration-example-' + tool.name;
-        append(example, 'summary', null, '调用示例与试运行');
+        append(example, 'summary', null, '调用示例与试运行').id = 'integration-example-summary-' + tool.name;
         append(example, 'p', 'small-text', '示例用固定的演示出生资料，不读取你填写的出生信息。');
         const request = JSON.stringify(agCall(tool), null, 2);
         const pre = append(example, 'pre', 'json-code ag-request', request); pre.dataset.noI18n = '';
         const row = append(example, 'div', 'ag-actions');
-        agCopyButton(row, '复制请求', () => request);
+        agCopyButton(row, '复制请求', () => request).setAttribute('aria-label', '复制请求 ' + tool.name);
         const trial = append(row, 'button', 'tiny-button', '试运行'); trial.type = 'button'; trial.id = 'integration-try-' + tool.name;
         const output = append(example, 'div', 'ag-run'); output.id = 'integration-run-' + tool.name;
         agRunView(output, tool);
-        trial.disabled = Boolean(agentRuns[tool.name] && agentRuns[tool.name].pending);
+        trial.setAttribute('aria-label', '试运行 ' + tool.name);
+        if (agentRuns[tool.name] && agentRuns[tool.name].pending) trial.setAttribute('aria-disabled', 'true');
         trial.addEventListener('click', () => agTry(tool, output, trial));
       });
     });

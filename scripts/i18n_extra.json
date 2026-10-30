@@ -799,10 +799,6 @@
   "palaces must be a list",
   "palaces はリストにしてください"
  ],
- "root_fields 需为对象": [
-  "root_fields must be an object",
-  "root_fields はオブジェクトにしてください"
- ],
  "prompts/list：客户端可直接选用的工作流提示": [
   "prompts/list: workflow prompts a client can pick directly",
   "prompts/list：クライアントがそのまま選べるワークフロー用プロンプト"
@@ -810,6 +806,10 @@
  "resources/list：Agent 可读取的方法规则与限制": [
   "resources/list: method rules and limitations an agent can read",
   "resources/list：エージェントが読める手法ルールと制限"
+ ],
+ "root_fields 需为对象": [
+  "root_fields must be an object",
+  "root_fields はオブジェクトにしてください"
  ],
  "skills/list：可导入客户端的工作流说明": [
   "skills/list: workflow instructions a client can import",
@@ -1191,10 +1191,6 @@
   "Download this year's solar terms and moon phases (ICS)",
   "今年の節気と月相カレンダーをダウンロード（ICS）"
  ],
- "下面列出与问题相关的": [
-  "listed below as relevant to the question:",
-  "質問に関係するものを下に表示："
- ],
  "下载本节": [
   "Download section",
   "この節をダウンロード"
@@ -1202,6 +1198,10 @@
  "下载本节 ↓": [
   "Download section ↓",
   "この節をダウンロード ↓"
+ ],
+ "下面列出与问题相关的": [
+  "listed below as relevant to the question:",
+  "質問に関係するものを下に表示："
  ],
  "下面的命盘按 12:00 占位。比较十二个时辰，可以看出哪些柱位和宫位在整天里都不变，哪些需要先确定时辰。": [
   "The chart below uses 12:00 as a placeholder. Comparing the twelve double hours shows which pillars and palaces stay the same all day and which need the hour first.",
@@ -5565,7 +5565,7 @@
  ],
  "已连上": [
   "Connected to",
-  "接続済み："
+  "接続済み"
  ],
  "已选 ": [
   "Selected ",
@@ -8275,6 +8275,10 @@
   "Checking through POST /mcp…",
   "POST /mcp で確認中…"
  ],
+ "正在重新检测，下面先保留上一次的结果…": [
+  "Checking again; the last results stay below meanwhile…",
+  "再確認中です。前回の結果をそのまま下に表示しています…"
+ ],
  "正官": [
   "Direct Officer (Zheng Guan)",
   "正官"
@@ -8515,13 +8519,13 @@
   "No days meet all conditions; relax the conditions or extend the scan period.",
   "すべての条件を満たす日はありません。条件を緩めるかスキャン日数を延ばしてください。"
  ],
- "没有缺少的必需输入": [
-  "No required input is missing",
-  "必須入力の不足はありません"
- ],
  "没有符合条件的工具。": [
   "No tool matches.",
   "条件に合うツールはありません。"
+ ],
+ "没有缺少的必需输入": [
+  "No required input is missing",
+  "必須入力の不足はありません"
  ],
  "没有触发本工具已知边界标记；不代表专业命盘获得认证。": [
   "No known boundary flags from this tool were triggered; this does not mean a professional chart has been certified.",

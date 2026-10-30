@@ -5568,7 +5568,7 @@ const UI_EXTRA = {
 ],
 "已连上": [
 "Connected to",
-"接続済み："
+"接続済み"
 ],
 "已选 ": [
 "Selected ",
@@ -8277,6 +8277,10 @@ const UI_EXTRA = {
 "正在通过 POST /mcp 检测…": [
 "Checking through POST /mcp…",
 "POST /mcp で確認中…"
+],
+"正在重新检测，下面先保留上一次的结果…": [
+"Checking again; the last results stay below meanwhile…",
+"再確認中です。前回の結果をそのまま下に表示しています…"
 ],
 "正官": [
 "Direct Officer (Zheng Guan)",

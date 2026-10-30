@@ -97,7 +97,7 @@ def main() -> None:
             wanted = ('accept', 'content-type', 'mcp-protocol-version', 'mcp-method', 'mcp-name', 'authorization')
             response = client.post('/mcp', json=data, headers={k: v for k, v in (headers or {}).items() if k.lower() in wanted})
             counts['requests'] += 1
-            return {'ok': response.is_success, 'status': response.status_code, 'data': response.json()}
+            return {'ok': response.is_success, 'status': response.status_code, 'data': response.json(), 'text': response.text}
         # The page also reads one static data file (the cross-check summary) with fetch.
         if not (path.startswith('/api/') or (data is None and path == '/static/crosscheck-summary.json')):
             raise ValueError('Only /api/ and /mcp calls can use the local browser bridge')
@@ -105,7 +105,7 @@ def main() -> None:
             group_bodies.append(json.dumps(data, ensure_ascii=False))
         response = client.get(path) if data is None else client.post(path, json=data)
         counts['requests'] += 1
-        return {'ok': response.is_success, 'status': response.status_code, 'data': response.json()}
+        return {'ok': response.is_success, 'status': response.status_code, 'data': response.json(), 'text': response.text}
 
     with sync_playwright() as engine:
         browser = engine.chromium.launch(executable_path=str(args.chromium), headless=True,
@@ -127,7 +127,8 @@ def main() -> None:
               window.fetch=async(path,opt)=>{
                 const data=opt && opt.body ? JSON.parse(opt.body) : null;
                 const result=await window.apiBridge(path,data,opt && opt.headers ? opt.headers : null);
-                return {ok:result.ok,status:result.status,json:async()=>result.data};
+                // text() is the body as the server sent it, which the Agent page measures.
+                return {ok:result.ok,status:result.status,json:async()=>result.data,text:async()=>result.text};
               };
             }''')
             # Exercise one-time profile migration when the project is rebranded.
@@ -2014,9 +2015,25 @@ def main() -> None:
             assert page.locator('#integration-open-bazi_dayun').inner_text().endswith('大运干支')
             page.locator('#integration-example-bazi_chart summary').click()
             assert '"birth_datetime": "2000-08-16T04:00"' in page.locator('#integration-example-bazi_chart .ag-request').inner_text()
-            page.locator('#integration-try-bazi_chart').click()
+            page.locator('#integration-try-bazi_chart').focus()
+            page.keyboard.press('Enter')
             page.wait_for_selector('#integration-run-bazi_chart .ag-run-head.is-ok', timeout=30000)
             assert '"pillars"' in page.locator('#integration-run-bazi_chart .ag-output').inner_text()
+            # The button kept the focus through the call, and the result stays inside its card.
+            assert page.evaluate("document.activeElement.id") == 'integration-try-bazi_chart'
+            assert page.evaluate('''() => {const card = document.querySelector('#integration-tool-bazi_chart').getBoundingClientRect();
+              return [...document.querySelectorAll('#integration-tool-bazi_chart pre')].every(p => p.getBoundingClientRect().right <= card.right + 1);}''')
+            # A long description opened in full stays open through a recheck, which keeps the last results on screen.
+            more = page.locator('#integration-catalog .ag-more').first
+            more_id = more.get_attribute('id')
+            more.click()
+            page.locator('#integration-recheck').focus()
+            page.keyboard.press('Enter')
+            assert page.locator('#integration-catalog .ag-tool').count() == tools  # still drawn while the check runs
+            page.wait_for_function("() => !agentPending", timeout=30000)
+            assert page.evaluate("document.activeElement.id") == 'integration-recheck'
+            assert page.locator('#' + more_id).get_attribute('aria-expanded') == 'true'
+            assert page.locator('#integration-example-bazi_chart').get_attribute('open') is not None
             # Every example call is valid for its tool (the optional professional provider may be missing).
             failures = page.evaluate('''async () => {
               const bad = [];
