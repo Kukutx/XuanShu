@@ -8253,8 +8253,32 @@ function tabFromHash() {
   return match ? tabs.find(tab => tab.dataset.tab === match[1]) : null;
 }
 tabs.forEach(tab => {tab.id = 'tab-' + tab.dataset.tab; tab.setAttribute('aria-controls', 'result');});
+// The open tab's pill slides over from the tab that was open before, so the eye follows the switch. The first
+// activation on load has nothing to slide from.
+let tabsShown = false;
+function slideTabPill(from, to) {
+  const strip = $('#workspace-tabs');
+  strip.querySelectorAll('.tab-pill').forEach(old => old.remove());
+  tabs.forEach(other => other.classList.remove('pill-arriving'));
+  if (!from || from === to || matchMedia('(prefers-reduced-motion: reduce)').matches || typeof to.animate !== 'function') return;
+  const a = from.getBoundingClientRect(), b = to.getBoundingClientRect(), s = strip.getBoundingClientRect();
+  if (!a.width || !b.width) return;
+  const pill = append(strip, 'span', 'tab-pill'); pill.setAttribute('aria-hidden', 'true');
+  pill.style.left = b.left - s.left - strip.clientLeft + strip.scrollLeft + 'px';
+  pill.style.top = b.top - s.top - strip.clientTop + strip.scrollTop + 'px';
+  pill.style.width = b.width + 'px'; pill.style.height = b.height + 'px';
+  to.classList.add('pill-arriving');
+  const slide = pill.animate([
+    {transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)`, width: a.width + 'px', height: a.height + 'px'},
+    {transform: 'none', width: b.width + 'px', height: b.height + 'px'},
+  ], {duration: 280, easing: 'cubic-bezier(.2, .7, .2, 1)'});
+  const land = () => {pill.remove(); to.classList.remove('pill-arriving');};
+  slide.onfinish = land; slide.oncancel = land;
+}
 function activateTab(tab, updateUrl = true) {
   if (!tab) return;
+  const previous = tabsShown ? tabs.find(other => other.classList.contains('active')) : null;
+  tabsShown = true;
   active = tab.dataset.tab;
   result.setAttribute('aria-labelledby', tab.id);
   tabs.forEach(other => {
@@ -8263,6 +8287,7 @@ function activateTab(tab, updateUrl = true) {
     other.setAttribute('aria-selected', String(selected));
     other.tabIndex = selected ? 0 : -1;
   });
+  slideTabPill(previous, tab);
   if (updateUrl && /^https?:$/.test(location.protocol)) {
     history.replaceState(null, '', '#tool=' + active);
   }
