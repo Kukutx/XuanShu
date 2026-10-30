@@ -28,21 +28,62 @@ from .workflows import DecisionMatrixRequest, decision_matrix
 Intent = Literal['auto', 'natal', 'career', 'relationship', 'timing', 'decision', 'rules']
 ResolvedIntent = Literal['natal', 'career', 'relationship', 'timing', 'decision', 'rules']
 
-# An explicit classification vocabulary: deterministic, locally testable and
-# inspected by users. NOT a general semantic LLM classifier.
-SIGNALS = {
-    'rules': ('排盘不同', '流派', '规则差异', '时差', '校时', '真太阳时', '子初', '不一致', '交节', '为什么不同'),
-    'timing': ('择日', '择时', '选日子', '开业时间', '时间窗口', '哪天', '几点', '候选时刻', '起卦'),
-    'relationship': ('婚恋', '感情', '合盘', '婚姻', '情侣', '伴侣', '我们两', '合作关系', '两个人'),
-    'decision': ('决策矩阵', '方案比较', '权重', '评分', '两个方案', '怎么选', '哪个好', '选哪个'),
-    'career': ('事业', '工作', '职业', '职场', '财运', '转职', '跳槽', '升职', '流年', '大运', '发展方向', '年度'),
-    'natal': ('本命', '八字', '命宫', '紫微', '命盘', '四柱', '藏干', '星曜'),
-}
 INTENT_LABELS = {'natal': '本命分析', 'career': '事业/年度', 'relationship': '双人关系', 'timing': '多时刻查询',
                  'decision': '方案比较', 'rules': '规则分歧'}
 STATUS_LABELS = {'completed': '已完成', 'partial': '部分完成，还缺输入', 'needs_input': '需要补充输入'}
+# i18n: input vocabulary, not interface text
+# An explicit classification vocabulary: deterministic, locally testable and
+# inspected by users. NOT a general semantic LLM classifier. Each topic lists
+# simplified, then traditional, then Japanese wording, matched as substrings;
+# the interface is offered in all of them, so a question typed in any of them
+# should reach the same workflow.
+SIGNALS = {
+    'rules': ('排盘不同', '流派', '规则差异', '时差', '校时', '真太阳时', '子初', '不一致', '交节', '为什么不同',
+              '排盤不同', '規則差異', '校時', '真太陽時', '交節', '為什麼不同',
+              '命式が違う', '盤が違う', '結果が違う', 'ルールの違い', '節入り', '時刻補正'),
+    'timing': ('择日', '择时', '选日子', '开业时间', '时间窗口', '哪天', '几点', '候选时刻', '起卦',
+               '擇日', '擇時', '選日子', '開業時間', '時間窗口', '幾點', '候選時刻',
+               '日取り', '日選び', '吉日', '何日', '何時に', '開業日', '候補の時刻'),
+    'relationship': ('婚恋', '感情', '合盘', '婚姻', '情侣', '伴侣', '我们两', '合作关系', '两个人', '结婚', '恋爱', '夫妻',
+                     '婚戀', '合盤', '情侶', '伴侶', '我們兩', '合作關係', '兩個人', '結婚', '戀愛',
+                     '相性', '恋愛', '夫婦', '恋人', 'パートナー', '二人', 'ふたり'),
+    'decision': ('决策矩阵', '方案比较', '权重', '评分', '两个方案', '怎么选', '哪个好', '选哪个',
+                 '決策矩陣', '方案比較', '權重', '評分', '兩個方案', '怎麼選', '哪個好', '選哪個',
+                 'どちらを選', 'どっちを選', 'どちらが良', 'どっちがいい', '選択肢', '重み付け'),
+    'career': ('事业', '工作', '职业', '职场', '财运', '转职', '跳槽', '升职', '流年', '大运', '发展方向', '年度',
+               '事業', '職業', '職場', '財運', '轉職', '升職', '大運', '發展方向',
+               '仕事', '転職', 'キャリア', '昇進', '金運', '年運'),
+    'natal': ('本命', '八字', '命宫', '紫微', '命盘', '四柱', '藏干', '星曜',
+              '命宮', '命盤', '命式'),
+}
+# English wording, matched case-insensitively at the start of a word ('job' also finds 'jobs').
+# Only phrases that point at one topic: generic words such as 'school', 'different' or 'options'
+# would send ordinary questions to the wrong workflow, and a bare 'next year' would pull
+# 'What about next year?' away from the topic it follows up (the Chinese list has no 明年 either).
+EN_SIGNALS = {
+    'rules': ('different chart', 'charts differ', 'different result', 'results differ', 'discrepanc', 'mismatch',
+              'inconsistent', 'true solar time', 'solar time', 'time zone', 'timezone', 'daylight saving',
+              'rat hour', 'zi hour', 'solar term boundar', 'which convention'),
+    'timing': ('which day', 'what day', 'best day', 'best date', 'good day', 'auspicious', 'date selection',
+               'pick a date', 'choose a date', 'what time', 'which time', 'opening date', 'candidate time',
+               'time window'),
+    'relationship': ('relationship', 'compatib', 'partner', 'marriage', 'marry', 'married', 'spouse', 'couple',
+                     'romance', 'romantic', 'love life', 'dating', 'girlfriend', 'boyfriend', 'husband', 'wife',
+                     'the two of us', 'both of us'),
+    'decision': ('decision matrix', 'weighting', 'which option', 'which offer', 'pros and cons', 'choose between',
+                 'decide between', 'which is better', 'which one should'),
+    'career': ('career', 'job', 'promotion', 'profession', 'employ', 'salary', 'income', 'wealth', 'finance',
+               'business', 'my work', 'at work', 'annual', 'year ahead', 'luck pillar'),
+    'natal': ('natal', 'birth chart', 'bazi', 'ba zi', 'four pillars', 'ziwei', 'zi wei', 'purple star',
+              'day master', 'life palace', 'hidden stem', 'my chart'),
+}
+_EN_PATTERNS = {key: [(word, re.compile(r'(?<![a-z])' + re.escape(word).replace(r'\ ', r'\s+'), re.I))
+                      for word in words] for key, words in EN_SIGNALS.items()}
 # Traditional forms too, so a follow-up typed in 繁體 (or shown that way by the interface) carries the topic on.
-FOLLOWUP_CUES = ('那', '那么', '那麼', '再看', '然后', '然後', '继续', '繼續', '也', '呢', '刚才', '剛才', '之前', '接着', '接著')
+FOLLOWUP_CUES = ('那', '那么', '那麼', '再看', '然后', '然後', '继续', '繼續', '也', '呢', '刚才', '剛才', '之前', '接着', '接著',
+                 'では', 'じゃあ', 'それなら', 'それでは', 'それと', 'あと', 'ついでに', 'さっき')
+EN_FOLLOWUP = re.compile(r'(?:what about|how about|and|then|also|so|same for|what if)\b', re.I)
+# i18n: end of input vocabulary
 YEAR_PATTERN = re.compile(r'(?<!\d)(19\d{2}|20\d{2})(?=年|\b)')
 
 
@@ -119,13 +160,21 @@ def route(question: str, *, chosen: Intent = 'auto', continuation: Continuation 
         return 'decision', ['matrix supplied']
     if has_candidates:
         return 'timing', ['candidate_times supplied']
-    matched = {key: [word for word in words if word in question] for key, words in SIGNALS.items()}
+    matched = {key: [word for word in words if word in question]
+                    + [word for word, pattern in _EN_PATTERNS[key] if pattern.search(question)]
+               for key, words in SIGNALS.items()}
     for key in ('rules', 'timing', 'relationship', 'decision', 'career', 'natal'):
         if matched[key]:
             return key, [f'question mentions: {word}' for word in matched[key][:3]]
-    if continuation and any(question.startswith(cue) for cue in FOLLOWUP_CUES):
+    if continuation and is_followup(question):
         return continuation.intent, ['no domain keywords; inherited client-provided topic cursor']
     return 'natal', ['no domain keywords; default to natal structural review']
+
+
+def is_followup(question: str) -> bool:
+    """Whether a question opens like a follow-up to the previous topic, in any interface language."""
+    question = question.lstrip()
+    return question.startswith(FOLLOWUP_CUES) or EN_FOLLOWUP.match(question) is not None
 
 
 def _year_from_question(question: str) -> int | None:
@@ -154,7 +203,7 @@ def execute_consultation(req: ConsultationRequest) -> dict:
     year = req.lunar_year if req.lunar_year is not None else _year_from_question(req.question)
     # Do not carry an old year forward when this question explicitly gives a
     # different one. A bare 'then?' may retain the last topic's lunar year.
-    if year is None and req.continuation and any(req.question.startswith(x) for x in FOLLOWUP_CUES):
+    if year is None and req.continuation and is_followup(req.question):
         year = req.continuation.lunar_year
 
     missing: list[dict[str, str]] = []

@@ -80,6 +80,11 @@ TOOL_DEFS = [
     {'name': 'ziwei_horoscope', 'title': '紫微运限（大限到流时）', 'description': 'Zi Wei period layers for one date: decade, small limit, year, month (斗君 rule), day and, with a clock time, hour. For each layer: the palace serving as that period\'s Life palace, the names it gives the twelve palaces, the four transformations of the period\'s stem placed on the natal stars, and the layer\'s ten period stars (流曜: 魁钺昌曲禄羊陀马鸾喜 from the layer\'s own stem and branch, named 运/流/月/日/时; none for the small limit), each with its natal and layer palace; the year also gets 年解 and that year\'s 岁前 and 将前 twelve gods. The decade, month, day and hour layers depend on the birth hour and are left out when it is unknown. Traditional symbolic labels only: no event forecast; birth data not stored.', 'inputSchema': ZiweiHoroscopeRequest.model_json_schema()},
     {'name': 'palace_detail', 'title': '十二宫重点查看', 'description': 'Get a selected palace, included stars, natal transformation markers, flying mappings and traditional topic.', 'inputSchema': PalaceRequest.model_json_schema()},
 ]
+# Every tool computes from its arguments alone: nothing is written or sent anywhere and the same call returns the
+# same result, so a client may let an agent run them without asking each time.
+for _tool in TOOL_DEFS:
+    _tool['annotations'] = {'title': _tool['title'], 'readOnlyHint': True, 'destructiveHint': False,
+                            'idempotentHint': True, 'openWorldHint': False}
 TOOLS = {item['name']: item for item in TOOL_DEFS}
 RESOURCE_TEXT = {
     'astro://rules/consultation': 'docs/rules/consultation.md',
@@ -268,6 +273,11 @@ def process_rpc(payload: Any) -> dict | None:
         result = {'resources': RESOURCES}
         if modern:
             result.update({'ttlMs': 300000, 'cacheScope': 'public'})
+    elif method == 'resources/templates/list':
+        # Every resource has a fixed URI; answering with an empty list spares clients a method-not-found error.
+        result = {'resourceTemplates': []}
+        if modern:
+            result.update({'ttlMs': 300000, 'cacheScope': 'public'})
     elif method == 'skills/list':
         try:
             cursor = params.get('cursor')
@@ -317,8 +327,16 @@ def process_rpc(payload: Any) -> dict | None:
                 'structuredContent': data,
                 'isError': False,
             }
-        except (ValueError, ValidationError) as exc:
-            result = {'content': [{'type': 'text', 'text': str(exc)}], 'isError': True}
+        except ValidationError as exc:
+            # One line per bad field, so an agent can correct exactly those arguments and call again.
+            fields = [{'path': '.'.join(str(part) for part in item['loc']), 'message': item['msg'], 'type': item['type']}
+                      for item in exc.errors(include_url=False)]
+            text = 'Invalid arguments: ' + '; '.join(f"{f['path'] or '(arguments)'}: {f['message']}" for f in fields)
+            result = {'content': [{'type': 'text', 'text': text}], 'isError': True,
+                      'structuredContent': {'error': {'code': 'invalid_arguments', 'message': text, 'fields': fields}}}
+        except ValueError as exc:
+            result = {'content': [{'type': 'text', 'text': str(exc)}], 'isError': True,
+                      'structuredContent': {'error': {'code': 'calculation_refused', 'message': str(exc)}}}
     else:
         return error_response(id_, -32601, f'Method not found: {method}')
     if modern:

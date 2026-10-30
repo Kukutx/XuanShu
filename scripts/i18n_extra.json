@@ -2623,6 +2623,10 @@
   "All Luck Pillars",
   "すべての大運"
  ],
+ "全部工具都标注为只读：不写入、不联网，同样的参数总得到同样的结果，支持这项标注的客户端可以不逐次确认就让 Agent 调用。": [
+  "Every tool is marked read-only: nothing is written or sent over the network, and the same arguments always give the same result, so clients that honour these hints can let the agent call them without asking each time.",
+  "すべてのツールに読み取り専用の注記があります。書き込みも外部通信もせず、同じ引数なら常に同じ結果になるため、この注記に対応したクライアントでは毎回確認せずに Agent に呼び出させることができます。"
+ ],
  "全部提供字段一致": [
   "All provided fields match",
   "提供された全フィールドが一致"

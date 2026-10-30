@@ -55,6 +55,24 @@ def test_mcp_error_notification_transport():
     assert CLIENT.post('/mcp',json=[rpc('ping')]).status_code==400
 
 
+def test_mcp_tools_are_annotated_read_only_and_errors_name_fields():
+    tools=CLIENT.post('/mcp',json=rpc('tools/list')).json()['result']['tools']
+    for tool in tools:
+        hints=tool['annotations']
+        assert hints=={'title':tool['title'],'readOnlyHint':True,'destructiveHint':False,
+                       'idempotentHint':True,'openWorldHint':False}, tool['name']
+    bad=CLIENT.post('/mcp',json=rpc('tools/call',{'name':'bazi_chart','arguments':{'birth_datetime':'invalid','extra':1}})).json()['result']
+    assert bad['isError'] is True
+    error=bad['structuredContent']['error']
+    assert error['code']=='invalid_arguments'
+    assert [f['path'] for f in error['fields']]==['birth_datetime','extra']
+    assert [f['type'] for f in error['fields']]==['value_error','extra_forbidden']
+    assert 'birth_datetime' in bad['content'][0]['text'] and 'extra' in bad['content'][0]['text']
+    refused=CLIENT.post('/mcp',json=rpc('tools/call',{'name':'bazi_chart','arguments':{'birth_datetime':'1800-01-01T00:00'}})).json()['result']
+    assert refused['isError'] is True and refused['structuredContent']['error']['code']=='calculation_refused'
+    assert CLIENT.post('/mcp',json=rpc('resources/templates/list')).json()['result']['resourceTemplates']==[]
+
+
 def test_mcp_origin_policy(monkeypatch):
     monkeypatch.delenv('MCP_ALLOWED_ORIGINS',raising=False)
     res=CLIENT.post('/mcp',json=rpc('ping'),headers={'Origin':'http://evil.example'})

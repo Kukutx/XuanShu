@@ -36,13 +36,23 @@ def load() -> dict[str, list[str]]:
     return data
 
 
+# Words a module matches against what people type (in every interface language) rather than shows;
+# they need no translation. The block sits between these two comment lines.
+SKIP_START, SKIP_END = '# i18n: input vocabulary, not interface text', '# i18n: end of input vocabulary'
+
+
+def scannable(path: Path) -> str:
+    text = path.read_text(encoding='utf-8')
+    return re.sub(re.escape(SKIP_START) + r'.*?' + re.escape(SKIP_END), '', text, flags=re.S)
+
+
 def source_strings() -> set[str]:
     """Plain string literals with Chinese text: static scripts, the pages, and the engines."""
     found: set[str] = set()
     for path in [*ROOT.glob('static/*.js'), *ROOT.glob('app/*.py')]:
         if path.name in ('i18n.js', 'i18n-extra.js', 'zh-tw-map.js'):
             continue
-        text = path.read_text(encoding='utf-8')
+        text = scannable(path)
         for pattern in (r"'((?:[^'\\\n]|\\.)*)'", r'"((?:[^"\\\n]|\\.)*)"'):
             for m in re.finditer(pattern, text):
                 value = m.group(1)
@@ -62,7 +72,7 @@ def template_fragments() -> set[str]:
     for path in [*ROOT.glob('static/*.js'), *ROOT.glob('app/*.py')]:
         if path.name in ('i18n.js', 'i18n-extra.js', 'zh-tw-map.js'):
             continue
-        text = path.read_text(encoding='utf-8')
+        text = scannable(path)
         if path.suffix == '.py':
             bodies = [m.group(2) for m in re.finditer(r"""f(['"])((?:(?!\1).)*)\1""", text)]
             holes = r'\{[^{}]*\}'
