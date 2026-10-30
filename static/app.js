@@ -49,10 +49,10 @@ function updateToolNavigation() {
     if (!tab.hidden) visible++;
   });
   // A group heading is shown only while at least one of its tools is.
-  document.querySelectorAll('.tab-group').forEach(label => {
-    let node = label.nextElementSibling, shown = false;
-    while (node && !node.classList.contains('tab-group')) {if (node.classList.contains('tab') && !node.hidden) shown = true; node = node.nextElementSibling;}
-    label.hidden = !shown;
+  let heading = null;
+  document.querySelectorAll('#workspace-tabs :is(.tab-group, .tab)').forEach(node => {
+    if (node.classList.contains('tab-group')) {heading = node; heading.hidden = true;}
+    else if (heading && !node.hidden) heading.hidden = false;
   });
   // Counts sit between their own text nodes so 当前 / 项 translate as whole entries.
   $('#tool-visible-count').replaceChildren(...(term
@@ -2272,7 +2272,7 @@ function renderZiwei(z) {
   });
   ziweiLines(board, z, selected, live);
   const center = append(board, 'div', 'board-center see-through');
-  append(center, 'div', 'center-symbol', '☯');
+  taijiMark(center, 'center-symbol');
   append(center, 'div', 'center-title', '紫 微 斗 数');
   append(center, 'div', 'center-sub', z.year_pillar + ' · ' + z.five_elements_bureau);
   append(center, 'div', 'center-sub', `命主 ${z.ming_master} · 身主 ${z.shen_master}`);
@@ -4785,6 +4785,18 @@ function refreshTodayIfStale() {
 setInterval(refreshTodayIfStale, 60000);
 document.addEventListener('visibilitychange', refreshTodayIfStale);
 const SVG_NS = 'http://www.w3.org/2000/svg';
+// The 太极 emblem drawn in the theme's gold: the ☯ character comes from whatever font a system has, often a coarse bitmap.
+function taijiMark(parent, cls) {
+  const box = append(parent, 'div', cls), svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', 'taiji');
+  const ring = document.createElementNS(SVG_NS, 'circle'), yin = document.createElementNS(SVG_NS, 'path');
+  [['cx', 50], ['cy', 50], ['r', 47], ['fill', 'none'], ['stroke', 'currentColor'], ['stroke-width', 3]].forEach(([k, v]) => ring.setAttribute(k, v));
+  // One half and its bulge, with the two eyes as holes in the even-odd fill.
+  yin.setAttribute('fill', 'currentColor'); yin.setAttribute('fill-rule', 'evenodd');
+  yin.setAttribute('d', 'M50 3A47 47 0 0 1 50 97A23.5 23.5 0 0 1 50 50A23.5 23.5 0 0 0 50 3ZM56 26.5a6 6 0 1 0-12 0a6 6 0 1 0 12 0ZM56 73.5a6 6 0 1 0-12 0a6 6 0 1 0 12 0Z');
+  svg.append(ring, yin); box.append(svg);
+  return box;
+}
 function moonIcon(parent, moon, size = 56) {
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('viewBox', '0 0 48 48'); svg.setAttribute('width', size); svg.setAttribute('height', size);
@@ -6679,7 +6691,7 @@ function dayunAxis(d, live, pick, now) {
   }
   const before = append(axis, 'div', 'dy-band dy-before');
   before.style.left = '0'; before.style.width = at(d.periods[0].approx_start_local);
-  append(before, 'small', null, '起运前');
+  append(axis, 'small', 'dy-before-label', '起运前');
   d.periods.forEach((x, i) => {
     const band = append(axis, 'button', 'dy-band dy-decade' + (x === pick ? ' is-picked' : '') + (i === live ? ' is-now' : ''));
     band.type = 'button'; band.id = 'dayun-band-' + x.sequence; band.setAttribute('aria-pressed', String(x === pick));
@@ -7963,7 +7975,7 @@ function render() {
 // Boxes that scroll inside the page (a luck strip, the palace board on a phone, a wide table, a code block) take the
 // keyboard focus while they overflow, so arrow keys scroll them without a mouse; a sideways one fades at the edge
 // that has more to show. Nothing changes for a box that fits.
-const SCROLL_AREAS = '.luck-strip,.ziwei-wrap,.fh-wrap,.yt-wrap,.dy-axis-wrap,.dm-wrap,.table-wrap,.json-code,.luck-timeline-wrap,.pf-board-wrap,.share-text';
+const SCROLL_AREAS = '.luck-strip,.ziwei-wrap,.fh-wrap,.yt-wrap,.dy-axis-wrap,.dm-wrap,.table-wrap,.json-code,.luck-timeline-wrap,.pf-board-wrap,.share-text,.pf-command code';
 function scrollEdges(el) {
   el.classList.toggle('at-start', el.scrollLeft <= 1);
   el.classList.toggle('at-end', el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
@@ -8173,7 +8185,7 @@ function renderView() {
   if (active === 'today') return renderToday();
   if (!current) {
     const empty = append(result, 'div', 'empty-state');
-    append(empty, 'div', 'empty-orbit', '☯');
+    taijiMark(empty, 'empty-orbit');
     append(empty, 'h3', null, '历法可核验，规则可追溯');
     append(empty, 'p', null, '确认出生资料后生成命盘，八字、紫微和四化会一起算好。');
     const go = append(empty, 'button', 'tiny-button', '用当前出生资料生成命盘'); go.type = 'button'; go.id = 'empty-generate';
@@ -8789,16 +8801,18 @@ function drawShareCard(canvas) {
       [T('五行局'), T(z.five_elements_bureau) + '  ·  ' + b.day_master + ' ' + T('日主')],
     ];
     let ry = y + 92;
+    // English star and bureau names are set in the sans face; the Chinese serif's Latin letters are often Times.
+    const rowFont = document.documentElement.lang.startsWith('en') ? sans : serif;
     rows.forEach(([label, value]) => {
       text(label, PAD, ry, 20, token('--muted'));
       // A list that would not fit on one line at a readable size continues on a second line.
       let lines = Array.isArray(value) ? [value.join('  ·  ')] : [value];
-      g.font = `600 26px ${serif}`;
+      g.font = `600 26px ${rowFont}`;
       if (Array.isArray(value) && g.measureText(lines[0]).width > W - PAD * 2) {
         const half = Math.ceil(value.length / 2);
         lines = [value.slice(0, half).join('  ·  '), value.slice(half).join('  ·  ')];
       }
-      lines.forEach((line, n) => text(line, PAD, ry + 38 + n * 40, 32, token('--text'), serif, 'left', '600'));
+      lines.forEach((line, n) => text(line, PAD, ry + 38 + n * 40, 32, token('--text'), rowFont, 'left', '600'));
       ry += 84 + (lines.length - 1) * 40;
     });
     y += 480;
@@ -9283,6 +9297,8 @@ async function openCrosscheck() {
     const close = append(head, 'button', 'tiny-button', '关闭'); close.type = 'button'; close.id = 'crosscheck-close';
     close.addEventListener('click', () => dialog.close());
     fill();
+    // The wide tables scroll sideways on a phone: they get the same edge fade and keyboard stop as the page's own.
+    requestAnimationFrame(markScrollAreas);
   };
   if (crosscheckData) draw(() => renderCrosscheck(dialog));
   else draw(() => append(dialog, 'p', 'field-help', '正在读取评测结果…'));
