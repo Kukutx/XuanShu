@@ -265,6 +265,8 @@ def main() -> None:
             if page.evaluate("CSS.supports('appearance', 'base-select')"):
                 if not page.locator('#chat-mode').is_visible():
                     page.locator('#chat-settings > summary').click()
+                # Measured just before the paint after the section opens.
+                page.wait_for_function("document.getElementById('chat-mode').dataset.xsSteady === '1'", timeout=5000)
                 mode_width = page.locator('#chat-mode').bounding_box()['width']
                 page.locator('#chat-mode').select_option('panel')
                 assert abs(page.locator('#chat-mode').bounding_box()['width'] - mode_width) < 1, mode_width
@@ -280,6 +282,7 @@ def main() -> None:
             page.locator('#scan-exclude input[value="建"]').uncheck()
             page.locator('#scan-exclude input[value="破"]').check()
             page.locator('#scan-hours').fill('23:30')
+            assert page.locator('.xs-empty .xs-empty-list li').count() == 5
             page.locator('#scan-run').click()
             page.get_by_text('值符', exact=False).first.wait_for(timeout=30000)
             # The result is a week calendar over the whole range: candidates open their detail, dropped days say why.
@@ -577,6 +580,10 @@ def main() -> None:
 
             # Pasted chart check: matching fields, then a differing hour pillar.
             page.locator('[data-tab="import-check"]').click()
+            assert page.locator('.xs-empty .xs-empty-list li').count() == 3
+            # A click that only writes a message (nothing pasted) leaves the outline still.
+            page.locator('#import-check-run').click()
+            assert '先粘贴' in page.locator('#result').inner_text() and page.locator('.xs-empty.is-busy').count() == 0
             page.locator('#import-text').fill('乾造 庚辰 甲申 丙午 庚寅\n命宫在午，木三局，命主：破军')
             page.locator('#import-check-run').click()
             page.locator('.import-table').wait_for(timeout=30000)
@@ -646,6 +653,13 @@ def main() -> None:
             page.keyboard.press('Enter')
             page.wait_for_function("active === 'officers' && document.activeElement.dataset.tab === 'officers'", timeout=5000)
             assert page.locator('#tool-search').input_value() == '' and page.locator('#tool-palette').is_hidden()
+            # With nothing typed, the box lists the tools opened before this one, newest first.
+            page.keyboard.press('Control+k')
+            page.locator('#tool-palette:not([hidden]) .palette-opt').first.wait_for(timeout=5000)
+            assert page.locator('#tool-palette .palette-opt').first.inner_text().split('\n')[:2] == ['最近打开', page.evaluate("tabs.find(t => t.dataset.tab === %r).textContent" % before)]
+            assert not any('建除值日' in t for t in page.locator('#tool-palette .palette-opt').all_inner_texts())
+            page.keyboard.press('Escape')
+            assert page.locator('#tool-palette').is_hidden()
             # An action presses the button it names: here the shortcut list opens.
             page.keyboard.press('Control+k')
             page.keyboard.type('快捷键')
@@ -1190,9 +1204,15 @@ def main() -> None:
 
             # New 开发阶段 hour-Qimen page: click through real UI, verify 3x3 Lo Shu cells,
             # and ensure an edited input cannot silently reuse an old chart.
-            page.locator('[data-tab="qimen"]').click()
-            assert page.locator('#qimen-moment').input_value() == 'now'
+            # Opened on "now", the page casts this moment's chart by itself, outlining the nine palaces meanwhile
+            # (read in the same task as the click, since a local cast can arrive before the next command).
+            opened = page.evaluate("() => {document.querySelector('[data-tab=\"qimen\"]').click(); return [document.getElementById('qimen-moment').value, document.getElementById('qimen-run').disabled, document.querySelectorAll('.xs-ghost-board>span').length];}")
+            assert opened == ['now', True, 9], opened
+            page.locator('.qimen-cell').first.wait_for(timeout=30000)
+            assert page.locator('.qimen-cell').count() == 9 and page.locator('.xs-ghost-board').count() == 0
+            assert page.evaluate("qimenMoment.mode === 'now' && qimenFingerprint === null")
             page.locator('#qimen-moment').select_option('birth')
+            assert page.locator('.qimen-cell').count() == 0
             page.locator('#qimen-run').click()
             page.locator('.qimen-cell').first.wait_for(timeout=30000)
             assert page.locator('.qimen-cell').count() == 9
@@ -1872,8 +1892,12 @@ def main() -> None:
             page.locator('[data-tab="pair"]').click()
             page.evaluate("() => { pairDraft.year = 2026; }")  # the device year would make the luck section vary
             page.locator('#pair_gender').select_option('female')
-            page.locator('#pair-run').click()
+            # Before the first comparison the page lists what the result will hold over a still outline, which
+            # shimmers once the button has a request out and gives way to the result.
+            assert page.locator('.xs-empty .xs-empty-list li').count() == 7 and page.locator('.xs-empty .xs-ghosts[aria-hidden="true"]').count() == 1
+            assert page.evaluate("() => {document.getElementById('pair-run').click(); return document.querySelector('.xs-empty').classList.contains('is-busy');}")
             page.locator('#ziwei-pair-grid tbody tr').first.wait_for(timeout=30000)
+            assert page.locator('.xs-empty').count() == 0
             # The same luck and year-pillar cards as the group page, for A and B, switchable by year.
             assert page.locator('#pair-year .group-year-card').count() == 2 and '2026 流年 丙午' in page.locator('#pair-year').inner_text()
             assert page.evaluate("pairResult.year_view.members[1].gender") == 'female' and '女' in page.locator('#pair-year-card-1').inner_text()

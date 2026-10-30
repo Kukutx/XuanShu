@@ -41,4 +41,18 @@ def test_palette_styles_and_shortcut_list():
     assert '.tool-search-box{position:relative;flex:1;' in CSS and '.tool-palette{position:absolute;z-index:35;' in CSS
     assert '.palette-opt.is-active{background:var(--accent-soft);color:var(--text)}' in CSS
     assert '  .palette-opt.is-active{outline:2px solid Highlight;outline-offset:-2px}' in CSS
-    assert "['功能查找', [[['↑', '↓'], '在匹配的功能和操作之间移动'], [['Enter'], '打开功能或执行操作'], [['Esc'], '清空查找']]]" in APP
+    assert ("['功能查找', [[['Ctrl', 'K'], '框里不输入时列出本次打开过的功能'], [['↑', '↓'], '在匹配的功能和操作之间移动'], "
+            "[['Enter'], '打开功能或执行操作'], [['Esc'], '清空查找']]]") in APP
+
+
+def test_an_empty_box_lists_the_tools_opened_this_visit():
+    # Each opened tool goes to the front of an in-memory list; nothing is written to storage.
+    assert 'let recentTools = [];' in APP and 'const RECENT_LIMIT = 6;' in APP
+    assert 'recentTools = [tab, ...recentTools.filter(other => other !== tab)].slice(0, RECENT_LIMIT + 1);' in APP
+    assert not any(word in APP[APP.index('let recentTools'):APP.index('function paletteLabel')] for word in ('localStorage', 'sessionStorage'))
+    # The current tool is left out; with nothing else opened yet, the box opens no list.
+    assert "const recent = recentTools.filter(tab => tab.dataset.tab !== active).slice(0, RECENT_LIMIT);" in APP
+    assert "if (!recent.length) {hidePalette(); return;}" in APP and "recent.map(tab => toolItem(tab, '最近打开'))" in APP
+    # Focusing the box shows the list; clearing typed text closes it.
+    assert "$('#tool-search').addEventListener('focus', showPalette);" in APP
+    assert "if (event.currentTarget.value.trim()) showPalette(); else hidePalette();" in APP

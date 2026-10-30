@@ -62,7 +62,7 @@ function updateToolNavigation() {
   $('#tool-toggle-all').setAttribute('aria-expanded', String(expandedTools));
 }
 $('#tool-toggle-all').addEventListener('click', () => {expandedTools = !expandedTools; updateToolNavigation();});
-$('#tool-search').addEventListener('input', () => {updateToolNavigation(); showPalette();});
+$('#tool-search').addEventListener('input', event => {updateToolNavigation(); if (event.currentTarget.value.trim()) showPalette(); else hidePalette();});
 // The finder is also a command palette: what is typed lists the matching tools and page actions under the box;
 // ↑ / ↓ choose one, Enter opens or runs it, Esc clears. Actions name the button they press, so nothing new happens.
 // What each palette action answers to when typed, in any interface language; matched, never shown.
@@ -98,6 +98,9 @@ const PALETTE_ACTIONS = [
 ];
 const PALETTE_LIMIT = 14;
 let paletteItems = [], paletteIndex = 0;
+// Tools opened during this visit, newest first. Kept in memory only, so a reload starts with an empty list.
+let recentTools = [];
+const RECENT_LIMIT = 6;
 // Each tool's group heading, shown beside it in the palette.
 const toolGroup = new Map();
 {let heading = null; document.querySelectorAll('#workspace-tabs :is(.tab-group, .tab)').forEach(node => {
@@ -109,17 +112,25 @@ function paletteLabel(action) {
 }
 function showPalette() {
   const input = $('#tool-search'), list = $('#tool-palette'), term = input.value.trim().toLocaleLowerCase();
-  if (!term) {hidePalette(); return;}
-  const tools = tabs.filter(tab => (tab.textContent + ' ' + (toolKeywords[tab.dataset.tab] || '')).toLocaleLowerCase().includes(term))
-    .map(tab => ({kind: '功能页', label: [tab.textContent], note: toolGroup.get(tab)?.textContent || '', run: () => {activateTab(tab); tab.focus();}}));
-  const actions = PALETTE_ACTIONS.filter(a => (!a.ok || a.ok()) && (paletteLabel(a).map(calT).join('') + ' ' + paletteLabel(a).join('') + ' ' + a.keys).toLocaleLowerCase().includes(term))
-    .map(a => ({kind: '快捷操作', label: paletteLabel(a), note: '', run: a.run}));
-  paletteItems = tools.concat(actions).slice(0, PALETTE_LIMIT); paletteIndex = 0;
+  const toolItem = (tab, kind) => ({kind, tool: true, label: [tab.textContent], note: toolGroup.get(tab)?.textContent || '', run: () => {activateTab(tab); tab.focus();}});
+  if (!term) {
+    // An empty box lists the tools opened before the current one, so going back is two keys away.
+    const recent = recentTools.filter(tab => tab.dataset.tab !== active).slice(0, RECENT_LIMIT);
+    if (!recent.length) {hidePalette(); return;}
+    paletteItems = recent.map(tab => toolItem(tab, '最近打开'));
+  } else {
+    const tools = tabs.filter(tab => (tab.textContent + ' ' + (toolKeywords[tab.dataset.tab] || '')).toLocaleLowerCase().includes(term))
+      .map(tab => toolItem(tab, '功能页'));
+    const actions = PALETTE_ACTIONS.filter(a => (!a.ok || a.ok()) && (paletteLabel(a).map(calT).join('') + ' ' + paletteLabel(a).join('') + ' ' + a.keys).toLocaleLowerCase().includes(term))
+      .map(a => ({kind: '快捷操作', tool: false, label: paletteLabel(a), note: '', run: a.run}));
+    paletteItems = tools.concat(actions).slice(0, PALETTE_LIMIT);
+  }
+  paletteIndex = 0;
   list.replaceChildren();
   if (!paletteItems.length) {append(list, 'li', 'palette-empty', '没有匹配项，请尝试八字、择时、MCP 等关键词').setAttribute('role', 'presentation');}
   paletteItems.forEach((item, i) => {
     const option = append(list, 'li', 'palette-opt'); option.id = 'palette-opt-' + i; option.setAttribute('role', 'option');
-    append(option, 'span', 'palette-kind palette-kind-' + (item.kind === '功能页' ? 'tool' : 'action'), item.kind);
+    append(option, 'span', 'palette-kind palette-kind-' + (item.tool ? 'tool' : 'action'), item.kind);
     texts(append(option, 'span', 'palette-label'), ...item.label);
     if (item.note) append(option, 'small', null, item.note);
     option.addEventListener('pointermove', () => {if (paletteIndex !== i) {paletteIndex = i; markPalette();}});
@@ -152,7 +163,7 @@ function runPalette(i) {
 // A press on the list keeps the focus in the box, so the list stays open until the click lands.
 $('#tool-palette').addEventListener('pointerdown', event => event.preventDefault());
 $('#tool-search').addEventListener('blur', hidePalette);
-$('#tool-search').addEventListener('focus', () => {if ($('#tool-search').value.trim()) showPalette();});
+$('#tool-search').addEventListener('focus', showPalette);
 $('#tool-search').addEventListener('keydown', event => {
   if (event.isComposing) return;
   if (event.key === 'Escape') {event.currentTarget.value = ''; hidePalette(); updateToolNavigation(); return;}
@@ -3193,7 +3204,11 @@ function renderDateScan() {
     finally{run.disabled=false;}
   });
   if(dateScanStale()){dateScanResult=null;dateScanFingerprint=null;append(result,'p','info-inline','出生参数或时区已更改，旧的扫描结果已清除，请重新扫描。');return;}
-  if(!dateScanResult){append(result,'p','info-inline','先选条件再扫描。结果只是传统标签筛选，最终取舍以现实安排为准。');return;}
+  if(!dateScanResult){
+    append(result,'p','info-inline','先选条件再扫描。结果只是传统标签筛选，最终取舍以现实安排为准。');
+    emptyPreview(result,run,['公历日与农历','日干支','十二值日','是否与本命相冲','候选时刻的时家奇门盘'],['table']);
+    return;
+  }
   renderDateScanResult(dateScanResult);
 }
 // The scan as a week calendar over the whole range: candidates stand out and open their detail (lunar date, clashes,
@@ -4266,7 +4281,7 @@ function renderGroup() {
     }
     if (active === 'group') render();
   });
-  if (!groupResult) return;
+  if (!groupResult) {emptyPreview(result, run, ['每人四柱与日主', '关系图', '日干十神（行看列）', '两两明细', '选定年份的大运流年'], ['cards', 'table'], Boolean(groupRun)); return;}
   if (groupKey !== JSON.stringify(members)) append(result, 'p', 'feature-note', '成员已改变，下面仍是上一次的结果；点「对照关系」更新。');
   renderGroupResult(groupResult);
 }
@@ -5229,7 +5244,7 @@ function renderPillarSearch() {
     catch (e) {pillarResult = null; message.className = 'inline-msg'; message.textContent = '反查失败：' + e.message;}
     finally {run.disabled = false;}
   });
-  if (!pillarResult) return;
+  if (!pillarResult) {emptyPreview(result, run, ['对得上的年份分布', '每个时段的起止、时长与农历', '用这个时间排盘'], ['table']); return;}
   const r = pillarResult;
   r.impossible_combination.forEach(x => append(result, 'p', 'inline-msg', x));
   meta(result, [`${r.pillars.year} ${r.pillars.month} ${r.pillars.day} ${r.pillars.hour || ''}`.trim(), `${r.count} 个时段`,
@@ -5349,7 +5364,7 @@ function renderImportCheck() {
     importRecheck = false;
     setTimeout(() => {if (active === 'import-check' && !run.disabled) run.click();});
   }
-  if (!importResult) return;
+  if (!importResult) {emptyPreview(result, run, ['逐项比对', '能让两边一致的规则', '对得上的出生时辰'], ['table']); return;}
   const r = importResult;
   if (!r.recognized_count) {
     append(result, 'p', 'inline-msg', '没有识别到可以比对的字段。支持的写法：');
@@ -5598,7 +5613,10 @@ function renderPair() {
     }
     if (active === 'pair') render();
   });
-  if (!pairResult) return;
+  if (!pairResult) {
+    emptyPreview(result, run, ['两人日干互看的十神', '生肖', '四柱同位地支', '地支两两关系', '两人五行', '选定年份的大运流年', '紫微宫位叠盘'], ['table'], pairRunning);
+    return;
+  }
   if (pairKey !== JSON.stringify(pairBody())) append(result, 'p', 'feature-note', 'A 或 B 的资料已改变，下面仍是上一次的结果；点「比较两人命盘」更新。');
   const r = pairResult;
   meta(result, [`A 日主 ${r.person_a.day_master || '?'}`, `B 日主 ${r.person_b.day_master || '?'}`, '不提供匹配分数']);
@@ -8243,6 +8261,8 @@ if (BASE_SELECT) {
   // New selects, new options and translated option text are measured before the next paint.
   new MutationObserver(records => {
     records.forEach(record => {
+      // A section opening: its selects are measured before the paint that shows them, not after its toggle event.
+      if (record.type === 'attributes') {if (record.target.open) record.target.querySelectorAll('select').forEach(steadySelect); return;}
       const node = record.target.nodeType === 1 ? record.target : record.target.parentElement;
       const sel = node && node.closest('select');
       if (sel) steadySelect(sel);
@@ -8252,7 +8272,7 @@ if (BASE_SELECT) {
         added.querySelectorAll('select').forEach(steadySelect);
       });
     });
-  }).observe(document.body, {childList: true, subtree: true, characterData: true});
+  }).observe(document.body, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['open']});
   // A select that was hidden (a folded section, another tab) is measured when it is shown or first used.
   document.addEventListener('toggle', e => {if (e.target instanceof Element) e.target.querySelectorAll('select').forEach(steadySelect);}, true);
   // Measured at once on first use, before its list opens, so the list never sees the option change under it.
@@ -8291,13 +8311,33 @@ async function postForChart(url, body) {
 // ones that read the chart and so may run).
 // While a page computes its first result, soft blocks in the rough shape of that result hold the space below it, so
 // the page neither sits as one bare line nor jumps when the result lands. Screen readers skip the blocks.
-const GHOST_COUNT = {strip: 10, cards: 6, table: 8, month: 35};
+const GHOST_COUNT = {strip: 10, cards: 6, table: 8, month: 35, board: 9};
 function loadingGhost(parent, ...shapes) {
   const box = append(parent, 'div', 'xs-ghosts'); box.setAttribute('aria-hidden', 'true');
   shapes.forEach(shape => {
     const ghost = append(box, 'div', 'xs-ghost xs-ghost-' + shape);
     for (let i = 0; i < GHOST_COUNT[shape]; i++) append(ghost, 'span');
   });
+  return box;
+}
+// A placeholder while ``run``'s request is out. It goes when the page redraws with the result, or when the button is
+// enabled again after a failure that only wrote a message.
+function ghostWhileBusy(run, ...shapes) {
+  const ghost = loadingGhost(result, ...shapes);
+  const watch = new MutationObserver(() => {if (!run.isConnected || !run.disabled) {ghost.remove(); watch.disconnect();}});
+  watch.observe(run, {attributes: true, attributeFilter: ['disabled']});
+}
+// Before a page's first result: what it will list, over a still outline of its shape. The outline shimmers while the
+// page's button has a request out (``busy`` when the page is drawn mid-run), and stops again if the run fails.
+function emptyPreview(parent, run, items, shapes, busy = false) {
+  const box = append(parent, 'div', 'xs-empty' + (busy ? ' is-busy' : ''));
+  append(box, 'p', 'xs-empty-head', '结果会列出');
+  const list = append(box, 'ul', 'xs-empty-list');
+  items.forEach(item => append(list, 'li', null, item));
+  loadingGhost(box, ...shapes).classList.add('is-idle');
+  // Listening after the page's own handler: a click that only wrote a message leaves the button enabled.
+  run.addEventListener('click', () => {if (run.disabled) box.classList.add('is-busy');});
+  new MutationObserver(() => {if (!run.disabled) box.classList.remove('is-busy');}).observe(run, {attributes: true, attributeFilter: ['disabled']});
   return box;
 }
 const AUTO_OPEN = {
@@ -8329,12 +8369,8 @@ function autoOpen() {
     const run = document.getElementById(button);
     if (!(active === tab && run && !run.disabled)) return;
     run.click();
-    // A run that went out leaves its button disabled; the placeholder goes when the page redraws with the result, or
-    // when the button is enabled again after a failure that only wrote a message.
-    if (!run.disabled || shown()) return;
-    const ghost = loadingGhost(result, ...AUTO_GHOST[tab]);
-    const watch = new MutationObserver(() => {if (!run.isConnected || !run.disabled) {ghost.remove(); watch.disconnect();}});
-    watch.observe(run, {attributes: true, attributeFilter: ['disabled']});
+    // A run that went out leaves its button disabled.
+    if (run.disabled && !shown()) ghostWhileBusy(run, ...AUTO_GHOST[tab]);
   });
 }
 // What was typed into a tool's settings but not yet applied survives a redraw, such as the one an automatic
@@ -8421,6 +8457,7 @@ function activateTab(tab, updateUrl = true) {
   const previous = tabsShown ? tabs.find(other => other.classList.contains('active')) : null;
   tabsShown = true;
   active = tab.dataset.tab;
+  recentTools = [tab, ...recentTools.filter(other => other !== tab)].slice(0, RECENT_LIMIT + 1);
   result.setAttribute('aria-labelledby', tab.id);
   tabs.forEach(other => {
     const selected = other === tab;
@@ -8444,6 +8481,11 @@ function activateTab(tab, updateUrl = true) {
   // Restart the fade-in for the newly opened tool (style.css: #result.is-entering).
   result.classList.remove('is-entering'); void result.offsetWidth; result.classList.add('is-entering');
   render();
+  // The Qimen page opens on the chart of this moment, which its picker offers first; other moments wait for the button.
+  if (active === 'qimen' && qimenMoment.mode === 'now' && !qimenResult) {
+    const run = $('#qimen-run');
+    if (run && !run.disabled) {run.click(); if (run.disabled) ghostWhileBusy(run, 'board');}
+  }
 }
 tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
 $('#workspace-tabs').addEventListener('keydown', event => {
@@ -8462,6 +8504,8 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     $('#tool-search').focus();
     $('#tool-search').select();
+    // Pressed again while the box has the focus, the list still opens.
+    showPalette();
   }
   // ? lists every shortcut, except where it is typed (a text field) or another dialog is open.
   const typing = event.target instanceof Element && event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable=false])');
@@ -8474,7 +8518,7 @@ document.addEventListener('keydown', event => {
 const ON_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
 const SHORTCUTS = [
   ['任何地方', [[['Ctrl', 'K'], '查找功能或操作'], [['?'], '打开这份快捷键说明'], [['Esc'], '关闭对话框、日历或提示']]],
-  ['功能查找', [[['↑', '↓'], '在匹配的功能和操作之间移动'], [['Enter'], '打开功能或执行操作'], [['Esc'], '清空查找']]],
+  ['功能查找', [[['Ctrl', 'K'], '框里不输入时列出本次打开过的功能'], [['↑', '↓'], '在匹配的功能和操作之间移动'], [['Enter'], '打开功能或执行操作'], [['Esc'], '清空查找']]],
   ['功能标签', [[['←', '→'], '上一个 / 下一个功能'], [['Home', 'End'], '第一个 / 最后一个功能']]],
   ['日期框和日历', [[['Alt', '↓'], '打开日历（也可以按 F4）'], [['←', '→', '↑', '↓'], '逐日、逐周移动'],
     [['Home', 'End'], '本周第一天 / 最后一天'], [['Page Up', 'Page Down'], '上个月 / 下个月，加 Shift 换年'], [['Enter'], '选定这一天']]],

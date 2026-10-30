@@ -13,7 +13,7 @@ EXTRA = json.loads((ROOT / 'scripts/i18n_extra.json').read_text(encoding='utf-8'
 def test_pages_draw_a_placeholder_while_their_first_result_computes():
     assert 'function loadingGhost(parent, ...shapes)' in APP and "box.setAttribute('aria-hidden', 'true');" in APP
     shapes = set(re.search(r'const GHOST_COUNT = \{([^}]*)\}', APP).group(1).replace(' ', '').split(','))
-    assert {s.split(':')[0] for s in shapes} == {'strip', 'cards', 'table', 'month'}
+    assert {s.split(':')[0] for s in shapes} == {'strip', 'cards', 'table', 'month', 'board'}
     # Every page that opens with an automatic run has a shape, and the placeholder goes once the button is enabled again.
     auto_open = set(re.findall(r'^  (\w+): \[\'[\w-]+-run\'', APP, re.M))
     auto_ghost = set(re.findall(r'(\w+): \[', re.search(r'const AUTO_GHOST = \{([^}]*)\}', APP).group(1)))
@@ -24,6 +24,10 @@ def test_pages_draw_a_placeholder_while_their_first_result_computes():
     assert "if (dayunPending) loadingGhost(result, 'strip', 'table');" in APP
     assert "'正在按各种规则重新排盘…'); loadingGhost(result, 'table');" in APP
     assert APP.count("loadingGhost(result, 'cards');") >= 2
+    # The Qimen page opens on this moment's chart, drawing the nine palaces' outline while it is cast.
+    assert "if (active === 'qimen' && qimenMoment.mode === 'now' && !qimenResult) {" in APP
+    assert "if (run && !run.disabled) {run.click(); if (run.disabled) ghostWhileBusy(run, 'board');}" in APP
+    assert '.xs-ghost-board{grid-template-columns:repeat(3,minmax(0,1fr));' in CSS
     # The blocks shimmer like the calendar's placeholder, stand still with reduced motion and show in forced colours.
     assert '.xs-ghost>span{display:block;' in CSS and 'animation:xs-shimmer' in CSS
     assert re.search(r'prefers-reduced-motion:reduce\)\{[^}]*\.xs-ghost>span', CSS) or '.xs-ghost>span{animation:none}' in CSS
@@ -64,3 +68,17 @@ def test_english_punctuation_ages_and_the_calendar_export():
     assert "lines.push(...textColumns(calendarExportRows(calendarRows(data)), exportLang() === 'en'));" in APP
     assert "() => calendarExportRows(calendarRows(data, '节气（中国标准时间）', true))" in APP
     assert "function textColumns(rows, plain = false)" in APP
+
+
+def test_pages_waiting_for_input_show_what_their_result_will_list():
+    assert 'function emptyPreview(parent, run, items, shapes, busy = false) {' in APP
+    # The list is text for everyone; the outline under it is the hidden placeholder, still until a request is out.
+    assert "append(box, 'p', 'xs-empty-head', '结果会列出');" in APP and "loadingGhost(box, ...shapes).classList.add('is-idle');" in APP
+    assert "run.addEventListener('click', () => {if (run.disabled) box.classList.add('is-busy');});" in APP
+    assert '.xs-empty:not(.is-busy) .xs-ghost>span{animation:none;' in CSS and '.xs-ghosts.is-idle{margin-top:16px;' in CSS
+    # One per page that waits for the user's input before its first result.
+    assert APP.count('emptyPreview(result') == 5
+    for guard in ('if (!pairResult) {', 'if (!groupResult) {emptyPreview(', 'if (!pillarResult) {emptyPreview(', 'if (!importResult) {emptyPreview(', 'if(!dateScanResult){'):
+        assert guard in APP, guard
+    assert "['table'], pairRunning);" in APP and "['cards', 'table'], Boolean(groupRun)); return;}" in APP
+

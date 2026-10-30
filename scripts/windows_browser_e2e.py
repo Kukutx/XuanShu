@@ -104,8 +104,8 @@ def main():
                 desktop.locator('#birth_datetime').fill(original_date)
                 assert desktop.locator('#stale-birth-warning').is_hidden()
                 assert desktop.locator('#download-json').is_enabled()
+                # Opened on "now", the Qimen page casts this moment's chart by itself.
                 desktop.locator('[data-tab="qimen"]').click()
-                desktop.locator('#qimen-run').click()
                 desktop.locator('.qimen-cell').first.wait_for()
                 assert desktop.locator('.qimen-cell').count() == 9
                 desktop.locator('[data-tab="professional"]').click()
@@ -135,7 +135,6 @@ def main():
                 standalone.on('pageerror', lambda e: errors.append(str(e)))
                 standalone.goto(url + '/#tool=qimen', wait_until='networkidle')
                 assert standalone.locator('[data-tab="qimen"]').get_attribute('aria-selected') == 'true'
-                standalone.locator('#qimen-run').click()
                 standalone.locator('.qimen-cell').first.wait_for()
                 assert standalone.locator('#stale-birth-warning').is_hidden()
                 standalone.locator('#birth_datetime').fill('2000-08-16T04:01')

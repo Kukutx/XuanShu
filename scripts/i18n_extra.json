@@ -1659,6 +1659,10 @@
   "Two people's Four Pillars structures and traditional combination/clash labels",
   "二人の四柱構造と伝統的な合・冲ラベル"
  ],
+ "两人日干互看的十神": [
+  "Ten gods of each day stem seen from the other",
+  "互いの日干から見た十神"
+ ],
  "两体系共用生日、历法库和时制，不能以重合证明正确": [
   "Both systems share the birth date, calendar library and time basis, so agreement cannot prove correctness",
   "両体系は生年月日、暦法ライブラリ、時制を共有しているため、一致によって正しさを証明することはできません"
@@ -2559,6 +2563,10 @@
   "At most 5 candidate times",
   "候補時刻は最大5件"
  ],
+ "候选时刻的时家奇门盘": [
+  "Hour Qimen chart at each candidate time",
+  "候補時刻の時家奇門盤"
+ ],
  "值使": [
   "Duty door",
   "値使"
@@ -2950,6 +2958,10 @@
  "公历日": [
   "Gregorian day",
   "西暦日"
+ ],
+ "公历日与农历": [
+  "Gregorian and lunar date",
+  "西暦日と旧暦"
  ],
  "公历日期": [
   "Gregorian date",
@@ -4907,6 +4919,10 @@
   "Dates from four pillars",
   "四柱から日付を逆引き"
  ],
+ "四柱同位地支": [
+  "Branches in the same pillar",
+  "同じ柱の地支"
+ ],
  "四柱和大运都列出纳音；紫微的五行局也取命宫干支的纳音五行。": [
   "The four pillars and the luck pillars all show their Na Yin; the Zi Wei five-phase bureau also takes the Na Yin phase of the Life palace's stem and branch.",
   "四柱と大運に納音を示します。紫微の五行局も命宮の干支の納音五行から取ります。"
@@ -5074,6 +5090,10 @@
  "地支与本命": [
   "Branch vs. natal",
   "地支と本命"
+ ],
+ "地支两两关系": [
+  "Relations between every pair of branches",
+  "地支同士の関係"
  ],
  "地支六冲只对照本命年支和日支，是传统标签，不代表现实冲突。": [
   "Branch Six Clashes are only compared between the natal year branch and day branch; they are traditional labels and do not represent real-world conflict.",
@@ -6151,9 +6171,17 @@
   "Corresponding rules:",
   "対応する規則："
  ],
+ "对得上的出生时辰": [
+  "Birth hours that match",
+  "一致する出生時辰"
+ ],
  "对得上的年份": [
   "Matching years",
   "一致する年"
+ ],
+ "对得上的年份分布": [
+  "Years with a match",
+  "一致する年の分布"
  ],
  "对得上的时辰：": [
   "Hours that fit: ",
@@ -8719,6 +8747,10 @@
   "Spring Festival",
   "春節"
  ],
+ "是否与本命相冲": [
+  "Clash with the natal chart",
+  "本命との冲の有無"
+ ],
  "显示": [
   "Showing",
   "表示中"
@@ -8822,6 +8854,10 @@
  "最近交界 ": [
   "Nearest boundary ",
   "最寄りの境目 "
+ ],
+ "最近打开": [
+  "Recent",
+  "最近開いた"
  ],
  "最近日界 ": [
   "Nearest day boundary ",
@@ -9567,6 +9603,10 @@
   "Invalid format",
   "形式が正しくありません"
  ],
+ "框里不输入时列出本次打开过的功能": [
+  "With nothing typed, list the tools opened this visit",
+  "何も入力しないとき、今回開いた機能を一覧"
+ ],
  "桑柘木": [
   "Mulberry Wood (Sang Zhe Mu)",
   "桑柘木"
@@ -9843,6 +9883,10 @@
   "Each interval includes its start and excludes its end; at the end instant the pillars have already changed.",
   "各時間帯は開始時刻を含み、終了時刻を含みません。終了の瞬間には別の柱に変わっています。"
  ],
+ "每个时段的起止、时长与农历": [
+  "Each period's start, end, length and lunar date",
+  "各時間帯の始まり・終わり・長さと旧暦"
+ ],
  "每个节气分上元、中元、下元，各配一个局数（一到九）。": [
   "Each solar term is split into upper, middle and lower yuan, each with a bureau number from one to nine.",
   "各節気を上元・中元・下元に分け、それぞれに局数（一～九）を配します。"
@@ -9850,6 +9894,10 @@
  "每人十二步大运与各自列出的公历年，交运当年记在新大运下": [
   "Each person's twelve luck periods with the calendar years each covers; the year a period begins is listed under the new period",
   "各人の大運12期とそれぞれの西暦年。交運の年は新しい大運に含める"
+ ],
+ "每人四柱与日主": [
+  "Each person's pillars and day master",
+  "各人の四柱と日主"
  ],
  "每十年行一宫的运限，起始岁数由五行局定，阳男阴女顺行、阴男阳女逆行。": [
   "A ten-year period moving one palace at a time; the starting age comes from the five-phase bureau, and it runs forward for yang men and yin women, backward for yin men and yang women.",
@@ -11527,6 +11575,10 @@
   "No change",
   "結果は同じ"
  ],
+ "结果会列出": [
+  "The result will list",
+  "結果に表示される内容"
+ ],
  "结果依赖选定流派；不同流派、时区和临界出生时刻可能产生差异。": [
   "Results depend on the selected school; different schools, time zones, and boundary birth times may produce differences.",
   "結果は選択した流派に依存します。流派、タイムゾーン、境界付近の出生時刻によって差が生じる場合があります。"
@@ -11630,6 +11682,10 @@
  "能力清单": [
   "Capabilities",
   "機能一覧"
+ ],
+ "能让两边一致的规则": [
+  "Rules that make both charts agree",
+  "両方を一致させるルール"
  ],
  "腊八": [
   "Laba",
@@ -13011,6 +13067,10 @@
   "Which job should I take?",
   "どちらの仕事を選ぶ？"
  ],
+ "选定年份的大运流年": [
+  "Luck pillar and annual pillar for the chosen year",
+  "選んだ年の大運と流年"
+ ],
  "选定这一天": [
   "Choose this day",
   "この日を選ぶ"
@@ -13090,6 +13150,10 @@
  "逐项对照": [
   "Compared",
   "対照"
+ ],
+ "逐项比对": [
+  "Field-by-field comparison",
+  "項目ごとの照合"
  ],
  "通勤": [
   "Commute",
