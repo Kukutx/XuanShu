@@ -39,6 +39,21 @@ def test_traditional_table_keeps_domain_terms():
     assert chars['宫'] == '宮' and chars['历'] == '歷' and phrases['农历'] == '農曆' and phrases['日历'] == '日曆'
 
 
+def test_traditional_table_prefers_the_longer_phrase():
+    chars, phrases = _tables()
+
+    def to_traditional(text):  # the page's own longest-match lookup (static/i18n.js toTraditional)
+        out, i = '', 0
+        while i < len(text):
+            hit = next((n for n in (4, 3, 2) if len(text[i:i + n]) == n and text[i:i + n] in phrases), 0)
+            out += phrases[text[i:i + hit]] if hit else chars.get(text[i], text[i])
+            i += hit or 1
+        return out
+    # A phrase that is unchanged in Taiwan still wins over a shorter one inside it that changes (电子表 is a watch).
+    assert to_traditional('其他电子表格打开') == '其他電子表格打開'
+    assert to_traditional('这只是参考') == '這只是參考' and phrases['这只'] == '這隻'
+
+
 def test_traditional_table_covers_interface_text():
     chars, _ = _tables()
     # Spot-check characters from the new interface strings and computed labels.

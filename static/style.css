@@ -2182,6 +2182,8 @@ input::-webkit-calendar-picker-indicator:hover{background:var(--gold)}
 /* Text fields: vertical resize only, readable placeholders, themed autofill, a disabled look and one focus ring. */
 textarea{resize:vertical}
 ::placeholder{color:var(--faint);opacity:1}
+/* A hint or value longer than its field ends in an ellipsis rather than a hard cut. */
+input:not([type=checkbox],[type=radio],[type=range],[type=file]){text-overflow:ellipsis}
 input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,select:-webkit-autofill{-webkit-text-fill-color:var(--text);caret-color:var(--text);box-shadow:0 0 0 1000px var(--panel2) inset;transition:background-color 99999s}
 input:-webkit-autofill:focus{box-shadow:0 0 0 1000px var(--panel) inset,0 0 0 3px var(--ring)}
 :is(input,select,textarea):disabled{opacity:.55;cursor:not-allowed}

@@ -2626,12 +2626,15 @@ function calendarRuleLines(data) {
   }));
   return [...names].map(([rule, list]) => list.join('、') + '：' + rule);
 }
+// One row a day, for the text export and the spreadsheet file alike.
+// The file has no title line, so its term column says which clock the times are on.
+const calendarRows = (data, termHead = '节气') => [['公历', '星期', '农历', '日柱', termHead, '节令'], ...data.days.map(d => [d.date, d.weekday,
+  lunarMonthName(d.lunar) + LUNAR_DAYS[d.lunar.day - 1], d.day_pillar,
+  d.solar_terms.map(t => t.name + ' ' + t.time_china.slice(11, 16)).join('、') || '—',
+  marksOf(d).map(m => m.name + (m.day !== undefined ? ' ' + fillDay(SEASON_DAY.zh, m) : '')).join('、') || '—'])];
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱、节气与传统节令（中国标准时间）', ''];
-  lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气', '节令'], ...data.days.map(d => [d.date, d.weekday,
-    lunarMonthName(d.lunar) + LUNAR_DAYS[d.lunar.day - 1], d.day_pillar,
-    d.solar_terms.map(t => t.name + ' ' + t.time_china.slice(11, 16)).join('、') || '—',
-    marksOf(d).map(m => m.name + (m.day !== undefined ? ' ' + fillDay(SEASON_DAY.zh, m) : '')).join('、') || '—'])]));
+  lines.push(...textColumns(calendarRows(data)));
   const rules = calendarRuleLines(data);
   if (rules.length) lines.push('', '【节令推算规则】', ...rules);
   lines.push('', '只列历法事实，不含宜忌或吉凶。');
@@ -2834,7 +2837,8 @@ function renderCalendar() {
   const open = append(detail, 'button', 'tiny-button', current ? '查看这天的四柱、月相和与命盘的关系' : '查看这天的四柱与月相');
   open.type = 'button'; open.id = 'calendar-open-day';
   open.addEventListener('click', () => {todayPick = {date: d.date, time: '12:00'}; activateTab(tabs.find(t => t.dataset.tab === 'today'));});
-  textExport(result, 'calendar-text', () => calendarText(year, month, data), 'xuanshu-calendar-' + key + '.txt', '整月的农历、日柱与节气，按中国标准时间');
+  textExport(result, 'calendar-text', () => calendarText(year, month, data), 'xuanshu-calendar-' + key + '.txt', '整月的农历、日柱与节气，按中国标准时间',
+    () => calendarRows(data, '节气（中国标准时间）'));
   renderLunarInverseSection();
   note(result, data.notes.join(' '));
 }
@@ -3844,13 +3848,30 @@ async function copyPre(pre, button, done) {
     button.textContent = '已选中文字，请按 Ctrl+C 复制';
   }
 }
+// A table for spreadsheets (RFC 4180). The byte-order mark makes Excel read the UTF-8 text as such, and a cell a
+// spreadsheet would run as a formula is kept as text.
+function csvText(rows) {
+  const traditional = typeof uiLang !== 'undefined' && uiLang === 'zh-TW' && typeof toTraditional === 'function';
+  const cell = value => {
+    let text = String(value ?? '');
+    if (traditional) text = toTraditional(text);
+    if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
+    return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  };
+  return '\ufeff' + rows.map(row => row.map(cell).join(',')).join('\r\n') + '\r\n';
+}
 // Copy and download buttons with a folded preview. The text is rebuilt on every click and when the
 // interface language changes, so it always matches what the page shows.
-function textExport(parent, id, makeText, fileName, hint = '通行的中文命盘写法，不含出生日期、时间和备注') {
+function textExport(parent, id, makeText, fileName, hint = '通行的中文命盘写法，不含出生日期、时间和备注', makeRows = null) {
   const box = append(parent, 'div', 'text-export'); box.id = id;
   const actions = append(box, 'div', 'text-export-actions');
   const copy = append(actions, 'button', 'tiny-button', '复制成文字'); copy.type = 'button'; copy.id = id + '-copy';
   const save = append(actions, 'button', 'tiny-button', '下载 TXT'); save.type = 'button'; save.id = id + '-download';
+  if (makeRows) {
+    const sheet = append(actions, 'button', 'tiny-button', '下载 CSV'); sheet.type = 'button'; sheet.id = id + '-csv';
+    tip(sheet, '表格文件，可用 Excel、Numbers 或其他电子表格打开');
+    sheet.addEventListener('click', () => downloadBlob(new Blob([csvText(makeRows())], {type: 'text/csv;charset=utf-8'}), fileName.replace(/\.txt$/, '.csv')));
+  }
   append(actions, 'small', 'muted', hint);
   const fold = append(box, 'details', 'text-export-preview');
   append(fold, 'summary', null, '预览文字').id = id + '-summary';
@@ -7926,6 +7947,103 @@ function markScrollAreas() {
       if (!el.xsEdges) {el.xsEdges = true; el.addEventListener('scroll', () => scrollEdges(el), {passive: true});}
       scrollEdges(el);
     }
+  });
+}
+// Where the browser draws a select in the page's own style (appearance: base-select, Chromium 135+), the select is
+// as wide as the option chosen, so picking a longer one pushes the controls beside it along. A select sized by its
+// text keeps the width of its widest option instead, as the classic select does; one sized by its row (a full-width
+// form field) is left alone, and none grows wider than the row it sits in.
+const BASE_SELECT = typeof CSS !== 'undefined' && CSS.supports('appearance', 'base-select');
+// Measured only while it is drawn: a folded section's content keeps a box but is not laid out.
+const drawn = el => el.isConnected && (el.checkVisibility ? el.checkVisibility() : el.offsetParent !== null);
+const steadyQueue = new Set();
+const steadyKnown = new Map();
+let steadyFrame = 0, steadyRuler = null;
+// Selects are measured together just before the next paint, once translation has replaced their text.
+function steadySelect(sel) {
+  if (!BASE_SELECT) return;
+  steadyQueue.add(sel);
+  if (!steadyFrame) steadyFrame = requestAnimationFrame(measureSelects);
+}
+function measureSelects() {
+  steadyFrame = 0;
+  const ruler = (steadyRuler ||= document.createElement('canvas').getContext('2d'));
+  const jobs = [], known = [];
+  // Reads first: the text of every option is measured in the select's font, without laying the page out.
+  steadyQueue.forEach(sel => {
+    if (sel.multiple || sel.size > 1 || sel.options.length < 2 || !drawn(sel)) return;
+    const style = getComputedStyle(sel);
+    const labels = [...sel.options].map(option => option.label);
+    const key = [sel.id, sel.className, style.font, innerWidth, ...labels].join('\n');
+    if (sel.xsSteadyKey === key) return;
+    if (steadyKnown.has(key)) {known.push([sel, key]); return;}
+    ruler.font = style.font || `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    let wide = 0, narrow = 0, most = -1, least = Infinity;
+    labels.forEach((label, i) => {
+      const width = ruler.measureText(label).width;
+      if (width > most) {most = width; wide = i;}
+      if (width < least) {least = width; narrow = i;}
+    });
+    jobs.push({sel, key, wide, narrow, chosen: sel.selectedIndex, same: most - least < 1});
+  });
+  steadyQueue.clear();
+  const settle = (sel, key, minWidth) => {
+    sel.style.minWidth = minWidth;
+    if (minWidth) sel.dataset.xsSteady = '1'; else delete sel.dataset.xsSteady;
+    sel.xsSteadyKey = key;
+    if (steadyKnown.size > 300) steadyKnown.clear();
+    steadyKnown.set(key, minWidth);
+  };
+  known.forEach(([sel, key]) => settle(sel, key, steadyKnown.get(key)));
+  jobs.filter(job => job.same).forEach(job => settle(job.sel, job.key, ''));
+  const measured = jobs.filter(job => !job.same);
+  if (!measured.length) return;
+  // Then the browser's own box for the shortest and the longest option, two layouts for all of them together. A select
+  // whose box does not change between the two is sized by its row, or by a minimum width that fits every option.
+  measured.forEach(job => {job.sel.style.minWidth = ''; job.sel.selectedIndex = job.narrow;});
+  measured.forEach(job => {job.short = job.sel.getBoundingClientRect().width;});
+  measured.forEach(job => {job.sel.selectedIndex = job.wide;});
+  measured.forEach(job => {
+    job.long = job.sel.getBoundingClientRect().width;
+    // A percentage cannot cap it, since the label around a select is as wide as the select: the row's width does.
+    const row = job.sel.parentElement && job.sel.parentElement.closest('div,form,fieldset,details,section,li,td');
+    job.room = row ? row.clientWidth : Infinity;
+  });
+  measured.forEach(job => {
+    job.sel.selectedIndex = job.chosen;
+    settle(job.sel, job.key, job.long - job.short < 1 ? '' : Math.ceil(Math.min(job.long, job.room)) + 'px');
+  });
+}
+if (BASE_SELECT) {
+  // New selects, new options and translated option text are measured before the next paint.
+  new MutationObserver(records => {
+    records.forEach(record => {
+      const node = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+      const sel = node && node.closest('select');
+      if (sel) steadySelect(sel);
+      record.addedNodes.forEach(added => {
+        if (added.nodeType !== 1) return;
+        if (added.matches('select')) steadySelect(added);
+        added.querySelectorAll('select').forEach(steadySelect);
+      });
+    });
+  }).observe(document.body, {childList: true, subtree: true, characterData: true});
+  // A select that was hidden (a folded section, another tab) is measured when it is shown or first used.
+  document.addEventListener('toggle', e => {if (e.target instanceof Element) e.target.querySelectorAll('select').forEach(steadySelect);}, true);
+  // Measured at once on first use, before its list opens, so the list never sees the option change under it.
+  ['pointerdown', 'focusin'].forEach(type => document.addEventListener(type, e => {
+    if (!(e.target instanceof HTMLSelectElement)) return;
+    steadySelect(e.target);
+    cancelAnimationFrame(steadyFrame);
+    measureSelects();
+  }, true));
+  document.querySelectorAll('select').forEach(steadySelect);
+  // Only a change of width can change which selects are sized by their row; a phone's keyboard changes the height.
+  let steadyWidth = innerWidth;
+  window.addEventListener('resize', () => {
+    if (innerWidth === steadyWidth) return;
+    steadyWidth = innerWidth;
+    document.querySelectorAll('select').forEach(steadySelect);
   });
 }
 let scrollAreaFrame = 0;

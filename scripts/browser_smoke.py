@@ -120,6 +120,22 @@ def check_relation_card(page, kind: str, screenshot: Path) -> None:
     assert page.locator('#relation-card-dialog[open]').count() == 0
 
 
+# Text fields whose hint is wider than the field, measured in the field's own font (folded settings opened for it).
+CLIPPED_HINTS = """() => {
+  const folds = [...document.querySelectorAll('#connection-settings, .vault-pane')].filter(d => !d.open);
+  folds.forEach(d => {d.open = true;});
+  const ruler = document.createElement('canvas').getContext('2d'), out = [];
+  document.querySelectorAll('input[placeholder]').forEach(el => {
+    if (!el.offsetParent || el.value) return;
+    const s = getComputedStyle(el); ruler.font = s.font;
+    const room = el.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
+    if (ruler.measureText(el.placeholder).width > room + 0.5) out.push(el.id + ': ' + el.placeholder);
+  });
+  folds.forEach(d => {d.open = false;});
+  return out;
+}"""
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--chromium', type=Path, default=Path('/usr/bin/chromium'))
@@ -233,6 +249,18 @@ def main() -> None:
             assert page.locator('#chat-send').is_disabled()
             assert page.locator('#chat-memory-panel').count() == 1
             assert page.locator('#chat-mode option').count() == 2 and page.locator('#chat-mode').input_value() == 'single'
+            # A select drawn in the page's own style keeps the width of its widest option, so choosing another one moves
+            # nothing beside it (the browser would otherwise size it to the chosen option).
+            if page.evaluate("CSS.supports('appearance', 'base-select')"):
+                if not page.locator('#chat-mode').is_visible():
+                    page.locator('#chat-settings > summary').click()
+                mode_width = page.locator('#chat-mode').bounding_box()['width']
+                page.locator('#chat-mode').select_option('panel')
+                assert abs(page.locator('#chat-mode').bounding_box()['width'] - mode_width) < 1, mode_width
+                page.locator('#chat-mode').select_option('single')
+                assert abs(page.locator('#chat-mode').bounding_box()['width'] - mode_width) < 1, mode_width
+                page.locator('#chat-settings > summary').click()
+                assert not page.locator('#chat-mode').is_visible()
             page.locator('[data-tab="date-scan"]').click()
             # An officer cannot be kept and excluded at once: ticking one side clears the other.
             page.locator('#scan-include input[value="建"]').check()
@@ -1510,7 +1538,14 @@ def main() -> None:
             assert page.locator('#qimen-audit-board-form .qr-cell').count() == 9
             assert page.locator('#qimen-audit-run').is_disabled() and '至少' in page.locator('#qimen-audit-count').inner_text()
             page.locator('#qimen-audit-when').fill('2026-10-12T15:30')
+            # A time-zone list runs to hundreds of names and is held at its longest one too.
+            if page.evaluate("CSS.supports('appearance', 'base-select')"):
+                zone_width = page.locator('#qimen-audit-zone').bounding_box()['width']
+                page.locator('#qimen-audit-zone').select_option('America/North_Dakota/New_Salem')
+                assert abs(page.locator('#qimen-audit-zone').bounding_box()['width'] - zone_width) < 1, zone_width
             page.locator('#qimen-audit-zone').select_option('Asia/Shanghai')
+            if page.evaluate("CSS.supports('appearance', 'base-select')"):
+                assert abs(page.locator('#qimen-audit-zone').bounding_box()['width'] - zone_width) < 1, zone_width
             page.locator('#qimen-audit-late-zi').uncheck()
             ref_chart = page.evaluate("postJSON('/api/qimen', {moment: qimenAuditMoment(qimenAuditDraft)})")
             ref_palace = {p['number']: p for p in ref_chart['palaces']}
@@ -1648,6 +1683,16 @@ def main() -> None:
             page.locator('#calendar-day-2024-02-01').wait_for(timeout=30000)
             assert page.evaluate('document.activeElement.id') == 'calendar-prev'
             assert '2024-02-10' in page.locator('#calendar-text-text').text_content() and '正月初一' in page.locator('#calendar-text-text').text_content()
+            # The same month downloads as a spreadsheet table: UTF-8 with a byte-order mark, one row a day. Blob.text()
+            # would drop the mark, so the bytes are decoded with it kept.
+            page.evaluate("() => {window.__csv = null; window.__keepDownload = downloadBlob; downloadBlob = (blob, name) => {blob.arrayBuffer().then(bytes => {window.__csv = [name, blob.type, new TextDecoder('utf-8', {ignoreBOM: true}).decode(bytes)];});};}")
+            page.locator('#calendar-text-csv').click()
+            page.wait_for_function('() => window.__csv !== null', timeout=5000)
+            csv_name, csv_type, csv = page.evaluate('window.__csv')
+            page.evaluate('() => {downloadBlob = window.__keepDownload;}')
+            assert csv_name == 'xuanshu-calendar-2024-02.csv' and csv_type.startswith('text/csv'), (csv_name, csv_type)
+            assert csv.startswith('\ufeff公历,星期,农历,日柱,节气（中国标准时间）,节令\r\n') and csv.count('\r\n') == 30, csv[:120]
+            assert '\r\n2024-02-10,' in csv and '春节' in csv.split('\r\n2024-02-10,')[1].split('\r\n')[0], csv[:400]
             page.screenshot(path=str(screenshot_dir / '05-calendar.png'), full_page=True)
             # A lunar date turned into a Gregorian one is picked on the calendar.
             page.locator('#calendar-next').click()
@@ -2514,6 +2559,14 @@ def main() -> None:
             page.locator('#ui-language').select_option('ja')
             grid = page.locator('#ziwei-pair-grid').inner_text()
             assert '命宮' in grid and '命宫' not in grid, grid[:300]
+            # No hint in a text field is cut off, in Japanese or English, on a desktop or a phone.
+            for lang in ('ja', 'en'):
+                page.locator('#ui-language').select_option(lang)
+                for width, height in ((1440, 920), (390, 844)):
+                    page.set_viewport_size({'width': width, 'height': height})
+                    clipped = page.evaluate(CLIPPED_HINTS)
+                    assert clipped == [], (lang, width, clipped)
+            page.set_viewport_size({'width': 1440, 'height': 920})
             page.locator('#ui-language').select_option('zh-CN')
             assert page.locator('[data-tab="calendar"]').inner_text() == '历法日历'
             assert page.get_by_text('紫微宫位叠盘', exact=True).count() == 1

@@ -1347,6 +1347,10 @@
   "Next full moon",
   "次の満月"
  ],
+ "下载 CSV": [
+  "Download CSV",
+  "CSV をダウンロード"
+ ],
  "下载 JSON ↓": [
   "Download JSON ↓",
   "JSON をダウンロード ↓"
@@ -11539,6 +11543,10 @@
   "Solar terms",
   "節気の照会"
  ],
+ "节气（中国标准时间）": [
+  "Solar term (China Standard Time)",
+  "節気（中国標準時）"
+ ],
  "节气（北京时间）": [
   "Solar term (Beijing time)",
   "節気（北京時間）"
@@ -11670,6 +11678,10 @@
  "表头写评价维度和权重（大于零），每行一个方案，格子里填 0–5 的评分。": [
   "The header holds the criteria and their weights (above zero); each row is an option, rated 0–5 in each cell.",
   "見出しに評価軸と重み（0 より大きい値）を書き、各行が一つの案、マスに 0–5 の評点を入れます。"
+ ],
+ "表格文件，可用 Excel、Numbers 或其他电子表格打开": [
+  "A table file for Excel, Numbers or any other spreadsheet",
+  "Excel や Numbers などの表計算ソフトで開ける表ファイル"
  ],
  "表面合计：": [
   "Surface totals:",
