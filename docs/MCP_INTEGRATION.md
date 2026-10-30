@@ -6,7 +6,10 @@
 
 - **新版 `2026-07-28`**：无 `initialize` 握手、每个请求的 `params._meta` 必须包含协议版本和客户端能力对象 `io.modelcontextprotocol/clientCapabilities`。支持 `server/discover`，结果带 `resultType: complete` 和 `serverInfo`；`tools/list`、`prompts/list`、`resources/list`、`resources/read` 的新版回复带 `ttlMs`、`cacheScope`。HTTP 请求必须提供 `MCP-Protocol-Version`、`Mcp-Method`、必要时的 `Mcp-Name`，并与 JSON 正文一致。
 - **旧版 `2025-11-25`、`2025-06-18`、`2025-03-26`**：支持 `initialize` 握手，并保留旧版工具/资源/提示结构。
-- **工具标注与错误**：每个工具都带 `annotations`（`readOnlyHint: true`、`destructiveHint: false`、`idempotentHint: true`、`openWorldHint: false`）：只按参数计算，不写入、不联网，同样的参数得到同样的结果。参数不合格时 `tools/call` 返回 `isError: true`，`structuredContent.error` 为 `{code: "invalid_arguments", message, fields: [{path, message, type}]}`，逐个写出出错的字段；参数合格但超出可计算范围（如年份不在 1901–2099）时 `code` 为 `calculation_refused`。`resources/templates/list` 返回空列表（资源都是固定地址）。
+- **工具标注与错误**：每个工具都带 `annotations`（`readOnlyHint: true`、`destructiveHint: false`、`idempotentHint: true`、`openWorldHint: false`）：只按参数计算，不写入、不联网，同样的参数得到同样的结果。参数不合格时 `tools/call` 返回 `isError: true`，`structuredContent.error` 为 `{code: "invalid_arguments", message, fields: [{path, message, type}]}`，逐个写出出错的字段；参数合格但超出可计算范围（如年份不在 1901–2099）时 `code` 为 `calculation_refused`。
+- **规则文档链接**：协商版本为 `2025-06-18` 及以后（HTTP 的 `MCP-Protocol-Version` 头、stdio 在 `initialize` 协商的版本，或新版请求自带的版本）时，`tools/call` 成功结果的 `content` 在 JSON 文本之后附上 `resource_link`，指向该工具依据的规则文档（如 `bazi_chart` → `astro://rules/bazi`、`day_officers` → `astro://rules/jianchu`），Agent 可直接 `resources/read`。`2025-03-26` 与未声明版本的请求不附链接；出错的结果也不附。
+- **资源模板**：`resources/templates/list` 列出两个按地址读取的计算结果，均为 `application/json`：`astro://solar-terms/{year}`（某年二十四节气的中国时间时刻，与 `solar_terms` 工具结果相同，1901–2099）和 `astro://lunar/{date}`（某个公历日 `YYYY-MM-DD` 的农历日期与闰月标记）。超出范围或日期无效时 `resources/read` 返回 `-32602`。
+- **参数补全**：声明 `completions` 能力，支持 `completion/complete`：提示模板的 `focus` 参数按模板给出建议（紫微相关为十二宫名，八字为藏干、十神、纳音等，奇门为阴阳遁、九宫、八门等，时制为经度、真太阳时、均时差等），先按开头匹配、没有再按包含匹配；资源模板的 `year` 参数给出以已输入数字开头的年份。每次最多 100 个值，附 `total` 与 `hasMore`。
 - **传输**：`python -m app.stdio` 标准输入输出；`POST /mcp` Streamable HTTP，单对象 JSON；`GET/DELETE /mcp` 返回 405；不支持主动 SSE、会话订阅、内建 OAuth 发码/登录与多轮输入请求。
 
 本实现只实现自身声明的上述子集。测试使用自编排的协议回归请求，**未声称通过官方 MCP 合规认证或完成全部 ChatGPT/Claude 远程插件安装**。

@@ -10,10 +10,14 @@ from .json_safety import strict_json_loads
 
 
 def run() -> None:
+    # One client per process: the version it negotiated in initialize applies to its later requests.
+    negotiated = None
     for line in sys.stdin:
         try:
             payload = strict_json_loads(line)
-            response = process_rpc(payload)
+            response = process_rpc(payload, negotiated)
+            if isinstance(payload, dict) and payload.get('method') == 'initialize' and response and 'result' in response:
+                negotiated = response['result'].get('protocolVersion')
             if response is not None:
                 print(json.dumps(response, ensure_ascii=False, separators=(',', ':')), flush=True)
         except (ValueError, UnicodeError) as exc:

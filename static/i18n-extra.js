@@ -1738,6 +1738,10 @@ const UI_EXTRA = {
 "calculation steps",
 "個の計算ステップ"
 ],
+"个资源模板": [
+"resource templates",
+"件のリソーステンプレート"
+],
 "个边界": [
 " boundaries",
 "個の境界"
@@ -1861,6 +1865,10 @@ const UI_EXTRA = {
 "九天": [
 "Nine Heaven (Jiu Tian)",
 "九天"
+],
+"九宫": [
+"Nine Palaces",
+"九宮"
 ],
 "九宫 · 三元局数 · 地盘 / 天盘 / 暗干 / 门 / 星 / 神": [
 "Nine Palaces · Three Yuan Ju number · Earth Plate / Heaven Plate / hidden stems / Doors / Stars / Deities",
@@ -2497,6 +2505,10 @@ const UI_EXTRA = {
 "例如：正在考虑转行做设计": [
 "e.g. considering a career change into design",
 "例：デザイン職への転職を検討中"
+],
+"依据的规则文档": [
+"Rule documents",
+"根拠のルール文書"
 ],
 "保存到档案": [
 "Save to profile",
@@ -7506,6 +7518,10 @@ const UI_EXTRA = {
 "Filter by name, purpose or parameter",
 "名前・用途・パラメータで絞り込み"
 ],
+"按地址读取的计算结果，打开时以今天为例读取。": [
+"Computed facts read by address; opening one reads today's as an example.",
+"アドレスで読み取る計算結果。開くと今日を例に読み取ります。"
+],
 "按太阳时计算需要出生地经度：选择出生城市，或填写经度（东经为正、西经为负）": [
 "Solar time needs the birthplace longitude: choose a birth city or enter the longitude (east positive, west negative)",
 "太陽時で計算するには出生地の経度が必要です。出生都市を選ぶか、経度を入力してください（東経が正、西経が負）"
@@ -9333,6 +9349,14 @@ const UI_EXTRA = {
 "某个农历年的年支所在的宫，作为这一年的命宫。": [
 "The palace on a lunar year's branch, taken as that year's Life palace.",
 "ある旧暦年の年支がある宮。その年の命宮とします。"
+],
+"某年二十四节气": [
+"24 solar terms of a year",
+"ある年の二十四節気"
+],
+"某日农历": [
+"Lunar date of a day",
+"ある日の旧暦"
 ],
 "查找功能": [
 "Find a feature",
