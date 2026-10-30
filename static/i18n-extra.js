@@ -1726,6 +1726,10 @@ const UI_EXTRA = {
 "intervals",
 "件の時間帯"
 ],
+"个月": [
+"months",
+"か月"
+],
 "个规则资源": [
 "rule resources",
 "件のルールリソース"
@@ -6958,6 +6962,10 @@ const UI_EXTRA = {
 "The current chart's birth time is later than this moment, so no personal comparison is shown.",
 "現在の命盤の出生時刻はこの時点より後のため、個人対照は表示しません。"
 ],
+"当前命盘的备注": [
+"Notes for the current chart",
+"現在の命盤のメモ"
+],
 "当前命盘的称呼": [
 "Name for the current chart",
 "現在の命盤の呼び名"
@@ -7057,6 +7065,10 @@ const UI_EXTRA = {
 "必填": [
 "Required",
 "必須"
+],
+"忌": [
+"忌",
+"忌"
 ],
 "忌入": [
 "Ji in",
@@ -7181,6 +7193,10 @@ const UI_EXTRA = {
 "成都": [
 "Chengdu",
 "成都"
+],
+"我": [
+"Me",
+"自分"
 ],
 "我们两": [
 "The two of us",
@@ -8626,6 +8642,34 @@ const UI_EXTRA = {
 "Growth stage",
 "星運"
 ],
+"星运 养": [
+"Growth stage Yang (Nurturing)",
+"星運 養"
+],
+"星运 墓": [
+"Growth stage Mu (Tomb)",
+"星運 墓"
+],
+"星运 死": [
+"Growth stage Death (Si)",
+"星運 死"
+],
+"星运 病": [
+"Growth stage Sickness (Bing)",
+"星運 病"
+],
+"星运 绝": [
+"Growth stage Extinction (Jue)",
+"星運 絶"
+],
+"星运 胎": [
+"Growth stage Conception (Tai)",
+"星運 胎"
+],
+"星运 衰": [
+"Growth stage Decline (Shuai)",
+"星運 衰"
+],
 "星运是日主在各柱地支的十二长生，自坐是各柱天干在本柱地支的十二长生（阳干顺行、阴干逆行，火土同宫）；空亡是各柱所在旬余下的两个地支，地支上的「日空」「年空」表示它落在日柱或年柱的旬空里。": [
 "Growth stage is the day master's stage at each pillar's branch, and self seat is each pillar's stem at its own branch (yang stems forward, yin stems backward, Fire and Earth share). Void lists the two branches left over by each pillar's decade; “day void” or “year void” on a branch means it falls in the day or year pillar's void.",
 "星運は日主から見た各柱地支の十二長生、自坐は各柱の天干から見た自柱地支の十二長生（陽干順行・陰干逆行、火土同宮）。空亡は各柱の旬に入らない二支で、地支の「日空」「年空」は日柱・年柱の旬空に入ることを示す。"
@@ -9217,6 +9261,10 @@ const UI_EXTRA = {
 "术语解释": [
 "Glossary",
 "用語解説"
+],
+"权": [
+"权",
+"権"
 ],
 "权入": [
 "Quan in",
@@ -10922,6 +10970,10 @@ const UI_EXTRA = {
 "Auxiliary stars: depend on the hour",
 "神煞：時刻次第"
 ],
+"禄": [
+"禄",
+"禄"
+],
 "禄入": [
 "Lu in",
 "禄入"
@@ -10969,6 +11021,10 @@ const UI_EXTRA = {
 "种组合": [
 "combinations",
 "通りの組み合わせ"
+],
+"科": [
+"科",
+"科"
 ],
 "科入": [
 "Ke in",
@@ -11569,6 +11625,34 @@ const UI_EXTRA = {
 "自坐": [
 "Self seat",
 "自坐"
+],
+"自坐 养": [
+"Self seat Yang (Nurturing)",
+"自坐 養"
+],
+"自坐 墓": [
+"Self seat Mu (Tomb)",
+"自坐 墓"
+],
+"自坐 死": [
+"Self seat Death (Si)",
+"自坐 死"
+],
+"自坐 病": [
+"Self seat Sickness (Bing)",
+"自坐 病"
+],
+"自坐 绝": [
+"Self seat Extinction (Jue)",
+"自坐 絶"
+],
+"自坐 胎": [
+"Self seat Conception (Tai)",
+"自坐 胎"
+],
+"自坐 衰": [
+"Self seat Decline (Shuai)",
+"自坐 衰"
 ],
 "至今": [
 "Now",

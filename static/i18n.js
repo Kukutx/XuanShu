@@ -230,7 +230,11 @@ function translateText(source) {
     .replace(/(\d+)岁 ?(\d+)个?月/g, '$1 yr $2 mo').replace(/(\d+)岁(?![㐀-鿿（(])/g, '$1 yr')
     .replace(/(\d+(?:\.\d+)?) ?日(?![㐀-鿿])/g, (_, n) => n + (n === '1' ? ' day' : ' days'))
     // Qimen bureaus: 阴遁5局 reads Yin Dun 5.
-    .replace(/([阴阳])遁 ?(\d)局/g, (_, side, n) => (side === '阴' ? 'Yin' : 'Yang') + ' Dun ' + n);
+    .replace(/([阴阳])遁 ?(\d)局/g, (_, side, n) => (side === '阴' ? 'Yin' : 'Yang') + ' Dun ' + n)
+    // A palace's stem in brackets: 疾厄宫（己干） reads Health Palace (己 stem).
+    .replace(/（([甲乙丙丁戊己庚辛壬癸])干）/g, '（$1 stem）');
+  // Japanese writes ages with 歳 and counted months with か月 (a bare 10月 would read as October).
+  if (uiLang === 'ja') source = source.replace(/(\d+) ?岁 ?(\d+) ?个?月/g, '$1歳 $2か月').replace(/(\d+) ?岁/g, '$1歳');
   const gap = uiLang === 'en' ? ' ' : '';
   // Composed text: replace each known phrase; English gets spaces between replaced words and Chinese.
   const out = source.replace(uiPhraseRe, (hit, offset, whole) => {
@@ -240,8 +244,12 @@ function translateText(source) {
     const after = next && /[^\s)）·:：,，、。/]/.test(next) ? gap : '';
     return before + target + after;
   });
-  // English lists read "A, B; C" rather than keeping the Chinese enumeration comma and semicolon.
-  return uiLang === 'en' ? out.replace(/\s*、\s*/g, ', ').replace(/\s*；\s*/g, '; ') : out;
+  if (uiLang !== 'en') return out;
+  // English lists read "A, B; C: D" rather than keeping the Chinese enumeration comma, semicolon and colon; brackets
+  // are half-width with a space before them, and two replaced words side by side leave one space between them, not two.
+  return out.replace(/\s*、\s*/g, ', ').replace(/\s*；\s*/g, '; ').replace(/\s*：\s*/g, ': ')
+    .replace(/(\S)\s*（\s*/g, '$1 (').replace(/（\s*/g, '(').replace(/\s*）/g, ')')
+    .replace(/(\S) {2,}(?=\S)/g, '$1 ');
 }
 function skipNode(el) {
   return !el || el.closest('script,style,textarea,code,pre,.chat-text,.user-text,[data-no-i18n]') !== null;
@@ -263,13 +271,18 @@ function translateNode(root) {
   }
 }
 function translateAttrs(el) {
-  // A textarea's own placeholder is interface text; only its typed value is the user's.
-  if (el.closest('script,style,code,pre,.chat-text,.user-text,[data-no-i18n]')) return;
+  // A text field's own placeholder and name are interface text; only its typed value is the user's. A field for typed
+  // names takes the user-text class, and its label may carry a typed name (妈妈的备注), so there only a label known as a
+  // whole is translated.
+  const field = el.matches('input.user-text,textarea.user-text');
+  if (el.closest(field ? 'script,style,code,pre,.chat-text,[data-no-i18n]' : 'script,style,code,pre,.chat-text,.user-text,[data-no-i18n]')) return;
   for (const attr of UI_ATTRS) {
     if (!el.hasAttribute(attr)) continue;
     const key = 'data-i18n-' + attr;
     if (!el.hasAttribute(key)) el.setAttribute(key, el.getAttribute(attr));
-    const value = translateText(el.getAttribute(key));
+    const source = el.getAttribute(key);
+    if (field && !uiIndex[source] && !uiIndex[source.trim()]) continue;
+    const value = translateText(source);
     if (el.getAttribute(attr) !== value) el.setAttribute(attr, value);
   }
 }
