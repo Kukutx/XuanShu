@@ -16,6 +16,7 @@ OPTIONAL = {'/api/chat': {200, 503}, '/api/ziwei-professional': {200, 422}}
 def test_docs_page_is_self_hosted_and_passes_the_csp():
     res = client.get('/docs')
     assert res.status_code == 200 and 'text/html' in res.headers['content-type']
+    assert res.headers['cache-control'] == 'no-cache'  # revalidated like the workbench, so an upgrade shows at once
     assert "script-src 'self'" in res.headers['content-security-policy']
     html = res.text
     assert re.findall(r'<script\b[^>]*>', html) and all('src="/static/' in tag for tag in re.findall(r'<script\b[^>]*>', html))

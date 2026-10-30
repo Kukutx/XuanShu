@@ -124,9 +124,16 @@
     return ul;
   }
 
-  function copyText(text, button) {
-    const label = button.dataset.label || button.textContent;
+  // A copy button carries its source (Chinese) label in data-label: after the brief "已复制" it gets that back, and the
+  // page language translates it again; the label read off the button would already be translated and stay frozen.
+  function copyButton(label) {
+    const button = el('button', 'api-ghost', label);
+    button.type = 'button';
     button.dataset.label = label;
+    return button;
+  }
+  function copyText(text, button) {
+    const label = button.dataset.label;
     const done = ok => {
       button.textContent = ok ? '已复制' : '复制失败';
       setTimeout(() => {button.textContent = label;}, 1600);
@@ -194,8 +201,7 @@
     const actions = el('div', 'api-actions');
     const send = el('button', 'api-send', '发送请求');
     send.type = 'button';
-    const curl = el('button', 'api-ghost', '复制 curl');
-    curl.type = 'button';
+    const curl = copyButton('复制 curl');
     actions.append(send, curl);
     if (textarea) {
       const reset = el('button', 'api-ghost', '恢复示例');
@@ -207,13 +213,16 @@
     result.hidden = true;
     const status = el('p', 'api-status');
     status.setAttribute('role', 'status');
+    // The response is never translated, so its name comes from a label outside it that is.
+    const outName = el('span', 'visually-hidden', '响应内容');
+    outName.id = id + '-out-name';
     const pre = el('pre', 'api-out');
     pre.tabIndex = 0;
-    pre.setAttribute('aria-label', '响应内容');
-    const copyOut = el('button', 'api-ghost api-copy-out', '复制响应');
-    copyOut.type = 'button';
+    pre.setAttribute('aria-labelledby', outName.id);
+    const copyOut = copyButton('复制响应');
+    copyOut.classList.add('api-copy-out');
     copyOut.addEventListener('click', () => copyText(pre.textContent, copyOut));
-    result.append(status, pre, copyOut);
+    result.append(status, outName, pre, copyOut);
     box.append(actions, result);
 
     function target() {
@@ -327,6 +336,19 @@
     return body;
   }
 
+  // Every field name a request body can hold, including those of the objects it nests (a member's birth_datetime in a
+  // group request), so filtering by a field finds the operations that take it at any depth.
+  function fieldNames(schema, seen = new Set(), out = new Set()) {
+    const name = refName(schema);
+    if (name) {if (seen.has(name)) return [...out]; seen.add(name);}
+    const s = resolve(schema);
+    Object.entries(s.properties || {}).forEach(([key, sub]) => {out.add(key); fieldNames(sub, seen, out);});
+    ['anyOf', 'oneOf', 'allOf'].forEach(k => (s[k] || []).forEach(sub => fieldNames(sub, seen, out)));
+    if (s.items) fieldNames(s.items, seen, out);
+    if (s.additionalProperties && typeof s.additionalProperties === 'object') fieldNames(s.additionalProperties, seen, out);
+    return [...out];
+  }
+
   function card(entry) {
     const {method, path, op} = entry;
     const id = 'op-' + method + path.replace(/[^A-Za-z0-9]+/g, '-').replace(/-+$/, '');
@@ -343,7 +365,7 @@
     });
     const schema = resolve(op.requestBody && op.requestBody.content && op.requestBody.content['application/json']
       && op.requestBody.content['application/json'].schema);
-    const fields = Object.keys(schema.properties || {}).concat((op.parameters || []).map(p => p.name));
+    const fields = fieldNames(schema).concat((op.parameters || []).map(p => p.name));
     cards.push({node: details, summary, hay: [method, path, op['x-title'] || '', op.summary || '', op.description || ''].concat(fields).join(' ').toLowerCase()});
     return details;
   }
@@ -368,7 +390,8 @@
   }
 
   function openHash() {
-    const id = decodeURIComponent(location.hash.slice(1));
+    let id = '';
+    try {id = decodeURIComponent(location.hash.slice(1));} catch (_) {return;}  // a stray % (/docs#100%) is not an id
     const node = id && document.getElementById(id);
     if (!node || !node.closest('.api-list, .api-schemas')) return;
     if (node.closest('[hidden]') && filter.value) {filter.value = ''; applyFilter();}
@@ -430,7 +453,8 @@
     list.setAttribute('aria-busy', 'false');
     filter.disabled = false;
     applyFilter();
-    openHash();
+    // Outside the fetch chain: a problem opening the linked entry is not a failure to read the reference.
+    setTimeout(openHash);
   }
 
   function load() {
@@ -451,6 +475,13 @@
       });
   }
 
+  // The sticky filter bar grows when the group chips wrap; a linked entry scrolls to just below its measured height.
+  const tools = document.querySelector('.api-tools');
+  if (tools && 'ResizeObserver' in window) {
+    new ResizeObserver(() => {
+      document.documentElement.style.setProperty('--api-tools-h', Math.ceil(tools.getBoundingClientRect().height) + 'px');
+    }).observe(tools);
+  }
   filter.addEventListener('input', applyFilter);
   window.addEventListener('hashchange', openHash);
   // A link to the structure already in the address bar fires no hashchange; open it anyway (it may have been closed).

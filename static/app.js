@@ -225,8 +225,9 @@ function fillTimeZones() {
   try {zones = Intl.supportedValuesOf('timeZone');} catch (_) {return;}
   if (!zones.length) return;
   zones = [...new Set(zones.map(zone => RENAMED_ZONES[zone] || zone))].sort();
-  const common = elt('optgroup'); common.label = '常用';
-  common.append(...tz.children); tz.append(common);
+  // Moving the options out and back loses the selection (the last one moved would stay selected), so keep it.
+  const chosen = tz.value, common = elt('optgroup'); common.label = '常用';
+  common.append(...tz.children); tz.append(common); tz.value = chosen;
   const listed = new Set([...tz.options].map(o => o.value)), now = new Date(), groups = new Map();
   zones.forEach(zone => {
     if (listed.has(zone)) return;
@@ -241,34 +242,30 @@ function fillTimeZones() {
 }
 fillTimeZones();
 // Daylight saving: a clock time in the hour that repeats when the clocks go back happened twice, and one in the hour
-// skipped when they go forward never showed on the clock. Either is asked about rather than guessed. The answer is
-// the UTC offset the clock showed, sent with the birth time (the server reads an explicit offset as that instant); it
-// is kept only for the clock time and zone it was chosen for.
-function zoneOffsetMinutes(zone, utcMs) {
-  const name = new Intl.DateTimeFormat('en-US', {timeZone: zone, timeZoneName: 'longOffset'}).formatToParts(new Date(utcMs)).find(p => p.type === 'timeZoneName').value;
-  const m = /([+-])(\d{1,2})(?::?(\d{2}))?(?::(\d{2}))?/.exec(name);
-  return m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3] || 0) + Number(m[4] || 0) / 60) : 0;
-}
-const offsetText = minutes => {const a = Math.round(Math.abs(minutes)); return (minutes < 0 ? '-' : '+') + String(Math.floor(a / 60)).padStart(2, '0') + ':' + String(a % 60).padStart(2, '0');};
-function dstCase(local, zone) {
-  const wall = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local) ? Date.parse(local + ':00Z') : NaN;
-  if (!Number.isFinite(wall)) return null;
-  try {
-    const before = zoneOffsetMinutes(zone, wall - 43200000), after = zoneOffsetMinutes(zone, wall + 43200000);
-    if (before === after) return null;
-    // An offset fits when the instant it gives reads back as this clock time in the zone.
-    const fits = off => Math.abs(zoneOffsetMinutes(zone, wall - off * 60000) - off) < 0.01;
-    const kind = fits(before) && fits(after) ? 'repeat' : !fits(before) && !fits(after) ? 'skip' : null;
-    return kind && {kind, offsets: [before, after], wall};
-  } catch (_) {return null;}
+// skipped when they go forward never showed on the clock. Either is asked about rather than guessed. The server decides
+// (the browser's own zone data can be older than the server's, and they disagreed for New Zealand, Moldova and older
+// years): its refusal names the two offsets the clock could have shown, the page asks which one, and the answer is sent
+// with the birth time (the server reads an explicit offset as that instant). It is kept only for the clock time and
+// zone it was chosen for.
+// Old local mean times have offsets with seconds (Riyadh +03:06:52); they are kept, not rounded to the minute.
+const offsetText = minutes => {
+  const a = Math.round(Math.abs(minutes) * 60), pad = n => String(n).padStart(2, '0');
+  return (minutes < 0 ? '-' : '+') + pad(Math.floor(a / 3600)) + ':' + pad(Math.floor(a % 3600 / 60)) + (a % 60 ? ':' + pad(a % 60) : '');
+};
+const offsetMinutes = text => {const m = /^([+-])(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(text); return m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3]) + Number(m[4] || 0) / 60) : null;};
+// The server's refusal of a repeated or skipped clock time, with the two offsets it names (before and after the change).
+function serverDstCase(message, local, zone) {
+  const m = /(Ambiguous|nonexistent) daylight-saving[^(]*\(UTC offsets ([+-][\d:]+) or ([+-][\d:]+)\)/.exec(message || '');
+  const offsets = m ? [offsetMinutes(m[2]), offsetMinutes(m[3])] : [];
+  if (!m || offsets.includes(null) || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local)) return null;
+  return {kind: m[1] === 'Ambiguous' ? 'repeat' : 'skip', offsets, local, zone};
 }
 function chosenOffset() {
   const box = $('#utc_offset');
   return box.value && box.dataset.for === $('#birth_datetime').value + '|' + $('#timezone').value ? box.value : '';
 }
 function showDstChoice(info) {
-  const box = $('#dst-choice'); box.replaceChildren(); box.hidden = false;
-  const clock = $('#birth_datetime').value.slice(11, 16);
+  const box = $('#dst-choice'); box.replaceChildren(); box.hidden = false; box.dataset.for = info.local + '|' + info.zone;
   append(box, 'p', 'dst-choice-title', info.kind === 'repeat'
     ? '这个钟表时间在当地拨回时钟时出现了两次，请选按哪一次排盘：'
     : '这个钟表时间在当地拨快时钟时被跳过了，当时的钟表上没有这一刻。请核对出生记录，或选按哪个偏移理解：').id = 'dst-choice-title';
@@ -277,18 +274,30 @@ function showDstChoice(info) {
     const button = append(row, 'button', 'tiny-button'); button.type = 'button'; button.id = 'dst-choice-' + i;
     if (info.kind === 'repeat') texts(button, i ? '较晚的一次' : '较早的一次', ' · UTC' + offsetText(off));
     else {
-      const at = new Date(info.wall - off * 60000), shown = new Intl.DateTimeFormat('en-GB', {timeZone: $('#timezone').value, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'}).format(at);
+      // A skipped time read with one offset is an instant when the clock already showed the other one, so the clock
+      // read the typed time moved by their difference; the date too when that is another day (Samoa skipped 30 December 2011).
+      const at = new Date(Date.parse(info.local + ':00Z') + (info.offsets[1 - i] - off) * 60000).toISOString();
+      const shown = (at.slice(0, 10) === info.local.slice(0, 10) ? '' : at.slice(0, 10) + ' ') + at.slice(11, 16);
       texts(button, i ? '按拨钟后的偏移' : '按拨钟前的偏移', ' UTC' + offsetText(off) + ' · ', '相当于', ' ' + shown);
     }
     button.addEventListener('click', () => {
-      const keep = $('#utc_offset'); keep.value = offsetText(off); keep.dataset.for = $('#birth_datetime').value + '|' + $('#timezone').value;
-      box.hidden = true; box.replaceChildren(); form.requestSubmit();
+      box.hidden = true; box.replaceChildren();
+      // The choice was made for one clock time and zone; if either has changed since (a city preset, 时辰不详, a lunar
+      // date), the new values are checked afresh instead.
+      if ($('#birth_datetime').value !== info.local || $('#timezone').value !== info.zone) {form.requestSubmit(); return;}
+      const keep = $('#utc_offset'); keep.value = offsetText(off); keep.dataset.for = info.local + '|' + info.zone;
+      form.requestSubmit();
     });
   });
   append(box, 'p', 'field-help', '所选偏移只用于这一个钟表时间，改动出生时间或时区后需要重新选择。');
   $('#dst-choice-0').focus();
 }
-['input', 'change'].forEach(type => ['#birth_datetime', '#timezone'].forEach(id => $(id).addEventListener(type, () => {$('#dst-choice').hidden = true;})));
+// The choice belongs to the clock time and zone it was asked for: any edit of the form takes it away.
+function hideStaleDstChoice() {
+  const box = $('#dst-choice');
+  if (!box.hidden && box.dataset.for !== $('#birth_datetime').value + '|' + $('#timezone').value) box.hidden = true;
+}
+['input', 'change'].forEach(type => form.addEventListener(type, hideStaleDstChoice));
 function readInput() {
   return {
     birth_datetime: $('#birth_datetime').value + chosenOffset(),
@@ -302,8 +311,9 @@ function readInput() {
 }
 function setInput(data) {
   // A birth time saved with the offset chosen for a daylight-saving hour puts the offset back beside the clock time.
-  const offset = typeof data.birth_datetime === 'string' && /([+-]\d{2}:\d{2})$/.exec(data.birth_datetime.slice(16));
+  const offset = typeof data.birth_datetime === 'string' && /([+-]\d{2}:\d{2}(?::\d{2})?|Z)$/.exec(data.birth_datetime.slice(16));
   if (offset) data = {...data, birth_datetime: data.birth_datetime.slice(0, 16)};
+  if (offset && offset[1] === 'Z') offset[1] = '+00:00';
   for (const name of ['birth_datetime', 'timezone', 'gender']) {
     const control = $('#' + name);
     if (typeof data[name] === 'string') {
@@ -344,7 +354,11 @@ async function postJSON(path, body, signal) {
     const detail=typeof message==='string' ? message : (Array.isArray(message) ? message.map(x=>x.msg).join('; ') : JSON.stringify(message || data));
     if(response.status===401)throw new Error('请检查 API 访问令牌（401）：'+detail);
     if(response.status===403)throw new Error('访问被拒绝（403），请检查服务来源与权限：'+detail);
-    throw new Error(`HTTP ${response.status}：${detail}`);
+    // A message a person can act on replaces the raw one in every form; the raw text stays on the error for callers
+    // that read it (the birth form opens its daylight-saving choice from it).
+    const friendly=friendlyError(detail), error=new Error(friendly!==detail?friendly:`HTTP ${response.status}：${detail}`);
+    error.detail=detail;
+    throw error;
   }
   return data;
 }
@@ -7968,6 +7982,7 @@ window.addEventListener('hashchange', () => {
 // Keep old results visible for reference, but mark them as stale and
 // disable export when the user edits any birth parameter.
 function updateStaleBirthNotice() {
+  hideStaleDstChoice();  // also for values set directly (时辰不详, a lunar date) rather than typed
   const fingerprint=JSON.stringify(readInput());
   const outdatedChart=!!currentInput && fingerprint !== JSON.stringify(currentInput);
   const outdatedQimen=!!qimenResult && !!qimenFingerprint && fingerprint !== qimenFingerprint;
@@ -7999,8 +8014,7 @@ form.addEventListener('submit', async event => {
   event.preventDefault();
   const run = $('#run-btn'); const error = $('#error');
   error.hidden = true;
-  const dst = !chosenOffset() && dstCase($('#birth_datetime').value, $('#timezone').value);
-  if (dst) {showDstChoice(dst); return;}
+  const local = $('#birth_datetime').value, zone = $('#timezone').value, guessed = !chosenOffset();
   $('#dst-choice').hidden = true;
   run.disabled = true; run.setAttribute('aria-busy', 'true'); run.querySelector('span').textContent = '正在计算…';
   const data = readInput();
@@ -8028,9 +8042,13 @@ form.addEventListener('submit', async event => {
     announce('命盘已生成：' + data.birth_datetime.replace('T', ' '));
     if (compactScreen && compactScreen.matches) {setBirthPanelCollapsed(true); $('#workspace').scrollIntoView({block: 'start'});}
   } catch (err) {
-    error.textContent = '计算失败：' + friendlyError(err.message); error.hidden = false; importRecheck = false; importFocusAfter = false;
-    // The message sits in the form, so a folded form opens to show it; screen readers hear it either way.
-    setBirthPanelCollapsed(false); announce(error.textContent);
+    importRecheck = false; importFocusAfter = false;
+    // The message or question sits in the form, so a folded form opens to show it.
+    setBirthPanelCollapsed(false);
+    // A repeated or skipped clock time: ask which offset the clock showed, then cast again with it.
+    const asked = guessed && serverDstCase(err.detail, local, zone);
+    if (asked && $('#birth_datetime').value === local && $('#timezone').value === zone) showDstChoice(asked);
+    else {error.textContent = '计算失败：' + friendlyError(err.message); error.hidden = false; announce(error.textContent);}
   }
   finally {run.disabled = false; run.removeAttribute('aria-busy'); run.querySelector('span').textContent = '生成命盘';}
 });

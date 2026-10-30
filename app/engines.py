@@ -45,7 +45,8 @@ TIANMA_BY_BRANCH = tuple((2, 11, 8, 5)[branch % 4] for branch in range(12))
 class BirthInput(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    birth_datetime: str = Field(description='ISO 8601 local birth time, e.g. 1995-06-08T14:30')
+    birth_datetime: str = Field(description='ISO 8601 local birth time, e.g. 1995-06-08T14:30; for a clock time repeated or skipped by a '
+                                'daylight-saving change, append the UTC offset the clock showed, e.g. 1988-09-11T01:30+09:00')
     timezone: str = Field(default='Asia/Shanghai', description='IANA timezone, e.g. Asia/Shanghai, Europe/Rome')
     gender: Literal['male', 'female', 'unspecified'] = 'unspecified'
     late_zi_day_rollover: bool = Field(default=False, description='Set true for traditional 23:00 day change')
@@ -79,17 +80,27 @@ class BirthInput(BaseModel):
         return value
 
 
+def _offset_text(delta) -> str:
+    seconds = int(delta.total_seconds())
+    sign, seconds = ('-' if seconds < 0 else '+'), abs(seconds)
+    text = f'{sign}{seconds // 3600:02d}:{seconds % 3600 // 60:02d}'
+    return text + (f':{seconds % 60:02d}' if seconds % 60 else '')
+
+
 def normalized_dt(inp: BirthInput) -> datetime:
     zone = ZoneInfo(inp.timezone)
     raw = datetime.fromisoformat(inp.birth_datetime)
     result = raw.replace(tzinfo=zone) if raw.tzinfo is None else raw.astimezone(zone)
     if not 1901 <= result.year <= 2099:
         raise ValueError('Supported birth years: 1901–2099')
-    # Eliminate invalid wall times during DST transitions.
-    if raw.tzinfo is None and result.astimezone(ZoneInfo('UTC')).astimezone(zone).replace(tzinfo=None) != raw:
-        raise ValueError('Birth time falls in a nonexistent daylight-saving hour; specify a valid local time')
-    if raw.tzinfo is None and result.replace(fold=0).utcoffset() != result.replace(fold=1).utcoffset():
-        raise ValueError('Ambiguous daylight-saving local time; supply an explicit UTC offset')
+    # Eliminate invalid wall times during DST transitions. Both messages name the two offsets the clock could have
+    # shown (before and after the change), so a client can offer them and send the chosen one with the time.
+    if raw.tzinfo is None:
+        offsets = f' (UTC offsets {_offset_text(result.replace(fold=0).utcoffset())} or {_offset_text(result.replace(fold=1).utcoffset())})'
+        if result.astimezone(ZoneInfo('UTC')).astimezone(zone).replace(tzinfo=None) != raw:
+            raise ValueError('Birth time falls in a nonexistent daylight-saving hour; specify a valid local time' + offsets)
+        if result.replace(fold=0).utcoffset() != result.replace(fold=1).utcoffset():
+            raise ValueError('Ambiguous daylight-saving local time; supply an explicit UTC offset' + offsets)
     return result
 
 

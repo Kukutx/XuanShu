@@ -10476,7 +10476,7 @@ const UI_EXTRA = {
 ],
 "相当于": [
 "equals",
-"相当"
+"すなわち"
 ],
 "相生": [
 "Generating",

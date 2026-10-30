@@ -207,6 +207,8 @@ def main() -> None:
             page.add_script_tag(content=vault_js)
             page.add_script_tag(content=cities_js)
             page.add_script_tag(content=i18n_js)
+            # The full time-zone list keeps the page's default zone selected.
+            assert page.locator('#timezone').input_value() == 'Asia/Shanghai'
             page.locator('#birth_city').select_option('温哥华')
             assert page.locator('#timezone').input_value() == 'America/Vancouver'
             assert page.locator('#longitude').input_value() == '-123.1207'
@@ -2467,6 +2469,16 @@ def main() -> None:
             # A different clock time asks again; the chosen offset belonged to 01:30 only.
             page.locator('#birth_datetime').fill('1988-09-11T01:45')
             assert page.evaluate('readInput().birth_datetime') == '1988-09-11T01:45'
+            # A skipped clock time: Samoa skipped all of 30 December 2011, so the equivalent clock reading is on
+            # another day and is shown with its date. The offsets come from the server's refusal, not the browser.
+            page.evaluate("() => setInput({birth_datetime: '2011-12-30T12:00', timezone: 'Pacific/Apia', gender: 'female'})")
+            page.locator('#run-btn').click()
+            page.locator('#dst-choice-1').wait_for(timeout=10000)
+            assert '2011-12-31 12:00' in page.locator('#dst-choice-0').inner_text(), page.locator('#dst-choice').inner_text()
+            assert '2011-12-29 12:00' in page.locator('#dst-choice-1').inner_text() and page.locator('#error').is_hidden()
+            # Any change of the time or zone takes the question away, also a value the page sets itself (时辰不详, a lunar date).
+            page.evaluate("() => {document.getElementById('birth_datetime').value = '2011-12-31T12:00'; updateStaleBirthNotice();}")
+            assert page.locator('#dst-choice').is_hidden()
 
             # The API reference at /docs is the project's own page (Swagger's CDN scripts are blocked by the CSP):
             # groups, field tables, and a "try it" request that really runs, on a phone-width screen.
@@ -2495,7 +2507,8 @@ def main() -> None:
             assert docs.locator('#api-groups a').first.inner_text().startswith('命盘与报告')
             op = docs.locator('#op-post-api-time-audit')
             op.locator('summary').click()
-            assert op.locator('.api-fields').count() >= 1 and '太阳时审计' in op.locator('summary').inner_text()
+            op.locator('.api-fields').first.wait_for(timeout=10000)  # built when first opened
+            assert '太阳时审计' in op.locator('summary').inner_text()
             assert json.loads(op.locator('textarea').input_value())['birth']['longitude'] == 104.07
             op.locator('.api-send').click()
             op.locator('.api-status .api-code').wait_for(timeout=30000)
@@ -2516,13 +2529,29 @@ def main() -> None:
             # A field name finds its endpoint; a type name jumps to the structure and opens it.
             docs.locator('#api-filter').fill('reference_school')
             assert docs.locator('.api-op:not([hidden])').count() == 1 and docs.locator('#api-count').inner_text().startswith('1 / ')
+            # Fields nested in the body count too: longitude sits inside birth.
+            docs.locator('#api-filter').fill('longitude')
+            assert docs.locator('#op-post-api-time-audit').is_visible()
             docs.locator('#api-filter').fill('')
+            # A stray % in the address is ignored rather than breaking the page.
+            docs.evaluate("() => {location.hash = '100%';}")
+            docs.wait_for_timeout(200)
             op.locator('.api-op-body h4 .api-ref').click()
             docs.wait_for_function("() => document.getElementById('schema-TimeAuditRequest').open", timeout=5000)
             assert docs.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth')
             docs.locator('#ui-language').select_option('en')
             docs.wait_for_function("() => document.documentElement.lang === 'en' && document.title === 'API reference · XuanShu'", timeout=10000)
             assert 'Try it' in op.inner_text() and 'Birth-time checks' in docs.locator('#api-groups').inner_text()
+            out_name = op.locator('.api-out').get_attribute('aria-labelledby')
+            assert docs.locator('#' + out_name).inner_text() == 'Response body'
+            # A copy button gets its own label back after "Copied", still translatable into the next language.
+            curl = op.locator('.api-actions .api-ghost').first
+            curl.click()
+            docs.wait_for_function("(b) => b.textContent === 'Copy curl'", arg=curl.element_handle(), timeout=10000)
+            docs.locator('#ui-language').select_option('ja')
+            docs.wait_for_function("(b) => b.textContent !== 'Copy curl' && b.textContent.includes('curl')", arg=curl.element_handle(), timeout=10000)
+            docs.locator('#ui-language').select_option('en')
+            docs.wait_for_function("() => document.documentElement.lang === 'en'", timeout=10000)
             assert docs.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth')
             docs.screenshot(path=str(screenshot_dir / '43-api-docs-mobile-english.png'), full_page=True)
             docs.close()

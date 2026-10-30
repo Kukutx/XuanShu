@@ -2240,7 +2240,7 @@ html:has(body.api-page){scroll-padding-top:calc(var(--header-h) + 18px)}
 .api-auth input::placeholder{color:var(--faint)}
 .api-tools{margin:18px 0 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;align-items:center}
 @media (min-width:861px){.api-tools{position:sticky;top:var(--header-h);z-index:30;margin:18px -32px 0;padding:12px 32px;background:var(--glass);-webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px);border-bottom:1px solid var(--border)}
-  html:has(body.api-page){scroll-padding-top:calc(var(--header-h) + 128px)}}
+  html:has(body.api-page){scroll-padding-top:calc(var(--header-h) + var(--api-tools-h,116px) + 12px)}}
 .api-search input{width:100%;padding:10px 14px;border:1px solid var(--border-strong);background:var(--panel2);border-radius:var(--radius);font-size:13.5px;transition:border-color .15s,box-shadow .15s,background .15s}
 .api-search input:hover:not(:disabled){border-color:var(--gold)}
 .api-search input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--ring);background:var(--panel)}
@@ -2337,7 +2337,7 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .api-op>summary{flex-wrap:wrap;row-gap:4px;padding:10px 12px}
   .api-title{flex-basis:100%;order:3}
   .api-op-body{padding:2px 12px 14px}
-  .api-fields thead{display:none}
+  .api-fields thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}  /* hidden from view, still read as the column names */
   .api-fields tr{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr);column-gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
   .api-fields tr:last-child{border-bottom:none}
   .api-fields td{border:none;padding:0 2px}

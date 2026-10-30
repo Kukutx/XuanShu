@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -151,6 +152,20 @@ def test_boundary_map_dst_fall_requires_explicit_offset(offset):
 def test_boundary_map_dst_ambiguous_without_offset_rejected():
     with pytest.raises(ValueError,match='Ambiguous daylight-saving'):
         birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2024-10-27T02:10',timezone='Europe/Rome')))
+
+
+@pytest.mark.parametrize('when,zone,kind,offsets',[
+    ('1988-09-11T01:30','Asia/Shanghai','Ambiguous','+09:00 or +08:00'),
+    ('1988-04-17T02:30','Asia/Shanghai','nonexistent','+08:00 or +09:00'),
+    ('2011-12-30T12:00','Pacific/Apia','nonexistent','-10:00 or +14:00'),
+])
+def test_dst_refusal_names_both_offsets_the_clock_could_have_shown(when,zone,kind,offsets):
+    # The web form builds its "which one" choice from these offsets, so the server's zone data decides, not the browser's.
+    with pytest.raises(ValueError,match=f'{kind} daylight-saving.*\\(UTC offsets {re.escape(offsets)}\\)'):
+        birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime=when,timezone=zone)))
+    one,other=offsets.split(' or ')
+    for offset in (one,other):
+        assert birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime=when+offset,timezone=zone)))['segments']
 
 
 def test_boundary_map_finds_apparent_solar_hour_transition():

@@ -169,7 +169,7 @@ async def security_headers(request: Request, call_next):
     response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
     if request.url.path.startswith('/api/') or request.url.path == '/mcp':
         response.headers['Cache-Control'] = 'no-store'
-    elif request.url.path == '/' or request.url.path.startswith('/static/'):
+    elif request.url.path in ('/', '/docs') or request.url.path.startswith('/static/'):
         # Revalidate with the ETag on every load: an upgrade is picked up at once, unchanged files cost a 304.
         response.headers['Cache-Control'] = 'no-cache'
     return response
@@ -185,7 +185,7 @@ class StaticGzip:
 
     async def __call__(self, scope, receive, send):
         path = scope.get('path', '') if scope['type'] == 'http' else ''
-        if path == '/' or path.startswith('/static/'):
+        if path in ('/', '/docs') or path.startswith('/static/'):
             await self.gzip(scope, receive, send)
         else:
             await self.app(scope, receive, send)
