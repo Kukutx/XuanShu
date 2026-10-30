@@ -6154,10 +6154,12 @@ function renderReport() {
     if(dy.checked && input.gender==='unspecified' && !dyselect.value){error.textContent='大运方向需要指定性别或手动顺逆';return;}
     go.disabled=true;error.textContent='';
     const hourUnknown = currentHourUnknown;
-    try {reportResult=await postJSON('/api/report',{birth:input,lunar_year,
+    try {const data=await postForChart('/api/report',{birth:input,lunar_year,
       include_time_audit:audit.checked,include_dayun:dy.checked,include_deep_evidence:evidenceBox.checked,
       dayun_direction_override:dyselect.value||null,birth_boundary_minutes:boundary_minutes});
-      reportResult.xsHourUnknown = hourUnknown; reportResult.xsBirth = input; render();
+      // A report for a chart that has since been re-cast is dropped rather than shown under the new one.
+      if (data === STALE) return;
+      reportResult = data; reportResult.xsHourUnknown = hourUnknown; reportResult.xsBirth = input; render();
       const top = $('#report-doc'); if (top) top.focus();}
     catch(e){error.textContent='生成失败：'+e.message;}
     finally{go.disabled=false;}
@@ -6231,17 +6233,22 @@ function renderReport() {
     copy.addEventListener('click', () => reportCopy(copy, copyLabel, reportMarkdownSection(r.markdown, '术语解释'), panel, '已复制'));
     append(panel, 'p', 'field-help', '只说明报告里出现的术语是什么、玄枢怎么算，不写断语；详细规则见各自的规则文档。');
     const terms = append(panel, 'dl', 'rp-terms'); terms.id = 'report-terms';
+    // Headwords carry their own English and Japanese names: a bare term such as 流年 or 起运 is translated for
+    // other places on the page. The Chinese term stays beside a translated headword.
+    const lang = document.documentElement.lang;
     r.glossary.forEach(x => {
       const row = append(terms, 'div', 'rp-term');
       const dt = append(row, 'dt');
-      append(dt, 'b', null, x.term);
+      const named = (lang === 'en' && x.term_en) || (lang === 'ja' && x.term_ja);
+      append(dt, 'b', null, named || calT(x.term)).dataset.noI18n = '';
+      if (named && named !== x.term) {const zh = append(dt, 'span', 'rp-term-zh', x.term); zh.dataset.noI18n = ''; zh.lang = 'zh-CN';}
       append(dt, 'span', 'rp-term-system', x.system);
       if (x.aliases.length) texts(append(dt, 'small', 'muted'), '又称', ' ', x.aliases.join('、'));
       const dd = append(row, 'dd');
       append(dd, 'p', null, x.definition);
       const how = append(dd, 'p', 'rp-term-how');
       append(how, 'span', 'rp-term-label', '玄枢怎么算'); how.append(' ');
-      append(how, 'span', null, x.in_xuanshu);
+      append(how, 'span', null, x.in_xuanshu); how.append(' ');
       const doc = append(how, 'code', 'rp-term-doc', x.rule_doc.replace('docs/rules/', '')); doc.title = x.rule_doc;
     });
     const source = append(panel, 'p', 'rp-source');

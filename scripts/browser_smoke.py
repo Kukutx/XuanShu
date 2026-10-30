@@ -2152,6 +2152,14 @@ def main() -> None:
             assert terms >= 8 and page.locator('#report-terms .rp-term').count() == terms
             assert page.locator('#report-terms .rp-term-how').count() == terms and page.locator('#report-terms .rp-term-doc').count() == terms
             assert page.locator('#report-terms dt b', has_text='日主').count() == 1
+            # The report names 木三局-style bureaus and （庙）-style brightness, so both terms are explained.
+            assert {'五行局', '亮度'} <= set(page.evaluate('reportResult.glossary.map(g => g.term)'))
+            # English headwords come from the glossary's own column, with the Chinese term beside them.
+            page.locator('#ui-language').select_option('en')
+            page.wait_for_function("document.documentElement.lang === 'en' && !!document.querySelector('#report-terms .rp-term-zh')", timeout=30000)
+            assert page.locator('#report-terms dt b', has_text='Day Master').count() == 1 and page.locator('#report-terms dt b', has_text='from age').count() == 0
+            page.locator('#ui-language').select_option('zh-CN')
+            page.wait_for_function("document.documentElement.lang === 'zh-CN' && !document.querySelector('#report-terms .rp-term-zh')", timeout=30000)
             page.locator('#report-toc a').last.click()
             assert page.evaluate("document.activeElement.id") == 'report-glossary'
             assert page.evaluate("reportMarkdownSection(reportResult.markdown, '术语解释').startsWith('## 术语解释')")

@@ -402,9 +402,9 @@ const UI_EXTRA = {
 " items (kept on this page)",
 " 項目（現在のページに保持）"
 ],
-" 颗已实现辅助/杂曜，非完整专业盘。": [
-" implemented auxiliary/minor stars; not a complete professional chart.",
-" 個の実装済み補助星・雑曜。完全な専門盤ではありません。"
+" 颗已实现的辅星与杂曜，非完整专业盘。": [
+" implemented auxiliary and minor stars; not a complete professional chart.",
+" 個の実装済み補佐星と雑曜。完全な専門盤ではありません。"
 ],
 " 颗选定辅/杂曜、四组十二神（部分依性别）、主星与昌曲火铃羊陀的庙旺利陷、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。": [
 " selected minor/miscellaneous stars, four twelve-spirit series (some depend on gender), brightness of the main stars and Chang/Qu, Huo/Ling, Yang/Tuo, period stars and longitude time modes; not every school. Nothing shown is a prediction of fate.",
@@ -558,9 +558,9 @@ const UI_EXTRA = {
 "In 1914, 1916 and 1920 one month each started a day later than in all three references: early Republican calendars were computed for Beijing local mean time (116°25′E). Fixed.",
 "1914・1916・1920 年にそれぞれ 1 か月、朔日が 3 つの参照より 1 日遅れていました。民国初期の暦は北京地方平時（東経 116°25′）で編まれていたためで、修正済みです。"
 ],
-"1929 年起按 UTC+8、1912–1928 年按北京地方平时定朔日；闰月后半月是否按下月排紫微，可在高级排盘规则里选。": [
-"New-moon days are set in UTC+8 from 1929 and in Beijing local mean time for 1912–1928; whether the second half of a leap month counts as the next month for Zi Wei is a choice in the advanced chart rules.",
-"1929 年以降は UTC+8、1912–1928 年は北京地方平時で朔日を決めます。閏月の後半を紫微で翌月として扱うかは、詳細な排盤ルールで選べます。"
+"1929 年起按 UTC+8、1912–1928 年按北京地方平时定朔日，1901–1911 年同样按 UTC+8 的现代天文算法，不还原清代时宪历；闰月后半月是否按下月排紫微，可在高级排盘规则里选。": [
+"New-moon days are set in UTC+8 from 1929 and in Beijing local mean time for 1912–1928; 1901–1911 also use modern astronomy in UTC+8 and do not reproduce the Qing Shixian calendar. Whether the second half of a leap month counts as the next month for Zi Wei is a choice in the advanced chart rules.",
+"1929 年以降は UTC+8、1912–1928 年は北京地方平時で朔日を決めます。1901–1911 年も UTC+8 の現代天文計算で、清代の時憲暦は再現しません。閏月の後半を紫微で翌月として扱うかは、詳細な排盤ルールで選べます。"
 ],
 "1929 年起按东经 120° 子午线（UTC+8），1912–1928 年按北京子午线（东经 116°25′）；1912 年以前的清代历书和地方历书可能不同。": [
 "Uses the 120°E meridian (UTC+8) since 1929 and the Beijing meridian 116°25′E for 1912–1928; the Qing calendar before 1912 and regional almanacs may differ.",
@@ -593,6 +593,10 @@ const UI_EXTRA = {
 "23:00 换日，按次日排": [
 "23:00 day change, cast on the next day",
 "23:00 で日替わり・翌日で作盤"
+],
+"23:00 换日：": [
+"Day change at 23:00: ",
+"23:00 の日替わり："
 ],
 "23:00–23:59 按出生资料的「23:00 换日」设置：换日用 iztro 的晚子时（序号 12），不换日用早子时（序号 0）。": [
 "23:00–23:59 follows the birth's \"day changes at 23:00\" setting: with the day change it uses iztro's late Zi hour (index 12), without it the early Zi hour (index 0).",
@@ -4310,6 +4314,10 @@ const UI_EXTRA = {
 "Life-palace main stars",
 "命宮の主星"
 ],
+"命宫主星（括号内为亮度）：": [
+"Life Palace main stars (brightness in brackets): ",
+"命宮の主星（括弧内は明るさ）："
+],
 "命宫主星：": [
 "Life Palace main stars:",
 "命宮の主星："
@@ -5050,9 +5058,9 @@ const UI_EXTRA = {
 "Shen Sha on luck and year pillars are read from the natal day stem, year stem, year branch, day branch and month branch; only names, rules and sources are given, with no good-or-bad reading.",
 "大運・流年の神煞は原局の日干・年干・年支・日支・月支から求め、名称と求め方・出典だけを示し、吉凶は判断しません。"
 ],
-"大运页列出每步大运里的流年以及它与原局的关系。": [
-"The luck page lists the annual pillars within each luck pillar and their relations to the natal chart.",
-"大運ページは各大運の中の流年と、原局との関係を示します。"
+"大运页列出每步大运里的流年以及它与原局的关系；紫微的流年层和年干四化按农历年。": [
+"The luck page lists the annual pillars within each luck pillar and their relations to the natal chart; Zi Wei's annual layer and year-stem transformations use the lunar year.",
+"大運ページは各大運の中の流年と原局との関係を示します。紫微の流年層と年干四化は旧暦の年に従います。"
 ],
 "大运顺排还是逆排由性别决定，所以时间轴会透露每个人的性别；不勾选就不画。": [
 "Whether the luck periods run forward or backward depends on gender, so the timeline reveals each person's gender; it is drawn only when ticked.",
@@ -6090,6 +6098,10 @@ const UI_EXTRA = {
 "Text selected; press Ctrl+C to copy",
 "テキストを選択しました。Ctrl+C でコピーしてください"
 ],
+"已选，23:00–23:59 出生按次日排日柱": [
+"on; a birth at 23:00–23:59 takes the next day's day pillar",
+"選択済み。23:00–23:59 生まれは翌日の日柱で排盤"
+],
 "巳午未": [
 "Si–Wu–Wei",
 "巳午未"
@@ -6922,9 +6934,9 @@ const UI_EXTRA = {
 "From iztro's public brightness table, marked only on the fourteen major stars and six auxiliary stars; not a score of good or bad.",
 "iztro が公開している明るさ表に従い、十四主星と六つの補佐星にだけ付けます。吉凶の点数ではありません。"
 ],
-"按《全书》系规则安星，并与 iztro 逐盘对照。": [
-"Placed by the Quanshu-school rules and checked chart by chart against iztro.",
-"『全書』系の規則で配置し、iztro と一盤ずつ照合しています。"
+"按《全书》系规则安星；开发时用随机出生资料与 iztro 离线对照过，不是每次排盘都对照。": [
+"Placed by the Quanshu-school rules; checked offline against iztro on random births during development, not on every chart.",
+"『全書』系の規則で配置します。開発時にランダムな出生データで iztro とオフライン照合しましたが、排盤のたびに照合するわけではありません。"
 ],
 "按传统规则自动": [
 "Auto by traditional rules",
@@ -8426,6 +8438,10 @@ const UI_EXTRA = {
 "Not selected",
 "未選択"
 ],
+"未选，按 00:00 换日": [
+"off; the day changes at 00:00",
+"未選択。00:00 で日替わり"
+],
 "未通过": [
 "failed",
 "失敗"
@@ -8642,9 +8658,9 @@ const UI_EXTRA = {
 "Berlin",
 "ベルリン"
 ],
-"某一年的干支；八字以立春换年。": [
-"The stem-branch pair of a given year; BaZi turns the year at Lichun.",
-"ある年の干支。八字は立春で年が替わります。"
+"某一年的干支。八字以立春换年；紫微的流年按农历年，从正月初一换年。": [
+"The stem-branch pair of a given year. BaZi turns the year at Lichun; Zi Wei's annual layer follows the lunar year, which turns on the first day of the first lunar month.",
+"ある年の干支。八字は立春で年が替わり、紫微の流年は旧暦の年に従い正月初一で替わります。"
 ],
 "某个农历年的年支所在的宫，作为这一年的命宫。": [
 "The palace on a lunar year's branch, taken as that year's Life palace.",
@@ -12674,6 +12690,10 @@ const UI_EXTRA = {
 ", Four Pillars",
 "、四柱"
 ],
+"，均时差 ": [
+", equation of time ",
+"、均時差 "
+],
 "，点「生成命盘」计算。": [
 ". Click “Generate chart” to calculate.",
 "。「命盤を作成」で計算してください。"
@@ -12701,6 +12721,10 @@ const UI_EXTRA = {
 "：本宫为": [
 ": this palace is the ",
 "：この宮は"
+],
+"；五行局：": [
+"; five-phase bureau: ",
+"；五行局："
 ],
 "；农历年": [
 "; lunar year",
