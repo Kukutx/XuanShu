@@ -897,7 +897,7 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .palace-btn:hover{border-color:var(--gold)}
 .palace-btn.selected{outline:2px solid var(--gold2);outline-offset:-2px}
 .layer-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:4px 0 12px}
-.layer-modes{display:inline-flex;border:1px solid var(--border-strong);border-radius:999px;padding:2px;background:var(--panel2)}
+.layer-modes{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--border-strong);border-radius:999px;padding:2px;background:var(--panel2)}
 .layer-btn{border:0;background:transparent;color:var(--text2);padding:5px 14px;border-radius:999px;font-size:13px;cursor:pointer}
 .layer-btn:hover{color:var(--gold2)}
 .layer-btn.active{background:var(--gold);color:var(--on-gold);font-weight:600}
@@ -975,11 +975,15 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .qimen-cell.zhifu{border-color:var(--gold)}
 .qimen-cell.zhishi{box-shadow:inset 0 0 0 1px var(--green)}
 .qimen-cell small{color:var(--warn)}
-.qimen-grid{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:baseline}
-.qimen-grid .q-name{font-size:14px;color:var(--text)}
+.qimen-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:baseline}
+.qimen-grid .q-name{min-width:0;font-size:14px;color:var(--text);overflow-wrap:anywhere;hyphens:auto}
 .qimen-grid .q-stem{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;color:var(--gold2);text-align:right}
 .qimen-grid .q-label{font-size:11px;color:var(--faint);margin-right:4px}
-.qimen-legend{display:none;margin:0 0 6px;font-size:12px;color:var(--text2)}
+.qimen-legend{margin:0 0 6px;font-size:12px;color:var(--text2)}
+/* A narrow palace (a phone, or the sidebar beside a mid-width window) has no room for the stem labels, English ones
+   above all: they move into screen-reader text and the legend above the board says what the column holds. */
+.qimen-cell{container-type:inline-size}
+@container (max-width:180px){.qimen-grid .q-stem .q-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 .qimen-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:auto}
 .qimen-tag{font-size:11px;border-radius:3px;padding:1px 6px;border:1px solid var(--accent-line);color:var(--gold2)}
 .qimen-tag.void{border-color:var(--warn-line);color:var(--warn)}
@@ -1425,7 +1429,7 @@ small.yt-now{font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:.0
 .of-jie{display:block;margin-top:2px;font-size:10.5px;line-height:1.3;color:var(--green)}
 .of-jie b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:12px;color:var(--text)}
 .of-jie-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.of-jie-swap{display:block;white-space:nowrap;font-variant-numeric:tabular-nums}
+.of-jie-swap{display:block;font-variant-numeric:tabular-nums}
 .of-day.is-jie{border-color:var(--green)}
 /* Today fills its date; a marked day is outlined, so the two stay apart when both apply. */
 .of-day.is-today .of-date{top:4px;left:4px;padding:0 5px;border-radius:999px;background:var(--gold);color:var(--on-gold);font-weight:700}
@@ -1879,6 +1883,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .input-panel:not(.collapsed) .birth-summary span{display:none}
   .input-panel:not(.collapsed) .birth-summary{justify-content:flex-end}
 }
+@media(max-width:1000px){.today-hero{grid-template-columns:minmax(150px,1fr) auto}.today-moon{grid-column:1 / -1}}
 @media(max-width:640px){
   .today-hero{grid-template-columns:1fr;gap:14px;padding:14px}
   .today-term{grid-template-columns:1fr 1fr}
@@ -1914,9 +1919,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .qimen-cell{padding:6px;min-height:128px;font-size:12px;gap:3px}
   .qimen-cell strong{font-size:12px}
   .qimen-grid .q-name{font-size:12px}.qimen-grid .q-stem{font-size:15px}
-  .qimen-grid .q-name{min-width:0;overflow-wrap:break-word;hyphens:auto}
   .qimen-grid .q-stem .q-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-  .qimen-legend{display:block}
   .element-bar{grid-template-columns:24px minmax(0,1fr) 64px}
 }
 @media(max-width:510px){
@@ -1947,14 +1950,16 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ziwei-board{min-width:580px;gap:4px}
   .ziwei-scroll-hint{display:block}
   .pillar-god,.pillar-sub,.pillar-nayin,.pillar-shensha{font-size:11px}
-  .shensha-tag{padding:0 4px;white-space:normal;border-radius:8px;text-align:center;max-width:100%}
-  .of-jie-swap{white-space:normal}
+  .shensha-tag{padding:0 4px;border-radius:8px;text-align:center;max-width:100%}
+  html[lang="en"] .shensha-tag{white-space:normal}
+  .layer-modes{border-radius:14px}
   .pillar-shensha .pillar-stage-label{flex-basis:100%}  /* narrow columns: the label on its own line above the stars */
+  .rp-module-fields.inline-control input{width:100%}
 }
 
 /* ---- print: a clean report on paper ---- */
 @media print{
-  :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--panel3:#f4f1ea;--border:#d9d2c3;--border-strong:#c9bfa9;--text:#111;--text2:#222;--muted:#555;--faint:#777;--gold:#8a6428;--gold2:#6d4c16;--accent-soft:#faf7f0;--accent-line:#d9c7a3;--code-bg:#f7f5f0;--code-text:#111;--shadow:none;--wood:#2f8a54;--fire:#c4452c;--earth:#a26b1e;--metal:#6d6656;--water:#2a6bb0;--lu:#24864f;--quan:#7a48b8;--ke:#2a6db8;--ji:#c63a2c;--green:#2d7552;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45);--dm-0:#9a6a1c;--dm-1:#2f6db5;--dm-2:#2e7d4a;--dm-3:#c0482f;--dm-4:#7550b5;--dm-5:#1f7f7f;--dm-6:#b0427a;--dm-7:#5c6877}
+  :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--panel3:#f4f1ea;--border:#d9d2c3;--border-strong:#c9bfa9;--text:#111;--text2:#222;--muted:#555;--faint:#6b6155;--gold:#825c1e;--gold2:#6e4a14;--on-gold:#fffaf0;--accent-soft:#faf7f0;--accent-line:#d9c7a3;--code-bg:#f7f5f0;--code-text:#111;--shadow:none;--wood:#237544;--fire:#b03a22;--earth:#8a5a12;--metal:#696251;--water:#2563a6;--lu:#1b6e40;--quan:#7a48b8;--ke:#2563a8;--ji:#b53526;--on-hua:#fff;--green:#2d7552;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45);--dm-0:#9a6a1c;--dm-1:#2f6db5;--dm-2:#2e7d4a;--dm-3:#c0482f;--dm-4:#7550b5;--dm-5:#1f7f7f;--dm-6:#b0427a;--dm-7:#5c6877}
   .dm-seg,.dm-swatch,.dm-band,.dm-mark,.dm-weights,.dm-track,.dm-range,.is-lead .dm-rank,.bt-track,.bt-seg,.bt-tick,.bt-tick-num,.bt-pin,.bt-pillar.is-changed,.today-term-track,.today-term-fill,.ps-track,.ps-now,.ps-mark::after,.hua{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff;font-size:12px}
   .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,.of-legend,.of-views,.fh-views,.ds-hour-card .tiny-button,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip):not(.fh-pick):not(.ds-pick):not(.ic-hour):not(.qh-hour):not(.rm-value):not(.dy-decade){display:none!important}

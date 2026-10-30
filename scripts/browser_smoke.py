@@ -948,7 +948,7 @@ def main() -> None:
             page.locator('#qimen-hour-10').click()
             page.wait_for_function("() => document.querySelector('#qimen-hour-10.is-current') !== null", timeout=30000)
             assert page.locator('#qimen-moment').input_value() == 'custom' and page.locator('#qimen-when').input_value() == '2024-06-15T20:00'
-            assert page.evaluate('document.activeElement.id') == 'qimen-hour-10' and '时 丙戌' in page.locator('.meta-tags').first.inner_text()
+            assert page.evaluate('document.activeElement.id') == 'qimen-hour-10' and '时柱 丙戌' in page.locator('.meta-tags').first.inner_text()
             assert page.locator('#qimen-hour-10 .qh-tag').inner_text() == '本盘' and page.locator('.qh-date').inner_text() == '2024-06-15'
             page.locator('#qimen-next-day').click()
             page.wait_for_function("() => document.getElementById('qimen-when').value === '2024-06-16T20:00' && document.querySelector('#qimen-hour-10.is-current')", timeout=30000)

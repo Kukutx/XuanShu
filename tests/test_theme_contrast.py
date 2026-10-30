@@ -2,7 +2,7 @@
 
 The tokens live in static/style.css: the dark theme on :root, the light theme on :root[data-theme="light"] and again
 for a light system preference. Charts colour stems, branches, transformations and labels with these tokens on any of
-the panel colours, so each pair is checked rather than only the main text."""
+the panel colours, so each pair is checked rather than only the main text. The print block is checked the same way."""
 import re
 from pathlib import Path
 
@@ -30,7 +30,9 @@ def contrast(a: str, b: str) -> float:
 
 
 THEMES = {'dark': tokens(':root{'), 'light': tokens(':root[data-theme="light"]{'),
-          'light (system)': tokens(':root:not([data-theme="dark"]){')}
+          'light (system)': tokens(':root:not([data-theme="dark"]){'),
+          # Printing from the dark theme takes these (the light blocks outrank them when the light theme is on).
+          'print': tokens('@media print{\n  :root{')}
 
 
 def test_both_light_blocks_define_the_same_colours():
