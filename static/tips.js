@@ -147,9 +147,10 @@
 
   // Screen readers get every hint as the element's description at all times, also on marks that take no focus (a
   // 神煞 tag, a weekday abbreviation): aria-description mirrors data-tip, including after the page translator rewrites it.
+  // A hint that only repeats the element's name (an icon button's aria-label) is not read a second time.
   function mirror(el) {
     const text = el.getAttribute('data-tip');
-    if (text) {if (el.getAttribute('aria-description') !== text) el.setAttribute('aria-description', text);}
+    if (text && text !== el.getAttribute('aria-label')) {if (el.getAttribute('aria-description') !== text) el.setAttribute('aria-description', text);}
     else if (el.hasAttribute('aria-description')) el.removeAttribute('aria-description');
   }
   function mirrorAll(root) {
@@ -160,9 +161,9 @@
   function startMirror() {
     mirrorAll(document.body);
     new MutationObserver(records => records.forEach(record => {
-      if (record.type === 'attributes') mirror(record.target);
+      if (record.type === 'attributes') {if (record.attributeName === 'data-tip' || record.target.hasAttribute('data-tip')) mirror(record.target);}
       else record.addedNodes.forEach(mirrorAll);
-    })).observe(document.body, {subtree: true, childList: true, attributes: true, attributeFilter: ['data-tip']});
+    })).observe(document.body, {subtree: true, childList: true, attributes: true, attributeFilter: ['data-tip', 'aria-label']});
   }
   if (document.body) startMirror(); else document.addEventListener('DOMContentLoaded', startMirror);
 })();
