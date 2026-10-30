@@ -3702,9 +3702,17 @@ const UI_EXTRA = {
 "Li Shi",
 "力士"
 ],
+"功能查找": [
+"Tool finder",
+"機能検索"
+],
 "功能标签": [
 "Feature tabs",
 "機能タブ"
+],
+"功能页": [
+"Tool",
+"機能"
 ],
 "加入八字与紫微的可追溯观察和交叉核查；每条观察依据的字段、规则编号和适用边界在 JSON 数据页里。": [
 "Adds traceable BaZi and Zi Wei observations and a cross-check between the two; the fields, rule IDs and limits behind each observation are on the JSON data page.",
@@ -3797,6 +3805,10 @@ const UI_EXTRA = {
 "北方小年": [
 "Little New Year (north)",
 "小年（北方）"
+],
+"匹配的功能与操作": [
+"Matching tools and actions",
+"一致する機能と操作"
 ],
 "十一": [
 "Day 11",
@@ -4989,6 +5001,10 @@ const UI_EXTRA = {
 "在出生资料里选择性别后，按年干阴阳和性别排出大运顺逆。": [
 "Choose a gender in the birth details to set the decade direction from the year stem and gender.",
 "出生情報で性別を選ぶと、年干の陰陽と性別から大運の順逆を決めます。"
+],
+"在匹配的功能和操作之间移动": [
+"Move between matching tools and actions",
+"一致する機能と操作の間を移動"
 ],
 "在奇门页打开": [
 "Open on the Qimen page",
@@ -7086,6 +7102,10 @@ const UI_EXTRA = {
 "Ji in",
 "忌入"
 ],
+"快捷操作": [
+"Action",
+"操作"
+],
 "怎么选": [
 "How to choose",
 "どう選ぶ"
@@ -7297,6 +7317,10 @@ const UI_EXTRA = {
 "打开今日历法": [
 "Open today's calendar",
 "今日の暦を開く"
+],
+"打开功能或执行操作": [
+"Open the tool or run the action",
+"機能を開く・操作を実行"
 ],
 "打开原生紫微盘": [
 "Open XuanShu's Zi Wei chart",
@@ -9362,6 +9386,10 @@ const UI_EXTRA = {
 "Find a feature",
 "機能を探す"
 ],
+"查找功能或操作": [
+"Find a tool or action",
+"機能や操作を検索"
+],
 "查法": [
 "Rule",
 "求め方"
@@ -10321,6 +10349,10 @@ const UI_EXTRA = {
 "清空当前对话？如果这个档案开启了本机保存，已保存的对话也会一起删除。": [
 "Clear this conversation? If this profile saves conversations locally, the saved copy is deleted too.",
 "現在の会話を消去しますか？このプロフィールでローカル保存が有効なら、保存済みの会話も削除されます。"
+],
+"清空查找": [
+"Clear the search",
+"検索をクリア"
 ],
 "清空盘面": [
 "Clear the chart",
