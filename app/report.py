@@ -14,6 +14,7 @@ from .engines import BirthInput, calculate_bazi, calculate_ziwei
 from .features import AnnualRequest, TimeAuditRequest, annual_transformations, time_audit
 from .quality import QualityAuditRequest, calculation_quality_audit
 from .evidence import DeepReviewRequest, deep_evidence_review
+from .glossary import GLOSSARY_DOC, terms_in
 
 
 class ReportRequest(BaseModel):
@@ -36,6 +37,10 @@ class ReportRequest(BaseModel):
         return self
 
 
+# Time systems by their names in the text, so a reader (and the glossary) sees 平太阳时 rather than mean_solar.
+TIME_MODE_NAMES = {'clock': '钟表时间', 'mean_solar': '平太阳时', 'apparent_solar': '真太阳时'}
+
+
 def structured_report(request: ReportRequest) -> dict:
     bazi = calculate_bazi(request.birth)
     ziwei = calculate_ziwei(request.birth)
@@ -48,8 +53,9 @@ def structured_report(request: ReportRequest) -> dict:
     ]
     sections = [
         {'id': 'method', 'title': '时制与节令方法', 'facts': [
-            '出生日时基：' + bazi['time_basis']['mode'],
+            '出生日时基：' + TIME_MODE_NAMES.get(bazi['time_basis']['mode'], bazi['time_basis']['mode']),
             '有效传统钟点：' + bazi['time_basis']['effective_local_reading'],
+            '23:00 换日：' + ('已选，23:00–23:59 出生按次日排日柱' if request.birth.late_zi_day_rollover else '未选，按 00:00 换日'),
             '年柱以立春为界，月柱以节令为界；其他流派可能存在差异。',
         ], 'provenance': 'BirthInput / app.timebasis / app.astronomy'},
         {'id': 'bazi', 'title': '四柱与藏干统计', 'facts': [
@@ -58,11 +64,12 @@ def structured_report(request: ReportRequest) -> dict:
             '未加权藏干五行：' + '、'.join(f'{k}{v}' for k,v in bazi['hidden_stem_elements_unweighted'].items()),
         ], 'provenance': 'app.engines.calculate_bazi / app.reference'},
         {'id': 'ziwei', 'title': '紫微十二宫与四化', 'facts': [
-            f"命宫{ziwei['ming_palace']}、身宫{ziwei['shen_palace']}、{ziwei['five_elements_bureau']}",
-            '命宫主星：' + ('、'.join(star + (f"（{palace['star_brightness'][star]}）" if star in palace['star_brightness'] else '')
-                                  for star in palace['main_stars']) or '空宫'),
+            f"命宫{ziwei['ming_palace']}、身宫{ziwei['shen_palace']}；五行局：{ziwei['five_elements_bureau']}",
+            ('命宫主星（括号内为亮度）：' if any(star in palace['star_brightness'] for star in palace['main_stars']) else '命宫主星：')
+            + ('、'.join(star + (f"（{palace['star_brightness'][star]}）" if star in palace['star_brightness'] else '')
+                        for star in palace['main_stars']) or '空宫'),
             '生年四化：' + '、'.join(four),
-            f"星曜覆盖：{ziwei['star_counts']['main']} 主星 + {ziwei['star_counts']['auxiliary']} 颗已实现辅助/杂曜，非完整专业盘。",
+            f"星曜覆盖：{ziwei['star_counts']['main']} 主星 + {ziwei['star_counts']['auxiliary']} 颗已实现的辅星与杂曜，非完整专业盘。",
         ], 'provenance': 'app.engines.calculate_ziwei / app.reference'},
     ]
     quality = calculation_quality_audit(QualityAuditRequest(birth=request.birth))
@@ -84,7 +91,8 @@ def structured_report(request: ReportRequest) -> dict:
     if request.include_time_audit:
         audit = time_audit(TimeAuditRequest(birth=request.birth))
         sections.append({'id': 'time_audit', 'title': '三套时制审计', 'facts': [
-            f"{v['mode']}：{v['effective_reading']}，命宫{v['ming_palace']}，四柱{'/'.join(v['pillars'].values())}"
+            f"{TIME_MODE_NAMES.get(v['mode'], v['mode'])}：{v['effective_reading']}，命宫{v['ming_palace']}，四柱{'/'.join(v['pillars'].values())}"
+            + (f"，均时差 {v['equation_of_time_minutes']:+.1f} 分钟" if v['mode'] == 'apparent_solar' and v.get('equation_of_time_minutes') is not None else '')
             for v in audit['choices']
         ], 'provenance': 'app.features.time_audit / app.timebasis'})
         trace.append({'step': len(trace)+1, 'tool': 'time_basis_audit', 'engine': 'time_audit', 'status': 'computed'})
@@ -133,6 +141,12 @@ def structured_report(request: ReportRequest) -> dict:
         lines += ['## 深度证据资料与独立验证限制', '']
         lines += ['- ' + x['title'] + '：' + x['reference'] + '（' + x['scope'] + '）' for x in deep_review['references']]
         lines += ['', '注：方法参考文档不能替代该命盘的第三方逐盘认证。', '']
+    # The terms this report uses, explained; matched against the report's own text before this section.
+    glossary = terms_in('\n'.join(lines))
+    if glossary:
+        lines += ['## 术语解释', '']
+        lines += [f"- **{x['term']}**（{x['system']}）：{x['definition']}玄枢：{x['in_xuanshu']}" for x in glossary]
+        lines += ['', '来源：`' + GLOSSARY_DOC + '`', '']
     lines += ['## 适用边界', ''] + ['- ' + item for item in warnings] + ['']
     return {
         'system': 'deterministic-multitool-dossier', 'version': __version__,
@@ -141,6 +155,6 @@ def structured_report(request: ReportRequest) -> dict:
                      'star_counts': ziwei['star_counts']},
         'sections': sections, 'tool_trace': trace,
         'annual': annual, 'time_audit': audit, 'quality_audit': quality,
-        'dayun': dayun, 'birth_boundaries': boundaries, 'deep_evidence': deep_review,
+        'dayun': dayun, 'birth_boundaries': boundaries, 'deep_evidence': deep_review, 'glossary': glossary,
         'limitations': warnings, 'markdown': '\n'.join(lines),
     }

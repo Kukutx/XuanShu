@@ -402,9 +402,9 @@ const UI_EXTRA = {
 " items (kept on this page)",
 " 項目（現在のページに保持）"
 ],
-" 颗已实现辅助/杂曜，非完整专业盘。": [
-" implemented auxiliary/minor stars; not a complete professional chart.",
-" 個の実装済み補助星・雑曜。完全な専門盤ではありません。"
+" 颗已实现的辅星与杂曜，非完整专业盘。": [
+" implemented auxiliary and minor stars; not a complete professional chart.",
+" 個の実装済み補佐星と雑曜。完全な専門盤ではありません。"
 ],
 " 颗选定辅/杂曜、四组十二神（部分依性别）、主星与昌曲火铃羊陀的庙旺利陷、运限流曜及经度时制选择；不含全流派。所有展示均不等于命运预测。": [
 " selected minor/miscellaneous stars, four twelve-spirit series (some depend on gender), brightness of the main stars and Chang/Qu, Huo/Ling, Yang/Tuo, period stars and longitude time modes; not every school. Nothing shown is a prediction of fate.",
@@ -449,6 +449,10 @@ const UI_EXTRA = {
 "## 方法和参考资料（非专业认证）": [
 "## Methods and references (not professional certification)",
 "## 方法と参考資料（専門的認証ではない）"
+],
+"## 术语解释": [
+"## Glossary",
+"## 用語解説"
 ],
 "## 深度证据资料与独立验证限制": [
 "## In-depth evidence and independent verification limits",
@@ -554,6 +558,10 @@ const UI_EXTRA = {
 "In 1914, 1916 and 1920 one month each started a day later than in all three references: early Republican calendars were computed for Beijing local mean time (116°25′E). Fixed.",
 "1914・1916・1920 年にそれぞれ 1 か月、朔日が 3 つの参照より 1 日遅れていました。民国初期の暦は北京地方平時（東経 116°25′）で編まれていたためで、修正済みです。"
 ],
+"1929 年起按 UTC+8、1912–1928 年按北京地方平时定朔日，1901–1911 年同样按 UTC+8 的现代天文算法，不还原清代时宪历；闰月后半月是否按下月排紫微，可在高级排盘规则里选。": [
+"New-moon days are set in UTC+8 from 1929 and in Beijing local mean time for 1912–1928; 1901–1911 also use modern astronomy in UTC+8 and do not reproduce the Qing Shixian calendar. Whether the second half of a leap month counts as the next month for Zi Wei is a choice in the advanced chart rules.",
+"1929 年以降は UTC+8、1912–1928 年は北京地方平時で朔日を決めます。1901–1911 年も UTC+8 の現代天文計算で、清代の時憲暦は再現しません。閏月の後半を紫微で翌月として扱うかは、詳細な排盤ルールで選べます。"
+],
 "1929 年起按东经 120° 子午线（UTC+8），1912–1928 年按北京子午线（东经 116°25′）；1912 年以前的清代历书和地方历书可能不同。": [
 "Uses the 120°E meridian (UTC+8) since 1929 and the Beijing meridian 116°25′E for 1912–1928; the Qing calendar before 1912 and regional almanacs may differ.",
 "1929 年以降は東経 120° の子午線（UTC+8）、1912–1928 年は北京子午線（東経 116°25′）を用います。1912 年以前の清代の暦や地方の暦とは異なる場合があります。"
@@ -585,6 +593,10 @@ const UI_EXTRA = {
 "23:00 换日，按次日排": [
 "23:00 day change, cast on the next day",
 "23:00 で日替わり・翌日で作盤"
+],
+"23:00 换日：": [
+"Day change at 23:00: ",
+"23:00 の日替わり："
 ],
 "23:00–23:59 按出生资料的「23:00 换日」设置：换日用 iztro 的晚子时（序号 12），不换日用早子时（序号 0）。": [
 "23:00–23:59 follows the birth's \"day changes at 23:00\" setting: with the day change it uses iztro's late Zi hour (index 12), without it the early Zi hour (index 0).",
@@ -1022,6 +1034,10 @@ const UI_EXTRA = {
 "One column per lunar year: each cell shows which of that year's stem transformation stars fall in the natal palace, and the × under a palace name counts how often they do across these years. Click a year to open that year's annual layer on the Zi Wei chart.",
 "1 列が 1 つの旧暦年で、マスにはその年の天干の四化星が本命のどの宮に入るかを示します。宮名の下の「×」はこれらの年にその宮に入った回数です。年をクリックすると紫微盤でその年の流年層を開きます。"
 ],
+"一天分成十二段，每段两小时，以地支命名；子时从 23:00 到次日 01:00。": [
+"The day split into twelve two-hour periods named by the branches; Zi runs from 23:00 to 01:00 the next day.",
+"一日を二時間ずつ十二に分け、地支で名付けたもの。子の刻は 23:00 から翌日 01:00 まで。"
+],
 "一至三十一日 · 以中国标准时间计算": [
 "1 to 31 days · computed in China Standard Time",
 "1〜31日 · 中国標準時で計算"
@@ -1121,6 +1137,10 @@ const UI_EXTRA = {
 "三套时制审计": [
 "Three time-basis audit",
 "三種の時制監査"
+],
+"三方四正": [
+"Three directions and four squares",
+"三方四正"
 ],
 "三方四正四宫互异": [
 "The four palaces of the Three Directions and Four Squares are distinct",
@@ -1650,6 +1670,10 @@ const UI_EXTRA = {
 "major star brightness",
 "主星の明るさ"
 ],
+"主星以外的星曜，如文昌、文曲、左辅、右弼、禄存、擎羊、陀罗。": [
+"Stars other than the major stars, such as Wen Chang, Wen Qu, Zuo Fu, You Bi, Lu Cun, Qing Yang and Tuo Luo.",
+"主星以外の星。文昌・文曲・左輔・右弼・禄存・擎羊・陀羅など。"
+],
 "主星：": [
 "Main stars: ",
 "主星："
@@ -1693,6 +1717,10 @@ const UI_EXTRA = {
 "九星 ": [
 "Nine Stars ",
 "九星 "
+],
+"九星与天盘干沿八宫环转动，八门沿环排列，八神阳遁顺排、阴遁逆排。": [
+"The nine stars and the heaven-plate stems turn around the ring of eight palaces, the doors are laid along the ring, and the deities run forward in Yang Dun and backward in Yin Dun.",
+"九星と天盤干は八宮の環に沿って回り、八門は環に沿って並び、八神は陽遁で順、陰遁で逆に並べます。"
 ],
 "九月": [
 "Month 9",
@@ -2026,9 +2054,21 @@ const UI_EXTRA = {
 "Continue from the next day",
 "翌日から続けて走査"
 ],
+"从命宫起逆排宫名；每宫写宫干支、星曜和亮度。": [
+"Palace names run backward from the Life palace; each palace shows its stem and branch, its stars and their brightness.",
+"命宮から逆に宮名を並べます。各宮に宮の干支・星・明るさを示します。"
+],
 "从当前命盘、本机档案和在这里临时添加的成员中选 2 到 8 人。临时成员只留在本页，刷新后消失；服务器不保存。": [
 "Choose 2 to 8 people from the current chart, your local profiles and members added here. Members added here stay on this page only and disappear on reload; the server stores nothing.",
 "現在の命盤、端末内のプロフィール、ここで追加したメンバーから 2〜8 人を選びます。ここで追加したメンバーはこの画面にだけ残り、再読み込みで消えます。サーバーには保存されません。"
+],
+"从月柱起顺排或逆排六十甲子、每十年换一步的干支序列。": [
+"A sequence of stem-branch pairs counted forward or backward from the month pillar, changing every ten years.",
+"月柱から六十干支を順または逆にたどり、十年ごとに替わる干支の列。"
+],
+"从某一柱的干或支出发，按固定的查法表在四柱中找到的传统标签。": [
+"Traditional labels found in the four pillars by fixed lookup tables, starting from the stem or branch of one pillar.",
+"ある柱の干または支から、決まった表で四柱の中に見つける伝統的なラベル。"
 ],
 "从此人看 → 对方": [
 "From this person → other",
@@ -2066,6 +2106,10 @@ const UI_EXTRA = {
 "These rule choices could not be charted and are not listed: ",
 "次の規則は換算後に命盤を作れないため表示していません："
 ],
+"以出生农历年的年干定出的四化。": [
+"The four transformations set by the stem of the lunar birth year.",
+"旧暦の出生年の年干で決まる四化。"
+],
 "以出生时间为中心，在前后误差内每隔几分钟排一次盘，列出出现过的不同四柱、命宫、身宫和五行局。两个采样点之间的切换可能漏掉，精确时刻见「生时边界地图」。": [
 "Around the birth time, a chart is cast every few minutes within the error, listing the different four pillars, Ming and Shen palaces and five-element bureaus that occur. A change between two samples can be missed; the exact moments are on the Birth boundary map.",
 "出生時刻を中心に、誤差の範囲で数分ごとに盤を出し、現れた四柱・命宮・身宮・五行局の違いを並べます。二つの採取点の間の切り替わりは見落とすことがあります。正確な時刻は「出生時刻境界マップ」で確認できます。"
@@ -2081,6 +2125,22 @@ const UI_EXTRA = {
 "以左侧时间为中心，在前后误差区间中离散采样，列出实际出现的不同八字和命身宫。采样点之间仍可能存在未检测到的差异。": [
 "Centered on the time at left, samples discretely across the error window and lists the distinct BaZi charts and Life/Body Palaces that actually occur. Undetected differences may still exist between sample points.",
 "左側の時刻を中心に前後の誤差範囲で離散サンプリングし、実際に現れる異なる八字と命宮・身宮を列挙します。サンプル点の間に未検出の差異が残る可能性があります。"
+],
+"以日主为参照，按另一个天干与日主的五行生克和阴阳异同得出的十个名称：比肩、劫财、食神、伤官、偏财、正财、七杀、正官、偏印、正印。": [
+"Ten names for another stem's relation to the Day Master, from their phases (producing or controlling) and whether their polarity matches: Companion, Rob Wealth, Eating God, Hurting Officer, Indirect Wealth, Direct Wealth, Seven Killings, Direct Officer, Indirect Resource and Direct Resource.",
+"日主を基準に、別の天干との五行の生剋と陰陽の異同から得る十の名称：比肩・劫財・食神・傷官・偏財・正財・七殺・正官・偏印・正印。"
+],
+"以日干每五天为一个符头，符头地支是子午卯酉为上元、寅申巳亥为中元、辰戌丑未为下元。": [
+"Each five days led by a day stem form one fu tou; a leading branch of Zi, Wu, Mao or You means the upper yuan, Yin, Shen, Si or Hai the middle, Chen, Xu, Chou or Wei the lower.",
+"日干の五日ごとを一つの符頭とし、符頭の地支が子午卯酉なら上元、寅申巳亥なら中元、辰戌丑未なら下元。"
+],
+"以朔日为每月初一的阴阳合历；有十三个月的年份里，第一个不含中气的月份定为闰月。": [
+"A lunisolar calendar whose months begin on the new-moon day; in a year of thirteen months, the first month without a zhongqi term is the leap month.",
+"朔日を毎月一日とする太陰太陽暦。十三か月ある年では、中気を含まない最初の月を閏月とします。"
+],
+"以某一宫的宫干起四化，看四化星落在哪一宫；落回本宫称为自化。": [
+"Transformations started from one palace's stem, seeing which palace each transformed star falls in; landing back in the same palace is called self-transformation.",
+"ある宮の宮干から四化を起こし、四化星がどの宮に入るかを見ること。本宮に戻るものを自化と呼びます。"
 ],
 "任意权重下首位都不变": [
 "The leader holds at any weight",
@@ -2346,6 +2406,10 @@ const UI_EXTRA = {
 "Zhi Fu (chief star) and palace",
 "値符星と宮位"
 ],
+"值符星随时干落宫转动，值使门按时辰在九宫中飞行；中宫寄坤二宫。": [
+"The Zhi Fu star turns with the palace of the hour stem, and the Zhi Shi door flies through the nine palaces by the hour; the centre palace lodges in Kun 2.",
+"値符星は時干の落宮に従って回り、値使門は時辰ごとに九宮を飛びます。中宮は坤二宮に寄せます。"
+],
 "偏印": [
 "Indirect Resource (Pian Yin)",
 "偏印"
@@ -2562,6 +2626,10 @@ const UI_EXTRA = {
 "BaZi year pillar",
 "八字の年柱"
 ],
+"八字年柱在立春的精确时刻换年，与农历春节不是同一天。": [
+"The BaZi year pillar changes at the exact instant of Lichun, which is not the same day as the lunar new year.",
+"八字の年柱は立春の正確な時刻で切り替わり、旧正月とは同じ日ではありません。"
+],
 "八字排盘": [
 "BaZi chart",
 "八字の盤"
@@ -2677,6 +2745,18 @@ const UI_EXTRA = {
 "六冲": [
 "Six Clashes",
 "六冲"
+],
+"六十甲子": [
+"Sexagenary cycle",
+"六十干支"
+],
+"六十甲子每十组为一旬，十个天干配完后余下的两个地支称为这一旬的空亡。": [
+"Every ten pairs of the sexagenary cycle form a xun; once the ten stems are used up, the two branches left over are that xun's void.",
+"六十干支を十組ずつ一旬とし、十の天干を配し終えて余る二つの地支をその旬の空亡とします。"
+],
+"六十甲子每相邻两组配一个带五行的名称，如甲子、乙丑为海中金。": [
+"A name with a phase given to each two neighbouring pairs of the sexagenary cycle; Jia Zi and Yi Chou, for example, are Metal in the Sea.",
+"六十干支の隣り合う二組ごとに付ける五行付きの名称。たとえば甲子・乙丑は海中金。"
 ],
 "六合": [
 "Six Combinations",
@@ -2818,6 +2898,10 @@ const UI_EXTRA = {
 "Lunar year",
 "旧暦年"
 ],
+"农历年从正月初一起算；年干的四化叠加在本命盘上。": [
+"The lunar year counts from the first day of the first month; the year stem's transformations are laid over the natal board.",
+"旧暦年は正月一日から数えます。年干の四化を本命盤に重ねます。"
+],
 "农历年份": [
 "Lunar year",
 "旧暦年"
@@ -2890,9 +2974,17 @@ const UI_EXTRA = {
 "Winter Solstice (Dongzhi)",
 "冬至"
 ],
+"冬至到芒种用阳遁、夏至到大雪用阴遁，决定九宫排布是顺是逆。": [
+"Yang Dun runs from the winter solstice to Mangzhong and Yin Dun from the summer solstice to Daxue, setting whether the nine palaces are laid out forward or backward.",
+"冬至から芒種までは陽遁、夏至から大雪までは陰遁。九宮の配置が順か逆かを決めます。"
+],
 "冲": [
 "Clash",
 "冲"
+],
+"决定紫微星的位置和大限的起始岁数。": [
+"Sets where the Zi Wei star sits and the age at which the major limits start.",
+"紫微星の位置と大限の開始年齢を決めます。"
 ],
 "决策矩阵": [
 "Decision matrix",
@@ -2962,6 +3054,10 @@ const UI_EXTRA = {
 "Born between Lichun and Chinese New Year: XuanShu BaZi changes the year at Lichun; the other program may change it at Chinese New Year (first day of the first lunar month).",
 "立春と春節の間の出生：玄枢の八字は立春で年が替わりますが、相手は春節（正月初一）で替えている可能性があります。"
 ],
+"出生地当时的民用钟表时间，含当时的时区与夏令时。": [
+"The civil clock time at the birthplace then, with its time zone and daylight saving time.",
+"当時の出生地の常用時計の時刻。当時のタイムゾーンと夏時間を含みます。"
+],
 "出生地按选定 IANA 时区解释时刻；农历月相按现代中国 UTC+8 天文日定义，排盘取出生地有效公历日。跨时区日界可能产生流派差异。": [
 "The moment is interpreted in the selected IANA time zone of the birthplace; lunar month phases follow the modern Chinese UTC+8 astronomical day definition, and the chart uses the effective Gregorian date at the birthplace. Day boundaries across time zones may produce school differences.",
 "時刻は出生地の選択した IANA タイムゾーンで解釈します。旧暦の月相は現代中国の UTC+8 天文日の定義に従い、排盤には出生地の有効な西暦日を用います。タイムゾーンをまたぐ日界により流派間の差異が生じることがあります。"
@@ -3017,6 +3113,10 @@ const UI_EXTRA = {
 "出生时刻模型边界地图": [
 "Birth-time model boundary map",
 "出生時刻のモデル境界マップ"
+],
+"出生时刻的年、月、日、时四组干支，共八个字。": [
+"The four stem-branch pairs of the birth moment, year, month, day and hour: eight characters in all.",
+"出生時刻の年・月・日・時の四組の干支、計八字。"
 ],
 "出生时刻离": [
 "The birth time",
@@ -3194,6 +3294,14 @@ const UI_EXTRA = {
 "Change colour theme",
 "配色を切り替え"
 ],
+"列出各宫对应的虚岁；小限不安流曜。": [
+"Lists the nominal ages for each palace; the minor limit places no moving stars.",
+"各宮に対応する数え年を示します。小限には流曜を配しません。"
+],
+"列出每宫对应的虚岁区间；需要性别和出生时辰。": [
+"Lists the nominal-age range for each palace; needs the gender and the birth hour.",
+"各宮に対応する数え年の範囲を示します。性別と出生時辰が必要です。"
+],
 "列表": [
 "List",
 "一覧"
@@ -3362,6 +3470,10 @@ const UI_EXTRA = {
 "Hua Lu (Prosperity)",
 "化禄"
 ],
+"化禄、化权、化科、化忌四个标签：按某个天干，把四颗星分别标上。": [
+"Four labels, Hua Lu, Hua Quan, Hua Ke and Hua Ji: from a given stem, four stars each get one.",
+"化禄・化権・化科・化忌の四つのラベル。ある天干に従い、四つの星にそれぞれ付けます。"
+],
 "化科": [
 "Hua Ke (Fame)",
 "化科"
@@ -3402,6 +3514,10 @@ const UI_EXTRA = {
 "The twelve day officers are traditional calendar labels and do not constitute auspiciousness scores, almanac suitable/unsuitable lists or date-selection guarantees.",
 "十二値日は伝統暦法のラベルであり、吉凶の採点、暦の宜忌、択日の保証にはなりません。"
 ],
+"十二宫": [
+"Twelve palaces",
+"十二宮"
+],
 "十二宫、十四主星与 44 颗辅星杂曜，主星和六颗辅星的亮度": [
 "Twelve palaces, the 14 major stars and 44 auxiliary and minor stars, with brightness for the major stars and six auxiliaries",
 "十二宮、十四主星と 44 の補助星・雑曜、主星と六つの補助星の明るさ"
@@ -3430,6 +3546,10 @@ const UI_EXTRA = {
 "Twelve-hour comparison ready",
 "十二時辰の比較を作成しました"
 ],
+"十二节": [
+"Twelve jie terms",
+"十二節"
+],
 "十二节令": [
 "Twelve Jie terms",
 "十二節令"
@@ -3437,6 +3557,10 @@ const UI_EXTRA = {
 "十二节令（交节时刻起算）": [
 "Twelve jie (from the exact jie instant)",
 "十二節令（節入り時刻から）"
+],
+"十二长生": [
+"Twelve growth stages",
+"十二長生"
 ],
 "十二长生：阳干顺行、阴干逆行；长生位甲亥、乙午、丙戊寅、丁己酉、庚巳、辛子、壬申、癸卯（火土同宫）": [
 "Twelve growth stages: yang stems run forward, yin stems backward; birth branch Jia–Hai, Yi–Wu, Bing and Wu–Yin, Ding and Ji–You, Geng–Si, Xin–Zi, Ren–Shen, Gui–Mao (Fire and Earth share)",
@@ -3594,6 +3718,10 @@ const UI_EXTRA = {
 "Historical time zones and solar-time correction depend on accurate input.",
 "歴史的なタイムゾーンと太陽時の補正は入力の正確さに左右されます。"
 ],
+"历法": [
+"Calendar",
+"暦法"
+],
 "历法与排盘逐日交叉核验": [
 "Calendar and charts cross-checked day by day",
 "暦と命盤を毎日クロスチェック"
@@ -3726,6 +3854,10 @@ const UI_EXTRA = {
 "Reference: ",
 "参照盤："
 ],
+"又称": [
+"also called",
+"別名"
+],
 "及另": [
 "and another",
 "ほか"
@@ -3830,9 +3962,17 @@ const UI_EXTRA = {
 "Only places each person's four pillars side by side and marks the traditional ten-god, stem-combination, six-harmony, six-clash, six-harm, punishment and three-harmony labels. It does not judge any relationship and gives no compatibility score or ranking.",
 "各人の四柱を並べ、十神・天干五合・地支六合・六冲・六害・相刑・三合という伝統的なラベルを示すだけです。関係の良し悪しは評価せず、相性スコアや順位も出しません。"
 ],
+"只收在古籍里查得到安法的十六种，每种列出查法与出处；不分吉神凶煞。": [
+"Only the sixteen whose placement rules can be found in classical texts are included, each with its rule and source; they are not split into lucky and unlucky.",
+"古典で配置法を確認できる十六種だけを収め、それぞれに配置法と出典を示します。吉神・凶殺には分けません。"
+],
 "只是提议：用户在浏览器里点击确认后才会保存。不要提议保存出生资料以外的敏感信息。": [
 "Only a proposal: it is saved only after the user clicks confirm in the browser. Do not propose saving sensitive information other than birth data.",
 "提案のみです。ユーザーがブラウザで確認をクリックした後にのみ保存されます。出生情報以外の機微な情報の保存は提案しないでください。"
+],
+"只是映射到本命十二宫，不是完整的流年盘。": [
+"Only a mapping onto the twelve natal palaces, not a full annual chart.",
+"本命十二宮への対応づけにすぎず、完全な流年盤ではありません。"
 ],
 "只显示前": [
 "showing the first",
@@ -3918,6 +4058,10 @@ const UI_EXTRA = {
 "Computes only traditional stem-branch pillars and the nominal luck-start age; Gregorian times are mean-year approximations and are in no way predictions of life events.",
 "伝統的な干支と名目上の起運年齢のみを計算し、西暦時刻は平均年による近似です。人生の出来事の予測では決してありません。"
 ],
+"只说明报告里出现的术语是什么、玄枢怎么算，不写断语；详细规则见各自的规则文档。": [
+"Only explains what the terms used in this report are and how XuanShu computes them, with no readings; the full rules are in each rule document.",
+"このレポートに出てくる用語が何か、玄枢がどう計算するかだけを説明し、断定的な解釈は書きません。詳しい規則は各規則文書を参照してください。"
+],
 "可复用计算工作流": [
 "Reusable calculation workflows",
 "再利用可能な計算ワークフロー"
@@ -3993,6 +4137,10 @@ const UI_EXTRA = {
 "合作关系": [
 "Business partnership",
 "協力関係"
+],
+"合冲刑害": [
+"Combinations, clashes, punishments and harms",
+"合・冲・刑・害"
 ],
 "合盘": [
 "Synastry",
@@ -4082,6 +4230,10 @@ const UI_EXTRA = {
 "Peers, siblings and companions",
 "同輩、兄弟姉妹と仲間との関係"
 ],
+"名义岁数按三日一岁、一日四个月折算；公历交运时间只是按平均年长推算的投影。": [
+"The nominal age counts three days as a year and one day as four months; the Gregorian start date is only a projection from the average year length.",
+"名目上の年齢は三日を一年、一日を四か月として換算します。西暦の交運日は平均的な年の長さから推算した目安にすぎません。"
+],
 "名义年龄": [
 "Nominal age",
 "名目年齢"
@@ -4154,9 +4306,17 @@ const UI_EXTRA = {
 "Life Palace / Body Palace",
 "命宮 / 身宮"
 ],
+"命宫、兄弟、夫妻、子女、财帛、疾厄、迁移、仆役、官禄、田宅、福德、父母十二个宫名，依地支排在盘上。": [
+"The twelve palace names, Life, Siblings, Spouse, Children, Wealth, Health, Travel, Friends, Career, Property, Fortune and Parents, placed on the board by branch.",
+"命宮・兄弟・夫妻・子女・財帛・疾厄・遷移・僕役・官禄・田宅・福徳・父母の十二の宮名。地支に沿って盤上に並べます。"
+],
 "命宫主星": [
 "Life-palace main stars",
 "命宮の主星"
+],
+"命宫主星（括号内为亮度）：": [
+"Life Palace main stars (brightness in brackets): ",
+"命宮の主星（括弧内は明るさ）："
 ],
 "命宫主星：": [
 "Life Palace main stars:",
@@ -4226,6 +4386,10 @@ const UI_EXTRA = {
 " and lunar year",
 "と旧暦年"
 ],
+"和命宫同样依赖时辰，时辰不详时无法确定。": [
+"Like the Life palace it depends on the hour, and cannot be set when the hour is unknown.",
+"命宮と同じく時辰に依存し、時辰不明のときは決められません。"
+],
 "咨询 agent 事业 工作 感情 婚姻 关系 问答 career advice": [
 "consultation agent career work romance marriage relationship Q&A career advice",
 "相談 agent 事業 仕事 恋愛 結婚 関係 質疑応答 career advice"
@@ -4294,6 +4458,10 @@ const UI_EXTRA = {
 "Four Transformations flying to their palaces",
 "四化の飛び先"
 ],
+"四化飞星页列出目标星曜和所在宫，并标出自化。": [
+"The flying transformations page lists the target stars and their palaces and marks self-transformations.",
+"四化飛星ページは対象の星と入る宮を示し、自化を印します。"
+],
 "四化（": [
 "four transformations (",
 "四化（"
@@ -4333,6 +4501,10 @@ const UI_EXTRA = {
 "四柱反查完成：": [
 "Pillar search done: ",
 "四柱逆引き完了："
+],
+"四柱和大运都列出纳音；紫微的五行局也取命宫干支的纳音五行。": [
+"The four pillars and the luck pillars all show their Na Yin; the Zi Wei five-phase bureau also takes the Na Yin phase of the Life palace's stem and branch.",
+"四柱と大運に納音を示します。紫微の五行局も命宮の干支の納音五行から取ります。"
 ],
 "四柱地支不落日空、年空": [
 "No pillar branch falls in the day or year void",
@@ -4442,6 +4614,10 @@ const UI_EXTRA = {
 "Find the exact moments on the Birth boundary map",
 "出生時刻境界マップで正確な時刻を探す"
 ],
+"在盘上选中一宫时标出这四个宫。": [
+"Selecting a palace on the board marks these four palaces.",
+"盤上で宮を選ぶとこの四つの宮を示します。"
+],
 "在紫微盘上看飞化线": [
 "Show flying lines on the Zi Wei chart",
 "紫微盤で飛化線を見る"
@@ -4514,6 +4690,14 @@ const UI_EXTRA = {
 "Geographic longitude must be accurate; historical time zones and schools may still differ on double-hour start and end times.",
 "地理経度は正確である必要があります。歴史的なタイムゾーンや流派によって時辰の始まりと終わりに差異が生じることがあります。"
 ],
+"地盘": [
+"Earth plate",
+"地盤"
+],
+"地盘干按局数固定排布，天盘干随值符转动；暗干是另一层天干。": [
+"The earth-plate stems are laid out fixed by the bureau number, while the heaven-plate stems turn with the Zhi Fu; the hidden stems are another layer of stems.",
+"地盤干は局数で固定して並べ、天盤干は値符とともに回ります。暗干はもう一層の天干です。"
+],
 "地空": [
 "Di Kong",
 "地空"
@@ -4529,6 +4713,10 @@ const UI_EXTRA = {
 "均时差": [
 "Equation of time",
 "均時差"
+],
+"均时差取 Swiss Ephemeris 的 swe_time_equ。": [
+"The equation of time comes from Swiss Ephemeris swe_time_equ.",
+"均時差は Swiss Ephemeris の swe_time_equ を使います。"
 ],
 "坎": [
 "Kan",
@@ -4794,6 +4982,10 @@ const UI_EXTRA = {
 "Luck Pillar (decade)",
 "大運"
 ],
+"大运、流年与原局逐柱列出这些关系，只列标签，不判断合化成败。": [
+"Luck pillars, annual pillars and the natal chart list these relations pillar by pillar, as labels only, with no judgement of whether a combination transforms.",
+"大運・流年と原局について柱ごとにこれらの関係を示します。ラベルだけで、合化の成否は判断しません。"
+],
 "大运与流年": [
 "Decade and annual pillars",
 "大運と流年"
@@ -4813,6 +5005,10 @@ const UI_EXTRA = {
 "大运十年干支": [
 "Ten-year luck pillars",
 "大運の十年干支"
+],
+"大运和流年标出落在日柱、年柱旬空里的地支；奇门按时柱的旬首标空亡。": [
+"Luck and annual pillars mark the branches falling in the day pillar's and the year pillar's void; Qimen marks the void by the hour pillar's xun leader.",
+"大運と流年は日柱・年柱の旬空に当たる地支を示します。奇門は時柱の旬首で空亡を示します。"
 ],
 "大运干支排法": [
 "Luck Pillar stem-branch arrangement",
@@ -4861,6 +5057,10 @@ const UI_EXTRA = {
 "大运流年的神煞按原局日干、年干、年支、日支、月支查，只列名称与查法出处，不断吉凶。": [
 "Shen Sha on luck and year pillars are read from the natal day stem, year stem, year branch, day branch and month branch; only names, rules and sources are given, with no good-or-bad reading.",
 "大運・流年の神煞は原局の日干・年干・年支・日支・月支から求め、名称と求め方・出典だけを示し、吉凶は判断しません。"
+],
+"大运页列出每步大运里的流年以及它与原局的关系；紫微的流年层和年干四化按农历年。": [
+"The luck page lists the annual pillars within each luck pillar and their relations to the natal chart; Zi Wei's annual layer and year-stem transformations use the lunar year.",
+"大運ページは各大運の中の流年と原局との関係を示します。紫微の流年層と年干四化は旧暦の年に従います。"
 ],
 "大运顺排还是逆排由性别决定，所以时间轴会透露每个人的性别；不勾选就不画。": [
 "Whether the luck periods run forward or backward depends on gender, so the timeline reveals each person's gender; it is drawn only when ticked.",
@@ -4986,6 +5186,10 @@ const UI_EXTRA = {
 "Heaven stem",
 "天干"
 ],
+"天干与地支按顺序两两相配，六十组一循环，用来纪年、纪月、纪日、纪时。": [
+"Stems and branches paired in order, sixty pairs to a cycle, used to count years, months, days and hours.",
+"天干と地支を順に組み合わせた六十組の循環。年・月・日・時を数えるのに使います。"
+],
 "天干五合": [
 "Stem combination",
 "天干五合"
@@ -5054,6 +5258,10 @@ const UI_EXTRA = {
 "Tian Sha",
 "天煞"
 ],
+"天盘": [
+"Heaven plate",
+"天盤"
+],
 "天相": [
 "Tian Xiang",
 "天相"
@@ -5114,6 +5322,10 @@ const UI_EXTRA = {
 "solar-time longitude time-offset",
 "太陽時 経度 時差"
 ],
+"太阳时审计页单独列出。": [
+"The solar time audit page lists it separately.",
+"太陽時監査ページに別に示します。"
+],
 "太阳节令 · 藏干十神 · 纳音": [
 "Solar terms · hidden stems and Ten Gods · Na Yin",
 "太陽節令 · 蔵干十神 · 納音"
@@ -5121,6 +5333,18 @@ const UI_EXTRA = {
 "太阳节令 · 藏干十神 · 纳音 · 星运 · 空亡": [
 "Solar terms · hidden stems and Ten Gods · Na Yin · growth stages · void",
 "節気 · 蔵干十神 · 納音 · 星運 · 空亡"
+],
+"太阳视黄经从 315° 起每隔 30° 的十二个时刻：立春、惊蛰、清明、立夏、芒种、小暑、立秋、白露、寒露、立冬、大雪、小寒。": [
+"The twelve moments when the Sun's apparent longitude reaches 315° and every 30° after it: Lichun, Jingzhe, Qingming, Lixia, Mangzhong, Xiaoshu, Liqiu, Bailu, Hanlu, Lidong, Daxue and Xiaohan.",
+"太陽の視黄経が 315° から 30° ごとに達する十二の時刻：立春・啓蟄・清明・立夏・芒種・小暑・立秋・白露・寒露・立冬・大雪・小寒。"
+],
+"太阳视黄经到达 315° 的时刻，十二节中的第一个。": [
+"The moment the Sun's apparent longitude reaches 315°, the first of the twelve jie terms.",
+"太陽の視黄経が 315° に達する時刻。十二節の最初。"
+],
+"太阳视黄经每 15° 一个的二十四个时刻，十二节与十二中气交替出现。": [
+"Twenty-four moments, one for every 15° of the Sun's apparent longitude, with the twelve jie and the twelve zhongqi terms alternating.",
+"太陽の視黄経 15° ごとの二十四の時刻。十二節と十二中気が交互に並びます。"
 ],
 "太阴": [
 "Tai Yin",
@@ -5178,6 +5402,10 @@ const UI_EXTRA = {
 "Qimen chart failed: ",
 "奇門の作盤失敗："
 ],
+"奇门盘上的三层符号：天蓬、天芮等九星，休、生、伤、杜、景、死、惊、开八门，值符、螣蛇等八神。": [
+"Three layers of symbols on the Qimen board: the nine stars such as Tian Peng and Tian Rui, the eight doors Xiu, Sheng, Shang, Du, Jing, Si, Jing and Kai, and the eight deities such as Zhi Fu and Teng She.",
+"奇門盤の三層の記号：天蓬・天芮などの九星、休・生・傷・杜・景・死・驚・開の八門、値符・螣蛇などの八神。"
+],
 "奏书": [
 "Zou Shu",
 "奏書"
@@ -5218,6 +5446,10 @@ const UI_EXTRA = {
 "love and marriage",
 "恋愛・結婚"
 ],
+"子、丑、寅、卯、辰、巳、午、未、申、酉、戌、亥十二个序号，各配五行与阴阳，也用来标时辰和宫位。": [
+"Twelve ordinal signs, Zi through Hai, each with a phase and a polarity, also used for the double hours and the palaces.",
+"子から亥までの十二の序数。それぞれ五行と陰陽を持ち、時辰と宮位にも使います。"
+],
 "子丑寅卯辰巳午未申酉戌亥": [
 "Zi Chou Yin Mao Chen Si Wu Wei Shen You Xu Hai",
 "子丑寅卯辰巳午未申酉戌亥"
@@ -5241,6 +5473,10 @@ const UI_EXTRA = {
 "子时": [
 "Zi hour",
 "子の刻"
+],
+"子时跨两天：23:00–23:59 出生算当天还是次日，各家做法不同。": [
+"The Zi hour spans two days: schools differ on whether a birth at 23:00–23:59 counts as that day or the next.",
+"子の刻は二日にまたがります。23:00–23:59 の出生をその日とするか翌日とするかは流派で異なります。"
 ],
 "子时（按当天）": [
 "Zi hour (same day)",
@@ -5306,6 +5542,10 @@ const UI_EXTRA = {
 "Locate boundary moments",
 "境界時刻を特定"
 ],
+"实现 44 颗选定的辅星和杂曜，不是各派的全部星曜。": [
+"44 selected auxiliary and minor stars are implemented, not every star of every school.",
+"選んだ 44 の補佐星と雑曜を実装しており、各流派のすべての星ではありません。"
+],
 "客户端": [
 "Client",
 "クライアント"
@@ -5369,6 +5609,10 @@ const UI_EXTRA = {
 "宫干支": [
 "Palace stem-branch",
 "宮の干支"
+],
+"宫干飞化": [
+"Palace-stem flying transformations",
+"宮干飛化"
 ],
 "宫干飞化：": [
 "Palace-stem flying transformations: ",
@@ -5854,6 +6098,10 @@ const UI_EXTRA = {
 "Text selected; press Ctrl+C to copy",
 "テキストを選択しました。Ctrl+C でコピーしてください"
 ],
+"已选，23:00–23:59 出生按次日排日柱": [
+"on; a birth at 23:00–23:59 takes the next day's day pillar",
+"選択済み。23:00–23:59 生まれは翌日の日柱で排盤"
+],
 "巳午未": [
 "Si–Wu–Wei",
 "巳午未"
@@ -5902,6 +6150,10 @@ const UI_EXTRA = {
 "Stem-branch",
 "干支"
 ],
+"干支之间的传统关系名称：天干五合与相冲，地支六合、六冲、六害、相刑，以及三合局、三会方。": [
+"Traditional names for relations between stems and branches: the five stem combinations and stem clashes, the branch six combinations, six clashes, six harms and punishments, plus the three-harmony and directional groups.",
+"干支間の伝統的な関係名：天干の五合と相冲、地支の六合・六冲・六害・相刑、そして三合局と三会方。"
+],
 "干支年界与传统农历年的不同语义": [
 "Different semantics of the stem-branch year boundary vs. the traditional lunar year",
 "干支の年境界と伝統的な旧暦年の意味の違い"
@@ -5921,6 +6173,10 @@ const UI_EXTRA = {
 "平太阳时": [
 "Mean solar time",
 "平均太陽時"
+],
+"平太阳时加上均时差，即按太阳实际经过当地子午线所定的时间。": [
+"Mean solar time plus the equation of time: the time set by the Sun actually crossing the local meridian.",
+"平均太陽時に均時差を加えたもの。太陽が実際に当地の子午線を通過する時刻で決める時間です。"
 ],
 "年": [
 "Year",
@@ -5965,6 +6221,14 @@ const UI_EXTRA = {
 "年干": [
 "Year stem",
 "年干"
+],
+"年干取农历年（春节换年），与八字按立春换年的年干可能不同。": [
+"The year stem comes from the lunar year (which turns at the lunar new year) and can differ from the BaZi year stem, which turns at Lichun.",
+"年干は旧暦年（旧正月で替わる）から取るため、立春で替わる八字の年干と異なることがあります。"
+],
+"年干四化": [
+"Year-stem transformations",
+"年干四化"
 ],
 "年干支 ": [
 "Year stem-branch ",
@@ -6022,6 +6286,10 @@ const UI_EXTRA = {
 "Year pillar",
 "年柱"
 ],
+"年柱以立春为界，月柱以十二节为界，日柱按出生地的历日，时柱由时辰地支和日干推出。": [
+"The year pillar turns at Lichun, the month pillar at the twelve jie terms, the day pillar follows the calendar day at the birthplace, and the hour pillar comes from the hour branch and the day stem.",
+"年柱は立春で、月柱は十二節で切り替わり、日柱は出生地の暦日に従い、時柱は時辰の地支と日干から出します。"
+],
 "年柱以立春为界，月柱以节令为界；其他流派可能存在差异。": [
 "The year pillar changes at Start of Spring (Lichun) and the month pillar at the sectional solar terms; other schools may differ.",
 "年柱は立春を境とし、月柱は節気を境とします。他の流派では異なる場合があります。"
@@ -6054,6 +6322,10 @@ const UI_EXTRA = {
 "Guangzhou",
 "広州"
 ],
+"庙、旺、得、利、平、不、陷七级，描述星曜在所在地支的强弱。": [
+"Seven levels, Miao, Wang, De, Li, Ping, Bu and Xian, describing how strong a star is in the branch it sits in.",
+"廟・旺・得・利・平・不・陥の七段階。星が位置する地支での強弱を表します。"
+],
 "庙旺得利平不陷": [
 "Peak, High, Good, Fair, Even, Low, Fall",
 "廟・旺・得・利・平・不・陥"
@@ -6069,6 +6341,10 @@ const UI_EXTRA = {
 "建": [
 "Jian (Establish)",
 "建"
+],
+"建、除、满、平、定、执、破、危、成、收、开、闭十二个日标签，按日支与月建的距离循环。": [
+"Twelve day labels, Jian, Chu, Man, Ping, Ding, Zhi, Po, Wei, Cheng, Shou, Kai and Bi, cycling by the distance between the day branch and the month branch.",
+"建・除・満・平・定・執・破・危・成・収・開・閉の十二の日のラベル。日支と月建の距離で循環します。"
 ],
 "建议保存到档案记忆（点击才会保存，只存在本机）：": [
 "Suggested for profile memory (saved only when clicked, stored only on this device): ",
@@ -6574,6 +6850,10 @@ const UI_EXTRA = {
 "Report contents",
 "レポートの内容"
 ],
+"报告和八字页单独列出日主及其五行。": [
+"The report and the BaZi page list the Day Master and its phase separately.",
+"レポートと八字ページは日主とその五行を別に示します。"
+],
 "报告目录": [
 "Report contents list",
 "レポートの目次"
@@ -6609,6 +6889,10 @@ const UI_EXTRA = {
 "择时与历法": [
 "Timing & calendar",
 "時選びと暦法"
+],
+"指定一个农历年，用它年干的四化对照本命盘，看四颗星各落在哪一宫。": [
+"Pick a lunar year and lay its stem's transformations against the natal board, to see which palace each of the four stars falls in.",
+"旧暦年を一つ指定し、その年干の四化を本命盤に照らして、四つの星がそれぞれどの宮に入るかを見ます。"
 ],
 "指定农历年四化到本命宫的规则映射": [
 "Rule-based mapping of a specified lunar year's Four Transformations onto the natal palaces",
@@ -6646,6 +6930,14 @@ const UI_EXTRA = {
 "Day changes at 23:00",
 "23:00 で日替わり"
 ],
+"按 iztro 公开的亮度表，只标十四主星和六颗辅星；不是吉凶分数。": [
+"From iztro's public brightness table, marked only on the fourteen major stars and six auxiliary stars; not a score of good or bad.",
+"iztro が公開している明るさ表に従い、十四主星と六つの補佐星にだけ付けます。吉凶の点数ではありません。"
+],
+"按《全书》系规则安星；开发时用随机出生资料与 iztro 离线对照过，不是每次排盘都对照。": [
+"Placed by the Quanshu-school rules; checked offline against iztro on random births during development, not on every chart.",
+"『全書』系の規則で配置します。開発時にランダムな出生データで iztro とオフライン照合しましたが、排盤のたびに照合するわけではありません。"
+],
 "按传统规则自动": [
 "Auto by traditional rules",
 "伝統ルールで自動"
@@ -6658,9 +6950,21 @@ const UI_EXTRA = {
 "By effective Gregorian date at birthplace ",
 "出生地の有効な西暦日 "
 ],
+"按出生地经度换算的地方时：UTC 加上东经度数乘以每度 4 分钟。": [
+"Local time from the birthplace's longitude: UTC plus 4 minutes for each degree east.",
+"出生地の経度から換算した地方時：UTC に東経の度数×4 分を加えます。"
+],
+"按出生的农历月和时辰排出；时辰不详时无法确定。": [
+"Placed from the lunar birth month and the double hour; it cannot be set when the hour is unknown.",
+"旧暦の出生月と時辰から求めます。時辰不明のときは決められません。"
+],
 "按出生资料里的信息排出玄枢的盘再比较。粘贴的内容只用于本次核对，服务器不保存。": [
 "XuanShu casts its own chart from the birth details and compares. The pasted text is used only for this check; the server keeps nothing.",
 "出生情報から玄枢の命盤を出して比較します。貼り付けた内容はこの照合にだけ使い、サーバーには保存しません。"
+],
+"按北京时间当天正午所在的节令月计算；交节当天写明交节时刻和前后两个值日。": [
+"Computed for the jie month in force at noon Beijing time that day; on the day a term begins, the term's time and the officers before and after it are written out.",
+"その日の北京時間正午の節月で計算します。節入りの日は節入り時刻と前後二つの直を示します。"
 ],
 "按名称、用途或参数筛选": [
 "Filter by name, purpose or parameter",
@@ -6681,6 +6985,10 @@ const UI_EXTRA = {
 "按年干阴阳与性别（或手动指定）排出十步大运和起运年龄。": [
 "Lays out ten luck pillars and the starting age from the year stem's yin or yang and the gender (or a direction you choose).",
 "年干の陰陽と性別（または手動指定）から十歩の大運と起運年齢を出します。"
+],
+"按当时所在的节气查三元局数表。": [
+"Looks up the three-yuan bureau table by the term in force at that moment.",
+"その時点の節気で三元の局数表を引きます。"
 ],
 "按择日扫描所用时区 ": [
 "Cast with the date scan's time zone ",
@@ -6713,6 +7021,10 @@ const UI_EXTRA = {
 "按用途": [
 "By purpose",
 "用途別"
+],
+"按真实的天文时刻计算，不按节气所在的整天；奇门按当时所在的节气定局。": [
+"Computed at the real astronomical instant, not by the whole day a term falls on; Qimen sets its bureau by the term in force at that moment.",
+"節気がある日単位ではなく、実際の天文時刻で計算します。奇門はその時点の節気で局を決めます。"
 ],
 "按规则链提取八字、紫微结构证据": [
 "Extract BaZi and Zi Wei structural evidence via rule chains",
@@ -7186,9 +7498,17 @@ const UI_EXTRA = {
 "Day pillar 庚辰, 壬辰, 戊戌 or 庚戌",
 "日柱が庚辰・壬辰・戊戌・庚戌"
 ],
+"日柱从 2000-01-01 戊午日起逐日累计。": [
+"The day pillar counts day by day from 2000-01-01, a Wu Wu day.",
+"日柱は 2000-01-01（戊午日）から一日ずつ数えます。"
+],
 "日柱日期界": [
 "Day pillar date boundary",
 "日柱の日付境界"
+],
+"日柱的天干；看其他天干的十神时以它为参照。": [
+"The stem of the day pillar; the Ten Gods of the other stems are read against it.",
+"日柱の天干。ほかの天干の十神はこれを基準に見ます。"
 ],
 "日柱随时辰而定，日主未定，不标十神。": [
 "The day pillar depends on the hour, so the day master is open and ten gods are not marked.",
@@ -7285,6 +7605,10 @@ const UI_EXTRA = {
 "旬首六仪": [
 "Xun head instrument",
 "旬首の六儀"
+],
+"旬首六仪所在宫的星称值符，所在宫的门称值使，随时辰移动。": [
+"The star of the palace holding the xun leader's Liu Yi is the Zhi Fu, and that palace's door is the Zhi Shi; both move with the hour.",
+"旬首の六儀がある宮の星を値符、その宮の門を値使と呼び、時辰とともに動きます。"
 ],
 "时 ": [
 "Hour ",
@@ -7417,6 +7741,10 @@ const UI_EXTRA = {
 "时柱、紫微命宫 · 随时辰变化": [
 "Hour pillar, Zi Wei Life palace · change with the hour",
 "時柱・紫微命宮 · 時辰で変化"
+],
+"时柱地支取出生时刻所在的时辰，按所选时制（钟表时间、平太阳时、真太阳时）判断。": [
+"The hour branch is the double hour the birth falls in, judged by the chosen time mode (clock, mean solar or true solar time).",
+"時柱の地支は出生時刻が属する時辰で、選んだ時制（時計時刻・平均太陽時・真太陽時）で判断します。"
 ],
 "时柱天干与日干不合五鼠遁：": [
 "The hour stem does not follow the day stem (Five Rats rule): for a ",
@@ -7642,6 +7970,10 @@ const UI_EXTRA = {
 "Visible stems and branch main qi",
 "天干と地支本気"
 ],
+"明干与藏干都标出十神；只是关系名称，不作好坏判断。": [
+"Both visible and hidden stems are labelled; they are relation names only, not judgements of good or bad.",
+"表に出た天干にも蔵干にも十神を付けます。関係の名称にすぎず、良し悪しの判断はしません。"
+],
 "明年的四化和今年比有什么变化？": [
 "How do next year's transformations differ from this year's?",
 "来年の四化は今年と比べてどう変わりますか？"
@@ -7774,6 +8106,10 @@ const UI_EXTRA = {
 "Hidden stem ",
 "暗干 "
 ],
+"暗干从值使门的原始落宫起时干，阳遁顺、阴遁逆按宫数排九干；时干为甲时取旬首六仪寄中五宫。": [
+"Hidden stems start the hour stem from the Zhi Shi door's original palace and lay out nine stems by palace number, forward in Yang Dun and backward in Yin Dun; at a Jia hour the xun leader's Liu Yi lodges in centre palace 5.",
+"暗干は値使門の元の落宮から時干を起こし、陽遁は順、陰遁は逆に宮の番号順で九干を並べます。時干が甲の時は旬首の六儀を中五宮に寄せます。"
+],
 "更多咨询选项：合盘、候选日期、现实条件和完整报告": [
 "More consultation options: synastry, candidate dates, practical conditions and full report",
 "その他の相談オプション：相性盤・候補日・現実条件・完全レポート"
@@ -7861,6 +8197,10 @@ const UI_EXTRA = {
 "月柱不定，大运无法确定": [
 "Month pillar uncertain; luck pillar cannot be set",
 "月柱が未確定のため大運を確定できない"
+],
+"月柱在节令的精确时刻换月；节令按出生的 UTC 瞬间比较，不随经度校正改变。": [
+"The month pillar changes at the exact instant of the term; terms are compared on the birth's UTC instant and do not move with the longitude correction.",
+"月柱は節の正確な時刻で切り替わります。節は出生の UTC 時刻で比べ、経度補正では動きません。"
 ],
 "月柱天干与年干不合五虎遁：": [
 "The month stem does not follow the year stem (Five Tigers rule): for a ",
@@ -8098,6 +8438,10 @@ const UI_EXTRA = {
 "Not selected",
 "未選択"
 ],
+"未选，按 00:00 换日": [
+"off; the day changes at 00:00",
+"未選択。00:00 で日替わり"
+],
 "未通过": [
 "failed",
 "失敗"
@@ -8169,6 +8513,10 @@ const UI_EXTRA = {
 "本地确定性计算": [
 "computed locally and deterministically",
 "ローカルで確定的に計算"
+],
+"本宫、与本宫相隔四支的两个三合宫，以及相隔六支的对宫。": [
+"A palace, the two palaces in its three-harmony group four branches away on either side, and the opposite palace six branches away.",
+"本宮、四支離れた二つの三合宮、そして六支離れた対宮。"
 ],
 "本工具只标记数据与计算边界，不替代权威历书或完整紫微流派审查。": [
 "This tool only flags data and calculation boundaries; it does not replace an authoritative almanac or a full Zi Wei school review.",
@@ -8246,6 +8594,14 @@ const UI_EXTRA = {
 "Rule tables explicitly stated by this project; no scientific proof of personal attributes",
 "本プロジェクトが明示した規則表。個人の属性に関する科学的証明はありません"
 ],
+"术语": [
+"Term",
+"用語"
+],
+"术语解释": [
+"Glossary",
+"用語解説"
+],
 "权入": [
 "Quan in",
 "権入"
@@ -8282,6 +8638,10 @@ const UI_EXTRA = {
 "Source: ",
 "出典："
 ],
+"来源：`": [
+"Source: `",
+"出典：`"
+],
 "杨柳木": [
 "Willow Wood (Yang Liu Mu)",
 "楊柳木"
@@ -8297,6 +8657,14 @@ const UI_EXTRA = {
 "柏林": [
 "Berlin",
 "ベルリン"
+],
+"某一年的干支。八字以立春换年；紫微的流年按农历年，从正月初一换年。": [
+"The stem-branch pair of a given year. BaZi turns the year at Lichun; Zi Wei's annual layer follows the lunar year, which turns on the first day of the first lunar month.",
+"ある年の干支。八字は立春で年が替わり、紫微の流年は旧暦の年に従い正月初一で替わります。"
+],
+"某个农历年的年支所在的宫，作为这一年的命宫。": [
+"The palace on a lunar year's branch, taken as that year's Life palace.",
+"ある旧暦年の年支がある宮。その年の命宮とします。"
 ],
 "查法": [
 "Rule",
@@ -8726,13 +9094,25 @@ const UI_EXTRA = {
 "Every chart fact traces back to a tool call",
 "命盤の各事実はツール呼び出しまで遡れます"
 ],
+"每个地支里所含的一到三个天干，按本气、中气、余气排列。": [
+"The one to three stems contained in each branch, listed as main, middle and residual qi.",
+"各地支に含まれる一～三の天干。本気・中気・余気の順に並べます。"
+],
 "每个时段含起点、不含止点；止点那一刻已换成别的柱。": [
 "Each interval includes its start and excludes its end; at the end instant the pillars have already changed.",
 "各時間帯は開始時刻を含み、終了時刻を含みません。終了の瞬間には別の柱に変わっています。"
 ],
+"每个节气分上元、中元、下元，各配一个局数（一到九）。": [
+"Each solar term is split into upper, middle and lower yuan, each with a bureau number from one to nine.",
+"各節気を上元・中元・下元に分け、それぞれに局数（一～九）を配します。"
+],
 "每人十二步大运与各自列出的公历年，交运当年记在新大运下": [
 "Each person's twelve luck periods with the calendar years each covers; the year a period begins is listed under the new period",
 "各人の大運12期とそれぞれの西暦年。交運の年は新しい大運に含める"
+],
+"每十年行一宫的运限，起始岁数由五行局定，阳男阴女顺行、阴男阳女逆行。": [
+"A ten-year period moving one palace at a time; the starting age comes from the five-phase bureau, and it runs forward for yang men and yin women, backward for yin men and yang women.",
+"十年ごとに一宮ずつ進む運限。開始年齢は五行局で決まり、陽男陰女は順行、陰男陽女は逆行します。"
 ],
 "每天一张盘": [
 "One chart a day",
@@ -8742,6 +9122,10 @@ const UI_EXTRA = {
 "In each palace the right-hand column reads, top to bottom: heaven stem, hidden stem, earth stem.",
 "各宮の右の列は上から天干・暗干・地干です。"
 ],
+"每年行一宫的运限，按虚岁排列。": [
+"A one-year period moving one palace a year, arranged by nominal age.",
+"一年ごとに一宮ずつ進む運限。数え年で並べます。"
+],
 "每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。": [
 "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
 "各カードはこの年に本人がいる大運と流年です。十神は本人の日主から天干を見ます。流年の後ろの小さな印は原局の地支との関係（冲月は月柱と六冲、合・刑・害も同様、同は同支、日空・年空は旬空に当たる）で、ホバーで全文が見られます。年齢はその年に達する満年齢です。"
@@ -8749,6 +9133,14 @@ const UI_EXTRA = {
 "每条观察附上计算字段、规则编号和适用边界，并做八字与紫微的交叉核查。": [
 "Each observation comes with its calculated fields, rule IDs and limits, plus cross-checks between BaZi and Zi Wei.",
 "各観察に計算フィールド・規則番号・適用範囲を添え、八字と紫微の相互チェックも行います。"
+],
+"每柱的上一个字；页面按五行给天干着色。": [
+"The upper character of each pillar; the page colours stems by their phase.",
+"各柱の上の字。ページは天干を五行で色分けします。"
+],
+"每柱的下一个字；紫微十二宫按地支定位。": [
+"The lower character of each pillar; the Zi Wei palaces are placed by branch.",
+"各柱の下の字。紫微の十二宮は地支で位置を決めます。"
 ],
 "每格是该成员已知各柱的天干地支属这一五行的个数（不含藏干），小字是这一五行对该成员日主而言的十神类别；日主所在的五行加框。时辰不详不计时柱，当天交节或换日而不定的柱也不计；日柱也不定时写「日主未定」，不标十神。": [
 "Each cell counts the stems and branches of that member's known pillars belonging to the phase (without hidden stems); the small text is the ten-god group the phase stands for from that member's Day Master, and the Day Master's own phase is outlined. With the hour unknown the hour pillar is not counted, nor a pillar left open by a solar term or day change on the birth day; when the day pillar is open as well the row reads “Day Master unsettled” and no ten-god groups are shown.",
@@ -8817,6 +9209,10 @@ const UI_EXTRA = {
 "水二局": [
 "Water Bureau 2",
 "水二局"
+],
+"水二局、木三局、金四局、土五局、火六局，由命宫干支的纳音五行定出。": [
+"Water 2, Wood 3, Metal 4, Earth 5 and Fire 6 bureaus, set by the Na Yin phase of the Life palace's stem and branch.",
+"水二局・木三局・金四局・土五局・火六局。命宮の干支の納音五行で決まります。"
 ],
 "水土木木土火火土金金土水": [
 "Water Earth Wood Wood Earth Fire Fire Earth Metal Metal Earth Water",
@@ -8977,6 +9373,10 @@ const UI_EXTRA = {
 "流年与本命": [
 "Annual and natal",
 "流年と本命"
+],
+"流年命宫": [
+"Annual Life palace",
+"流年命宮"
 ],
 "流年四化": [
 "Annual four transformations",
@@ -9378,6 +9778,10 @@ const UI_EXTRA = {
 "XuanShu chart · local deterministic calculation",
 "玄枢の命盤 · ローカルの決定論的計算"
 ],
+"玄枢怎么算": [
+"How XuanShu computes it",
+"玄枢の計算方法"
+],
 "玄枢把农历、四柱、神煞、节气、月相和紫微排盘与独立的开源库逐项对照。脚本、固定版本的参考库和原始数据都在仓库里，任何人都能重跑。": [
 "XuanShu compares its lunar dates, four pillars, Shen Sha, solar terms, moon phases and Zi Wei charts item by item with independent open-source libraries. The scripts, pinned reference libraries and raw data are all in the repository, so anyone can rerun them.",
 "玄枢は旧暦、四柱、神煞、節気、月相、紫微の命盤を独立したオープンソースライブラリと項目ごとに照合しています。スクリプト、固定版の参照ライブラリ、元データはすべてリポジトリにあり、誰でも再実行できます。"
@@ -9557,6 +9961,14 @@ const UI_EXTRA = {
 "由使用者提供，未经本工具独立核实；不得当作命理推断或第三方已证实的事实。": [
 "Provided by the user and not independently verified by this tool; must not be treated as a fate-reading inference or as a fact confirmed by a third party.",
 "利用者が提供したもので、本ツールによる独立した検証は行っていません。命理による推論や第三者が確認した事実として扱ってはいけません。"
+],
+"由出生的农历月和时辰定出的另一个宫位，与命宫一起列出。": [
+"Another palace set by the lunar birth month and the double hour, listed with the Life palace.",
+"旧暦の出生月と時辰で決まるもう一つの宮。命宮とともに示します。"
+],
+"甲、乙、丙、丁、戊、己、庚、辛、壬、癸十个序号，依次两两配木、火、土、金、水，单数为阳、双数为阴。": [
+"Ten ordinal signs, Jia, Yi, Bing, Ding, Wu, Ji, Geng, Xin, Ren and Gui, paired in turn with wood, fire, earth, metal and water; odd ones are yang, even ones yin.",
+"甲・乙・丙・丁・戊・己・庚・辛・壬・癸の十の序数。二つずつ順に木・火・土・金・水に配し、奇数が陽、偶数が陰。"
 ],
 "甲乙丙丁戊己庚辛壬癸": [
 "Jia Yi Bing Ding Wu Ji Geng Xin Ren Gui",
@@ -9741,6 +10153,10 @@ const UI_EXTRA = {
 "真太阳时": [
 "True solar time",
 "真太陽時"
+],
+"真太阳时与平太阳时之差，一年之中大约在 −14 到 +16 分钟之间变化。": [
+"The difference between true and mean solar time, which varies between about −14 and +16 minutes over a year.",
+"真太陽時と平均太陽時の差。一年のうちおよそ −14 分から +16 分の間で変わります。"
 ],
 "真实执行工具 · 保留证据来源 · 不在服务器保存对话": [
 "Tools actually executed · evidence sources kept · chats not stored on the server",
@@ -9950,6 +10366,10 @@ const UI_EXTRA = {
 "Endpoint",
 "エンドポイント"
 ],
+"第一步大运开始时的年龄。": [
+"The age at which the first luck pillar begins.",
+"最初の大運が始まる年齢。"
+],
 "第二个人（或多人）的出生资料只有在用户勾选「已获对方同意」后才能使用；未勾选时 pair_comparison、ziwei_pair_overlay、group_relations 和带 partner 的 consultation_execute 会被拒绝，请提示用户先勾选。": [
 "Another person's (or several people's) birth data may be used only after the user ticks “consent obtained”; until then pair_comparison, ziwei_pair_overlay, group_relations and consultation_execute with a partner are refused, so ask the user to tick it first.",
 "第二の人物（または複数人）の出生情報は、ユーザーが「相手の同意を得た」にチェックした後でのみ使えます。未チェックの間は pair_comparison・ziwei_pair_overlay・group_relations と partner 付きの consultation_execute は拒否されるので、先にチェックするよう案内してください。"
@@ -10022,6 +10442,10 @@ const UI_EXTRA = {
 "ziwei stars palaces chart",
 "紫微 星曜 宮位 命盤"
 ],
+"紫微、天机、太阳、武曲、天同、廉贞、天府、太阴、贪狼、巨门、天相、天梁、七杀、破军十四颗星。": [
+"The fourteen stars Zi Wei, Tian Ji, Tai Yang, Wu Qu, Tian Tong, Lian Zhen, Tian Fu, Tai Yin, Tan Lang, Ju Men, Tian Xiang, Tian Liang, Qi Sha and Po Jun.",
+"紫微・天機・太陽・武曲・天同・廉貞・天府・太陰・貪狼・巨門・天相・天梁・七殺・破軍の十四星。"
+],
 "紫微十二宫与四化": [
 "Zi Wei twelve palaces and Four Transformations",
 "紫微十二宮と四化"
@@ -10085,6 +10509,10 @@ const UI_EXTRA = {
 "紫微斗数专家": [
 "Zi Wei Dou Shu expert",
 "紫微斗数エキスパート"
+],
+"紫微斗数十二宫的起点宫位，由出生的农历月和时辰定出。": [
+"The starting palace of the twelve Zi Wei palaces, set by the lunar birth month and the double hour.",
+"紫微斗数の十二宮の起点となる宮。旧暦の出生月と時辰で決まります。"
 ],
 "紫微斗数安星法，与本站紫微盘同表（已逐盘对照 iztro）": [
 "Zi Wei Dou Shu star placement, the same table as this site's Zi Wei chart (checked chart by chart against iztro)",
@@ -10389,6 +10817,10 @@ const UI_EXTRA = {
 "艮宫": [
 "Gen Palace",
 "艮宮"
+],
+"节令": [
+"Jie term",
+"節気（節）"
 ],
 "节令 / 时辰 / 公历日界 / 远期历法不确定性": [
 "Solar term / double hour / Gregorian day boundary / long-range calendar uncertainty",
@@ -11226,6 +11658,10 @@ const UI_EXTRA = {
 "For earlier years, the birthplace's historical legal time may differ from later standard time; please check the actual clock records used at the time.",
 "古い年代では、出生地の歴史的な法定時刻が後の標準時と異なる場合があります。当時実際に使われていた時計の記録を確認してください。"
 ],
+"辅星与杂曜": [
+"Auxiliary and minor stars",
+"補佐星と雑曜"
+],
 "辅星落宫": [
 "Auxiliary star palace",
 "補助星の宮"
@@ -11558,6 +11994,10 @@ const UI_EXTRA = {
 "Select palace",
 "宮位を選択"
 ],
+"选择平太阳时并给出经度时，时辰和历日按它判断。": [
+"When mean solar time is chosen and a longitude is given, the double hour and the calendar day are judged by it.",
+"平均太陽時を選び経度を指定すると、時辰と暦日はそれで判断します。"
+],
 "选择性别后显示大运": [
 "Choose a gender to show luck periods",
 "性別を選ぶと大運を表示します"
@@ -11593,6 +12033,10 @@ const UI_EXTRA = {
 "逐日对照（每天正午）": [
 "Day by day (noon each day)",
 "毎日の照合（各日正午）"
+],
+"逐柱列出藏干；「未加权藏干五行」把每个藏干各记一次，不加权重。": [
+"Hidden stems are listed per pillar; the unweighted hidden-stem phase count counts each hidden stem once, with no weights.",
+"柱ごとに蔵干を示します。「重み付けなしの蔵干五行」は各蔵干を一回ずつ数え、重みは付けません。"
 ],
 "逐项对照": [
 "Compared",
@@ -11682,6 +12126,10 @@ const UI_EXTRA = {
 "Sampling interval (min)",
 "サンプリング間隔（分）"
 ],
+"采用《全书》系的十干四化表。": [
+"Uses the Quanshu-school table of transformations for the ten stems.",
+"『全書』系の十干四化表を使います。"
+],
 "重庆": [
 "Chongqing",
 "重慶"
@@ -11754,6 +12202,10 @@ const UI_EXTRA = {
 "Chang-sheng, Bo-shi, Sui-qian and Jiang-qian twelve spirits",
 "長生・博士・歳前・将前の十二神"
 ],
+"长生、沐浴、冠带、临官、帝旺、衰、病、死、墓、绝、胎、养十二个阶段名，表示天干在各地支所处的阶段。": [
+"Twelve stage names, from Birth, Bath, Cap and Belt, Coming of Age and Peak through Decline, Sickness, Death, Tomb, Extinction, Conception and Nurture, for where a stem stands in each branch.",
+"長生・沐浴・冠帯・臨官・帝旺・衰・病・死・墓・絶・胎・養の十二の段階名。天干が各地支でどの段階にあるかを表します。"
+],
 "长辈、导师与支持网络": [
 "Elders, mentors, and support networks",
 "目上の人・指導者・支援ネットワーク"
@@ -11805,6 +12257,14 @@ const UI_EXTRA = {
 "阳历": [
 "Gregorian date",
 "新暦"
+],
+"阳干顺行、阴干逆行，火土同宫；大运列出日主在该运地支的星运和该运天干的自坐。": [
+"Yang stems run forward and yin stems backward, with fire and earth sharing stages; each luck pillar shows the Day Master's stage in its branch and its stem's own stage.",
+"陽干は順行、陰干は逆行、火土同宮。大運にはその運の地支での日主の星運と、その運の天干の自坐を示します。"
+],
+"阳年生男、阴年生女顺排，其余逆排；起运岁数按出生到所取节令的时差，三日折一岁。": [
+"Yang-year men and yin-year women run forward, the others backward; the starting age comes from the time between birth and the chosen term, three days to a year.",
+"陽年生まれの男性と陰年生まれの女性は順行、それ以外は逆行。起運の年齢は出生から該当する節までの時間で、三日を一年とします。"
 ],
 "阳遁": [
 "Yang Dun",
@@ -12066,9 +12526,17 @@ const UI_EXTRA = {
 "Year of the Rooster",
 "酉年（とり）"
 ],
+"默认 00:00 换日；勾选后 23:00–23:59 按次日排日柱和紫微的农历日。": [
+"By default the day turns at 00:00; when ticked, a birth at 23:00–23:59 takes the next day for the day pillar and the Zi Wei lunar day.",
+"既定では 00:00 で日が替わります。チェックすると 23:00–23:59 は日柱と紫微の旧暦日を翌日で排します。"
+],
 "默认 23:00 不换日，与 iztro 的“早子时”一致": [
 "By default the day does not change at 23:00, matching iztro's \"early Zi\"",
 "既定では 23:00 に日を替えず、iztro の「早子時」と一致"
+],
+"默认的时制；历史时区与夏令时按 IANA 时区数据解释。": [
+"The default time mode; historical time zones and daylight saving time follow the IANA time zone data.",
+"既定の時制。過去のタイムゾーンと夏時間は IANA タイムゾーンデータで解釈します。"
 ],
 "鼠": [
 "Rat",
@@ -12222,6 +12690,10 @@ const UI_EXTRA = {
 ", Four Pillars",
 "、四柱"
 ],
+"，均时差 ": [
+", equation of time ",
+"、均時差 "
+],
 "，点「生成命盘」计算。": [
 ". Click “Generate chart” to calculate.",
 "。「命盤を作成」で計算してください。"
@@ -12249,6 +12721,10 @@ const UI_EXTRA = {
 "：本宫为": [
 ": this palace is the ",
 "：この宮は"
+],
+"；五行局：": [
+"; five-phase bureau: ",
+"；五行局："
 ],
 "；农历年": [
 "; lunar year",

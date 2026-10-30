@@ -99,7 +99,7 @@ curl http://127.0.0.1:8000/mcp \
 
 `deep_evidence_review` MCP 工具接受 `birth`（与 `BirthInput` 相同）、`focus_palace`（十二宫）、可选 `lunar_year` 和 `include_quality`。对应 REST 为 `POST /api/deep-review`，CLI 为 `xuanshu deep-review`；新增 `astro://rules/evidence` 规则资源及 `deep-evidence-review` Prompt。
 
-Agent **必须**逐条保留 `findings[].evidence` 的字段路径及 SHA-256、`rule_ids`、`limit`，并引用返回的 `references` 的适用范围；**禁止**把方法 URL 当成该用户盘的独立验算或预测准确率。项目当前共 25 Tools / 17 Resources / 15 Prompts / 18 Skills（固定版本 `v.0.1.0`）。
+Agent **必须**逐条保留 `findings[].evidence` 的字段路径及 SHA-256、`rule_ids`、`limit`，并引用返回的 `references` 的适用范围；**禁止**把方法 URL 当成该用户盘的独立验算或预测准确率。项目当前共 34 Tools / 18 Resources / 15 Prompts / 18 Skills（固定版本 `v.0.1.0`）。
 
 
 ## 可执行咨询 Agent 的 MCP 入口（固定 `v.0.1.0`）

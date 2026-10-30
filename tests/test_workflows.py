@@ -193,7 +193,7 @@ def test_endpoints_mcp_and_rest_parity():
         if name=='day_officers':
             assert [d['date'] for d in response.json()['days'] if d['jie_on_date']]==['2026-11-07']
     counts=client.get('/api/capabilities').json()['counts']
-    assert counts=={'mcp_tools':34,'mcp_resources':17,'mcp_prompts':15,'agent_skills':18}
+    assert counts=={'mcp_tools':34,'mcp_resources':18,'mcp_prompts':15,'agent_skills':18}
 
 
 def test_bad_decision_rest_and_mcp_rejected():

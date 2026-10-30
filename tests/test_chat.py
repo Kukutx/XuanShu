@@ -88,6 +88,17 @@ def test_compacted_scan_keeps_candidates_before_excluded_days(monkeypatch):
     assert any(f.startswith('excluded_days') for f in data['_truncated']['fields'])
 
 
+def test_deep_evidence_report_keeps_its_evidence_when_compacted():
+    """A report's Markdown and glossary repeat what it already holds, so they give way before deep_evidence does."""
+    args = {'birth': {'birth_datetime': '1990-05-17T01:30', 'timezone': 'Asia/Shanghai', 'gender': 'female'},
+            'include_deep_evidence': True, 'include_dayun': False}
+    loop = scripted_loop([('structured_report', args)])
+    run_chat(ChatRequest(messages=[{'role': 'user', 'content': '完整报告'}]), config=CONFIG, loop=loop)
+    data = json.loads(loop.results[0][0])
+    full = chat_module.call_tool('structured_report', args)
+    assert data['deep_evidence'] == full['deep_evidence'] and len(loop.results[0][0]) <= chat_module.MAX_TOOL_RESULT_CHARS
+
+
 def test_partner_tools_need_the_users_consent_tick():
     pair = {'person_a': BIRTH, 'person_b': {**BIRTH, 'birth_datetime': '1999-03-02T10:00'}}
     message = [{'role': 'user', 'content': '合盘'}]

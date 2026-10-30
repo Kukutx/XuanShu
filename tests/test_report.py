@@ -71,7 +71,7 @@ def test_report_rest_and_auth(monkeypatch):
 
 def test_report_mcp_and_prompt():
     assert len(TOOL_DEFS)==34
-    assert len(RESOURCES)==17
+    assert len(RESOURCES)==18
     assert len(PROMPTS)==15
     resp=process_rpc({'jsonrpc':'2.0','id':1,'method':'tools/call','params':{
         'name':'structured_report','arguments':{'birth':BASE,'lunar_year':2026}}})
@@ -99,4 +99,36 @@ def test_report_frontend_skill_wiring():
     skill=(root/'skills/structured-dossier/SKILL.md').read_text(encoding='utf-8')
     assert 'structured_report' in skill and 'provenance' in skill
     assert CLIENT.get('/api/capabilities').json()['counts']=={
-        'mcp_tools':34,'mcp_resources':17,'mcp_prompts':15,'agent_skills':18}
+        'mcp_tools':34,'mcp_resources':18,'mcp_prompts':15,'agent_skills':18}
+
+
+def test_report_explains_the_terms_it_uses():
+    """The glossary comes from docs/rules/glossary.md, lists only terms the report uses, and never grades anything."""
+    from pathlib import Path
+    from app.glossary import glossary, terms_in
+    entries = glossary()
+    assert len(entries) >= 40 and len({e['term'] for e in entries}) == len(entries)
+    root = Path(__file__).resolve().parents[1]
+    for e in entries:
+        assert e['system'] in {'历法', '八字', '紫微', '奇门'} and e['definition'] and e['in_xuanshu']
+        assert e['names'] == e['term'].split('、') and e['term_en'] and e['term_ja'] and not any('、' in a for a in e['aliases'])
+        assert (root / e['rule_doc']).is_file(), e['rule_doc']
+        assert not any(word in e['definition'] + e['in_xuanshu'] for word in ('大吉', '大凶', '吉利', '凶险', '好运', '坏运'))
+    out = structured_report(ReportRequest(birth=BirthInput(birth_datetime='2000-08-16T04:00', gender='male'),
+                                          include_dayun=True, lunar_year=2026))
+    before = out['markdown'].split('## 术语解释')[0]
+    assert out['glossary'] and all(any(n in before for n in (*g['names'], *g['aliases'])) for g in out['glossary'])
+    assert [g['term'] for g in out['glossary']] == [g['term'] for g in terms_in(before)]
+    # The report names what it shows in words the glossary explains: 木三局 as a 五行局, （庙） as a brightness.
+    assert {'四柱', '日主', '命宫', '大运', '生年四化', '五行局', '亮度', '辅星与杂曜', '23:00 换日'} <= {g['term'] for g in out['glossary']}
+    # Terms explained together are one headword, not aliases of each other.
+    lunar = next(e for e in entries if '闰月' in e['names'])
+    assert lunar['term'] == '农历、闰月' and lunar['aliases'] == [] and '流年' in {e['term'] for e in entries}
+    audited = structured_report(ReportRequest(birth=BirthInput(birth_datetime='2000-08-16T04:00', gender='male', longitude=104.07),
+                                              include_time_audit=True))
+    assert {'平太阳时', '真太阳时', '均时差'} <= {g['term'] for g in audited['glossary']}
+    assert 'mean_solar' not in audited['markdown'] and 'apparent_solar' not in audited['markdown']
+    section = out['markdown'].split('## 术语解释')[1].split('## 适用边界')[0]
+    assert section.count('\n- **') == len(out['glossary']) and 'docs/rules/glossary.md' in section
+    text = process_rpc({'jsonrpc': '2.0', 'id': 1, 'method': 'resources/read', 'params': {'uri': 'astro://rules/glossary'}})
+    assert '| 命宫 | 紫微 |' in text['result']['contents'][0]['text']
