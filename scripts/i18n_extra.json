@@ -1079,6 +1079,10 @@
   "[Zi Wei Dou Shu]",
   "【紫微斗数】"
  ],
+ "【节令推算规则】": [
+  "[Rules for festivals, Fu days and Nines]",
+  "【年中行事・三伏・数九の推算規則】"
+ ],
  "一九": [
   "First Nine",
   "一九"
@@ -3191,6 +3195,10 @@
   "Every nine days from the winter solstice day make one nine; nine of them make 81 days",
   "冬至の当日から九日ごとに一九とし、九つで八十一日"
  ],
+ "冬至时刻距午夜不到半分钟，天文推算分不清是哪一天，数九的起算日可能相差一天": [
+  "The winter solstice falls within half a minute of midnight, so the calculation cannot tell which day it belongs to and the Nines may start a day earlier or later.",
+  "冬至の時刻が午前0時から30秒以内のため、天文計算ではどちらの日か判別できず、数九の起算日が1日ずれる可能性があります。"
+ ],
  "冲": [
   "Clash",
   "冲"
@@ -5270,6 +5278,10 @@
  "夏至当天起数第三个庚日（夏至逢庚当天算第一个），初伏十天": [
   "The third geng day counting from the summer solstice day (a geng solstice counts as the first); the First Fu lasts ten days",
   "夏至の当日から数えて三つ目の庚の日（夏至が庚の日ならその日を一つ目とする）。初伏は十日"
+ ],
+ "夏至时刻距午夜不到半分钟，天文推算分不清是哪一天，入伏的日子可能不同": [
+  "The summer solstice falls within half a minute of midnight, so the calculation cannot tell which day it belongs to and the Fu days may start on another day.",
+  "夏至の時刻が午前0時から30秒以内のため、天文計算ではどちらの日か判別できず、入伏の日が異なる可能性があります。"
  ],
  "外圈箭头是相生，内圈虚线是相克；圆的大小和其中的数字是明干与地支本气的个数，圆外是该五行对日主而言的十神类别。点一个五行看它在四柱里的位置和生克关系，方向键可以逐个切换。": [
   "The outer arrows are the generating cycle and the dashed inner lines the controlling cycle. Each circle's size and number give how many visible stems and branch main qi belong to that phase; outside it is the ten-god group the phase stands for from the Day Master. Select a phase to see where it sits in the four pillars and how it generates and controls; the arrow keys move between phases.",
@@ -10951,6 +10963,10 @@
   "The first geng day counting from the start-of-autumn day (a geng day counts); the Last Fu lasts ten days",
   "立秋の当日から数えて最初の庚の日（立秋が庚の日ならその日）。末伏は十日"
  ],
+ "立秋时刻距午夜不到半分钟，天文推算分不清是哪一天，末伏的日子可能不同": [
+  "The Start of Autumn falls within half a minute of midnight, so the calculation cannot tell which day it belongs to and the Last Fu may start on another day.",
+  "立秋の時刻が午前0時から30秒以内のため、天文計算ではどちらの日か判別できず、末伏の日が異なる可能性があります。"
+ ],
  "端午": [
   "Dragon Boat",
   "端午"
@@ -11493,7 +11509,7 @@
  ],
  "节日": [
   "Festival",
-  "節日"
+  "行事"
  ],
  "节气": [
   "Solar term",

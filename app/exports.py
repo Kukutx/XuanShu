@@ -56,17 +56,20 @@ def solar_terms_ics(year: int, moon: bool = False, festivals: bool = False) -> s
             ]
     if festivals:
         from .festivals import starts_of_year
-        seen: dict[str, int] = {}
+        # Numbered within its kind and day, so a mark keeps its UID when marks of another kind are added later and a
+        # calendar that imports the file again updates the event instead of adding a second one.
+        seen: dict[tuple[str, str], int] = {}
         for day, mark in starts_of_year(year):
             stamp = f'{day:%Y%m%d}'
-            seen[stamp] = seen.get(stamp, 0) + 1
+            seen[stamp, mark['kind']] = n = seen.get((stamp, mark['kind']), 0) + 1
             length = f'共 {mark["length"]} 天。' if mark['kind'] == 'sanfu' and 'length' in mark else ''
+            caution = mark['caution'] + '。' if 'caution' in mark else ''
             rows += [
-                'BEGIN:VEVENT', f'UID:mark-{stamp}-{mark["kind"]}-{seen[stamp]}@xuanshu.local',
+                'BEGIN:VEVENT', f'UID:mark-{stamp}-{mark["kind"]}-{n}@xuanshu.local',
                 'DTSTAMP:20000101T000000Z', f'DTSTART;VALUE=DATE:{stamp}',
                 f'DTEND;VALUE=DATE:{day + timedelta(days=1):%Y%m%d}',
                 f'SUMMARY:{_ics_text(mark["name"])}',
-                f'DESCRIPTION:{_ics_text(length + "推算规则：" + mark["rule"] + "。按中国标准时间的日期。")}',
+                f'DESCRIPTION:{_ics_text(length + "推算规则：" + mark["rule"] + "。按中国标准时间的日期。" + caution)}',
                 'TRANSP:TRANSPARENT', 'END:VEVENT',
             ]
     rows.append('END:VCALENDAR')

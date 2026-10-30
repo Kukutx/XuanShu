@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .astronomy import CHINA, from_jd, solar_term_jd, TERMS, chinese_lunar_date
 from .engines import BirthInput, calculate_bazi, calculate_ziwei, STEMS, BRANCHES
-from .festivals import day_marks
+from .festivals import day_marks, lunar_or_rollover
 from .reference import BRANCH_HARMONY, BRANCH_CLASH, PALACE_TOPICS
 
 
@@ -69,8 +69,7 @@ def calendar_days(request: CalendarRequest) -> dict:
             })
     days = []
     # One lunar date past the range tells whether its last day is 除夕.
-    lunars = [chinese_lunar_date(request.start_date + timedelta(days=offset), allow_rollover_day=True)
-              for offset in range(request.days + 1)]
+    lunars = [lunar_or_rollover(request.start_date + timedelta(days=offset)) for offset in range(request.days + 1)]
     for offset in range(request.days):
         current = request.start_date + timedelta(days=offset)
         days.append({

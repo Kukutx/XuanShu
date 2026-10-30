@@ -2570,14 +2570,22 @@ const lunarDateText = lunar => lunarMonthText(lunar) + (calLang() === 'en' ? ', 
 // In a day cell English drops the pinyin after a term name: Frost's Descent rather than Frost's Descent (Shuangjiang).
 const termText = (name, short) => {const text = calT(name); return short ? text.replace(/\s*\([^)]*\)$/, '') : text;};
 const lunarYearPillar = year => STEM_ORDER[((year - 4) % 10 + 10) % 10] + BRANCH_ORDER[((year - 4) % 12 + 12) % 12];
-// Festivals, 三伏 and 数九 (each mark from the server names the rule that places it). A day cell has room for two or
-// three characters, so festivals go by their everyday short names there; the detail below the grid gives the full one.
+// Festivals, 三伏 and 数九 (each mark from the server names the rule that places it). A day cell has room for about
+// two short lines, so marks go by their everyday short names there; the detail below the grid gives the full one.
+// The two 小年 keep their region, since they fall on neighbouring days.
 const FESTIVAL_SHORT = {'元宵节': '元宵', '上巳节': '上巳', '端午节': '端午', '中元节': '中元', '中秋节': '中秋', '重阳节': '重阳',
-  '寒衣节': '寒衣', '下元节': '下元', '腊八节': '腊八', '北方小年': '小年', '南方小年': '小年'};
-// English drops "Festival" there (Lantern, Dragon Boat), except from the Spring Festival, and the region after 小年.
-const festivalCellText = name => calLang() === 'en'
-  ? (name === '春节' ? calT(name) : calT(name).replace(/\s*\([^)]*\)$/, '').replace(/ Festival$/, ''))
-  : calLang() === 'ja' ? calT(name) : calT(FESTIVAL_SHORT[name] || name);
+  '寒衣节': '寒衣', '下元节': '下元', '腊八节': '腊八'};
+// English drops "Festival" (Lantern, Dragon Boat) and uses shorter names where the full one would not fit.
+const CELL_EN = {'春节': 'New Year', '除夕': 'NY Eve', '龙抬头': 'Dragon Head', '北方小年': 'Xiaonian (N)', '南方小年': 'Xiaonian (S)',
+  '出伏': 'Fu ends', '出九': 'Nines end', '一九': '1st Nine', '二九': '2nd Nine', '三九': '3rd Nine', '四九': '4th Nine', '五九': '5th Nine',
+  '六九': '6th Nine', '七九': '7th Nine', '八九': '8th Nine', '九九': '9th Nine'};
+function markCellText(name) {
+  const lang = calLang();
+  if (lang === 'en') return CELL_EN[name] || calT(name).replace(/\s*\([^)]*\)$/, '').replace(/ Festival$/, '');
+  // Japanese keeps the Chinese name of the two 小年, and drops a gloss in brackets: 出伏（三伏明け） reads 出伏.
+  if (lang === 'ja') return /小年$/.test(name) ? name : calT(name).replace(/（[^）]*）$/, '');
+  return calT(FESTIVAL_SHORT[name] || name);
+}
 const marksOf = d => d.festivals || [];
 // A fu period or a nine shows on its first day (and 出伏, 出九 on theirs); on the others it is in the detail.
 const seasonStart = m => m.kind !== 'festival' && (m.day === undefined || m.day === 1);
@@ -2587,15 +2595,18 @@ const SEASON_DAY = {en: 'day {d} of {n}', ja: '{d}日目（全{n}日）', zh: '�
 const fillDay = (template, m) => template.replace('{d}', m.day).replace('{n}', m.length);
 const seasonDayText = m => m.day === undefined ? '' : fillDay(SEASON_DAY[calLang()] || SEASON_DAY.zh, m);
 const markText = m => calT(m.name) + (m.day !== undefined ? (calLang() === 'en' ? ', ' : ' ') + seasonDayText(m) : '');
-// The words in a day cell: the solar term of the day, else a festival, else a fu period or nine that begins, else the
-// month's name on its first day, else the lunar day.
+// The words in a day cell: a festival, else the solar term of the day, else a fu period or nine that begins, else the
+// month's name on its first day, else the lunar day. A festival on a solar term (春节 on 雨水 in 2015) shows the term on
+// a second line, so neither is hidden.
 function calendarCellText(d) {
-  if (d.solar_terms.length) return {text: termText(d.solar_terms[0].name, true), kind: 'term'};
   const festival = marksOf(d).find(m => m.kind === 'festival');
-  if (festival) return {text: festivalCellText(festival.name), kind: 'festival'};
+  const term = d.solar_terms.length ? termText(d.solar_terms[0].name, true) : null;
+  if (festival) return {text: markCellText(festival.name), kind: 'festival', also: term};
+  if (term) return {text: term, kind: 'term'};
   const season = marksOf(d).find(seasonStart);
-  if (season) return {text: calT(season.name), kind: 'season'};
-  if (d.lunar.day === 1) return {text: lunarMonthText(d.lunar), kind: 'month'};
+  if (season) return {text: markCellText(season.name), kind: 'season'};
+  // English shortens a leap month to "Leap 6" there (Leap Month 6 in the detail).
+  if (d.lunar.day === 1) return {text: calLang() === 'en' && d.lunar.is_leap_month ? 'Leap ' + d.lunar.month : lunarMonthText(d.lunar), kind: 'month'};
   return {text: lunarDayText(d.lunar), kind: 'day'};
 }
 const CAL_WEEKDAYS = {'zh-CN': [...'一二三四五六日'], 'zh-TW': [...'一二三四五六日'], ja: ['月', '火', '水', '木', '金', '土', '日']};
@@ -2604,13 +2615,25 @@ function calendarMonthTitle(year, month) {
   if (calLang() === 'en') return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en', {month: 'long', year: 'numeric', timeZone: 'UTC'});
   return year + '年' + month + '月';
 }
-document.addEventListener('xuanshu-language', () => {if (['calendar', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report', 'integration', 'professional', 'time'].includes(active)) render();});
+document.addEventListener('xuanshu-language', () => {if (['calendar', 'today', 'boundaries', 'officers', 'date-scan', 'pillar-search', 'rule-matrix', 'report', 'integration', 'professional', 'time'].includes(active)) render();});
+// Each rule once, after the names it places: 一九、二九：冬至当天起每九天为一九…
+function calendarRuleLines(data) {
+  const names = new Map();
+  data.days.forEach(d => marksOf(d).forEach(m => {
+    const rule = m.rule + (m.caution ? '（' + m.caution + '）' : '');
+    if (!names.has(rule)) names.set(rule, []);
+    if (!names.get(rule).includes(m.name)) names.get(rule).push(m.name);
+  }));
+  return [...names].map(([rule, list]) => list.join('、') + '：' + rule);
+}
 function calendarText(year, month, data) {
   const lines = ['玄枢 · ' + year + '-' + String(month).padStart(2, '0') + ' 农历、日柱、节气与传统节令（中国标准时间）', ''];
   lines.push(...textColumns([['公历', '星期', '农历', '日柱', '节气', '节令'], ...data.days.map(d => [d.date, d.weekday,
     lunarMonthName(d.lunar) + LUNAR_DAYS[d.lunar.day - 1], d.day_pillar,
     d.solar_terms.map(t => t.name + ' ' + t.time_china.slice(11, 16)).join('、') || '—',
-    marksOf(d).map(m => m.name + (m.day !== undefined ? fillDay(SEASON_DAY.zh, m) : '')).join('、') || '—'])]));
+    marksOf(d).map(m => m.name + (m.day !== undefined ? ' ' + fillDay(SEASON_DAY.zh, m) : '')).join('、') || '—'])]));
+  const rules = calendarRuleLines(data);
+  if (rules.length) lines.push('', '【节令推算规则】', ...rules);
   lines.push('', '只列历法事实，不含宜忌或吉凶。');
   return finishText(lines);
 }
@@ -2704,7 +2727,7 @@ function renderCalendar() {
   texts(span, '农历', ' ');
   append(span, 'span', null, lunarYearPillar(first.year) + (first.year !== last.year ? '–' + lunarYearPillar(last.year) : '') + ' · '
     + lunarDateText(first) + ' – ' + lunarDateText(last)).dataset.noI18n = '';
-  const terms = append(head, 'div', 'cal-terms');
+  const terms = append(head, 'div', 'cal-terms'); terms.id = 'calendar-terms';
   data.days.forEach(d => d.solar_terms.forEach(t => {
     const chip = append(terms, 'button', 'cal-term-chip' + (JIE_BRANCH[t.name] ? ' is-jie' : '')); chip.type = 'button';
     append(chip, 'b', null, t.name);
@@ -2752,6 +2775,7 @@ function renderCalendar() {
       ...d.solar_terms.map(t => termText(t.name) + ' ' + t.time_china.slice(11, 16)), ...marksOf(d).map(markText)].join(' · '));
     append(button, 'span', 'cal-num', String(Number(d.date.slice(8))));
     append(button, 'span', 'cal-lunar', words.text).dataset.noI18n = '';
+    if (words.also) append(button, 'span', 'cal-also', words.also).dataset.noI18n = '';
     const gz = append(button, 'span', 'cal-gz'); gz.dataset.noI18n = '';
     append(gz, 'span', stemClass(d.day_pillar[0]), d.day_pillar[0]); append(gz, 'span', branchClass(d.day_pillar[1]), d.day_pillar[1]);
     button.addEventListener('click', () => showCalendarDay(d.date, document.activeElement === button));
@@ -2799,12 +2823,13 @@ function renderCalendar() {
   // Each festival, fu or nine with the rule that places it; a festival's rule is its lunar date, written here.
   marksOf(d).forEach(m => {
     const line = append(facts, 'p', 'cal-mark cal-mark-' + m.kind);
-    texts(line, m.kind === 'festival' ? '节日' : m.kind === 'sanfu' ? '三伏' : '数九', ' ');
+    texts(line, m.kind === 'festival' ? '节日' : m.kind === 'sanfu' ? '三伏' : '数九', '：');
     append(line, 'b', null, m.name);
-    if (m.day !== undefined) append(line, 'span', null, ' ' + seasonDayText(m)).dataset.noI18n = '';
+    if (m.day !== undefined) append(line, 'span', null, (calLang() === 'en' ? ', ' : ' ') + seasonDayText(m)).dataset.noI18n = '';
     const rule = append(line, 'small', 'cal-mark-rule');
     if (m.kind === 'festival' && m.name !== '除夕') {texts(rule, '农历', ' '); append(rule, 'span', null, lunarDateText(d.lunar)).dataset.noI18n = '';}
     else rule.textContent = m.rule;
+    if (m.caution) append(line, 'small', 'cal-mark-caution', m.caution);
   });
   const open = append(detail, 'button', 'tiny-button', current ? '查看这天的四柱、月相和与命盘的关系' : '查看这天的四柱与月相');
   open.type = 'button'; open.id = 'calendar-open-day';
@@ -4804,12 +4829,14 @@ function renderToday() {
   texts(until, ' · ', '交节', ' ' + clockOf(t.solar_term.next.start));
 
   const facts = append(result, 'div', 'meta-tags today-facts');
-  // The day's festivals, and the fu period or nine it is in (the day of it as 3/9, which needs no translating).
+  // The day's festivals, and the fu period or nine it is in with the day of it; each tag takes the focus and shows the
+  // rule that places it (a festival's is its lunar date).
   (t.festivals || []).forEach(m => {
-    const tag = append(facts, 'span', 'today-mark today-mark-' + m.kind);
+    const tag = append(facts, 'span', 'today-mark today-mark-' + m.kind); tag.tabIndex = 0;
     texts(tag, m.name);
-    if (m.day !== undefined) tag.append(' ' + m.day + '/' + m.length);
-    if (m.kind !== 'festival' || m.name === '除夕') tip(tag, m.rule);
+    if (m.day !== undefined) append(tag, 'span', null, (calLang() === 'en' ? ', ' : ' ') + seasonDayText(m)).dataset.noI18n = '';
+    const rule = m.kind === 'festival' && m.name !== '除夕' ? calT('农历') + ' ' + lunarDateText(t.lunar) : calT(m.rule);
+    tip(tag, rule + (m.caution ? calT('；') + calT(m.caution) : ''));
   });
   texts(append(facts, 'span'), '建除值日', ' ' + t.day_officer.officer);
   if (t.day_officer.jie_boundary_on_date) append(facts, 'span', null, todayPick ? '当天交节，节令前后值日不同' : '今天交节，节令前后值日不同');

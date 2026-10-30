@@ -1606,7 +1606,7 @@ def main() -> None:
             # The day label is written in the interface language when drawn, so the page translator leaves it alone.
             assert new_year.get_attribute('data-no-i18n') == '' and new_year.get_attribute('aria-label').startswith('2024-02-10 · 星期六 · 农历 正月初一')
             assert '立春' in page.locator('#calendar-day-2024-02-04').inner_text()
-            assert '月柱 丙寅' in page.locator('.cal-terms').inner_text()  # 立春 opens the 寅 month of a 甲 year
+            assert '月柱 丙寅' in page.locator('#calendar-terms').inner_text()  # 立春 opens the 寅 month of a 甲 year
             detail = page.locator('#calendar-detail').inner_text()
             assert '农历 甲辰 · 正月初一' in detail and '日柱 甲辰' in detail and '星期六' in detail, detail
             # Festivals, 三伏 and 数九 are calendar facts too: a festival takes the cell (正月初一 shows 春节), a nine
@@ -1616,14 +1616,25 @@ def main() -> None:
             assert '六九' in page.locator('#calendar-day-2024-02-05').inner_text() and 'cal-season' in page.locator('#calendar-day-2024-02-05').get_attribute('class')
             marks = page.locator('#calendar-marks').inner_text()
             assert marks.index('除夕') < marks.index('春节 02/10') < marks.index('元宵节 02/24') and '七九 02/14' in marks, marks
-            assert '节日 春节' in detail and '数九 六九 第6天（共9天）' in detail and '冬至当天起每九天为一九' in detail, detail
+            assert '节日：春节' in detail and '数九：六九 第6天（共9天）' in detail and '冬至当天起每九天为一九' in detail, detail
+            # The two 小年 fall on neighbouring days and keep their region in the cell.
+            assert '北方小年' in page.locator('#calendar-day-2024-02-02').inner_text() and '南方小年' in page.locator('#calendar-day-2024-02-03').inner_text()
+            # The text export names each mark with a space before its day count, and lists the rules of the marks shown.
+            export = page.locator('#calendar-text-text').text_content()
+            assert '春节、六九 第6天（共9天）' in export and '【节令推算规则】' in export and '冬至当天起每九天为一九' in export, export[-400:]
             assert new_year.get_attribute('aria-label').endswith('春节 · 六九 第6天（共9天）')
             assert page.locator('#calendar-festival-ics').get_attribute('href') == '/api/solar-terms/2024.ics?festivals=true'
-            # In English a festival cell keeps the everyday name (Spring Festival, Lantern) and the day count reads "day 6 of 9".
+            # In English a cell takes a short everyday name (New Year, Lantern, 6th Nine) that fits two lines, and the
+            # detail reads "Festival: Spring Festival", "Nine nines: Sixth Nine, day 6 of 9".
             page.locator('#ui-language').select_option('en')
             page.wait_for_function("() => document.getElementById('calendar-day-2024-02-24').textContent.includes('Lantern')", timeout=10000)
-            assert 'Spring Festival' in page.locator('#calendar-day-2024-02-10').inner_text()
-            assert 'Sixth Nine day 6 of 9' in page.locator('#calendar-detail').inner_text().replace(',', ''), page.locator('#calendar-detail').inner_text()
+            assert 'New Year' in page.locator('#calendar-day-2024-02-10').inner_text() and '6th Nine' in page.locator('#calendar-day-2024-02-05').inner_text()
+            assert 'Xiaonian (N)' in page.locator('#calendar-day-2024-02-02').inner_text()
+            detail = page.locator('#calendar-detail').inner_text()
+            assert 'Festival: Spring Festival' in detail and 'Sixth Nine, day 6 of 9' in detail, detail
+            # No named cell is cut off: each fits its two lines.
+            cut = page.evaluate("() => [...document.querySelectorAll('.cal-day .cal-lunar')].filter(el => el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1).map(el => el.textContent)")
+            assert cut == [], cut
             page.locator('#ui-language').select_option('zh-CN')
             page.wait_for_function("() => document.getElementById('calendar-day-2024-02-10').textContent.includes('春节')", timeout=10000)
             new_year.focus()
@@ -1659,10 +1670,13 @@ def main() -> None:
             page.wait_for_function("() => todayPick && todayPick.date === '2024-02-10'", timeout=10000)
             page.locator('#today-date').wait_for(timeout=30000)
             assert page.locator('#today-date').input_value() == '2024-02-10'
-            # The day card names the festival and the nine (its day as 6/9), with the rule as a hint.
+            # The day card names the festival and the nine with the day of it; each tag takes the focus and shows the rule
+            # that places it (a festival's is its lunar date).
             page.locator('.today-mark-festival').wait_for(timeout=30000)
-            assert page.locator('.today-mark-festival').inner_text() == '春节' and page.locator('.today-mark-shujiu').inner_text() == '六九 6/9'
+            assert page.locator('.today-mark-festival').inner_text() == '春节' and page.locator('.today-mark-shujiu').inner_text() == '六九 第6天（共9天）'
             assert page.locator('.today-mark-shujiu').get_attribute('data-tip').startswith('冬至当天起')
+            assert page.locator('.today-mark-festival').get_attribute('data-tip') == '农历 正月初一'
+            assert page.locator('.today-mark-festival').get_attribute('tabindex') == '0'
             page.locator('#today-calendar').click()
             page.wait_for_function("() => document.activeElement && document.activeElement.id === 'calendar-day-2024-02-10'", timeout=30000)
             page.evaluate("() => { todayPick = null; }")
