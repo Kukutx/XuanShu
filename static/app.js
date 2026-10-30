@@ -245,6 +245,7 @@ let dayunDraft = {periods: 10, direction_override: ''};
 let dayunPick = null;  // the decade shown in detail on the luck-pillar page; null: the one today falls in
 let dayunKey = null, dayunPending = false, dayunError = '';  // the request the shown periods belong to
 let dayunAxisScroll = null;  // {key, left}: where the luck axis was scrolled to, kept while the same decade is shown
+let dayunMonths = null, dayunMonthsPending = 0, dayunMonthsError = '';  // {key, year, pillar, months}: the month pillars opened under a year
 let boundaryDraft = {uncertainty_minutes: 60};
 let qualityMinutesDraft = 15;
 let qualityRun = null;  // the birth and window the shown audit was asked for
@@ -6909,6 +6910,9 @@ function dayunDetail(d, x, isNow, o, now) {
   }
   if (!(x.years || []).length) return;
   const birthYear = b.lunar_date ? b.lunar_date.year : Number(d.birth_datetime.slice(0, 4)), thisYear = Number(now.slice(0, 4));
+  const inDecade = year => x.years.some(y => y.year === year);
+  const shown = dayunMonths && dayunMonths.key === dayunKey && inDecade(dayunMonths.year) ? dayunMonths : null;
+  append(box, 'p', 'field-help dy-years-hint', '点年份可展开这一年的十二个流月。');
   const wrap = append(box, 'div', 'table-wrap');
   const table = append(wrap, 'table', 'data-table dy-years'); table.id = 'dayun-years';
   append(table, 'caption', 'visually-hidden', '这步大运里的流年');
@@ -6918,7 +6922,13 @@ function dayunDetail(d, x, isNow, o, now) {
   x.years.forEach(y => {
     const tr = append(tbody, 'tr', y.year === thisYear ? 'is-current' : null);
     if (y.year === thisYear) tr.setAttribute('aria-current', 'date');
-    const first = append(tr, 'th', null, String(y.year)); first.scope = 'row';
+    const first = append(tr, 'th'); first.scope = 'row';
+    const open = append(first, 'button', 'dy-year-toggle', String(y.year)); open.type = 'button'; open.id = 'dayun-year-' + y.year;
+    open.setAttribute('aria-expanded', String(!!shown && shown.year === y.year));
+    if (shown && shown.year === y.year) open.setAttribute('aria-controls', 'dayun-months');
+    if (dayunMonthsPending === y.year) open.setAttribute('aria-busy', 'true');
+    tip(open, '展开这一年的十二个流月');
+    open.addEventListener('click', () => dayunMonthsToggle(y.year));
     const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
     append(pair, 'span', stemClass(y.pillar[0]), y.pillar[0]); append(pair, 'span', branchClass(y.pillar[1]), y.pillar[1]);
     const ys = settledInteractions(y, o);
@@ -6929,6 +6939,57 @@ function dayunDetail(d, x, isNow, o, now) {
     append(tr, 'td', null, o.stars ? '随时辰而定' : (ys.shensha || []).map(s => s.name).join('、') || '—');
   });
   append(box, 'p', 'field-help', '与原局一栏：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空，悬停可看全部关系。流年以立春换年，虚龄从农历出生年起算。只列关系与标签，不判断吉凶。');
+  if (dayunMonthsError) append(box, 'p', 'inline-msg', dayunMonthsError);
+  if (dayunMonthsPending && inDecade(dayunMonthsPending)) loadingGhost(box, 'table');
+  else if (shown) dayunMonthTable(box, shown, o);
+}
+// The twelve months of one year under the decade's years: each from the jie that opens it, read against the natal
+// chart like the years. Fetched when a year is opened; opening it again closes it.
+function dayunMonthsToggle(year) {
+  const key = dayunKey;
+  dayunMonthsError = '';
+  if (dayunMonths && dayunMonths.key === key && dayunMonths.year === year) {dayunMonths = null; dayunRefocus(year); return;}
+  dayunMonthsPending = year; dayunRefocus(year);
+  postJSON('/api/dayun', {...JSON.parse(key), periods: 1, include_years: false, month_year: year})
+    // Only the year opened last is shown: an earlier year's reply arriving later is dropped.
+    .then(data => {if (dayunKey === key && dayunMonthsPending === year) dayunMonths = {key, year, pillar: data.flow_months.year_pillar, months: data.flow_months.months};})
+    .catch(err => {if (dayunMonthsPending === year) dayunMonthsError = '流月计算失败：' + err.message;})
+    .finally(() => {if (dayunMonthsPending === year) dayunMonthsPending = 0; if (active === 'dayun') dayunRefocus(year);});
+}
+// Redraw, keeping the focus on a year's button when it was there.
+function dayunRefocus(year) {
+  const had = document.activeElement && document.activeElement.id === 'dayun-year-' + year;
+  render();
+  const back = $('#dayun-year-' + year); if (had && back) back.focus({preventScroll: true});
+}
+function dayunMonthTable(box, m, o) {
+  const panel = append(box, 'section', 'dy-months'); panel.id = 'dayun-months';
+  panel.setAttribute('aria-labelledby', 'dayun-months-title');
+  const head = append(panel, 'div', 'dy-months-head');
+  const heading = append(head, 'h5', 'dy-months-title'); heading.id = 'dayun-months-title';
+  texts(heading, String(m.year), ' ', m.pillar, ' · ', '流月干支');
+  append(head, 'span', 'muted', '立春起寅月，每月从节令交接时刻算起');
+  const wrap = append(panel, 'div', 'table-wrap');
+  const table = append(wrap, 'table', 'data-table dy-years dy-month-table'); table.id = 'dayun-month-table';
+  texts(append(table, 'caption', 'visually-hidden'), String(m.year), ' ', '流月干支');
+  const th = append(append(table, 'thead'), 'tr');
+  ['节令', '干支', ...(o.day ? [] : ['十神', '星运']), '与原局', '神煞'].forEach(t => {append(th, 'th', null, t).scope = 'col';});
+  const tbody = append(table, 'tbody'), at = Date.now();
+  m.months.forEach(month => {
+    const live = Date.parse(month.start_local) <= at && at < Date.parse(month.end_local_exclusive);
+    const tr = append(tbody, 'tr', live ? 'is-current' : null);
+    if (live) tr.setAttribute('aria-current', 'date');
+    const first = append(tr, 'th'); first.scope = 'row';
+    append(first, 'span', null, month.jie);
+    append(first, 'small', 'dy-month-date', month.start_local.slice(5, 16).replace('T', ' '));
+    tip(first, month.start_local.slice(0, 16).replace('T', ' ') + ' – ' + month.end_local_exclusive.slice(0, 16).replace('T', ' '));
+    const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
+    append(pair, 'span', stemClass(month.pillar[0]), month.pillar[0]); append(pair, 'span', branchClass(month.pillar[1]), month.pillar[1]);
+    const ms = settledInteractions(month, o);
+    if (!o.day) {append(tr, 'td', null, ms.ten_god_of_stem); append(tr, 'td', null, ms.growth_stage);}
+    const marks = append(tr, 'td'); natalMarks(marks, ms); tip(marks, natalText(ms)); if (!marks.childNodes.length) marks.textContent = '—';
+    append(tr, 'td', null, o.stars ? '随时辰而定' : (ms.shensha || []).map(sh => sh.name).join('、') || '—');
+  });
 }
 function renderBirthBoundaries(){
   title(result,'出生时刻临界地图','模型边界自动分段 · 精度约1秒 · 与抽样不同');

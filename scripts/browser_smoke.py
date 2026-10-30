@@ -2096,6 +2096,19 @@ def main() -> None:
             assert page.locator('#dayun-axis .dy-decade').count() == 10 and page.locator('#dayun-axis .dy-decade.is-now').count() == 1
             assert page.locator('#dayun-axis .dy-decade.is-now').get_attribute('aria-pressed') == 'true'
             assert page.locator('#dayun-years tbody tr').count() == 10 and page.locator('#dayun-detail .dy-hidden').count() >= 1
+            # A year opens its twelve months under the table, 寅 month from 立春 at the exact jie, the stems by the
+            # five-tiger rule from the year stem; opening it again closes them, the focus staying on the year.
+            first_year = page.locator('#dayun-years .dy-year-toggle').first
+            first_year.click()
+            page.locator('#dayun-month-table tbody tr').nth(11).wait_for(timeout=30000)
+            assert first_year.get_attribute('aria-expanded') == 'true' and page.evaluate('document.activeElement.id') == first_year.get_attribute('id')
+            assert page.locator('#dayun-month-table tbody th').first.inner_text().startswith('立春') and page.locator('#dayun-month-table tbody th').last.inner_text().startswith('小寒')
+            assert page.evaluate('''() => dayunMonths.months[0].pillar === '丙戊庚壬甲'['甲乙丙丁戊己庚辛壬癸'.indexOf(dayunMonths.pillar[0]) % 5] + '寅'
+              && dayunMonths.months.every((m, i, all) => i === 11 || m.end_local_exclusive === all[i + 1].start_local)''')
+            page.locator('#dayun-months').screenshot(path=str(screenshot_dir / '49-dayun-months.png'))
+            first_year.click()
+            page.wait_for_function("() => !document.getElementById('dayun-months')", timeout=10000)
+            assert first_year.get_attribute('aria-expanded') == 'false' and page.evaluate('document.activeElement.id') == first_year.get_attribute('id')
             page.locator('#dayun-band-5').click()
             page.wait_for_function("() => document.querySelector('#dayun-band-5').getAttribute('aria-pressed') === 'true' && document.activeElement.id === 'dayun-band-5'", timeout=30000)
             assert page.locator('#dayun-detail .dy-detail-gz').inner_text() == page.locator('#dayun-band-5 .dy-band-gz').inner_text()

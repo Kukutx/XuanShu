@@ -647,6 +647,23 @@ button:disabled{cursor:not-allowed}
 .dy-years .pillar-cell,.dy-years th[scope=row]{white-space:nowrap}
 .dy-years td,.dy-years th{vertical-align:top}
 .dy-change{margin:8px 0 0}
+.dy-years-hint{margin:10px 0 0}
+.dy-year-toggle{display:inline-flex;align-items:center;gap:7px;margin:-3px -9px -3px -7px;padding:2px 9px 2px 7px;border:1px solid transparent;border-radius:999px;background:transparent;color:inherit;font:inherit;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
+.dy-year-toggle::after{content:'';width:5px;height:5px;margin-top:-3px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);opacity:.6;transition:transform .2s,margin .2s}
+.dy-year-toggle:hover{border-color:var(--accent-line);background:var(--accent-soft)}
+.dy-year-toggle[aria-expanded="true"]{border-color:var(--accent-line);color:var(--gold2)}
+.dy-year-toggle[aria-expanded="true"]::after{margin-top:3px;transform:rotate(-135deg)}
+.dy-year-toggle[aria-busy="true"]::after{animation:dy-year-wait .9s ease-in-out infinite alternate}
+@keyframes dy-year-wait{from{opacity:.2}to{opacity:.9}}
+.dy-months{margin-top:14px;padding:12px 14px 4px;border:1px solid var(--accent-line);border-radius:14px;background:linear-gradient(180deg,var(--accent-soft),transparent 70%)}
+.dy-months-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.dy-months-title{margin:0;font-size:14px;font-weight:600;color:var(--text)}
+.dy-months-head .muted{font-size:12px}
+@media(max-width:640px){.dy-months{margin-inline:-6px;padding:10px 8px 2px}}
+.dy-month-date{display:block;color:var(--muted);font-size:11px;font-weight:400;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.dy-year-toggle,.dy-year-toggle::after{transition:none}.dy-year-toggle[aria-busy="true"]::after{animation:none}}
+@media (forced-colors:active){.dy-year-toggle[aria-expanded="true"],.dy-months{border-color:ButtonText}.dy-year-toggle::after{border-color:ButtonText}}
+@media print{.dy-years-hint{display:none}.dy-year-toggle{margin:0;padding:0;border:0}.dy-year-toggle::after{display:none}.dy-months{background:none;break-inside:avoid}}
 @media(max-width:640px){
   .dy-calc{flex-direction:column;align-items:stretch}
   .dy-gap{min-height:54px}
