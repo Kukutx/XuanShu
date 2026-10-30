@@ -81,14 +81,14 @@
       const value=password();
       const records=await decryptedArchive(JSON.parse(await file.text()),value);
       // Replace rather than silently merge; user controls the complete backup state.
-      if(!window.confirm(`即将使用备份中的 ${records.length} 条档案替换当前浏览器档案，确定吗？`)) return;
+      if(!await xsConfirm(['即将使用备份中的 ',records.length,' 条档案替换当前浏览器档案，确定吗？'],{confirmLabel:'替换'})) return;
       localStorage.setItem(profileKey,JSON.stringify(records));showProfiles();purgeChatStores();
       inform('加密备份已恢复；原档案已被替换。');
     }catch(e){inform('导入失败：口令错误、文件损坏或 '+e.message);}
     finally{event.target.value='';q('vault-password').value='';}
   });
-  q('clear-profiles').addEventListener('click',()=>{
-    if(!window.confirm('确定清空当前浏览器保存的所有出生档案吗？此操作不可撤销。'))return;
+  q('clear-profiles').addEventListener('click',async()=>{
+    if(!await xsConfirm('确定清空当前浏览器保存的所有出生档案吗？此操作不可撤销。',{confirmLabel:'清空',danger:true}))return;
     try{localStorage.removeItem(profileKey);showProfiles();purgeChatStores();inform('已清空此浏览器的所有本地档案及其对话、记忆和人生事件。');}
     catch(e){inform('清空失败：'+e.message);}
   });

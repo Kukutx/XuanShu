@@ -35,7 +35,16 @@
   }
   apply();
   if (media && media.addEventListener) media.addEventListener('change', () => {if (!choice) apply();});
+  // The header wraps to a second line in some languages and widths; sticky offsets and scroll padding follow its
+  // measured height instead of the nominal one.
+  function measureHeader() {
+    const header = document.querySelector('.header');
+    if (!header || header.dataset.measured || typeof ResizeObserver !== 'function') return;
+    header.dataset.measured = '1';
+    new ResizeObserver(() => root.style.setProperty('--header-h', Math.ceil(header.getBoundingClientRect().height) + 'px')).observe(header);
+  }
   function wire() {
+    measureHeader();
     const button = document.getElementById('theme-toggle');
     if (!button || button.dataset.wired) return;
     button.dataset.wired = '1';

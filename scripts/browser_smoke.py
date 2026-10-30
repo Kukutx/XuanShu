@@ -210,6 +210,17 @@ def main() -> None:
             page.locator('#birth_city').select_option('')
             page.locator('#timezone').select_option('Asia/Shanghai')
             page.locator('#longitude').fill('')
+            # In a Windows contrast theme the token-drawn checkbox and switch still show whether they are on.
+            page.emulate_media(forced_colors='active')
+            # Colour transitions are switched off for the check, so the computed colours are the settled ones.
+            page.evaluate("() => {const s = document.createElement('style'); s.id = 'smoke-still'; s.textContent = '#hour_unknown,#hour_unknown::before,#late_zi_day_rollover,#late_zi_day_rollover::before{transition:none!important}'; document.head.append(s);}")
+            paint = "(id) => {const el = document.getElementById(id); return [getComputedStyle(el).backgroundColor, getComputedStyle(el, '::before').backgroundColor];}"
+            off = [page.evaluate(paint, i) for i in ('hour_unknown', 'late_zi_day_rollover')]
+            page.evaluate("() => ['hour_unknown', 'late_zi_day_rollover'].forEach(id => {document.getElementById(id).checked = true;})")
+            on = [page.evaluate(paint, i) for i in ('hour_unknown', 'late_zi_day_rollover')]
+            page.evaluate("() => {['hour_unknown', 'late_zi_day_rollover'].forEach(id => {document.getElementById(id).checked = false;}); document.getElementById('smoke-still').remove();}")
+            page.emulate_media(forced_colors='none')
+            assert off[0] != on[0] and off[1] != on[1], (off, on)
             # AI chat is the initial view; without a configured model it explains how to enable it.
             page.locator('#chat-status').get_by_text('对话服务未启用', exact=False).wait_for(timeout=30000)
             assert page.locator('#chat-send').is_disabled()
@@ -1511,6 +1522,9 @@ def main() -> None:
             assert page.locator('#qimen-ref-1-star').input_value() == '天芮禽' and page.locator('#qimen-ref-2-door').input_value() == ''
             assert '天芮禽（JSON）' in page.locator('#qimen-ref-1-star option:checked').inner_text()
             assert page.locator('#qimen-audit-load-msg').inner_text() == '已填入 5 项'
+            # A finished count is not drawn as work in progress, and the JSON box keeps its own role and name.
+            assert 'ok' in page.locator('#qimen-audit-load-msg').get_attribute('class').split()
+            assert page.locator('#qimen-audit-input').get_attribute('role') is None and page.locator('#qimen-audit-input').get_attribute('aria-label') is None
             assert page.locator('#qimen-audit-input').input_value().startswith('{"moment"')
             assert '值符原宫 3' in page.locator('.qr-extra-root').inner_text()
             assert '值符' in page.locator('#qimen-audit-board-form .qr-cell.center .qr-extra').inner_text()
@@ -2168,7 +2182,32 @@ def main() -> None:
             # The contents list stays in view beside the report while it is read.
             page.evaluate("document.querySelector('#report-sec-2').scrollIntoView()")
             toc_top = page.evaluate("document.querySelector('#report-toc').getBoundingClientRect().top")
-            assert 0 <= toc_top <= 20, toc_top
+            # The header stays at the top of the window and the contents list sticks just below it, not under it.
+            header_bottom = page.evaluate("document.querySelector('.header').getBoundingClientRect().bottom")
+            assert page.evaluate("document.querySelector('.header').getBoundingClientRect().top") == 0
+            assert header_bottom <= toc_top <= header_bottom + 20, (toc_top, header_bottom)
+            # With a chart cast the introduction folds to one line; the cross-check link and today's chip stay.
+            assert page.locator('.hero p').is_hidden() and page.locator('.hero .eyebrow').is_hidden()
+            assert page.locator('#crosscheck-open').is_visible() and page.locator('#today-chip').is_visible()
+            # Opening a tool restarts the result area's one-time fade-in.
+            assert 'is-entering' in (page.locator('#result').get_attribute('class') or '')
+            # On a wide screen the birth form folds to a one-line summary when asked, and the workspace takes the full width.
+            narrow = page.evaluate("document.querySelector('#workspace').getBoundingClientRect().width")
+            page.locator('#birth-summary-toggle').click()
+            assert page.locator('#input-panel.collapsed').count() == 1 and page.locator('#birth-summary-text').is_visible()
+            assert page.evaluate("document.querySelector('#workspace').getBoundingClientRect().width") > narrow + 200
+            # The green dot says the chart on screen comes from this data; editing the data takes it away.
+            dot = "getComputedStyle(document.querySelector('#birth-summary-text'), '::before').content"
+            assert page.locator('#input-panel.is-current').count() == 1 and page.evaluate(dot) != 'none'
+            saved_when = page.locator('#birth_datetime').input_value()
+            page.evaluate("() => {const f = document.querySelector('#birth_datetime'); f.value = '1990-01-01T10:00'; f.dispatchEvent(new Event('input', {bubbles: true}));}")
+            assert page.locator('#input-panel.is-current').count() == 0 and page.evaluate(dot) == 'none'
+            assert page.locator('#birth-summary-text').inner_text().startswith('1990-01-01 10:00 · ')
+            page.evaluate("(v) => {const f = document.querySelector('#birth_datetime'); f.value = v; f.dispatchEvent(new Event('input', {bubbles: true}));}", saved_when)
+            assert page.locator('#input-panel.is-current').count() == 1
+            page.locator('#birth-summary-toggle').click()
+            assert page.locator('#input-panel.collapsed').count() == 0 and page.evaluate("document.activeElement.id") == 'birth_datetime'
+            assert page.evaluate("document.querySelector('#workspace').getBoundingClientRect().width") == narrow
             # Each copy button is named by its section, and sits beside the heading rather than inside it.
             first_title = page.evaluate("reportResult.sections[0].title")
             assert page.get_by_role('button', name=first_title).count() == 1
@@ -2312,6 +2351,9 @@ def main() -> None:
             page.locator('[data-tab="quality"]').click()
             assert page.locator('#quality-run').is_visible()
             page.screenshot(path=str(screenshot_dir / '13-quality-mobile.png'), full_page=True)
+            # On a phone the folded introduction keeps only today's chip; the heading is left for screen readers.
+            assert page.evaluate("document.querySelector('.hero h1').getBoundingClientRect().width") <= 1
+            assert page.locator('#today-chip').is_visible()
             # No page is wider than a phone screen, and no field sticks out of its label (a year field used to cover
             # the next-year button).
             for tab in ('report', 'bazi', 'ziwei', 'annual', 'dayun', 'qimen', 'officers'):
@@ -2352,6 +2394,17 @@ def main() -> None:
             # Branch names and pillar values stay as characters; profile labels the user typed are never rewritten.
             assert '\n子\t' in '\n' + grid or grid.splitlines()[1].startswith('子'), grid[:300]
             assert page.locator('#profiles option').first.inner_text() == '既有档案'
+            # Deleting a profile asks in the page's own dialog, in the interface language, with the safe answer focused;
+            # Escape keeps the profile and gives the focus back to the button.
+            kept = page.locator('#profiles option').count()
+            page.locator('#profiles').select_option(label='既有档案')
+            page.locator('#remove-profile').click()
+            page.locator('#xs-confirm-no').wait_for(timeout=5000)
+            assert page.evaluate("document.activeElement.id") == 'xs-confirm-no'
+            assert not re.search('[\u4e00-\u9fff]', page.locator('#xs-confirm-text').inner_text()), page.locator('#xs-confirm-text').inner_text()
+            page.keyboard.press('Escape')
+            page.locator('#xs-confirm-no').wait_for(state='detached', timeout=5000)
+            assert page.locator('#profiles option').count() == kept and page.evaluate("document.activeElement.id") == 'remove-profile'
             page.screenshot(path=str(screenshot_dir / '30-results-english.png'), full_page=True)
             page.locator('#ui-language').select_option('ja')
             grid = page.locator('#ziwei-pair-grid').inner_text()
