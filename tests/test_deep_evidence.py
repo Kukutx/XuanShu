@@ -194,6 +194,8 @@ def test_published_reference_fixture_is_reproducible_and_explicitly_not_independ
     assert fixture['input_parameters']==result['input_parameters']
     assert fixture['calculation_hashes']==result['calculation_hashes']
     assert fixture['overview']==result['overview']
+    # The text too, so a wording change regenerates the published file.
+    assert fixture['findings']==result['findings'] and fixture['markdown']==result['markdown']
     assert fixture['calendar_year_consistent'] is False
     assert fixture['independent_professional_verification'] is False
     assert all(x['rule_ids'] for x in fixture['findings'])

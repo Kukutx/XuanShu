@@ -92,5 +92,5 @@ def test_editing_birth_disables_old_chart_export_without_discarding_it():
 
 def test_report_markdown_can_be_copied_without_downloading():
     js=(ROOT/'static/app.js').read_text(encoding='utf-8')
-    assert "copyBtn.id='consult-copy-markdown'" in js
-    assert "navigator.clipboard.writeText(consultResult.markdown)" in js
+    assert "copyBtn.id = 'consult-copy-markdown'" in js
+    assert "navigator.clipboard.writeText(c.markdown)" in js
