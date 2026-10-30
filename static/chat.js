@@ -247,6 +247,28 @@ function updateLiveBubble() {
   if (pinned) log.scrollTop = log.scrollHeight;
 }
 function announce(text) {const box = $('#live-status'); if (box) box.textContent = text;}
+// A confirmation drawn in the page's own style instead of the browser's native confirm dialog: its text follows the interface
+// language, the safe answer has the focus, Escape or 取消 answers no, and the focus goes back where it was.
+// `message` is a string or a list of pieces (numbers in between), each translated whole.
+function xsConfirm(message, {confirmLabel = '确定', danger = false} = {}) {
+  return new Promise(resolve => {
+    const back = document.activeElement;
+    const dialog = document.createElement('dialog'); dialog.className = 'share-dialog xs-confirm';
+    dialog.setAttribute('role', 'alertdialog'); dialog.setAttribute('aria-labelledby', 'xs-confirm-text');
+    const text = append(dialog, 'p', 'xs-confirm-text'); text.id = 'xs-confirm-text';
+    (Array.isArray(message) ? message : [message]).forEach(piece => text.append(String(piece)));
+    const row = append(dialog, 'div', 'xs-confirm-actions');
+    const no = append(row, 'button', 'tiny-button', '取消'); no.type = 'button'; no.id = 'xs-confirm-no';
+    const yes = append(row, 'button', 'tiny-button ' + (danger ? 'danger-btn' : 'is-primary'), confirmLabel); yes.type = 'button'; yes.id = 'xs-confirm-yes';
+    let answer = false;
+    no.addEventListener('click', () => dialog.close());
+    yes.addEventListener('click', () => {answer = true; dialog.close();});
+    dialog.addEventListener('close', () => {dialog.remove(); if (back && back.isConnected && back.focus) back.focus(); resolve(answer);});
+    document.body.append(dialog);
+    if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
+    no.focus();
+  });
+}
 async function sendChat(text) {
   const content = text.trim();
   if (!content || chatBusy || !chatStatus || chatStatus.enabled !== true) return;
@@ -721,8 +743,8 @@ function renderChat() {
   exportBtn.disabled = !chatMessages.length; exportBtn.addEventListener('click', exportChatMarkdown);
   const reset = append(actions, 'button', 'tiny-button danger-btn', '清空对话'); reset.type = 'button'; reset.id = 'chat-clear';
   reset.disabled = !chatMessages.length || chatBusy;
-  reset.addEventListener('click', () => {
-    if (!confirm('清空当前对话？如果这个档案开启了本机保存，已保存的对话也会一起删除。')) return;
+  reset.addEventListener('click', async () => {
+    if (!await xsConfirm('清空当前对话？如果这个档案开启了本机保存，已保存的对话也会一起删除。', {confirmLabel: '清空对话', danger: true})) return;
     chatMessages = []; persistChatHistory(); render();
   });
   note(area, '对话由你配置的语言模型生成；命盘计算只来自本地确定性工具。服务器不保存对话、记忆或出生资料。传统术数未经科学预测效力验证。');

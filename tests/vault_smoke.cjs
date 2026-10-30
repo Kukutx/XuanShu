@@ -22,7 +22,8 @@ const sandbox = {
   TextEncoder,TextDecoder,crypto:webcrypto,Uint8Array,Uint32Array,
   btoa,atob,Blob,Date,JSON,Number,Error,
   document:{getElementById:get,body:{append(){}},createElement(){return {click(){},remove(){}};}},
-  window:{isSecureContext:true,confirm:()=>true},
+  window:{isSecureContext:true},
+  xsConfirm:async()=>true,
   localStorage:{getItem:key=>store.get(key)||null,setItem:(key,value)=>store.set(key,value),removeItem:key=>store.delete(key)},
   URL:{createObjectURL(blob){downloaded=blob;return 'blob:temporary';},revokeObjectURL(){}},
   setTimeout(){},
@@ -96,7 +97,7 @@ async function main(){
   assert.deepEqual(JSON.parse(store.get(profileKey)),[],'Tampering must fail authenticated decryption');
 
   store.set(profileKey,JSON.stringify(initial));
-  fire('clear-profiles','click');
+  await fire('clear-profiles','click');
   assert.equal(store.has(profileKey),false,'Clearing should remove the local profile');
   console.log('vault_smoke: PASS — AES-256-GCM roundtrip with member note, legacy archive import, invalid note, wrong password, tampering, clearing');
 }

@@ -127,3 +127,12 @@ def test_professional_page_install_advice_matches_the_optional_dependency():
     assert 'xuanshu[professional]' not in js
     # The page reads the provider flag the server reports, and the guards stop a request that cannot be meaningful.
     assert 'professional_ziwei_provider_available' in js and "'professional-gender'" in js and "'professional-hour-unknown'" in js
+
+
+def test_no_native_confirm_dialogs():
+    """Confirmations use the page's own dialog (xsConfirm), whose text follows the interface language."""
+    import re
+    for name in ('app.js', 'chat.js', 'vault.js'):
+        js = (ROOT / 'static' / name).read_text(encoding='utf-8')
+        assert not re.search(r'(?<![\w.])(?:window\.)?confirm\(', js), name
+    assert 'function xsConfirm' in (ROOT / 'static/chat.js').read_text(encoding='utf-8')

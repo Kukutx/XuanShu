@@ -606,10 +606,6 @@ const UI_EXTRA = {
 "Day changes at 23:00",
 "23時に日替わり"
 ],
-"24 小时制，填出生地当时的钟表时间。只知道农历生日或不知道时辰，用下面两个选项。": [
-"24-hour clock, local time at the birthplace. Only know the lunar birthday, or not the hour? Use the two options below.",
-"24 時間制で、出生地のその時の時計時刻を入力します。旧暦の誕生日しか分からない、または時辰が分からない場合は下の二つの項目を使います。"
-],
 "95% 分位": [
 "95th percentile",
 "95% 分位点"
@@ -3902,6 +3898,10 @@ const UI_EXTRA = {
 "Direction of development",
 "発展の方向"
 ],
+"取消": [
+"Cancel",
+"キャンセル"
+],
 "取消突出": [
 "Clear highlight",
 "強調を解除"
@@ -4066,6 +4066,10 @@ const UI_EXTRA = {
 "Reusable calculation workflows",
 "再利用可能な計算ワークフロー"
 ],
+"可左右滚动的内容": [
+"Content that scrolls sideways",
+"横にスクロールできる内容"
+],
 "可指定某项规则或宫位继续追问；续问时请重新发送需要的出生资料。": [
 "You can specify a rule or palace for follow-up questions; please resend the required birth data when following up.",
 "特定の規則や宮を指定して続けて質問できます。続けて質問する際は必要な出生情報を再送してください。"
@@ -4073,6 +4077,10 @@ const UI_EXTRA = {
 "可核验观察": [
 "Verifiable observations",
 "検証可能な観察"
+],
+"可滚动的内容": [
+"Scrollable content",
+"スクロールできる内容"
 ],
 "可能的原因": [
 "Possible causes",
@@ -4773,6 +4781,10 @@ const UI_EXTRA = {
 "填写第二人出生时间": [
 "Enter the second person's birth time",
 "二人目の出生時刻を入力"
+],
+"填出生地当时的钟表时间（时间格式跟随浏览器语言，下午 3 点就是 15:00 或 3:00 PM）。只知道农历生日或不知道时辰，用下面两个选项。": [
+"Local clock time at the birthplace (the time format follows the browser language: 3 in the afternoon is 15:00 or 3:00 PM). Only know the lunar birthday, or not the hour? Use the two options below.",
+"出生地のその時の時計時刻を入力します（時刻の表示形式はブラウザの言語に従います。午後 3 時は 15:00 または 3:00 PM）。旧暦の誕生日しか分からない、または時辰が分からない場合は下の二つの項目を使います。"
 ],
 "墓": [
 "Mu (Tomb)",
@@ -8118,6 +8130,10 @@ const UI_EXTRA = {
 "Bangkok",
 "バンコク"
 ],
+"替换": [
+"Replace",
+"置き換える"
+],
 "最多 8 人": [
 "At most 8 people",
 "最大 8 人"
@@ -9570,6 +9586,10 @@ const UI_EXTRA = {
 "Clear and Bright (Qingming)",
 "清明"
 ],
+"清空": [
+"Clear",
+"消去"
+],
 "清空失败：": [
 "Clear failed: ",
 "消去失敗："
@@ -10193,6 +10213,10 @@ const UI_EXTRA = {
 "确切计算字段 · 公开规则链接 · 内部反证检查": [
 "Exact calculated fields · public rule links · internal counter-check",
 "正確な計算フィールド · 公開ルールのリンク · 内部の反証チェック"
+],
+"确定": [
+"OK",
+"OK"
 ],
 "确定清空当前浏览器保存的所有出生档案吗？此操作不可撤销。": [
 "Clear all birth profiles saved in this browser? This cannot be undone.",

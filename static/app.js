@@ -7683,7 +7683,36 @@ function render() {
     }
   }
   autoOpen();
+  requestAnimationFrame(markScrollAreas);
 }
+// Boxes that scroll inside the page (a luck strip, the palace board on a phone, a wide table, a code block) take the
+// keyboard focus while they overflow, so arrow keys scroll them without a mouse; a sideways one fades at the edge
+// that has more to show. Nothing changes for a box that fits.
+const SCROLL_AREAS = '.luck-strip,.ziwei-wrap,.fh-wrap,.yt-wrap,.dy-axis-wrap,.dm-wrap,.table-wrap,.json-code,.luck-timeline-wrap,.pf-board-wrap,.share-text';
+function scrollEdges(el) {
+  el.classList.toggle('at-start', el.scrollLeft <= 1);
+  el.classList.toggle('at-end', el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
+}
+function markScrollAreas() {
+  document.querySelectorAll(SCROLL_AREAS).forEach(el => {
+    const sideways = el.scrollWidth > el.clientWidth + 1, scrolls = sideways || el.scrollHeight > el.clientHeight + 1;
+    const marked = 'xsScroll' in el.dataset;
+    if (scrolls && !el.hasAttribute('tabindex')) {
+      el.tabIndex = 0; el.dataset.xsScroll = '';
+      if (!el.hasAttribute('role')) el.setAttribute('role', 'region');
+      if (!el.hasAttribute('aria-label') && !el.hasAttribute('aria-labelledby')) el.setAttribute('aria-label', sideways ? '可左右滚动的内容' : '可滚动的内容');
+    } else if (!scrolls && marked) {
+      ['tabindex', 'role', 'aria-label', 'data-xs-scroll'].forEach(a => el.removeAttribute(a));
+    }
+    el.classList.toggle('xs-hscroll', sideways);
+    if (sideways) {
+      if (!el.xsEdges) {el.xsEdges = true; el.addEventListener('scroll', () => scrollEdges(el), {passive: true});}
+      scrollEdges(el);
+    }
+  });
+}
+let scrollAreaFrame = 0;
+window.addEventListener('resize', () => {cancelAnimationFrame(scrollAreaFrame); scrollAreaFrame = requestAnimationFrame(markScrollAreas);});
 // A reply that comes back after another chart was cast belongs to the old chart, so it is dropped (STALE). So is one
 // overtaken by a newer request to the same tool: a redraw while an automatic run is on its way brings back an enabled
 // button, and a run pressed then must not be overwritten when the older reply lands after it.
@@ -7918,10 +7947,10 @@ $('#load-profile').addEventListener('click', () => {
   setInput(entry.data); $('#hour_unknown').checked = entry.hour_unknown === true; updateHourUnknown();
   setFeedback('已载入档案，正在计算。'); form.requestSubmit();
 });
-$('#remove-profile').addEventListener('click', () => {
+$('#remove-profile').addEventListener('click', async () => {
   const chosen = $('#profiles').value;
   if (!chosen) {setFeedback('请选择要删除的档案'); return;}
-  if (!confirm('删除所选档案？它在本机保存的对话、记忆和人生事件也会一起删除。')) return;
+  if (!await xsConfirm('删除所选档案？它在本机保存的对话、记忆和人生事件也会一起删除。', {confirmLabel: '删除', danger: true})) return;
   try {localStorage.setItem(profileKey, JSON.stringify(loadProfiles().filter(x => x.id !== chosen))); showProfiles(); purgeChatStores(); setFeedback('已从本机浏览器删除所选档案及其对话、记忆和人生事件。'); if (active === 'chat') render();}
   catch (_) {setFeedback('删除失败：浏览器存储不可用');}
 });
