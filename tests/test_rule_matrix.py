@@ -130,4 +130,4 @@ def test_page_wiring():
     assert 'data-tab="rule-matrix"' in html
     app_js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     assert "'/api/rule-matrix'" in app_js and "if (active === 'rule-matrix') return renderRuleMatrix();" in app_js
-    assert "id = 'today-ics'" in app_js and "'?moon=true'" in app_js
+    assert "id = 'today-ics'" in app_js and "'moon=true'" in app_js and "'festivals=true'" in app_js

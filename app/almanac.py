@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from .advanced import DayunRequest, dayun_sequence
 from .astronomy import TERMS, chinese_lunar_date, from_jd, moon_data, signed_degrees, solar_term_jd, sun_data, to_jd
 from .engines import ANIMALS, BRANCHES, STEMS, STEM_ELEMENT, BirthInput, _ten_god, calculate_bazi, normalized_dt, pillar_indices
+from .festivals import day_marks
 from .life_path import _relations
 from .workflows import DAY_OFFICERS
 
@@ -218,6 +219,7 @@ def daily_almanac(req: DailyAlmanacRequest) -> dict:
             'progress': round((instant - current_start).total_seconds() / span, 3),
         },
         'day_officer': _day_officer(instant),
+        'festivals': day_marks(instant.date(), lunar),
         'moon': _moon(instant),
         'personal': _personal(req.birth, instant, pillars) if req.birth else None,
         'method': ('Pillars from the bazi_chart pillar function (Lichun year, jie months, 00:00 day change, clock time); '
@@ -226,6 +228,7 @@ def daily_almanac(req: DailyAlmanacRequest) -> dict:
             '只列历法事实与传统名称，不给吉凶评分、宜忌或预测。',
             '建除值日按所在时区当天正午的节令月归类；交节当天节令前后可能不同。',
             '月相按地心黄经差计算，与当地实际所见可能相差数小时。',
+            '传统节日按本卡的农历日期；三伏与数九按中国标准时间的节气日推算。',
         ],
     }
     if req.birth:

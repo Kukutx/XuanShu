@@ -789,6 +789,12 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .cal-term-chip{border:1px solid var(--border);background:var(--panel2);color:var(--text2);border-radius:999px;padding:3px 11px;font-size:12px;min-height:28px}
 .cal-term-chip b{color:var(--gold2);font-weight:600}
 .cal-term-chip.is-jie{border-color:var(--accent-line)}
+.cal-term-chip.is-festival b{color:var(--red)}
+.cal-term-chip.is-season b{color:var(--water)}
+.cal-marks{margin-top:0}
+.cal-mark-rule{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.today-mark.today-mark-festival{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent)}
+.today-mark:is(.today-mark-sanfu,.today-mark-shujiu){color:var(--water);border-color:color-mix(in srgb,var(--water) 45%,transparent)}
 .cal-term-chip:hover{border-color:var(--gold)}
 .cal-grid{width:calc(100% + 10px);table-layout:fixed;border-collapse:separate;border-spacing:5px;margin:2px -5px 8px}
 .cal-grid th{padding:4px 0;font-size:12px;font-weight:500;color:var(--muted);text-align:center}
@@ -803,6 +809,8 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .cal-lunar{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--muted)}
 .cal-day.cal-month .cal-lunar{color:var(--gold2);font-weight:600}
 .cal-day.cal-term .cal-lunar{color:var(--green);font-weight:600}
+.cal-day.cal-festival .cal-lunar{color:var(--red);font-weight:600}
+.cal-day.cal-season .cal-lunar{color:var(--water);font-weight:600}
 .cal-day .cal-gz{font-family:'Noto Serif SC','Songti SC','STSong',serif;font-size:12px;letter-spacing:.04em}
 .cal-day.is-today{border-color:var(--gold)}
 .cal-day.is-today .cal-num{color:var(--gold2)}
@@ -2004,7 +2012,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .inline-control button.cal-step{min-height:42px;padding:0 15px}.cal-nav #calendar-today{grid-column:1/-1;justify-self:start}
   .cal-grid{width:calc(100% + 4px);border-spacing:2px;margin:2px -2px 8px}.cal-day{min-height:60px;padding:5px 1px;gap:1px;border-radius:7px}
   .of-grid{width:calc(100% + 4px);border-spacing:2px;margin:0 -2px}.of-day{height:72px;padding:4px 1px;border-radius:7px}.of-date{top:3px;left:4px;font-size:10px}.of-gz{margin-top:11px;font-size:11px;letter-spacing:0}.of-officer{font-size:18px}.of-jie{font-size:9.5px}html[lang="en"] .of-officer{font-size:10.5px}.ds-pick{min-height:70px;padding:4px 1px}.ds-reason,.ds-clash,.ds-hours{font-size:9.5px}.ds-clash{padding:0 3px}.ds-reason:not(.is-unscanned){display:none}.ds-reason-short{display:block}.ds-hour-bureau{display:none}
-  .cal-num{font-size:15px}.cal-lunar{font-size:10px}:lang(en) .cal-day:is(.cal-month,.cal-term) .cal-lunar{white-space:normal;line-height:1.15;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}.cal-day .cal-gz{font-size:10px;letter-spacing:0}.cal-title{font-size:20px}
+  .cal-num{font-size:15px}.cal-lunar{font-size:10px}:lang(en) .cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{white-space:normal;line-height:1.15;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}.cal-day .cal-gz{font-size:10px;letter-spacing:0}.cal-title{font-size:20px}
   .brand-en,.brand small,.ui-lang span,.theme-toggle .theme-label{display:none}
   .header .brand-mark{width:36px;height:36px;font-size:21px;border-radius:var(--radius)}
   .header .brand strong{font-size:16px}

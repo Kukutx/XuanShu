@@ -18,7 +18,7 @@ from .provenance import runtime_provenance
 from .asset_paths import resource_root
 from datetime import date
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
@@ -598,12 +598,15 @@ def lunar(day: date):
 
 
 @app.get('/api/solar-terms/{year}.ics')
-def ics(year: int, moon: bool = False):
+def ics(year: int,
+        moon: bool = Query(False, description='Also the new, first-quarter, full and last-quarter moons'),
+        festivals: bool = Query(False, description=('Also the traditional festivals, and the first days of the three fu '
+                                                    'periods and of the nine nines, as all-day events with their rules'))):
     try:
-        content = solar_terms_ics(year, moon)
+        content = solar_terms_ics(year, moon, festivals)
     except ValueError as exc:
         raise HTTPException(422, detail=str(exc)) from exc
-    name = f'solar-terms-moon-{year}.ics' if moon else f'solar-terms-{year}.ics'
+    name = 'solar-terms' + ('-moon' if moon else '') + ('-festivals' if festivals else '') + f'-{year}.ics'
     return Response(content, media_type='text/calendar; charset=utf-8',
                     headers={'Content-Disposition': f'attachment; filename="{name}"'})
 
@@ -616,7 +619,7 @@ def capabilities():
                      'solar-time-clock-mean-apparent', 'ziwei-14-major-44-selected-auxiliary', 'ziwei-optional-iztro-py-professional', 'qimen-field-level-reference-audit',
                      'natal-cycles-four-twelve-label-series', 'natal-small-limit-nominal-ages', 'natal-transformations', 'palace-flying-mappings', 'palace-trine-opposite',
                      'annual-stem-overlay', 'calendar-days', 'solar-terms-ics', 'lunar-to-gregorian', 'sampled-birth-time-window',
-                     'bazi-traditional-dayun', 'hour-qimen-chabu-rotating', 'modeled-birth-boundary-map', 'jianchu-day-officers', 'annual-four-transformation-timeline', 'transparent-decision-matrix', 'pair-comparison', 'ziwei-pair-overlay', 'pillar-reverse-lookup', 'external-chart-import-check', 'daily-almanac-card', 'group-relations', 'rule-sensitivity', 'rule-sensitivity-matrix', 'moon-phase-ics', 'ziwei-month-day-hour-layers', 'chart-boundary-quality-audit', 'structured-multitool-report', 'traceable-deep-evidence-review', 'stateless-question-first-consultation', 'local-profile-backups'],
+                     'bazi-traditional-dayun', 'hour-qimen-chabu-rotating', 'modeled-birth-boundary-map', 'jianchu-day-officers', 'annual-four-transformation-timeline', 'transparent-decision-matrix', 'pair-comparison', 'ziwei-pair-overlay', 'pillar-reverse-lookup', 'external-chart-import-check', 'daily-almanac-card', 'group-relations', 'rule-sensitivity', 'rule-sensitivity-matrix', 'moon-phase-ics', 'ziwei-month-day-hour-layers', 'chart-boundary-quality-audit', 'structured-multitool-report', 'traceable-deep-evidence-review', 'stateless-question-first-consultation', 'local-profile-backups', 'traditional-festivals-sanfu-shujiu'],
         'counts': {'mcp_tools': len(TOOL_DEFS), 'mcp_resources': len(RESOURCES),
                    'mcp_prompts': len(PROMPTS), 'agent_skills': len(list((ROOT/'skills').glob('*/SKILL.md')))},
         'privacy': 'No server-side birth-record persistence; browser localStorage opt-in.',

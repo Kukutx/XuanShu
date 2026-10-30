@@ -150,9 +150,9 @@ const UI_EXTRA = {
 " Zhi Shi",
 " 値使"
 ],
-" 农历、日柱与节气（中国标准时间）": [
-" lunar dates, day pillars and solar terms (China Standard Time)",
-" 旧暦・日柱・節気（中国標準時）"
+" 农历、日柱、节气与传统节令（中国标准时间）": [
+" lunar dates, day pillars, solar terms and traditional festivals and seasons (China Standard Time)",
+" 旧暦・日柱・節気と伝統の節日・時節（中国標準時）"
 ],
 " 农历年干四化叠加": [
 " lunar-year-stem Four Transformations overlay",
@@ -986,6 +986,10 @@ const UI_EXTRA = {
 ". Today's date: ",
 "。今日の日付："
 ],
+"。按中国标准时间的日期。": [
+". Dates in China Standard Time.",
+"。中国標準時の日付。"
+],
 "《三命通会》卷三·论劫煞亡神": [
 "San Ming Tong Hui, vol. 3: On Jie Sha and Wang Shen",
 "『三命通会』巻三・論劫煞亡神"
@@ -1078,6 +1082,10 @@ const UI_EXTRA = {
 "[Zi Wei Dou Shu]",
 "【紫微斗数】"
 ],
+"一九": [
+"First Nine",
+"一九"
+],
 "一二三四五六日": [
 "Mon Tue Wed Thu Fri Sat Sun",
 "月火水木金土日"
@@ -1130,6 +1138,14 @@ const UI_EXTRA = {
 "Ding–Ren combine (Wood)",
 "丁壬合木"
 ],
+"七九": [
+"Seventh Nine",
+"七九"
+],
+"七夕": [
+"Qixi Festival",
+"七夕"
+],
 "七月": [
 "Month 7",
 "七月"
@@ -1145,6 +1161,14 @@ const UI_EXTRA = {
 "万年历": [
 "Perpetual calendar",
 "万年暦"
+],
+"三九": [
+"Third Nine",
+"三九"
+],
+"三伏": [
+"Fu days",
+"三伏"
 ],
 "三会": [
 "Seasonal trio",
@@ -1250,6 +1274,14 @@ const UI_EXTRA = {
 "Upper Yuan",
 "上元"
 ],
+"上巳": [
+"Shangsi",
+"上巳"
+],
+"上巳节": [
+"Shangsi Festival",
+"上巳節"
+],
 "上弦月": [
 "First quarter",
 "上弦の月"
@@ -1297,6 +1329,10 @@ const UI_EXTRA = {
 "下元": [
 "Lower Yuan",
 "下元"
+],
+"下元节": [
+"Xiayuan Festival",
+"下元節"
 ],
 "下弦月": [
 "Last quarter",
@@ -1445,6 +1481,10 @@ const UI_EXTRA = {
 "不限": [
 "Any",
 "指定なし"
+],
+"与": [
+" and ",
+"と"
 ],
 "与出生所在区间不同": [
 "differs from the birth segment",
@@ -1686,9 +1726,17 @@ const UI_EXTRA = {
 "Lodging the central fifth palace in palace 2 is a debatable traditional rule; the outer-ring stars, doors, deities and heaven-plate stems are derived using this project's fixed rotation method.",
 "中五宮を二宮に寄せるのは議論のある伝統規則です。外周の星・門・神と天盤干は本プロジェクトの固定回転方式で導出しています。"
 ],
+"中伏": [
+"Middle Fu",
+"中伏"
+],
 "中元": [
 "Middle Yuan",
 "中元"
+],
+"中元节": [
+"Zhongyuan Festival",
+"中元節"
 ],
 "中国": [
 "China",
@@ -1709,6 +1757,14 @@ const UI_EXTRA = {
 "中宫寄此": [
 "Center lodged here",
 "中宮がここに寄宮"
+],
+"中秋": [
+"Mid-Autumn",
+"中秋"
+],
+"中秋节": [
+"Mid-Autumn Festival",
+"中秋節"
 ],
 "临官": [
 "Lin Guan (Prosperity)",
@@ -1765,6 +1821,14 @@ const UI_EXTRA = {
 "乙庚合金": [
 "Yi–Geng combine (Metal)",
 "乙庚合金"
+],
+"九九": [
+"Ninth Nine",
+"九九"
+],
+"九九八十一天之后的第一天": [
+"The first day after the 81 days of the nine nines",
+"九九八十一日が明けた最初の日"
 ],
 "九地": [
 "Nine Earth (Jiu Di)",
@@ -1850,6 +1914,10 @@ const UI_EXTRA = {
 "Tue Wed Thu Fri Sat",
 "火水木金土"
 ],
+"二九": [
+"Second Nine",
+"二九"
+],
 "二十": [
 "Day 20",
 "20日"
@@ -1862,6 +1930,10 @@ const UI_EXTRA = {
 "24 solar terms and moon phases",
 "二十四節気と月相"
 ],
+"二十四节气，加上传统节日和三伏、数九各段的第一天（全天事件，附推算规则）": [
+"The 24 solar terms, plus the traditional festivals and the first day of each fu period and nine (all-day events, each with its rule)",
+"二十四節気に、伝統の節日と三伏・数九の各期間の初日を加える（終日の予定、推算の規則付き）"
+],
 "二月": [
 "Month 2",
 "二月"
@@ -1869,6 +1941,10 @@ const UI_EXTRA = {
 "亏凸月": [
 "Waning gibbous",
 "寝待月（欠けていく凸月）"
+],
+"五九": [
+"Fifth Nine",
+"五九"
 ],
 "五月": [
 "Month 5",
@@ -2306,6 +2382,18 @@ const UI_EXTRA = {
 "Traditional divination arts lack a reliable scientific basis and are not to be used for medical, investment, legal or major decisions.",
 "伝統術数には信頼できる科学的根拠がなく、医療・投資・法律や重大な意思決定には用いません。"
 ],
+"传统节令": [
+"Traditional festivals and seasons",
+"伝統の節日と時節"
+],
+"传统节日按农历日期（闰月不重复过节），三伏按夏至、立秋起数庚日，数九从冬至当天起数；每项都附推算规则。": [
+"Traditional festivals follow the lunar date (a leap month repeats none of them); the fu days count geng days from the summer solstice and the start of autumn, and the nines count from the winter solstice day. Each mark gives its rule.",
+"伝統の節日は旧暦の日付による（閏月では重ねない）。三伏は夏至・立秋から庚の日を数え、数九は冬至の当日から数える。各項目に推算の規則を付ける。"
+],
+"传统节日按本卡的农历日期；三伏与数九按中国标准时间的节气日推算。": [
+"Traditional festivals follow this card's lunar date; the fu days and the nines are reckoned from the solar-term days in China Standard Time.",
+"伝統の節日はこのカードの旧暦日付による。三伏と数九は中国標準時の節気の日から推算する。"
+],
 "传统虚岁：目标农历年减出生农历年再加一": [
 "Traditional nominal age: the target lunar year minus the birth lunar year, plus one",
 "伝統的な数え年：対象の旧暦年から出生の旧暦年を引いて一を足す"
@@ -2514,6 +2602,14 @@ const UI_EXTRA = {
 "Health check",
 "ヘルスチェック"
 ],
+"元宵": [
+"Lantern",
+"元宵"
+],
+"元宵节": [
+"Lantern Festival",
+"元宵節"
+],
 "兄弟": [
 "Siblings",
 "兄弟"
@@ -2653,6 +2749,10 @@ const UI_EXTRA = {
 "全部规则组合": [
 "All rule combinations",
 "すべての規則の組み合わせ"
+],
+"八九": [
+"Eighth Nine",
+"八九"
 ],
 "八字": [
 "BaZi",
@@ -2841,6 +2941,10 @@ const UI_EXTRA = {
 "公网接入必须单独部署 HTTPS、配置安全令牌/宿主支持的鉴权方式，并由用户在宿主平台进行连接授权。当前尚未自动注册插件。": [
 "Public internet access requires a separate HTTPS deployment, a security token or host-supported authentication, and user authorization of the connection on the host platform. No plugin is registered automatically yet.",
 "公開ネットワークでの接続には、HTTPS の個別デプロイ、セキュリティトークン／ホスト対応の認証方式の設定、ホスト側でのユーザーによる接続承認が必要です。現時点でプラグインは自動登録されません。"
+],
+"六九": [
+"Sixth Nine",
+"六九"
 ],
 "六冲": [
 "Six Clashes",
@@ -3062,6 +3166,10 @@ const UI_EXTRA = {
 "The lunar year must be a whole number from 1901 to 2099.",
 "旧暦の年は 1901–2099 の整数で入力してください。"
 ],
+"农历腊月的最后一天（春节前一天）": [
+"The last day of the twelfth lunar month (the day before the Spring Festival)",
+"旧暦十二月の最終日（春節の前日）"
+],
 "农历转公历": [
 "Lunar to Gregorian",
 "旧暦から西暦へ"
@@ -3082,6 +3190,10 @@ const UI_EXTRA = {
 "Yang Dun runs from the winter solstice to Mangzhong and Yin Dun from the summer solstice to Daxue, setting whether the nine palaces are laid out forward or backward.",
 "冬至から芒種までは陽遁、夏至から大雪までは陰遁。九宮の配置が順か逆かを決めます。"
 ],
+"冬至当天起每九天为一九，九个九共八十一天": [
+"Every nine days from the winter solstice day make one nine; nine of them make 81 days",
+"冬至の当日から九日ごとに一九とし、九つで八十一日"
+],
 "冲": [
 "Clash",
 "冲"
@@ -3101,6 +3213,14 @@ const UI_EXTRA = {
 "凤阁": [
 "Feng Ge",
 "鳳閣"
+],
+"出九": [
+"End of the Nines",
+"出九（数九明け）"
+],
+"出伏": [
+"End of the Fu Days",
+"出伏（三伏明け）"
 ],
 "出处": [
 "Source",
@@ -3450,6 +3570,10 @@ const UI_EXTRA = {
 "Day 5",
 "5日"
 ],
+"初伏": [
+"First Fu",
+"初伏"
+],
 "初八": [
 "Day 8",
 "8日"
@@ -3605,6 +3729,10 @@ const UI_EXTRA = {
 "北京": [
 "Beijing",
 "北京"
+],
+"北方小年": [
+"Little New Year (north)",
+"小年（北方）"
 ],
 "十一": [
 "Day 11",
@@ -3789,6 +3917,10 @@ const UI_EXTRA = {
 "南宁": [
 "Nanning",
 "南寧"
+],
+"南方小年": [
+"Little New Year (south)",
+"小年（南方）"
 ],
 "南昌": [
 "Nanchang",
@@ -4618,6 +4750,10 @@ const UI_EXTRA = {
 "Xi Shen",
 "喜神"
 ],
+"四九": [
+"Fourth Nine",
+"四九"
+],
 "四化": [
 "Four Transformations",
 "四化"
@@ -5133,6 +5269,10 @@ const UI_EXTRA = {
 "夏至": [
 "Summer Solstice (Xiazhi)",
 "夏至"
+],
+"夏至当天起数第三个庚日（夏至逢庚当天算第一个），初伏十天": [
+"The third geng day counting from the summer solstice day (a geng solstice counts as the first); the First Fu lasts ten days",
+"夏至の当日から数えて三つ目の庚の日（夏至が庚の日ならその日を一つ目とする）。初伏は十日"
 ],
 "外圈箭头是相生，内圈虚线是相克；圆的大小和其中的数字是明干与地支本气的个数，圆外是该五行对日主而言的十神类别。点一个五行看它在四柱里的位置和生克关系，方向键可以逐个切换。": [
 "The outer arrows are the generating cycle and the dashed inner lines the controlling cycle. Each circle's size and number give how many visible stems and branch main qi belong to that phase; outside it is the ten-god group the phase stands for from the Day Master. Select a phase to see where it sits in the four pillars and how it generates and controls; the arrow keys move between phases.",
@@ -5898,6 +6038,14 @@ const UI_EXTRA = {
 "Yin hour 03–05",
 "寅の刻 03–05"
 ],
+"寒衣": [
+"Winter Clothes",
+"寒衣"
+],
+"寒衣节": [
+"Winter Clothes Festival",
+"寒衣節"
+],
 "寒露": [
 "Cold Dew (Hanlu)",
 "寒露"
@@ -6041,6 +6189,10 @@ const UI_EXTRA = {
 "小寒": [
 "Minor Cold (Xiaohan)",
 "小寒"
+],
+"小年": [
+"Little New Year",
+"小年"
 ],
 "小暑": [
 "Minor Heat (Xiaoshu)",
@@ -7470,6 +7622,10 @@ const UI_EXTRA = {
 "Reasoning · ",
 "推論過程 · "
 ],
+"推算规则：": [
+"Rule: ",
+"推算の規則："
+],
 "提供了方案评分": [
 "Option ratings given",
 "方案の評価あり"
@@ -7545,6 +7701,10 @@ const UI_EXTRA = {
 "敏感窗口": [
 "Sensitivity window",
 "感度ウィンドウ"
+],
+"数九": [
+"Nine nines",
+"数九"
 ],
 "数值定位精度不等于真实出生记录精度；仅覆盖当前实现的流派规则。": [
 "Numerical positioning precision does not equal the precision of the real birth record; only the currently implemented school rules are covered.",
@@ -8382,6 +8542,10 @@ const UI_EXTRA = {
 "Spring Equinox (Chunfen)",
 "春分"
 ],
+"春节": [
+"Spring Festival",
+"春節"
+],
 "显示": [
 "Showing",
 "表示中"
@@ -8557,6 +8721,10 @@ const UI_EXTRA = {
 "月煞": [
 "Yue Sha",
 "月煞"
+],
+"月相": [
+"moon phases",
+"月相"
 ],
 "月相按地心黄经差计算，与当地实际所见可能相差数小时。": [
 "The moon phase uses the geocentric longitude difference and can differ from what you see locally by a few hours.",
@@ -8789,6 +8957,14 @@ const UI_EXTRA = {
 "未配置语言模型。设置 ANTHROPIC_API_KEY，或 XUANSHU_LLM_PROVIDER=openai 加 XUANSHU_LLM_MODEL 与 API Key 后重启。": [
 "No language model is configured. Set ANTHROPIC_API_KEY, or XUANSHU_LLM_PROVIDER=openai plus XUANSHU_LLM_MODEL and an API Key, then restart.",
 "言語モデルが設定されていません。ANTHROPIC_API_KEY を設定するか、XUANSHU_LLM_PROVIDER=openai と XUANSHU_LLM_MODEL および API Key を設定してから再起動してください。"
+],
+"末伏": [
+"Last Fu",
+"末伏"
+],
+"末伏十天之后的第一天": [
+"The first day after the ten days of the Last Fu",
+"末伏十日が明けた最初の日"
 ],
 "本命": [
 "Natal",
@@ -9393,6 +9569,10 @@ const UI_EXTRA = {
 "此报告展示传统文化规则下的可计算事实、公开方法参考和局限；不预测个体命运。": [
 "This report shows computable facts under traditional cultural rules, public method references, and limitations; it does not predict individual destiny.",
 "このレポートは伝統文化の規則に基づく計算可能な事実、公開された方法の参考、および制限を示すもので、個人の運命を予測するものではありません。"
+],
+"此接口只提供农历、日干支、节气与传统节日、三伏、数九的日期；不提供黄历宜忌或吉凶择日结论。": [
+"This endpoint gives only lunar dates, day stems and branches, solar terms, and the dates of traditional festivals, the fu days and the nines; no almanac do-and-avoid lists or auspicious-day conclusions.",
+"このエンドポイントは旧暦、日の干支、節気と伝統の節日・三伏・数九の日付のみを返す。暦の宜忌や吉凶の日選びの結論は出さない。"
 ],
 "此接口只提供农历、日干支与节气日期；不提供黄历宜忌或吉凶择日结论。": [
 "This interface provides only lunar dates, day stem-branches, and solar-term dates; it does not provide almanac do/avoid lists or auspicious/inauspicious date-selection conclusions.",
@@ -10770,6 +10950,18 @@ const UI_EXTRA = {
 "Start of Autumn (Liqiu)",
 "立秋"
 ],
+"立秋当天起第一个庚日（立秋逢庚当天算），末伏十天": [
+"The first geng day counting from the start-of-autumn day (a geng day counts); the Last Fu lasts ten days",
+"立秋の当日から数えて最初の庚の日（立秋が庚の日ならその日）。末伏は十日"
+],
+"端午": [
+"Dragon Boat",
+"端午"
+],
+"端午节": [
+"Dragon Boat Festival",
+"端午節"
+],
 "端点": [
 "Endpoint",
 "エンドポイント"
@@ -10801,6 +10993,10 @@ const UI_EXTRA = {
 "第二套独立引擎的完整星盘与运限 · 与玄枢原生盘逐项对照 · 不混入原生数据": [
 "Full chart and periods from a second, independent engine · compared item by item with XuanShu's chart · never mixed into it",
 "独立した第二のエンジンによる完全な星盤と運限 · ネイティブ盤と項目別に対照 · ネイティブのデータには混ぜない"
+],
+"第四个庚日起，到立秋当天起第一个庚日之前，十天或二十天": [
+"From the fourth geng day until the first geng day counting from the start of autumn: ten or twenty days",
+"四つ目の庚の日から、立秋の当日から数えて最初の庚の日の前日まで。十日または二十日"
 ],
 "等待超时，已停止。": [
 "Timed out and stopped.",
@@ -11202,6 +11398,14 @@ const UI_EXTRA = {
 "Capabilities",
 "機能一覧"
 ],
+"腊八": [
+"Laba",
+"臘八"
+],
+"腊八节": [
+"Laba Festival",
+"臘八節"
+],
 "腊月": [
 "Month 12",
 "十二月"
@@ -11290,9 +11494,17 @@ const UI_EXTRA = {
 "after the term",
 "節入り後"
 ],
+"节日": [
+"Festival",
+"節日"
+],
 "节气": [
 "Solar term",
 "節気"
+],
+"节气与传统节令 ICS": [
+"Solar terms & festivals ICS",
+"節気と伝統の節日 ICS"
 ],
 "节气与月相 ICS": [
 "Solar terms + moon phases ICS",
@@ -12678,6 +12890,14 @@ const UI_EXTRA = {
 "Retry",
 "再試行"
 ],
+"重阳": [
+"Double Ninth",
+"重陽"
+],
+"重阳节": [
+"Double Ninth Festival",
+"重陽節"
+],
 "金": [
 "Metal",
 "金"
@@ -12841,6 +13061,10 @@ const UI_EXTRA = {
 "除": [
 "Chu (Remove)",
 "除"
+],
+"除夕": [
+"Lunar New Year's Eve",
+"除夕"
 ],
 "随时辰而定": [
 "Depends on the hour",
@@ -13101,6 +13325,10 @@ const UI_EXTRA = {
 "龙德": [
 "Long De",
 "龍徳"
+],
+"龙抬头": [
+"Dragon Raises Its Head",
+"龍抬頭"
 ],
 "龙池": [
 "Long Chi",
