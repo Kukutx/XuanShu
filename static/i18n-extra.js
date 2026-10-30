@@ -2626,6 +2626,10 @@ const UI_EXTRA = {
 "All Luck Pillars",
 "すべての大運"
 ],
+"全部工具都标注为只读：不写入、不联网，重复调用不改变任何东西（不传时刻的工具按当前时间计算），支持这项标注的客户端可以不逐次确认就让 Agent 调用。": [
+"Every tool is marked read-only: nothing is written or sent over the network, and calling again changes nothing (tools given no moment use the current time), so clients that honour these hints can let the agent call them without asking each time.",
+"すべてのツールに読み取り専用の注記があります。書き込みも外部通信もせず、繰り返し呼び出しても何も変わらない（時刻を渡さないツールは現在時刻で計算）ため、この注記に対応したクライアントでは毎回確認せずに Agent に呼び出させることができます。"
+],
 "全部提供字段一致": [
 "All provided fields match",
 "提供された全フィールドが一致"

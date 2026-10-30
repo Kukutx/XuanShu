@@ -2240,6 +2240,7 @@ def main() -> None:
             assert page.locator('.ag-nav-link').count() == 6
             # The catalogue lists every tool once, grouped; search and the purpose chips narrow it in place.
             assert page.locator('#integration-catalog .ag-tool').count() == tools
+            assert '只读' in page.locator('#integration-hints').inner_text()
             page.locator('#integration-search').fill('qimen_hour')
             page.wait_for_function("() => [...document.querySelectorAll('#integration-catalog .ag-tool')].filter(c => !c.hidden).length === 1", timeout=5000)
             assert page.locator('#integration-tool-qimen_hour_chart').is_visible()

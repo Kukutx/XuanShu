@@ -6,6 +6,7 @@
 
 - **新版 `2026-07-28`**：无 `initialize` 握手、每个请求的 `params._meta` 必须包含协议版本和客户端能力对象 `io.modelcontextprotocol/clientCapabilities`。支持 `server/discover`，结果带 `resultType: complete` 和 `serverInfo`；`tools/list`、`prompts/list`、`resources/list`、`resources/read` 的新版回复带 `ttlMs`、`cacheScope`。HTTP 请求必须提供 `MCP-Protocol-Version`、`Mcp-Method`、必要时的 `Mcp-Name`，并与 JSON 正文一致。
 - **旧版 `2025-11-25`、`2025-06-18`、`2025-03-26`**：支持 `initialize` 握手，并保留旧版工具/资源/提示结构。
+- **工具标注与错误**：每个工具都带 `annotations`（`readOnlyHint: true`、`destructiveHint: false`、`idempotentHint: true`、`openWorldHint: false`）：只按参数计算，不写入、不联网，同样的参数得到同样的结果。参数不合格时 `tools/call` 返回 `isError: true`，`structuredContent.error` 为 `{code: "invalid_arguments", message, fields: [{path, message, type}]}`，逐个写出出错的字段；参数合格但超出可计算范围（如年份不在 1901–2099）时 `code` 为 `calculation_refused`。`resources/templates/list` 返回空列表（资源都是固定地址）。
 - **传输**：`python -m app.stdio` 标准输入输出；`POST /mcp` Streamable HTTP，单对象 JSON；`GET/DELETE /mcp` 返回 405；不支持主动 SSE、会话订阅、内建 OAuth 发码/登录与多轮输入请求。
 
 本实现只实现自身声明的上述子集。测试使用自编排的协议回归请求，**未声称通过官方 MCP 合规认证或完成全部 ChatGPT/Claude 远程插件安装**。
