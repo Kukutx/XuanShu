@@ -618,6 +618,14 @@ def main() -> None:
             page.locator('#birth_datetime').fill('2000-08-16T04:00')
             page.locator('#run-btn').click()
             page.wait_for_function("() => currentInput && currentInput.birth_datetime === '2000-08-16T04:00'", timeout=30000)
+            # ? lists every keyboard shortcut in a dialog (not while typing in a field); Esc closes it again.
+            page.locator('#run-btn').focus()
+            page.keyboard.press('Shift+Slash')
+            page.locator('#shortcuts-dialog[open]').wait_for(timeout=5000)
+            assert page.locator('#shortcuts-dialog .sc-group').count() == 6 and page.evaluate('document.activeElement.id') == 'shortcuts-close'
+            assert 'Ctrl' in page.locator('#shortcuts-dialog .sc-row').first.inner_text() or '⌘' in page.locator('#shortcuts-dialog .sc-row').first.inner_text()
+            page.keyboard.press('Escape')
+            assert page.locator('#shortcuts-dialog[open]').count() == 0 and page.evaluate('document.activeElement.id') == 'run-btn'
             # Date fields open the project's own calendar instead of the browser's picker: from the icon, Alt+Down or F4.
             # Each day carries its lunar date, and the chosen day and time reach the field as typed input would.
             picker_open = "() => document.querySelector('#xs-datepicker')?.matches(':popover-open') === true"
