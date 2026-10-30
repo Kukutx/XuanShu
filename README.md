@@ -199,7 +199,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000
 然后进入：
 
 - Web：`http://127.0.0.1:8000/`
-- API/Swagger：`http://127.0.0.1:8000/docs`
+- API 文档：`http://127.0.0.1:8000/docs`（项目自带页面：字段表、示例与在线试运行；机器可读的 `/openapi.json`）
 - MCP HTTP：`http://127.0.0.1:8000/mcp`
 - 健康：`http://127.0.0.1:8000/health`
 - 能力清单：`http://127.0.0.1:8000/api/capabilities`

@@ -13,11 +13,13 @@ from .json_safety import strict_json_loads
 from ipaddress import ip_address
 from urllib.parse import urlsplit
 from pathlib import Path
+from .api_docs import enrich_openapi
 from .asset_paths import resource_root
 from datetime import date
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
+from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
@@ -52,7 +54,19 @@ from .life_path import LifePathRequest, life_path_review
 from .chat import ChatCancelled, ChatRequest, ChatUnavailable, chat_status, run_chat
 
 ROOT = resource_root()
-app = FastAPI(title='XuanShu API', version=__version__, description='Deterministic cultural calendar/chart calculations and MCP tools. Non-predictive.')
+app = FastAPI(title='XuanShu API', version=__version__, description='Deterministic cultural calendar/chart calculations and MCP tools. Non-predictive.',
+              docs_url=None, redoc_url=None)
+
+
+def _openapi() -> dict:
+    # Tags, titles and runnable request examples for the self-hosted /docs page (app/api_docs.py).
+    if app.openapi_schema is None:
+        app.openapi_schema = enrich_openapi(get_openapi(title=app.title, version=app.version,
+                                                        description=app.description, routes=app.routes))
+    return app.openapi_schema
+
+
+app.openapi = _openapi
 MAX_REQUEST_BYTES = 64 * 1024
 
 
@@ -183,9 +197,15 @@ app.add_middleware(StaticGzip)
 app.mount('/static', StaticFiles(directory=ROOT/'static'), name='static')
 
 
-@app.get('/')
+@app.get('/', include_in_schema=False)
 def home():
     return FileResponse(ROOT/'static'/'index.html')
+
+
+@app.get('/docs', include_in_schema=False)
+def api_docs():
+    # Self-hosted instead of FastAPI's Swagger UI, whose CDN scripts the CSP blocks.
+    return FileResponse(ROOT/'static'/'api.html')
 
 
 @app.get('/health')

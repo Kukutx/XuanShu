@@ -66,6 +66,11 @@ def main():
         assert ready['status'] == 'ok' and ready['version'] == '0.1.0', ready
         assert request(base, '/')[0] == 200
         assert request(base, '/static/app.js')[0] == 200
+        # The self-hosted API reference and the schema it reads (every POST body carries a runnable example).
+        status, page = request(base, '/docs')
+        assert status == 200 and b'/static/api.js' in page, status
+        status, spec = request(base, '/openapi.json')
+        assert status == 200 and spec['paths']['/api/bazi']['post']['requestBody']['content']['application/json']['example']
         # Browsers served on non-default ports must work with their actual
         # same-origin headers. A different port is *not* equivalent origin.
         with_origin = {'Origin': base}

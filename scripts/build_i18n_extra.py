@@ -37,7 +37,7 @@ def load() -> dict[str, list[str]]:
 
 
 def source_strings() -> set[str]:
-    """Plain string literals with Chinese text: static scripts, the page, and the engines."""
+    """Plain string literals with Chinese text: static scripts, the pages, and the engines."""
     found: set[str] = set()
     for path in [*ROOT.glob('static/*.js'), *ROOT.glob('app/*.py')]:
         if path.name in ('i18n.js', 'i18n-extra.js', 'zh-tw-map.js'):
@@ -49,9 +49,10 @@ def source_strings() -> set[str]:
                 if CJK.search(value) and '{' not in value and '\\' not in value:
                     found.add(value)
     found |= template_fragments()
-    html = (ROOT / 'static/index.html').read_text(encoding='utf-8')
-    found |= {m.strip() for m in re.findall(r'>([^<>{}\n]*[㐀-鿿][^<>{}\n]*)<', html)}
-    found |= set(re.findall(r'(?:placeholder|title|aria-label)="([^"]*[㐀-鿿][^"]*)"', html))
+    for page in sorted(ROOT.glob('static/*.html')):  # the workbench and the API reference
+        html = page.read_text(encoding='utf-8')
+        found |= {m.strip() for m in re.findall(r'>([^<>{}\n]*[㐀-鿿][^<>{}\n]*)<', html)}
+        found |= set(re.findall(r'(?:placeholder|title|aria-label)="([^"]*[㐀-鿿][^"]*)"', html))
     return found
 
 

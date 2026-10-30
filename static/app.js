@@ -197,9 +197,101 @@ function rules(parent, items) {
   });
   return container;
 }
+// Time zones: the common ones first, then every IANA zone the browser knows, by region, each with its offset today.
+// A zone still missing (a profile saved in another browser, a search result) is added rather than dropped: a select
+// set to a value it does not list goes blank, and the chart then fails with an unknown time zone.
+function ensureZone(select, zone) {
+  if (zone && ![...select.options].some(o => o.value === zone)) append(select, 'option', null, zone).value = zone;
+}
+function copyZones(select, zone) {
+  select.append(...[...$('#timezone').children].map(node => node.cloneNode(true)));
+  ensureZone(select, zone);
+  if (zone) select.value = zone;
+}
+// Chromium lists some zones under their old CLDR names; the list shows the current IANA name (the server takes both).
+const RENAMED_ZONES = {
+  'Africa/Asmera': 'Africa/Asmara', 'America/Buenos_Aires': 'America/Argentina/Buenos_Aires',
+  'America/Catamarca': 'America/Argentina/Catamarca', 'America/Coral_Harbour': 'America/Atikokan',
+  'America/Cordoba': 'America/Argentina/Cordoba', 'America/Godthab': 'America/Nuuk',
+  'America/Indianapolis': 'America/Indiana/Indianapolis', 'America/Jujuy': 'America/Argentina/Jujuy',
+  'America/Louisville': 'America/Kentucky/Louisville', 'America/Mendoza': 'America/Argentina/Mendoza',
+  'Asia/Calcutta': 'Asia/Kolkata', 'Asia/Katmandu': 'Asia/Kathmandu', 'Asia/Rangoon': 'Asia/Yangon',
+  'Asia/Saigon': 'Asia/Ho_Chi_Minh', 'Atlantic/Faeroe': 'Atlantic/Faroe', 'Europe/Kiev': 'Europe/Kyiv',
+  'Pacific/Enderbury': 'Pacific/Kanton', 'Pacific/Ponape': 'Pacific/Pohnpei', 'Pacific/Truk': 'Pacific/Chuuk',
+};
+function fillTimeZones() {
+  const tz = $('#timezone');
+  let zones = [];
+  try {zones = Intl.supportedValuesOf('timeZone');} catch (_) {return;}
+  if (!zones.length) return;
+  zones = [...new Set(zones.map(zone => RENAMED_ZONES[zone] || zone))].sort();
+  const common = elt('optgroup'); common.label = '常用';
+  common.append(...tz.children); tz.append(common);
+  const listed = new Set([...tz.options].map(o => o.value)), now = new Date(), groups = new Map();
+  zones.forEach(zone => {
+    if (listed.has(zone)) return;
+    const region = zone.includes('/') ? zone.split('/')[0] : 'Etc';
+    if (!groups.has(region)) {const group = elt('optgroup'); group.label = region; groups.set(region, group);}
+    let offset = '';
+    try {offset = new Intl.DateTimeFormat('en-US', {timeZone: zone, timeZoneName: 'shortOffset'}).formatToParts(now).find(part => part.type === 'timeZoneName').value.replace('GMT', 'UTC');}
+    catch (_) { /* the zone name alone */ }
+    append(groups.get(region), 'option', null, zone.replace(/_/g, ' ') + (offset ? ' · ' + offset : '')).value = zone;
+  });
+  groups.forEach(group => tz.append(group));
+}
+fillTimeZones();
+// Daylight saving: a clock time in the hour that repeats when the clocks go back happened twice, and one in the hour
+// skipped when they go forward never showed on the clock. Either is asked about rather than guessed. The answer is
+// the UTC offset the clock showed, sent with the birth time (the server reads an explicit offset as that instant); it
+// is kept only for the clock time and zone it was chosen for.
+function zoneOffsetMinutes(zone, utcMs) {
+  const name = new Intl.DateTimeFormat('en-US', {timeZone: zone, timeZoneName: 'longOffset'}).formatToParts(new Date(utcMs)).find(p => p.type === 'timeZoneName').value;
+  const m = /([+-])(\d{1,2})(?::?(\d{2}))?(?::(\d{2}))?/.exec(name);
+  return m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3] || 0) + Number(m[4] || 0) / 60) : 0;
+}
+const offsetText = minutes => {const a = Math.round(Math.abs(minutes)); return (minutes < 0 ? '-' : '+') + String(Math.floor(a / 60)).padStart(2, '0') + ':' + String(a % 60).padStart(2, '0');};
+function dstCase(local, zone) {
+  const wall = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local) ? Date.parse(local + ':00Z') : NaN;
+  if (!Number.isFinite(wall)) return null;
+  try {
+    const before = zoneOffsetMinutes(zone, wall - 43200000), after = zoneOffsetMinutes(zone, wall + 43200000);
+    if (before === after) return null;
+    // An offset fits when the instant it gives reads back as this clock time in the zone.
+    const fits = off => Math.abs(zoneOffsetMinutes(zone, wall - off * 60000) - off) < 0.01;
+    const kind = fits(before) && fits(after) ? 'repeat' : !fits(before) && !fits(after) ? 'skip' : null;
+    return kind && {kind, offsets: [before, after], wall};
+  } catch (_) {return null;}
+}
+function chosenOffset() {
+  const box = $('#utc_offset');
+  return box.value && box.dataset.for === $('#birth_datetime').value + '|' + $('#timezone').value ? box.value : '';
+}
+function showDstChoice(info) {
+  const box = $('#dst-choice'); box.replaceChildren(); box.hidden = false;
+  const clock = $('#birth_datetime').value.slice(11, 16);
+  append(box, 'p', 'dst-choice-title', info.kind === 'repeat'
+    ? '这个钟表时间在当地拨回时钟时出现了两次，请选按哪一次排盘：'
+    : '这个钟表时间在当地拨快时钟时被跳过了，当时的钟表上没有这一刻。请核对出生记录，或选按哪个偏移理解：').id = 'dst-choice-title';
+  const row = append(box, 'div', 'dst-choice-actions');
+  info.offsets.forEach((off, i) => {
+    const button = append(row, 'button', 'tiny-button'); button.type = 'button'; button.id = 'dst-choice-' + i;
+    if (info.kind === 'repeat') texts(button, i ? '较晚的一次' : '较早的一次', ' · UTC' + offsetText(off));
+    else {
+      const at = new Date(info.wall - off * 60000), shown = new Intl.DateTimeFormat('en-GB', {timeZone: $('#timezone').value, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'}).format(at);
+      texts(button, i ? '按拨钟后的偏移' : '按拨钟前的偏移', ' UTC' + offsetText(off) + ' · ', '相当于', ' ' + shown);
+    }
+    button.addEventListener('click', () => {
+      const keep = $('#utc_offset'); keep.value = offsetText(off); keep.dataset.for = $('#birth_datetime').value + '|' + $('#timezone').value;
+      box.hidden = true; box.replaceChildren(); form.requestSubmit();
+    });
+  });
+  append(box, 'p', 'field-help', '所选偏移只用于这一个钟表时间，改动出生时间或时区后需要重新选择。');
+  $('#dst-choice-0').focus();
+}
+['input', 'change'].forEach(type => ['#birth_datetime', '#timezone'].forEach(id => $(id).addEventListener(type, () => {$('#dst-choice').hidden = true;})));
 function readInput() {
   return {
-    birth_datetime: $('#birth_datetime').value,
+    birth_datetime: $('#birth_datetime').value + chosenOffset(),
     timezone: $('#timezone').value,
     gender: $('#gender').value,
     late_zi_day_rollover: $('#late_zi_day_rollover').checked,
@@ -209,12 +301,18 @@ function readInput() {
   };
 }
 function setInput(data) {
+  // A birth time saved with the offset chosen for a daylight-saving hour puts the offset back beside the clock time.
+  const offset = typeof data.birth_datetime === 'string' && /([+-]\d{2}:\d{2})$/.exec(data.birth_datetime.slice(16));
+  if (offset) data = {...data, birth_datetime: data.birth_datetime.slice(0, 16)};
   for (const name of ['birth_datetime', 'timezone', 'gender']) {
     const control = $('#' + name);
     if (typeof data[name] === 'string') {
+      if (name === 'timezone') ensureZone(control, data[name]);
       control.value = data[name];
     }
   }
+  const keep = $('#utc_offset'); keep.value = offset ? offset[1] : ''; keep.dataset.for = offset ? data.birth_datetime + '|' + data.timezone : '';
+  $('#dst-choice').hidden = true;
   $('#late_zi_day_rollover').checked = !!data.late_zi_day_rollover;
   $('#leap_month_second_half_as_next').checked = data.leap_month_second_half_as_next !== false;
   $('#time_mode').value = data.time_mode || 'clock';
@@ -222,6 +320,14 @@ function setInput(data) {
   updateGeoControls();
   updateDemoBirthWarning();
   updateStaleBirthNotice();
+}
+// Server messages a person can act on, in the page's own words; any other message is shown as it comes.
+function friendlyError(message) {
+  if (/Ambiguous daylight-saving/.test(message)) return '这个钟表时间在当地拨回时钟时出现了两次，需要指明当时的 UTC 偏移。';
+  if (/nonexistent daylight-saving/.test(message)) return '这个钟表时间在当地拨快时钟时被跳过了，请核对出生时间。';
+  if (/Unknown IANA timezone/.test(message)) return '时区无效或为空，请在时区里重新选择。';
+  if (/Supported birth years/.test(message)) return '出生年份需在 1901–2099 之间。';
+  return message;
 }
 async function postJSON(path, body, signal) {
   const token = $('#api_token').value;
@@ -855,9 +961,7 @@ function renderQimenAudit() {
     const at = createInput('日期与时间', 'datetime-local', d.custom, row); at.id = 'qimen-audit-when';
     at.addEventListener('input', () => {d.custom = at.value; refreshCount();});
     const zone = append(append(row, 'label', null, '时区'), 'select'); zone.id = 'qimen-audit-zone';
-    [...$('#timezone').options].forEach(opt => {append(zone, 'option', null, opt.textContent).value = opt.value;});
-    if (![...zone.options].some(o => o.value === d.zone)) append(zone, 'option', null, d.zone).value = d.zone;
-    zone.value = d.zone; zone.addEventListener('change', () => {d.zone = zone.value; refreshCount();});
+    copyZones(zone, d.zone); zone.addEventListener('change', () => {d.zone = zone.value; refreshCount();});
     const lateLine = append(row, 'label', 'check-line'); const late = append(lateLine, 'input'); late.type = 'checkbox'; late.id = 'qimen-audit-late-zi';
     late.checked = d.lateZi; lateLine.append(' 23:00 换日'); late.addEventListener('change', () => {d.lateZi = late.checked; refreshCount();});
     append(when, 'small', 'field-help', '按这个时区的钟表时间起局。参考盘若把 23:00 以后算作次日，勾选「23:00 换日」。');
@@ -3823,8 +3927,7 @@ function renderGroup() {
   when.id = 'group-extra-datetime'; when.min = '1901-01-01T00:00'; when.max = '2099-12-31T23:59';
   const zoneLabel = append(add, 'label', null, '时区');
   const zone = append(zoneLabel, 'select'); zone.id = 'group-extra-timezone';
-  [...$('#timezone').options].forEach(opt => {const option = append(zone, 'option', null, opt.textContent); option.value = opt.value;});
-  zone.value = draft.timezone;
+  copyZones(zone, draft.timezone);
   const genderLabel = append(add, 'label', null, '性别（排大运用）');
   const gender = append(genderLabel, 'select'); gender.id = 'group-extra-gender';
   [['unspecified', '未填'], ['male', '男'], ['female', '女']].forEach(([value, text]) => {append(gender, 'option', null, text).value = value;});
@@ -4718,7 +4821,7 @@ function restoreSearchBasis(r) {
   const zone = $('#timezone'), mode = $('#time_mode'), longitude = r.rules.longitude_east_degrees;
   const changed = zone.value !== r.timezone || mode.value !== r.rules.time_mode || (longitude != null && Number($('#longitude').value) !== longitude);
   if (!changed) return;
-  if (![...zone.options].some(op => op.value === r.timezone)) {const op = append(zone, 'option', null, r.timezone); op.value = r.timezone;}
+  ensureZone(zone, r.timezone);
   zone.value = r.timezone; mode.value = r.rules.time_mode;
   if (longitude != null) $('#longitude').value = String(longitude);
   $('#birth_city').value = '';
@@ -5147,8 +5250,7 @@ function renderPair() {
   date.id = 'pair_datetime'; date.min = '1901-01-01T00:00'; date.max = '2099-12-31T23:59';
   const label = append(row, 'label', null, 'B · 时区');
   const zone = append(label, 'select'); zone.id = 'pair_timezone';
-  [...$('#timezone').options].forEach(opt => {const option = append(zone, 'option', null, opt.textContent); option.value = opt.value;});
-  zone.value = pairDraft.timezone;
+  copyZones(zone, pairDraft.timezone);
   const genderLabel = append(row, 'label', null, 'B · 性别（排大运用）');
   const gender = append(genderLabel, 'select'); gender.id = 'pair_gender';
   [['unspecified', '未填'], ['male', '男'], ['female', '女']].forEach(([value, text]) => {append(gender, 'option', null, text).value = value;});
@@ -7896,7 +7998,11 @@ for (const type of ['input','change']) {
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const run = $('#run-btn'); const error = $('#error');
-  error.hidden = true; run.disabled = true; run.setAttribute('aria-busy', 'true'); run.querySelector('span').textContent = '正在计算…';
+  error.hidden = true;
+  const dst = !chosenOffset() && dstCase($('#birth_datetime').value, $('#timezone').value);
+  if (dst) {showDstChoice(dst); return;}
+  $('#dst-choice').hidden = true;
+  run.disabled = true; run.setAttribute('aria-busy', 'true'); run.querySelector('span').textContent = '正在计算…';
   const data = readInput();
   try {
     const [chart, reading] = await Promise.all([
@@ -7922,7 +8028,7 @@ form.addEventListener('submit', async event => {
     announce('命盘已生成：' + data.birth_datetime.replace('T', ' '));
     if (compactScreen && compactScreen.matches) {setBirthPanelCollapsed(true); $('#workspace').scrollIntoView({block: 'start'});}
   } catch (err) {
-    error.textContent = '计算失败：' + err.message; error.hidden = false; importRecheck = false; importFocusAfter = false;
+    error.textContent = '计算失败：' + friendlyError(err.message); error.hidden = false; importRecheck = false; importFocusAfter = false;
     // The message sits in the form, so a folded form opens to show it; screen readers hear it either way.
     setBirthPanelCollapsed(false); announce(error.textContent);
   }

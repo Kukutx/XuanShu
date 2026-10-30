@@ -658,6 +658,26 @@ const UI_EXTRA = {
 "AI chat is not enabled; once a language model is configured you can bring these members into a conversation.",
 "AI 対話はまだ有効になっていません。言語モデルを設定すると、これらのメンバーを対話に持ち込めます。"
 ],
+"AI 对话状态": [
+"AI chat status",
+"AI チャットの状態"
+],
+"AI 对话（流式）": [
+"AI chat (streaming)",
+"AI チャット（ストリーミング）"
+],
+"API 文档 · 本机接口": [
+"API reference · local endpoints",
+"API ドキュメント · ローカル API"
+],
+"API 文档 · 玄枢 XuanShu": [
+"API reference · XuanShu",
+"API ドキュメント · 玄枢 XuanShu"
+],
+"Agent 接入": [
+"Agent access",
+"エージェント接続"
+],
 "Agent 接入能力": [
 "Agent integration",
 "エージェント連携"
@@ -766,9 +786,17 @@ const UI_EXTRA = {
 "The JSON includes the birth date and time; once copied or downloaded it is yours to keep safe. Notes are not in it. Downloading is the same as Export JSON at the top right of the workbench, and is unavailable after the birth details change until the chart is generated again.",
 "JSON には出生日時が含まれます。コピーやダウンロードの後はご自身で管理してください。メモは含まれません。ダウンロードはワークベンチ右上の「JSON を書き出す」と同じで、出生情報を変更してから命盤を再生成するまではダウンロードできません。"
 ],
+"JSON 格式有误：": [
+"Invalid JSON: ",
+"JSON の形式が正しくありません："
+],
 "JSON 里的时刻按太阳时排盘；这里按该时区的钟表时间起局，请核对时刻。": [
 "The JSON moment uses solar time; this check raises the plate at clock time in that zone, so check the moment.",
 "JSON の時刻は太陽時です。ここではそのタイムゾーンの時計時刻で盤を立てるので、時刻を確認してください。"
+],
+"JSON-RPC 2.0 消息，见下方示例。": [
+"A JSON-RPC 2.0 message; see the example below.",
+"JSON-RPC 2.0 メッセージです。下の例を参照してください。"
 ],
 "Keep only these 建除 officers": [
 "Keep only these 建除 officers",
@@ -781,6 +809,10 @@ const UI_EXTRA = {
 "MCP 工具": [
 "MCP tools",
 "MCP ツール"
+],
+"MCP 端点（JSON-RPC）": [
+"MCP endpoint (JSON-RPC)",
+"MCP エンドポイント（JSON-RPC）"
 ],
 "MCP 连接自检 · 工具目录 · 客户端配置": [
 "MCP connection check · tool catalogue · client setup",
@@ -798,9 +830,21 @@ const UI_EXTRA = {
 "MIT licence · independent of XuanShu's own engine · results kept separate",
 "MIT ライセンス · 玄枢のネイティブエンジンとは独立 · 結果は別に出力"
 ],
+"OAuth 资源元数据": [
+"OAuth resource metadata",
+"OAuth リソースメタデータ"
+],
+"OAuth 资源元数据（MCP）": [
+"OAuth resource metadata (MCP)",
+"OAuth リソースメタデータ（MCP）"
+],
 "Optional focus, e.g. 藏干 / 节气": [
 "Optional focus, e.g. 藏干 / 节气",
 "任意の注目点（例：蔵干／節気）"
+],
+"POST 收 JSON；多写或拼错的字段返回 422，不会被静默忽略。": [
+"POST takes JSON; an extra or misspelt field returns 422 instead of being silently ignored.",
+"POST は JSON を受け取ります。余分なフィールドや綴り違いは黙って無視されず 422 を返します。"
 ],
 "Traditional nominal (虚岁) ages per natal palace; not birthday-to-birthday ages.": [
 "Traditional nominal (虚岁) ages per natal palace; not birthday-to-birthday ages.",
@@ -1085,6 +1129,10 @@ const UI_EXTRA = {
 "七杀、正官": [
 "Qi Sha, Direct Officer (Zheng Guan)",
 "七殺、正官"
+],
+"万年历": [
+"Perpetual calendar",
+"万年暦"
 ],
 "三会": [
 "Seasonal trio",
@@ -1494,6 +1542,10 @@ const UI_EXTRA = {
 "Professional Zi Wei · iztro-py (optional)",
 "専門紫微 · iztro-py（オプション）"
 ],
+"专业紫微（可选引擎）": [
+"Professional Zi Wei (optional engine)",
+"専門紫微（任意エンジン）"
+],
 "丙辛合水": [
 "Bing–Xin combine (Water)",
 "丙辛合水"
@@ -1566,6 +1618,10 @@ const UI_EXTRA = {
 "The two calculations share inputs and astronomical/calendar dependencies; matching fields cannot be counted as independent evidence.",
 "二つの計算は入力と天文暦法の依存関係を共有しているため、一致した項目を独立した根拠として数えることはできません。"
 ],
+"严格字段": [
+"Strict fields",
+"厳格なフィールド"
+],
 "丧门": [
 "Sang Men",
 "喪門"
@@ -1578,9 +1634,17 @@ const UI_EXTRA = {
 " intervals",
 "個の区間"
 ],
+"个字段": [
+"fields",
+"個のフィールド"
+],
 "个工具": [
 "tools",
 "件のツール"
+],
+"个接口": [
+"endpoints",
+"個の API"
 ],
 "个提示模板": [
 "prompt templates",
@@ -1681,6 +1745,10 @@ const UI_EXTRA = {
 "乌鲁木齐": [
 "Urumqi",
 "ウルムチ"
+],
+"乙公司": [
+"Company B",
+"乙社"
 ],
 "乙庚合金": [
 "Yi–Geng combine (Metal)",
@@ -2021,6 +2089,10 @@ const UI_EXTRA = {
 "今年的流年四化落在哪些宫？": [
 "Which palaces do this year's four transformations fall in?",
 "今年の流年四化はどの宮に入りますか？"
+],
+"今年适合换工作吗？": [
+"Is this a good year to change jobs?",
+"今年は転職に向いていますか？"
 ],
 "今日": [
 "Today",
@@ -2426,6 +2498,10 @@ const UI_EXTRA = {
 "Stop",
 "生成を停止"
 ],
+"健康检查": [
+"Health check",
+"ヘルスチェック"
+],
 "兄弟": [
 "Siblings",
 "兄弟"
@@ -2514,6 +2590,10 @@ const UI_EXTRA = {
 "Year of the Rabbit",
 "卯年（うさぎ）"
 ],
+"入职": [
+"Started a job",
+"入社"
+],
 "全书系十干四化、宫干飞化": [
 "Quanshu-lineage ten-stem Four Transformations, palace-stem flying transformations",
 "全書系の十干四化、宮干飛化"
@@ -2585,6 +2665,10 @@ const UI_EXTRA = {
 "八字、紫微斗数、时家奇门与历法排盘全部由本地确定性工具计算；AI 对话的每个结论都能展开查看依据的工具调用，并可由另一次独立调用逐条核验。": [
 "BaZi, Zi Wei Dou Shu, hour Qimen and calendar charts are all computed by local deterministic tools; every conclusion in the AI chat expands to the tool calls behind it and can be checked claim by claim by a second, independent call.",
 "八字・紫微斗数・時家奇門・暦法の盤はすべてローカルの決定論的ツールで計算します。AI チャットの各結論は根拠となるツール呼び出しを展開でき、別の独立した呼び出しで一つずつ検証できます。"
+],
+"八字与紫微合盘": [
+"BaZi and Zi Wei combined",
+"八字と紫微の合わせ盤"
 ],
 "八字与紫微计算使用相同的时间选项": [
 "BaZi and Zi Wei calculations use the same time options",
@@ -2729,6 +2813,10 @@ const UI_EXTRA = {
 "公历起止": [
 "Gregorian dates",
 "西暦の期間"
+],
+"公历转农历": [
+"Gregorian to lunar",
+"西暦から旧暦へ"
 ],
 "公开参考盘链接": [
 "Public reference chart link",
@@ -2958,6 +3046,10 @@ const UI_EXTRA = {
 "The lunar year must be a whole number from 1901 to 2099.",
 "旧暦の年は 1901–2099 の整数で入力してください。"
 ],
+"农历转公历": [
+"Lunar to Gregorian",
+"旧暦から西暦へ"
+],
 "冠带": [
 "Guan Dai (Capping)",
 "冠帯"
@@ -3070,6 +3162,10 @@ const UI_EXTRA = {
 "Birth city (this page only)",
 "出生地の都市（このページのみ）"
 ],
+"出生年份需在 1901–2099 之间。": [
+"The birth year must be between 1901 and 2099.",
+"生年は 1901〜2099 年の範囲で入力してください。"
+],
 "出生年地支": [
 "Birth year branch",
 "出生年の地支"
@@ -3174,6 +3270,10 @@ const UI_EXTRA = {
 "Birth time and calendar quality audit flags need review; confirm the warnings before interpreting the chart.",
 "出生時刻と暦法の品質監査フラグに再確認が必要です。警告を確認してから命盤を解釈してください。"
 ],
+"出生时间核对": [
+"Birth-time checks",
+"出生時刻の確認"
+],
 "出生时间窗口": [
 "Birth time window",
 "出生時刻の幅"
@@ -3213,6 +3313,10 @@ const UI_EXTRA = {
 "出生资料只用于当次计算，服务器不保存": [
 "Birth details are used only for the current calculation; the server keeps nothing",
 "出生情報はその場の計算にだけ使い、サーバーには保存しません"
+],
+"出生资料只用于这一次请求，服务端不保存。": [
+"Birth details are used for this one request only; the server keeps nothing.",
+"出生情報はこのリクエストにだけ使われ、サーバーには保存されません。"
 ],
 "出生资料在这次核对之后改过：下面的结果对应改动前的资料，请重新核对。": [
 "The birth details changed after this check: the results below belong to the old details. Run the check again.",
@@ -3722,6 +3826,10 @@ const UI_EXTRA = {
 "Calendar and charts cross-checked day by day",
 "暦と命盤を毎日クロスチェック"
 ],
+"历法与日课": [
+"Calendar and day selection",
+"暦と日選び"
+],
 "历法择日": [
 "Calendar and date selection",
 "暦と日取り"
@@ -3785,6 +3893,10 @@ const UI_EXTRA = {
 "参与对照的字段不变": [
 "The compared fields are unchanged",
 "比較した項目は同じ"
+],
+"参数": [
+"Parameters",
+"パラメーター"
 ],
 "参数校验失败：": [
 "Parameter validation failed:",
@@ -3862,6 +3974,10 @@ const UI_EXTRA = {
 "and 1 more combination",
 "ほか 1 通りの組み合わせ"
 ],
+"双人八字对照": [
+"Two-person BaZi comparison",
+"二人の八字比較"
+],
 "双人关系": [
 "Two-person relationship",
 "2人の関係"
@@ -3886,6 +4002,10 @@ const UI_EXTRA = {
 "Two-person Zi Wei palace overlay",
 "二人の紫微宮位の重ね合わせ"
 ],
+"双人紫微对照": [
+"Two-person Zi Wei comparison",
+"二人の紫微比較"
+],
 "反查": [
 "Search",
 "逆引き"
@@ -3897,6 +4017,14 @@ const UI_EXTRA = {
 "发展方向": [
 "Direction of development",
 "発展の方向"
+],
+"发送中…": [
+"Sending…",
+"送信中…"
+],
+"发送请求": [
+"Send request",
+"リクエストを送信"
 ],
 "取消": [
 "Cancel",
@@ -3946,6 +4074,10 @@ const UI_EXTRA = {
 "only before or after the term",
 "は節入り前か後のみ"
 ],
+"只在这个页面发请求时使用，不会保存；复制的 curl 用环境变量 MCP_BEARER_TOKEN 代替。": [
+"Used only for requests sent from this page and never saved; copied curl commands use the MCP_BEARER_TOKEN environment variable instead.",
+"このページから送るリクエストにだけ使い、保存しません。コピーした curl では環境変数 MCP_BEARER_TOKEN を使います。"
+],
 "只对照年干和本命宫位，不是完整流年盘或预测": [
 "Only compares the year stem and natal palaces; not a complete annual chart or prediction",
 "年干と本命宮のみを対照しており、完全な流年盤や予測ではありません"
@@ -3977,6 +4109,10 @@ const UI_EXTRA = {
 "只显示前": [
 "showing the first",
 "表示は最初の"
+],
+"只显示前 200,000 个字符": [
+"Showing the first 200,000 characters",
+"最初の 200,000 文字のみ表示"
 ],
 "只显示前 4000 个字符；完整结果请在工作台页面或你的客户端里查看。": [
 "Only the first 4,000 characters are shown; see the full result on the workbench page or in your client.",
@@ -4098,6 +4234,10 @@ const UI_EXTRA = {
 "Optional traditional ten-year luck sequence",
 "任意の伝統的な十年運の系列"
 ],
+"可选值": [
+"Allowed values",
+"選択肢"
+],
 "可选农历年份": [
 "Optional lunar year",
 "任意の旧暦年"
@@ -4201,6 +4341,10 @@ const UI_EXTRA = {
 "同一天、沿用当前规则，把出生时间换到每个时辰的中间各算一遍，看粘贴的命盘和哪个时辰对得上。": [
 "Same day, current rules: the birth time is moved to the middle of each double hour and recomputed, to see which hour the pasted chart fits.",
 "同じ日・現在の規則のまま、出生時刻を各時辰の中央に移して計算し直し、貼り付けた命盤がどの時辰と合うかを見ます。"
+],
+"同一套计算也在 MCP 端点": [
+"The same calculations are available at the MCP endpoint",
+"同じ計算は MCP エンドポイント"
 ],
 "同一年的流年对每个人相同，所以成员之间只比较各自的大运：天干五合与地支同支、六合、六冲、六害、相刑。": [
 "The annual pillar is the same for everyone in a year, so members are compared by their luck pillars only: stem five combinations and the branch labels same branch, six harmony, six clash, six harm and punishment.",
@@ -4350,6 +4494,10 @@ const UI_EXTRA = {
 "Chart",
 "命盤"
 ],
+"命盘与报告": [
+"Charts and reports",
+"命盤とレポート"
+],
 "命盘卡片 · 本地确定性计算": [
 "Chart card · computed locally and deterministically",
 "命盤カード · ローカルで決定論的に計算"
@@ -4402,6 +4550,10 @@ const UI_EXTRA = {
 "consultation agent career work romance marriage relationship Q&A career advice",
 "相談 agent 事業 仕事 恋愛 結婚 関係 質疑応答 career advice"
 ],
+"咨询与 AI 对话": [
+"Consultation and AI chat",
+"相談と AI チャット"
+],
 "咨询场景：": [
 "Consultation scenario:",
 "相談の場面："
@@ -4421,6 +4573,14 @@ const UI_EXTRA = {
 "哈尔滨": [
 "Harbin",
 "ハルビン"
+],
+"响应": [
+"Responses",
+"レスポンス"
+],
+"响应内容": [
+"Response body",
+"レスポンス本文"
 ],
 "哪个好": [
 "which is better",
@@ -4509,6 +4669,10 @@ const UI_EXTRA = {
 "四柱反查完成：": [
 "Pillar search done: ",
 "四柱逆引き完了："
+],
+"四柱反查日期": [
+"Dates from four pillars",
+"四柱から日付を逆引き"
 ],
 "四柱和大运都列出纳音；紫微的五行局也取命宫干支的纳音五行。": [
 "The four pillars and the luck pillars all show their Na Yin; the Zi Wei five-phase bureau also takes the Na Yin phase of the Life palace's stem and branch.",
@@ -4854,6 +5018,10 @@ const UI_EXTRA = {
 "Copy JSON",
 "JSON をコピー"
 ],
+"复制 curl": [
+"Copy curl",
+"curl をコピー"
+],
 "复制全文": [
 "Copy full text",
 "全文をコピー"
@@ -4869,6 +5037,10 @@ const UI_EXTRA = {
 "复制咨询报告 Markdown": [
 "Copy consultation report Markdown",
 "相談レポートの Markdown をコピー"
+],
+"复制响应": [
+"Copy response",
+"レスポンスをコピー"
 ],
 "复制失败": [
 "Copy failed",
@@ -4945,6 +5117,10 @@ const UI_EXTRA = {
 "多人关系对照": [
 "Group relations",
 "複数人の関係対照"
+],
+"多人对照": [
+"Multi-person comparison",
+"複数人の比較"
 ],
 "多伦多": [
 "Toronto",
@@ -5406,6 +5582,10 @@ const UI_EXTRA = {
 "Qimen reference check",
 "奇門参照盤の照合"
 ],
+"奇门参考盘核验": [
+"Qimen reference audit",
+"奇門参照盤の検証"
+],
 "奇门按事情发生或提问的时刻起局，默认取此刻。不是出生预测；本模块仅实现一套明确的时家拆补转盘配置。": [
 "Qimen is cast for the moment an event happens or a question is asked, by default now. It is not a birth forecast; this module implements one explicit hour chai-bu rotating-plate configuration.",
 "奇門は出来事が起きた、または質問した時刻で局を立て、既定では現在時刻を使います。出生予測ではありません。本モジュールは明示した時家拆補転盤の構成を一つだけ実装しています。"
@@ -5497,6 +5677,14 @@ const UI_EXTRA = {
 "子时（按次日）": [
 "Zi hour (next day)",
 "子の刻（翌日）"
+],
+"字段": [
+"Field",
+"フィールド"
+],
+"字段校验失败": [
+"Field validation failed",
+"フィールドの検証に失敗"
 ],
 "存在差异": [
 "Differences found",
@@ -5926,6 +6114,10 @@ const UI_EXTRA = {
 "Find workbench features",
 "ワークベンチ機能を検索"
 ],
+"工作台的每个页面都调用这里的接口；脚本、表格软件和 Agent 也能直接用。每个接口都附一个能直接运行的示例，可以改了再发送。": [
+"Every page of the workbench calls these endpoints, and scripts, spreadsheets and agents can use them directly. Each endpoint comes with an example that runs as is; edit it before sending if you like.",
+"ワークベンチの各ページはここの API を呼び出しています。スクリプトや表計算ソフト、エージェントからも直接使えます。各 API にはそのまま実行できる例があり、編集してから送信することもできます。"
+],
 "工作流与报告": [
 "Workflows and reports",
 "ワークフローとレポート"
@@ -6154,6 +6346,10 @@ const UI_EXTRA = {
 "Bring into AI chat",
 "AI 対話に持ち込む"
 ],
+"常用": [
+"Common",
+"よく使う"
+],
 "常见咨询问题：": [
 "Common questions: ",
 "よくある相談："
@@ -6301,6 +6497,10 @@ const UI_EXTRA = {
 "年柱": [
 "Year pillar",
 "年柱"
+],
+"年柱 乙亥 月柱 壬午": [
+"Year pillar 乙亥, month pillar 壬午",
+"年柱 乙亥 月柱 壬午"
 ],
 "年柱以立春为界，月柱以十二节为界，日柱按出生地的历日，时柱由时辰地支和日干推出。": [
 "The year pillar turns at Lichun, the month pillar at the twelve jie terms, the day pillar follows the calendar day at the birthplace, and the hour pillar comes from the hour branch and the day stem.",
@@ -6550,6 +6750,10 @@ const UI_EXTRA = {
 "Local clock time",
 "現地の時計時刻"
 ],
+"当地钟表时间加 IANA 时区；夏令时回拨的重复时刻在时间后写偏移，如": [
+"Local clock time plus an IANA time zone; for a time repeated when clocks fall back, add the offset after the time, e.g.",
+"現地の時計時刻と IANA タイムゾーン。夏時間終了で重複する時刻は、時刻の後にオフセットを書きます（例："
+],
 "当天": [
 "That day",
 "当日"
@@ -6577,6 +6781,10 @@ const UI_EXTRA = {
 "彩色曲线：所选宫位的宫干四化飞入哪一宫": [
 "Coloured curves: which palace each stem transformation of the selected palace flies into",
 "色付きの曲線：選んだ宮の宮干四化がどの宮へ飛ぶか"
+],
+"必填": [
+"Required",
+"必須"
 ],
 "忌入": [
 "Ji in",
@@ -6609,6 +6817,10 @@ const UI_EXTRA = {
 "总是包含": [
 "Always included",
 "常に含む"
+],
+"恢复示例": [
+"Restore example",
+"例に戻す"
 ],
 "恩光": [
 "En Guang",
@@ -6670,6 +6882,10 @@ const UI_EXTRA = {
 "Cheng (Success)",
 "成"
 ],
+"成功": [
+"Success",
+"成功"
+],
 "成员": [
 "Member",
 "メンバー"
@@ -6710,6 +6926,10 @@ const UI_EXTRA = {
 "How do my major cycles run?",
 "私の大運の流れはどうなっていますか？"
 ],
+"我的日主是什么？": [
+"What is my Day Master?",
+"私の日主は何ですか？"
+],
 "或": [
 "or",
 "または"
@@ -6729,6 +6949,10 @@ const UI_EXTRA = {
 "所有数值来自用户输入的主观评分与权重；排序不是客观真理、概率或现实结果预测。": [
 "All values come from the user's subjective scores and weights; the ranking is not objective truth, a probability, or a prediction of real-world outcomes.",
 "すべての数値はユーザーが入力した主観的な評価と重みに基づきます。順位は客観的な真実、確率、現実の結果予測ではありません。"
+],
+"所选偏移只用于这一个钟表时间，改动出生时间或时区后需要重新选择。": [
+"The chosen offset applies to this clock time only; choose again after changing the birth time or time zone.",
+"選んだオフセットはこの時刻にだけ適用されます。出生時刻やタイムゾーンを変えたら選び直してください。"
 ],
 "所选大运": [
 "Selected Luck Pillar",
@@ -7006,6 +7230,14 @@ const UI_EXTRA = {
 "Looks up the three-yuan bureau table by the term in force at that moment.",
 "その時点の節気で三元の局数表を引きます。"
 ],
+"按拨钟前的偏移": [
+"Offset before the change",
+"切り替え前のオフセット"
+],
+"按拨钟后的偏移": [
+"Offset after the change",
+"切り替え後のオフセット"
+],
 "按择日扫描所用时区 ": [
 "Cast with the date scan's time zone ",
 "日取りスキャンのタイムゾーン "
@@ -7045,6 +7277,10 @@ const UI_EXTRA = {
 "按规则链提取八字、紫微结构证据": [
 "Extract BaZi and Zi Wei structural evidence via rule chains",
 "規則チェーンにより八字・紫微の構造的根拠を抽出"
+],
+"按路径、名称或字段筛选，如 birth_datetime": [
+"Filter by path, name or field, e.g. birth_datetime",
+"パス、名前、フィールドで絞り込み（例：birth_datetime）"
 ],
 "按这个时区的钟表时间起局。参考盘若把 23:00 以后算作次日，勾选「23:00 换日」。": [
 "Cast with the clock time in this time zone. If the reference counts times after 23:00 as the next day, tick Day turns at 23:00.",
@@ -7150,6 +7386,18 @@ const UI_EXTRA = {
 "Client setup",
 "接続設定"
 ],
+"接口分组": [
+"Endpoint groups",
+"API のグループ"
+],
+"接口文档": [
+"API reference",
+"API ドキュメント"
+],
+"接口说明读取失败：": [
+"Could not load the API description: ",
+"API 説明を読み込めませんでした："
+],
 "接着": [
 "Next",
 "続いて"
@@ -7222,6 +7470,10 @@ const UI_EXTRA = {
 "Shou (Receive)",
 "収"
 ],
+"收入": [
+"Income",
+"収入"
+],
 "收起": [
 "Collapse",
 "折りたたむ"
@@ -7241,6 +7493,10 @@ const UI_EXTRA = {
 "数值定位精度不等于真实出生记录精度；仅覆盖当前实现的流派规则。": [
 "Numerical positioning precision does not equal the precision of the real birth record; only the currently implemented school rules are covered.",
 "数値上の位置精度は実際の出生記録の精度と同じではありません。現在実装されている流派の規則のみを対象とします。"
+],
+"数据结构": [
+"Data structures",
+"データ構造"
 ],
 "整体自我概念与传统命盘起点": [
 "Overall self-concept and the traditional starting point of the chart",
@@ -7678,6 +7934,10 @@ const UI_EXTRA = {
 "Time zone DST / historical UTC offset boundary",
 "タイムゾーンの夏時間・歴史的UTCオフセット境界"
 ],
+"时区无效或为空，请在时区里重新选择。": [
+"The time zone is invalid or empty; choose it again.",
+"タイムゾーンが無効か空です。選び直してください。"
+],
 "时区日界对照：出生地有效日期 ": [
 "Time zone day-boundary comparison: effective birthplace date ",
 "タイムゾーン日界の対照：出生地の有効日付 "
@@ -7945,6 +8205,10 @@ const UI_EXTRA = {
 "时间": [
 "Time",
 "時刻"
+],
+"时间写法": [
+"Writing times",
+"時刻の書き方"
 ],
 "时间已按 12:00 占位。时柱和紫微宫位会随时辰变化，命盘页会列出十二个时辰的对照，并标出不受时辰影响的部分。": [
 "The time is set to 12:00 as a placeholder. The hour pillar and Zi Wei palaces change with the hour; the chart page lists all twelve double hours and marks what stays the same.",
@@ -8562,6 +8826,10 @@ const UI_EXTRA = {
 "iztro-py is not installed here; no approximate chart was produced.",
 "iztro-py がインストールされていないため、近似盤は作成していません。"
 ],
+"本机计算": [
+"Computed locally",
+"ローカルで計算"
+],
 "本机运行可跳过": [
 "Skip when running locally",
 "ローカル実行では省略可"
@@ -8646,6 +8914,10 @@ const UI_EXTRA = {
 "Bars total the surface elements of every member's stems and branches (hidden stems excluded); on the right are the members whose day master has that element.",
 "棒は全メンバーの四柱の天干・地支の表面五行の合計です（蔵干は含みません）。右側はその五行の日主を持つメンバーです。"
 ],
+"条数": [
+"Items",
+"件数"
+],
 "来源": [
 "Source",
 "出典"
@@ -8717,6 +8989,10 @@ const UI_EXTRA = {
 "查询值日": [
 "Look up day officer",
 "値日を照会"
+],
+"查询参数": [
+"query parameter",
+"クエリパラメーター"
 ],
 "查询天数": [
 "Days to query",
@@ -8998,6 +9274,10 @@ const UI_EXTRA = {
 "Reading…",
 "読み込み中…"
 ],
+"正在读取接口说明…": [
+"Loading the API description…",
+"API 説明を読み込み中…"
+],
 "正在读取评测结果…": [
 "Loading the evaluation…",
 "評価結果を読み込み中…"
@@ -9150,6 +9430,10 @@ const UI_EXTRA = {
 "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
 "各カードはこの年に本人がいる大運と流年です。十神は本人の日主から天干を見ます。流年の後ろの小さな印は原局の地支との関係（冲月は月柱と六冲、合・刑・害も同様、同は同支、日空・年空は旬空に当たる）で、ホバーで全文が見られます。年齢はその年に達する満年齢です。"
 ],
+"每日宜忌参考": [
+"Daily almanac reference",
+"毎日の宜忌参考"
+],
 "每条观察附上计算字段、规则编号和适用边界，并做八字与紫微的交叉核查。": [
 "Each observation comes with its calculated fields, rule IDs and limits, plus cross-checks between BaZi and Zi Wei.",
 "各観察に計算フィールド・規則番号・適用範囲を添え、八字と紫微の相互チェックも行います。"
@@ -9258,6 +9542,10 @@ const UI_EXTRA = {
 "No matching field or value",
 "一致するフィールドや値はありません"
 ],
+"没有匹配的接口。": [
+"No matching endpoints.",
+"一致する API はありません。"
+],
 "没有匹配项，请尝试八字、择时、MCP 等关键词": [
 "No matches; try keywords like BaZi, timing or MCP",
 "一致なし。八字・択時・MCP などのキーワードを試してください"
@@ -9269,6 +9557,10 @@ const UI_EXTRA = {
 "没有哪个时辰能让识别到的字段全部一致；不一致最少的时辰已加框。": [
 "No hour makes every recognized field match; the hours with the fewest differences are framed.",
 "認識した項目がすべて一致する時辰はありません。不一致が最も少ない時辰に枠を付けています。"
+],
+"没有固定字段。": [
+"No fixed fields.",
+"固定フィールドはありません。"
 ],
 "没有场景关键词，沿用上一问的场景": [
 "No scenario keywords; kept the previous question's scenario",
@@ -9426,6 +9718,10 @@ const UI_EXTRA = {
 "Annual pillars follow the common listing from the year a period begins: that whole year is listed under the new period, although the months before the change still belong to the previous one.",
 "流年は一般的な並べ方に従い交運の年から並べます。交運の年は丸ごと新しい大運の下に置きますが、交運日より前の数か月は実際には前の大運に属します。"
 ],
+"流年时间线": [
+"Annual timeline",
+"流年タイムライン"
+],
 "流年流曜（含年解）": [
 "Annual period stars (with Nian Jie)",
 "流年の流曜（年解を含む）"
@@ -9573,6 +9869,10 @@ const UI_EXTRA = {
 "深圳": [
 "Shenzhen",
 "深圳"
+],
+"深度证据审阅": [
+"Deep evidence review",
+"詳細エビデンスレビュー"
 ],
 "深度证据的内部一致性检查未全部通过；请勿据此断言计算完全准确。": [
 "Not all internal consistency checks of the in-depth evidence passed; do not assert on this basis that the calculation is fully accurate.",
@@ -9998,6 +10298,10 @@ const UI_EXTRA = {
 "Jia Yi Bing Ding Wu Ji Geng Xin Ren Gui",
 "甲乙丙丁戊己庚辛壬癸"
 ],
+"甲公司": [
+"Company A",
+"甲社"
+],
 "甲午旬": [
 "甲午 decade",
 "甲午旬"
@@ -10169,6 +10473,10 @@ const UI_EXTRA = {
 "相对钟表偏移": [
 "Offset from clock time",
 "時計時刻からのずれ"
+],
+"相当于": [
+"equals",
+"相当"
 ],
 "相生": [
 "Generating",
@@ -10430,6 +10738,10 @@ const UI_EXTRA = {
 "Filter by field name or value",
 "フィールド名や値で絞り込み"
 ],
+"筛选接口": [
+"Filter endpoints",
+"API を絞り込む"
+],
 "简体中文": [
 "简体中文",
 "简体中文"
@@ -10437,6 +10749,10 @@ const UI_EXTRA = {
 "米兰": [
 "Milan",
 "ミラノ"
+],
+"类型": [
+"Type",
+"型"
 ],
 "粘贴其他软件排出的命盘，逐项比对，并找出对方用的规则": [
 "Paste a chart from other software, compare it field by field, and find the rules it used",
@@ -10453,6 +10769,10 @@ const UI_EXTRA = {
 "系统": [
 "System",
 "システム"
+],
+"系统与 MCP": [
+"System and MCP",
+"システムと MCP"
 ],
 "紫 微 斗 数": [
 "Zi Wei Dou Shu",
@@ -10477,6 +10797,10 @@ const UI_EXTRA = {
 "紫微十二宫与四化": [
 "Zi Wei twelve palaces and Four Transformations",
 "紫微十二宮と四化"
+],
+"紫微单宫详解": [
+"Zi Wei single palace",
+"紫微の一宮詳解"
 ],
 "紫微叠盘": [
 "Zi Wei overlay",
@@ -10553,6 +10877,10 @@ const UI_EXTRA = {
 "紫微斗数对照": [
 "Zi Wei Dou Shu comparison",
 "紫微斗数の照合"
+],
+"紫微斗数排盘": [
+"Zi Wei Dou Shu chart",
+"紫微斗数の命盤"
 ],
 "紫微斗数需要出生时辰，时辰不详时不列出。": [
 "Zi Wei Dou Shu needs the birth hour, so it is left out when the hour is unknown.",
@@ -10678,6 +11006,10 @@ const UI_EXTRA = {
 "End year",
 "終了年"
 ],
+"结构分析": [
+"Structural analysis",
+"構造分析"
+],
 "结构化 JSON 数据": [
 "Structured JSON data",
 "構造化 JSON データ"
@@ -10794,6 +11126,10 @@ const UI_EXTRA = {
 "Conception (Tai)",
 "胎"
 ],
+"能力清单": [
+"Capabilities",
+"機能一覧"
+],
 "腊月": [
 "Month 12",
 "十二月"
@@ -10894,6 +11230,10 @@ const UI_EXTRA = {
 "Solar term and moon phase instants (seconds)",
 "節気と月相の時刻（秒）"
 ],
+"节气日历文件（ICS）": [
+"Solar-term calendar file (ICS)",
+"節気カレンダーファイル（ICS）"
+],
 "节气时刻": [
 "Solar term instants",
 "節気の時刻"
@@ -10913,6 +11253,10 @@ const UI_EXTRA = {
 "芝加哥": [
 "Chicago",
 "シカゴ"
+],
+"范围": [
+"Range",
+"範囲"
 ],
 "范围 ": [
 "Range ",
@@ -11090,6 +11434,10 @@ const UI_EXTRA = {
 "Rule divergence",
 "ルールの相違"
 ],
+"规则对比": [
+"Rule comparison",
+"規則の比較"
+],
 "规则对照": [
 "Rule comparison",
 "規則の比較"
@@ -11242,6 +11590,10 @@ const UI_EXTRA = {
 "Detects changes of double hour, day boundary, solar term and time zone. Only the numerical segmentation of currently implemented rules is guaranteed, not professional charts of every school.",
 "時辰・日界・節令・タイムゾーンの変化を識別します。保証するのは現在実装済みルールの数値的分割のみで、すべての流派の専門的な命盤は保証しません。"
 ],
+"试一试": [
+"Try it",
+"試してみる"
+],
 "试运行": [
 "Try it",
 "試しに実行"
@@ -11298,6 +11650,10 @@ const UI_EXTRA = {
 "Error range must be an integer from 1–120",
 "誤差範囲は1–120の整数で指定"
 ],
+"说明": [
+"Description",
+"説明"
+],
 "请先分别确认两个人的出生资料，再调用 pair_comparison（八字四柱）和 ziwei_pair_overlay（紫微宫位叠盘），只呈现结构对照和传统关系标签，不给匹配分数。": [
 "First confirm each person's birth data separately, then call pair_comparison (BaZi Four Pillars) and ziwei_pair_overlay (Zi Wei palace overlay); present only the structural comparison and traditional relationship labels, with no match score.",
 "まず2人それぞれの出生データを確認してから、pair_comparison（八字四柱）と ziwei_pair_overlay（紫微の宮の重ね合わせ）を呼び出してください。構造比較と伝統的な関係ラベルのみを示し、相性スコアは出さないでください。"
@@ -11313,6 +11669,10 @@ const UI_EXTRA = {
 "请先在左侧生成命盘。": [
 "Please generate a chart at left first.",
 "先に左側で命盤を生成してください。"
+],
+"请先填写：": [
+"Fill in first: ",
+"先に入力してください："
 ],
 "请先生成出生盘。": [
 "Please generate the birth chart first.",
@@ -11374,6 +11734,18 @@ const UI_EXTRA = {
 "Please compare several realistic options and list the pros and cons under different weights.",
 "現実的に可能な案をいくつか比較し、重み別の長所と短所を挙げてください。"
 ],
+"请求体": [
+"Request body",
+"リクエスト本文"
+],
+"请求体里用到的对象。点字段类型里的名称会跳到这里。": [
+"Objects used in request bodies. Clicking a name in a field type jumps here.",
+"リクエスト本文で使われるオブジェクトです。フィールドの型にある名前をクリックするとここへ移動します。"
+],
+"请求体（JSON，可修改）": [
+"Request body (JSON, editable)",
+"リクエスト本文（JSON、編集可）"
+],
 "请求失败": [
 "Request failed",
 "リクエスト失敗"
@@ -11381,6 +11753,10 @@ const UI_EXTRA = {
 "请求失败：": [
 "Request failed: ",
 "リクエスト失敗："
+],
+"请求没有发出：": [
+"The request was not sent: ",
+"リクエストを送信できませんでした："
 ],
 "请用多流派会诊再看一次": [
 "Look at it again with the multi-school panel",
@@ -11582,6 +11958,10 @@ const UI_EXTRA = {
 "Exceeds the verification input limit",
 "検証入力の上限を超えています"
 ],
+"超过 120 秒没有响应，已停止。": [
+"No response within 120 seconds; stopped.",
+"120 秒以内に応答がなかったため停止しました。"
+],
 "距": [
 "Distance",
 "距離"
@@ -11626,6 +12006,10 @@ const UI_EXTRA = {
 "Traceable cross-tool synthesis report",
 "ツール横断の追跡可能な総合レポート"
 ],
+"路径参数": [
+"path parameter",
+"パスパラメーター"
+],
 "路旁土": [
 "Roadside Earth (Lu Pang Tu)",
 "路傍土"
@@ -11633,6 +12017,10 @@ const UI_EXTRA = {
 "跳到工作台": [
 "Skip to the workspace",
 "作業台へ移動"
+],
+"跳到接口列表": [
+"Skip to the endpoint list",
+"API 一覧へ移動"
 ],
 "跳槽": [
 "Job change",
@@ -11685,6 +12073,14 @@ const UI_EXTRA = {
 "较早年份的出生地历史法律时制可能与后来的标准时间不同，请核对当时使用的真实钟表记录。": [
 "For earlier years, the birthplace's historical legal time may differ from later standard time; please check the actual clock records used at the time.",
 "古い年代では、出生地の歴史的な法定時刻が後の標準時と異なる場合があります。当時実際に使われていた時計の記録を確認してください。"
+],
+"较早的一次": [
+"The earlier one",
+"早い方"
+],
+"较晚的一次": [
+"The later one",
+"遅い方"
 ],
 "辅星与杂曜": [
 "Auxiliary and minor stars",
@@ -11770,6 +12166,10 @@ const UI_EXTRA = {
 "Periods",
 "運限"
 ],
+"运限与回溯": [
+"Periods and review",
+"運限と振り返り"
+],
 "运限叠加": [
 "Period layers",
 "運限の重ね合わせ"
@@ -11817,6 +12217,10 @@ const UI_EXTRA = {
 "返回字段：": [
 "Returned fields: ",
 "返却フィールド："
+],
+"返回工作台": [
+"Back to the workbench",
+"ワークベンチに戻る"
 ],
 "还可以补充哪些人生事件来对照？": [
 "What other life events could I add for comparison?",
@@ -11890,6 +12294,10 @@ const UI_EXTRA = {
 "This month cannot be computed right now: ",
 "この月は現在計算できません："
 ],
+"这个端点保持长连接或结束会话，请用 MCP 客户端连接。": [
+"This endpoint holds a long-lived connection or ends a session; connect with an MCP client.",
+"このエンドポイントは長時間接続を保つかセッションを終了します。MCP クライアントで接続してください。"
+],
 "这个结论的依据是什么？": [
 "What is this conclusion based on?",
 "この結論の根拠は何ですか？"
@@ -11897,6 +12305,22 @@ const UI_EXTRA = {
 "这个请求被模型拒绝回答。请换一种问法，或只询问传统文化层面的结构说明。": [
 "The model declined to answer this request. Please rephrase it, or ask only for a structural explanation at the level of traditional culture.",
 "このリクエストはモデルにより回答を拒否されました。別の聞き方をするか、伝統文化の観点からの構造的な説明のみをお尋ねください。"
+],
+"这个钟表时间在当地拨回时钟时出现了两次，请选按哪一次排盘：": [
+"This clock time occurred twice locally when the clocks went back. Choose which one to use:",
+"この時刻は現地で時計を戻した際に 2 回ありました。どちらで作盤するか選んでください："
+],
+"这个钟表时间在当地拨回时钟时出现了两次，需要指明当时的 UTC 偏移。": [
+"This clock time occurred twice locally when the clocks went back; the UTC offset at the time is needed.",
+"この時刻は現地で時計を戻した際に 2 回ありました。当時の UTC オフセットを指定する必要があります。"
+],
+"这个钟表时间在当地拨快时钟时被跳过了，当时的钟表上没有这一刻。请核对出生记录，或选按哪个偏移理解：": [
+"This clock time was skipped locally when the clocks went forward, so no clock showed it. Check the birth record, or choose which offset to read it with:",
+"この時刻は現地で時計を進めた際に飛ばされ、当時の時計には存在しません。出生記録を確認するか、どのオフセットで解釈するか選んでください："
+],
+"这个钟表时间在当地拨快时钟时被跳过了，请核对出生时间。": [
+"This clock time was skipped locally when the clocks went forward; check the birth time.",
+"この時刻は現地で時計を進めた際に飛ばされました。出生時刻を確認してください。"
 ],
 "这些日子里哪几个时辰更合适？": [
 "Which hours on these days suit better?",
@@ -12006,6 +12430,10 @@ const UI_EXTRA = {
 "Which one to choose",
 "どれを選ぶ"
 ],
+"选哪份工作？": [
+"Which job should I take?",
+"どちらの仕事を選ぶ？"
+],
 "选择「23:00 换日」后与 iztro 的“晚子时”一致": [
 "With \"day changes at 23:00\", matches iztro's \"late Zi\"",
 "「23:00 に日替わり」を選ぶと iztro の「晩子時」と一致"
@@ -12069,6 +12497,10 @@ const UI_EXTRA = {
 "逐项对照": [
 "Compared",
 "対照"
+],
+"通勤": [
+"Commute",
+"通勤"
 ],
 "通行的中文命盘写法，不含出生日期、时间和备注": [
 "Written in the usual Chinese chart notation, without birth dates, times or notes",
@@ -12209,6 +12641,10 @@ const UI_EXTRA = {
 "银川": [
 "Yinchuan",
 "銀川"
+],
+"长度": [
+"Length",
+"長さ"
 ],
 "长春": [
 "Changchun",
@@ -12562,6 +12998,10 @@ const UI_EXTRA = {
 "By default the day does not change at 23:00, matching iztro's \"early Zi\"",
 "既定では 23:00 に日を替えず、iztro の「早子時」と一致"
 ],
+"默认值": [
+"Default",
+"既定値"
+],
 "默认的时制；历史时区与夏令时按 IANA 时区数据解释。": [
 "The default time mode; historical time zones and daylight saving time follow the IANA time zone data.",
 "既定の時制。過去のタイムゾーンと夏時間は IANA タイムゾーンデータで解釈します。"
@@ -12593,6 +13033,10 @@ const UI_EXTRA = {
 "龙池": [
 "Long Chi",
 "龍池"
+],
+"（JSON-RPC 2.0）。机器可读的说明：": [
+" (JSON-RPC 2.0). Machine-readable description: ",
+"（JSON-RPC 2.0）でも使えます。機械可読の説明："
 ],
 "（上半月，按": [
 "(first half, counted as ",
