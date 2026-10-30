@@ -948,7 +948,7 @@ def main() -> None:
             page.locator('#qimen-hour-10').click()
             page.wait_for_function("() => document.querySelector('#qimen-hour-10.is-current') !== null", timeout=30000)
             assert page.locator('#qimen-moment').input_value() == 'custom' and page.locator('#qimen-when').input_value() == '2024-06-15T20:00'
-            assert page.evaluate('document.activeElement.id') == 'qimen-hour-10' and '时 丙戌' in page.locator('.meta-tags').first.inner_text()
+            assert page.evaluate('document.activeElement.id') == 'qimen-hour-10' and '时柱 丙戌' in page.locator('.meta-tags').first.inner_text()
             assert page.locator('#qimen-hour-10 .qh-tag').inner_text() == '本盘' and page.locator('.qh-date').inner_text() == '2024-06-15'
             page.locator('#qimen-next-day').click()
             page.wait_for_function("() => document.getElementById('qimen-when').value === '2024-06-16T20:00' && document.querySelector('#qimen-hour-10.is-current')", timeout=30000)
@@ -2221,10 +2221,18 @@ def main() -> None:
             page.locator('[data-tab="quality"]').click()
             assert page.locator('#quality-run').is_visible()
             page.screenshot(path=str(screenshot_dir / '13-quality-mobile.png'), full_page=True)
-            # No page is wider than a phone screen.
-            for tab in ('report', 'bazi', 'ziwei'):
+            # No page is wider than a phone screen, and no field sticks out of its label (a year field used to cover
+            # the next-year button).
+            for tab in ('report', 'bazi', 'ziwei', 'annual', 'dayun', 'qimen', 'officers'):
                 page.locator(f'[data-tab="{tab}"]').click()
+                page.wait_for_timeout(300)
                 assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth"), tab
+                assert page.evaluate('''() => [...document.querySelectorAll('#result .inline-control > label > :is(input, select)')]
+                  .every(f => f.getBoundingClientRect().right <= f.parentElement.getBoundingClientRect().right + 1)'''), tab
+            # The nine-palace cells keep only the stem glyphs on a phone; a line above the board names them.
+            page.locator('[data-tab="qimen"]').click()
+            assert page.locator('.qimen-legend').is_visible()
+            assert page.evaluate("[...document.querySelectorAll('.qimen-cell')].every(c => c.scrollWidth <= c.clientWidth + 1)")
             # Interface language: English shell, 繁體 conversion of computed text, and back.
             page.set_viewport_size({'width': 1440, 'height': 920})
             page.locator('[data-tab="pair"]').click()

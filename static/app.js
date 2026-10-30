@@ -291,21 +291,26 @@ function renderQimen() {
   });
   if (!qimenResult) return;
   const q=qimenResult;
-  meta(result,[(q.instant || '').replace('T', ' ').slice(0, 16), q.solar_term, q.dun + q.bureau + '局', q.yuan, '日 ' + q.day_pillar, '时 ' + q.hour_pillar].filter(Boolean));
+  const palaceLabel = n => {const p = q.palaces.find(x => x.number === n); return p ? n + ' · ' + p.trigram + '宫' : String(n);};
+  // Two-character labels, so each translates as a whole word (a lone 日 or 时 inside a phrase does not).
+  meta(result,[(q.instant || '').replace('T', ' ').slice(0, 16), q.solar_term, q.dun + q.bureau + '局', q.yuan, '日柱 ' + q.day_pillar, '时柱 ' + q.hour_pillar].filter(Boolean));
   if (q.day_hours && q.day_hours.length) renderQimenDay(q);
   rules(result,[
     {label:'旬首 / 六仪', value:q.xun_head + ' · ' + q.xun_instrument},
-    {label:'值符星及宫位', value:q.zhi_fu_star, detail:'宫 ' + q.zhi_fu_palace},
-    {label:'值使门及宫位', value:q.zhi_shi_door, detail:'宫 ' + q.zhi_shi_palace},
+    {label:'值符星及宫位', value:q.zhi_fu_star, detail:palaceLabel(q.zhi_fu_palace)},
+    {label:'值使门及宫位', value:q.zhi_shi_door, detail:palaceLabel(q.zhi_shi_palace)},
     {label:'空亡地支', value:q.void_branches.join('、')},
   ]);
+  append(result, 'p', 'qimen-legend', '每宫右侧一列自上而下：天干、暗干、地干。');
   const board=append(result,'div','qimen-board');
   const order=[4,9,2,3,5,7,8,1,6];
   order.forEach(n=>{
     const p=q.palaces.find(x=>x.number===n);
     const zhifu=p.number===q.zhi_fu_palace, zhishi=p.number===q.zhi_shi_palace;
     const cell=append(board,'div','qimen-cell' + (n===5?' center':'') + (p.void?' empty':'') + (zhifu?' zhifu':'') + (zhishi?' zhishi':''));
-    append(cell,'strong',null,`${n} · ${p.trigram}宫 · ${p.direction}`);
+    // Palace name and direction as their own words, so each translates whole; the centre reads 中央, not 中.
+    const name = append(cell, 'strong'); name.append(n + ' · '); append(name, 'span', null, p.trigram + '宫');
+    name.append(' · '); append(name, 'span', null, p.direction === '中' ? '中央' : p.direction);
     // Traditional reading order: deity over star over door, heaven stem over earth stem.
     const grid=append(cell,'div','qimen-grid');
     const pair=(label,name,stemLabel,stem)=>{
