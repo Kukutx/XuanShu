@@ -6457,7 +6457,8 @@ function renderConsultationResult(c) {
     }
     const fresh = append(row, 'button', 'tiny-button', carrying ? '换个话题（不沿用本次场景）' : '下一问按新话题识别'); fresh.type = 'button'; fresh.id = 'consult-fresh';
     fresh.disabled = !carrying; fresh.dataset.focusFallback = 'consult-question';
-    fresh.addEventListener('click', () => {consultCursor = null; render(); $('#consult-question').focus(); announce('下一问按新话题识别');});
+    // A scenario picked by hand would still win over the question's words, so it goes back to automatic as well.
+    fresh.addEventListener('click', () => {consultCursor = null; consultDraft.intent = 'auto'; render(); $('#consult-question').focus(); announce('下一问按新话题识别');});
   }
   c.limitations.forEach(x => note(result, x));
 }

@@ -244,7 +244,9 @@ def main() -> None:
             assert page.locator('#consult-head .cw-turn').inner_text() == '对话轮次 3'  # the run that asked for the birth details counts too
             assert page.locator('#consult-next-year').inner_text() == '那2029年呢？'
             # 换个话题 rewrites the follow-up box at once and the next-year shortcut goes away.
+            page.locator('#consult-intent').select_option('career')
             page.locator('#consult-fresh').click()
+            assert page.locator('#consult-intent').input_value() == 'auto'  # a hand-picked scenario would override the new question
             assert page.locator('#consult-next-year').count() == 0 and page.locator('#consult-fresh').is_disabled()
             assert page.locator('#consult-next p').first.inner_text() == '下一问按新话题识别，不沿用本次场景。'
             page.locator('#consult-year').fill('')
