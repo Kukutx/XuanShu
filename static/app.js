@@ -7119,6 +7119,11 @@ function dayunMonthTable(box, m, o) {
   const heading = append(head, 'h5', 'dy-months-title'); heading.id = 'dayun-months-title';
   texts(heading, String(m.year), ' ', m.pillar, ' · ', '流月干支');
   append(head, 'span', 'muted', '立春起寅月，每月从节令交接时刻算起');
+  const save = append(head, 'button', 'tiny-button dy-days-ics', '导出日历'); save.type = 'button'; save.id = 'dayun-months-ics';
+  save.setAttribute('aria-label', '导出流月日历');
+  tip(save, '把这一年的十二个流月存成日历文件（.ics），每月一条从交节日到下一个交节日前一天的全天事件；文件在本机生成，不经服务器。备注列出与原局四柱的关系和按出生地时区的交节时刻，可据此反推出生日期、时辰和出生地时区，分享前请留意');
+  save.addEventListener('click', () => downloadBlob(new Blob([flowMonthsIcs(m, o)], {type: 'text/calendar;charset=utf-8'}),
+    'xuanshu-flow-months-' + m.year + '.ics'));
   const wrap = append(panel, 'div', 'table-wrap');
   const table = append(wrap, 'table', 'data-table dy-years dy-month-table'); table.id = 'dayun-month-table';
   texts(append(table, 'caption', 'visually-hidden'), String(m.year), ' ', '流月干支');
@@ -7174,7 +7179,8 @@ function dayunDayGrid(panel, d, o) {
   range.dataset.noI18n = '';
   append(head, 'span', 'muted', '日柱在午夜换日；交节当天列在本月');
   const save = append(head, 'button', 'tiny-button dy-days-ics', '导出日历'); save.type = 'button'; save.id = 'dayun-days-ics';
-  tip(save, '把这个月每天的日柱存成日历文件（.ics），可导入手机或电脑日历；文件在本机生成，不经服务器。备注列出与原局四柱的关系，可据此推出大致出生时段，分享前请留意');
+  save.setAttribute('aria-label', '导出流日日历');
+  tip(save, '把这个月每天的日柱存成日历文件（.ics），可导入手机或电脑日历；文件在本机生成，不经服务器。备注列出与原局四柱的关系，可据此反推出生日期和时辰，分享前请留意');
   save.addEventListener('click', () => downloadBlob(new Blob([flowDaysIcs(d, o)], {type: 'text/calendar;charset=utf-8'}),
     'xuanshu-flow-days-' + d.days[0].date + '.ics'));
   const list = append(box, 'ol', 'dy-day-grid'); list.id = 'dayun-day-grid';
@@ -7226,9 +7232,10 @@ function dayunDayGrid(panel, d, o) {
   if (loading) loadingGhost(box, 'table');
   else if (hours) dayunHourTable(box, hours, o, d.days.find(day => day.date === hours.date));
 }
-// A month's flow days as an iCalendar file made in the browser, nothing sent anywhere: an all-day event a day, titled
-// with its pillar, ten god and the short marks against the natal chart, the full relations and stars in its notes, free
-// time so it blocks nothing. The chart notation stays Chinese, as in the other chart exports (繁體 in that interface).
+// A month's flow days, or a year's months, as an iCalendar file made in the browser, nothing sent anywhere: all-day
+// events titled with the pillar, ten god and the short marks against the natal chart, the full relations and stars in
+// their notes, free time so they block nothing. The chart notation stays Chinese, as in the other chart exports (繁體 in
+// that interface).
 const icsEscape = text => String(text).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 // Lines over 75 octets go on with a leading space, never splitting a character (RFC 5545, 3.1).
 function icsFold(line) {
@@ -7243,8 +7250,9 @@ function icsFold(line) {
 // A short tag of the natal pillars the notes already show keeps two charts' events apart in one calendar; it is not
 // made from the request, whose birth minute a search over every minute of 1901–2099 would find from the tag.
 const chartTag = key => [...key].reduce((h, ch) => Math.imul(h ^ ch.codePointAt(0), 16777619) >>> 0, 2166136261).toString(16).padStart(8, '0');
-function flowDaysIcs(d, o) {
-  const words = text => exportLang() ? calT(String(text)) : text;
+// The calendar around flow events, all-day and free: the chart tag in each UID (after the event's key, its start date
+// unless it names one), a sequence a later export raises.
+function flowIcs(name, kind, events, o) {
   const traditional = typeof uiLang !== 'undefined' && uiLang === 'zh-TW' && typeof toTraditional === 'function';
   const local = text => traditional ? toTraditional(text) : text;
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
@@ -7253,20 +7261,40 @@ function flowDaysIcs(d, o) {
   // A later export of the same chart carries a higher sequence, so a calendar that updates events by UID takes it.
   const sequence = Math.max(0, Math.floor((Date.now() - Date.UTC(2026, 0, 1)) / 6e4));
   const compact = iso => iso.replace(/-/g, '');
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//XuanShu//Flow days//ZH', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
-    'X-WR-CALNAME:' + icsEscape(local(words('玄枢 · 流日') + ' ' + d.year + ' ' + words(d.jie) + ' ' + d.pillar))];
-  d.days.forEach(day => {
-    const ds = settledInteractions(day, o);
-    const title = [day.pillar + '日', !o.day && words(ds.ten_god_of_stem), day.jie_day && words(d.jie), natalMarkList(ds).map(([text]) => text).join(' ')];
-    const notes = [natalText(ds), o.stars ? words('神煞') + ' ' + words('随时辰而定') : '', words(TEXT_FOOTER[0])];
-    const next = new Date(Date.parse(day.date + 'T00:00:00Z') + 864e5).toISOString().slice(0, 10);
-    lines.push('BEGIN:VEVENT', 'UID:flow-day-' + compact(day.date) + '-' + tag + '@xuanshu.local', 'SEQUENCE:' + sequence, 'DTSTAMP:' + stamp,
-      'DTSTART;VALUE=DATE:' + compact(day.date), 'DTEND;VALUE=DATE:' + compact(next),
-      'SUMMARY:' + icsEscape(local(title.filter(Boolean).join(' · '))),
-      'DESCRIPTION:' + icsEscape(local(notes.filter(Boolean).join('\n'))), 'TRANSP:TRANSPARENT', 'END:VEVENT');
-  });
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//XuanShu//Flow ' + kind + 's//ZH', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    'X-WR-CALNAME:' + icsEscape(local(name))];
+  events.forEach(e => lines.push('BEGIN:VEVENT', 'UID:flow-' + kind + '-' + (e.key || compact(e.start)) + '-' + tag + '@xuanshu.local', 'SEQUENCE:' + sequence,
+    'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + compact(e.start), 'DTEND;VALUE=DATE:' + compact(e.end),
+    'SUMMARY:' + icsEscape(local(e.title.filter(Boolean).join(' · '))),
+    'DESCRIPTION:' + icsEscape(local(e.notes.filter(Boolean).join('\n'))), 'TRANSP:TRANSPARENT', 'END:VEVENT'));
   lines.push('END:VCALENDAR');
   return lines.map(icsFold).join('\r\n') + '\r\n';
+}
+const flowStarsNote = o => o.stars ? calendarWords('神煞') + ' ' + calendarWords('随时辰而定') : '';
+function flowDaysIcs(d, o) {
+  return flowIcs(calendarWords('玄枢 · 流日') + ' ' + d.year + ' ' + calendarWords(d.jie) + ' ' + d.pillar, 'day', d.days.map(day => {
+    const ds = settledInteractions(day, o);
+    return {start: day.date, end: new Date(Date.parse(day.date + 'T00:00:00Z') + 864e5).toISOString().slice(0, 10),
+      title: [day.pillar + '日', !o.day && calendarWords(ds.ten_god_of_stem), day.jie_day && calendarWords(d.jie), natalMarkList(ds).map(([text]) => text).join(' ')],
+      notes: [natalText(ds), flowStarsNote(o), calendarWords(TEXT_FOOTER[0])]};
+  }), o);
+}
+// A year's twelve months, each from its jie day up to the day before the next (the jie day opens the month, as in the
+// days), both jie named in its notes with their moments on the birth zone's clock and its UTC offset, so they are not
+// read as the clock where the calendar is. Its UID is keyed on the flow year and month, not the jie date, which a
+// corrected birth zone can move across midnight while the pillars stay the same.
+function flowMonthsIcs(m, o) {
+  const at = iso => iso.slice(0, 16).replace('T', ' '), offset = iso => 'UTC' + ((iso.match(/[+-]\d\d:\d\d$/) || ['+00:00'])[0]);
+  return flowIcs(calendarWords('玄枢 · 流月') + ' ' + m.year + ' ' + m.pillar, 'month', m.months.map((month, i) => {
+    const ms = settledInteractions(month, o), from = month.start_local, to = month.end_local_exclusive;
+    const next = calendarWords(i < m.months.length - 1 ? m.months[i + 1].jie : '立春');
+    const span = offset(from) === offset(to)
+      ? calendarWords(month.jie) + ' ' + at(from) + ' – ' + next + ' ' + at(to) + ' (' + offset(from) + ')'
+      : calendarWords(month.jie) + ' ' + at(from) + ' (' + offset(from) + ') – ' + next + ' ' + at(to) + ' (' + offset(to) + ')';
+    return {key: m.year + String(month.month).padStart(2, '0'), start: from.slice(0, 10), end: to.slice(0, 10),
+      title: [month.pillar + '月', calendarWords(month.jie), !o.day && calendarWords(ms.ten_god_of_stem), natalMarkList(ms).map(([text]) => text).join(' ')],
+      notes: [span, natalText(ms), flowStarsNote(o), calendarWords(TEXT_FOOTER[0])]};
+  }), o);
 }
 // The thirteen double-hours of a day, Zi at both ends, read against the natal chart like the days. The hour now is marked
 // when the day is today; with the 23:00 day change the last Zi shows the next day's pillar it belongs to.

@@ -118,11 +118,18 @@ def test_luck_page_years_open_their_months():
     assert "JSON.parse(dayunKey).birth.timezone" in script and "today >= data.flow_months.months[0].start_local.slice(0, 10)" in script
     assert '      dayunPick = decade.sequence;' in script and 'event.altKey || event.ctrlKey || event.metaKey' in script
     # A month's days export as an iCalendar file made in the page, lines folded by octets, no birth data, tagged per chart.
-    assert "save.id = 'dayun-days-ics'" in script and "'DTSTART;VALUE=DATE:' + compact(day.date)" in script and 'size(part + ch) > (parts.length ? 74 : 75)' in script
-    assert "'UID:flow-day-' + compact(day.date) + '-' + tag + '@xuanshu.local', 'SEQUENCE:' + sequence" in script and 'chartTag(dayunKey)' not in script
+    assert "save.id = 'dayun-days-ics'" in script and "'DTSTART;VALUE=DATE:' + compact(e.start)" in script and 'size(part + ch) > (parts.length ? 74 : 75)' in script
+    assert "'@xuanshu.local', 'SEQUENCE:' + sequence" in script and 'chartTag(dayunKey)' not in script
+    # A year's months export the same way, each from its jie day up to the day before the next jie.
+    assert "save.id = 'dayun-months-ics'" in script and "start: from.slice(0, 10), end: to.slice(0, 10)," in script
+    # Day UIDs keep the format files imported before carry; month UIDs are keyed on the flow year and month.
+    assert "d.pillar, 'day', d.days.map(day => {" in script and "m.pillar, 'month', m.months.map((month, i) => {" in script
+    assert "'UID:flow-' + kind + '-' + (e.key || compact(e.start)) + '-' + tag" in script and "key: m.year + String(month.month).padStart(2, '0')" in script
+    # The two buttons have their own names; the jie moments carry the birth zone's UTC offset.
+    assert "save.setAttribute('aria-label', '导出流日日历');" in script and "save.setAttribute('aria-label', '导出流月日历');" in script
     # The tag is made from the settled natal pillars the notes show, never from the request holding the birth minute.
     assert "const tag = chartTag(['year', 'month', 'day', 'hour'].map(k => o.open.has(k) ? '' : current.bazi.pillars[k].text).join(' '));" in script
-    assert "words('神煞') + ' ' + words('随时辰而定')" in script and 'words(TEXT_FOOTER[0])' in script
+    assert "calendarWords('神煞') + ' ' + calendarWords('随时辰而定')" in script and 'calendarWords(TEXT_FOOTER[0])' in script
     # Today's flow year before the first decade says so; 2100 days open no hours; the day's relations head its hours.
     assert "if (!decade) throw new Error('今天所在的流年早于第一步大运" in script and "dayunMonthsError = {key, year: start, text:" in script
     assert "const closed = day.date > FLOW_HOUR_LAST_DATE;" in script and "append(item, closed ? 'div' : 'button'" in script and "if (!closed) open.addEventListener('click'" in script

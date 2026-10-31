@@ -2103,6 +2103,29 @@ def main() -> None:
             page.locator('#dayun-month-table tbody tr').nth(11).wait_for(timeout=30000)
             assert first_year.get_attribute('aria-expanded') == 'true' and page.evaluate('document.activeElement.id') == first_year.get_attribute('id')
             assert page.locator('#dayun-month-table tbody th').first.inner_text().startswith('立春') and page.locator('#dayun-month-table tbody th').last.inner_text().startswith('小寒')
+            # The year's twelve months save as a calendar too: an all-day event from each jie day to the day before the
+            # next, the month pillar and its jie in the title, the exact jie moments in the notes.
+            with page.expect_download() as saved:
+                page.locator('#dayun-months-ics').click()
+            months_ics = Path(saved.value.path()).read_bytes()
+            assert saved.value.suggested_filename == 'xuanshu-flow-months-' + str(page.evaluate('dayunMonths.year')) + '.ics'
+            assert months_ics.count(b'BEGIN:VEVENT') == 12 and all(len(line) <= 75 for line in months_ics.split(b'\r\n'))
+            months_text = months_ics.decode('utf-8').replace('\r\n ', '')
+            flow_months = page.evaluate('dayunMonths')
+            assert ('SUMMARY:' + flow_months['months'][0]['pillar'] + '月 · 立春') in months_text and 'PRODID:-//XuanShu//Flow months//ZH' in months_text
+            # Each event, read on its own: from its jie date to the next jie date (exclusive), keyed on the flow year and
+            # month, both jie named with their moments and UTC offset; the twelfth runs into the next calendar year.
+            month_tag = page.evaluate("chartTag(['year', 'month', 'day', 'hour'].map(k => dayunOpenness().open.has(k) ? '' : current.bazi.pillars[k].text).join(' '))")
+            events = [dict(line.split(':', 1) for line in block.split('\r\n') if ':' in line) for block in months_text.split('BEGIN:VEVENT')[1:]]
+            for i, (event, month) in enumerate(zip(events, flow_months['months'])):
+                assert event['UID'] == 'flow-month-%d%02d-%s@xuanshu.local' % (flow_months['year'], month['month'], month_tag), event['UID']
+                assert event['DTSTART;VALUE=DATE'] == month['start_local'][:10].replace('-', '') < event['DTEND;VALUE=DATE'] == month['end_local_exclusive'][:10].replace('-', '')
+                following = flow_months['months'][i + 1]['jie'] if i < 11 else '立春'
+                assert event['DESCRIPTION'].startswith(month['jie'] + ' ' + month['start_local'][:16].replace('T', ' ')) and (' – ' + following + ' ') in event['DESCRIPTION']
+                assert '(UTC' + month['start_local'][16:] + ')' in event['DESCRIPTION'], event['DESCRIPTION']
+            assert events[11]['DTEND;VALUE=DATE'][:4] == str(flow_months['year'] + 1)
+            birth = page.evaluate('currentInput.birth_datetime.slice(0, 10)')
+            assert birth not in months_text and birth.replace('-', '') not in months_text and page.evaluate('chartTag(dayunKey)') not in months_text
             assert page.evaluate('''() => dayunMonths.months[0].pillar === '丙戊庚壬甲'['甲乙丙丁戊己庚辛壬癸'.indexOf(dayunMonths.pillar[0]) % 5] + '寅'
               && dayunMonths.months.every((m, i, all) => i === 11 || m.end_local_exclusive === all[i + 1].start_local)''')
             page.locator('#dayun-months').screenshot(path=str(screenshot_dir / '49-dayun-months.png'))
@@ -2129,7 +2152,10 @@ def main() -> None:
             assert ('SUMMARY:' + page.evaluate('dayunDays.days[0].pillar') + '日') in unfolded and 'DTSTART;VALUE=DATE:' + page.evaluate("dayunDays.days[0].date.replace(/-/g, '')") in unfolded
             assert page.evaluate('currentInput.birth_datetime.slice(0, 10)') not in unfolded and page.evaluate('currentInput.birth_datetime.slice(0, 10).replace(/-/g, "")') not in unfolded
             # The UID tag comes from the natal pillars, not from the request whose birth minute a search would find.
-            assert page.evaluate('chartTag(dayunKey)') not in unfolded and ('-' + page.evaluate("chartTag(['year', 'month', 'day', 'hour'].map(k => current.bazi.pillars[k].text).join(' '))") + '@xuanshu.local') in unfolded
+            day_tag = page.evaluate("chartTag(['year', 'month', 'day', 'hour'].map(k => current.bazi.pillars[k].text).join(' '))")
+            assert page.evaluate('chartTag(dayunKey)') not in unfolded and 'PRODID:-//XuanShu//Flow days//ZH' in unfolded
+            # The day UIDs keep the format of files imported before, so a new export still updates those events.
+            assert ('UID:flow-day-' + page.evaluate("dayunDays.days[0].date.replace(/-/g, '')") + '-' + day_tag + '@xuanshu.local') in unfolded
             assert unfolded.count('SEQUENCE:') == page.evaluate('dayunDays.days.length')
             # A day opens its thirteen double-hours, Zi at both ends, the stems by the five-rat rule from the day stem;
             # the arrow keys move along the cards with a single Tab stop; opening the day again closes its hours.
