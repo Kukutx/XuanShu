@@ -83,7 +83,7 @@ def test_small_labels_are_at_least_eleven_pixels():
                  '.form-section>summary small{color:var(--muted);font-size:11px;', '.ag-param small{font-size:11px;',
                  '.of-jie{display:block;margin-top:2px;font-size:11px;'):
         assert rule in CSS, rule
-    assert 'html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:center;line-height:1.2}' in CSS
+    assert 'html[lang=en] .qh-name,html[lang=en] .qh-bureau,html[lang=en] .qh-duty{white-space:normal;text-align:center;line-height:1.2}' in CSS
     assert 'html[lang=en] .ic-name{white-space:normal;' in CSS
     # On a 360px phone today's mark keeps inside its day.
     assert '.of-date{top:3px;left:4px;font-size:10px}.of-day.is-today .of-date{left:2px;padding:0 3px}' in CSS
@@ -115,7 +115,7 @@ def test_palace_stars_and_rule_cards_keep_inside():
     # stays on one line. A minor star moves to the next line whole, and one longer than the line wraps inside it.
     assert '.star-primary .star{white-space:nowrap}' in CSS
     assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .star{white-space:normal}' in CSS
-    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .bright{display:inline-block}' in CSS
+    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .bright{display:inline-block;text-decoration:inherit}' in CSS
     assert '.star-secondary .star{display:inline-block;white-space:normal}' in CSS
     # The rule comparison cards are at least 16em each and wrap, instead of an auto first column taking the length of
     # its English sentence and leaving the two field lists a few letters wide.
