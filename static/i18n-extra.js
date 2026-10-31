@@ -6102,6 +6102,10 @@ const UI_EXTRA = {
 "44 selected auxiliary and minor stars are implemented, not every star of every school.",
 "選んだ 44 の補佐星と雑曜を実装しており、各流派のすべての星ではありません。"
 ],
+"实际检查": [
+"Actually checked",
+"実際の確認範囲"
+],
 "客户端": [
 "Client",
 "クライアント"
@@ -6645,6 +6649,10 @@ const UI_EXTRA = {
 "已实现辅/杂曜：": [
 "Implemented auxiliary/minor stars: ",
 "実装済みの輔星・雑曜："
+],
+"已截到支持范围": [
+"cut at the supported range",
+"対応範囲で打ち切り"
 ],
 "已打开": [
 "Opened ",
@@ -12481,6 +12489,18 @@ const UI_EXTRA = {
 "误差": [
 "Uncertainty",
 "誤差"
+],
+"误差区间早于支持范围（1901 年起）的部分没有检查，时间轴从支持范围的起点开始。": [
+"The part of the error window before the supported range (from 1901) is not checked; the timeline starts where that range begins.",
+"誤差範囲のうち対応範囲（1901年から）より前の部分は確認していません。タイムラインは対応範囲の始まりから表示します。"
+],
+"误差区间晚于支持范围（到 2099 年为止）的部分没有检查，时间轴到支持范围的终点为止。": [
+"The part of the error window after the supported range (up to 2099) is not checked; the timeline ends where that range ends.",
+"誤差範囲のうち対応範囲（2099年まで）より後の部分は確認していません。タイムラインは対応範囲の終わりまで表示します。"
+],
+"误差区间超出支持的 1901–2099 年，只检查到支持范围的边缘；超出的部分没有检查。": [
+"The error window runs past the supported years 1901–2099; it is checked only up to the edge of that range, and the part beyond is not checked.",
+"誤差範囲が対応する1901–2099年を超えています。対応範囲の端までのみ確認し、超えた部分は確認していません。"
 ],
 "误差范围必须是1–120的整数": [
 "Error range must be an integer from 1–120",

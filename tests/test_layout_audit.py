@@ -115,7 +115,7 @@ def test_palace_stars_and_rule_cards_keep_inside():
     # stays on one line. A minor star moves to the next line whole, and one longer than the line wraps inside it.
     assert '.star-primary .star{white-space:nowrap}' in CSS
     assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .star{white-space:normal}' in CSS
-    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .bright{display:inline-block;text-decoration:inherit}' in CSS
+    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .bright{display:inline-block;text-decoration:inherit;text-underline-offset:4px}' in CSS
     assert '.star-secondary .star{display:inline-block;white-space:normal}' in CSS
     # The rule comparison cards are at least 16em each and wrap, instead of an auto first column taking the length of
     # its English sentence and leaving the two field lists a few letters wide.
@@ -127,3 +127,14 @@ def test_palace_stars_and_rule_cards_keep_inside():
     # The browser smoke walks every page in English at 900 px for an element running out of its box.
     smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
     assert 'OVERFLOW = ' in smoke and 'assert overflow == {}, overflow' in smoke
+
+
+def test_boundary_line_keeps_the_birth_label_inside_a_cut_window():
+    # Cut at the supported years the window is no longer symmetric: the pin comes from the birth instant, stays on the
+    # track, and the label slides to stay on the line, on a row of its own clear of the start and end times.
+    js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
+    assert "birthAt = d.birth_utc ? Date.parse(d.birth_utc) : t0 + span / 2" in js
+    assert "pin.style.left = `clamp(6px, ${birthAtPct}%, calc(100% - 6px))`" in js
+    assert "birthLabel.style.transform = `translateX(-${birthAtPct}%)`" in js
+    assert "'bt-axis' + (clipped.length ? ' has-birth-row' : '')" in js
+    assert '.bt-axis.has-birth-row .bt-axis-birth{top:1.5em}' in CSS

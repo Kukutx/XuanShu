@@ -7375,10 +7375,14 @@ function renderBirthBoundaries(){
   if(!boundaryResult)return;
   const d=boundaryResult;
   meta(result,[`检测区间 ±${d.uncertainty_minutes}分钟`,`${d.boundaries.length}个边界`,`${d.segments.length}个区间`]);
+  // Near the edge of the supported years the window stops there, and the page says which side was cut.
+  const clipped = d.clipped_to_supported_range || [];
+  if (clipped.includes('start')) append(result, 'p', 'info-inline', '误差区间早于支持范围（1901 年起）的部分没有检查，时间轴从支持范围的起点开始。');
+  if (clipped.includes('end')) append(result, 'p', 'info-inline', '误差区间晚于支持范围（到 2099 年为止）的部分没有检查，时间轴到支持范围的终点为止。');
   // The interval as a line: a band per segment, a numbered tick per switch and a pin at the recorded birth time.
-  // The window is symmetric around the birth instant. (Old zone offsets such as +01:19:32 do not parse in JS, so the
-  // local birth string is not read as a time.)
-  const t0 = Date.parse(d.start_utc), span = Date.parse(d.end_utc) - t0, birthAt = t0 + span / 2;
+  // The window is symmetric around the birth instant unless it was cut at the supported years. (Old zone offsets such
+  // as +01:19:32 do not parse in JS, so the local birth string is not read as a time; the UTC instant is.)
+  const t0 = Date.parse(d.start_utc), span = Date.parse(d.end_utc) - t0, birthAt = d.birth_utc ? Date.parse(d.birth_utc) : t0 + span / 2;
   const at = iso => (typeof iso === 'number' ? iso - t0 : Date.parse(iso) - t0) / span * 100;
   const birthDay = d.original_birth_local.slice(0, 10);
   // When the zone's offset changes inside the window (daylight saving), local times carry their offset.
@@ -7408,10 +7412,15 @@ function renderBirthBoundaries(){
     append(tick, 'span', 'bt-tick-num' + (row ? ' is-up' + Math.min(row, 2) : ''), String(i + 1));
     if (row) line.classList.add('has-up' + Math.min(row, 2));
   });
-  const pin = append(track, 'span', 'bt-pin'); pin.style.left = at(birthAt) + '%';
-  const axis = append(line, 'div', 'bt-axis');
+  // The pin stays on the track at either end, and the birth label slides so that it never leaves the line: centred in
+  // the middle, flush with the start or end there. In a window cut at the supported years it takes its own row, clear
+  // of the start and end times it would otherwise cover.
+  const birthAtPct = at(birthAt);
+  const pin = append(track, 'span', 'bt-pin'); pin.style.left = `clamp(6px, ${birthAtPct}%, calc(100% - 6px))`;
+  const axis = append(line, 'div', 'bt-axis' + (clipped.length ? ' has-birth-row' : ''));
   append(axis, 'span', null, clock(d.segments[0].start_local_inclusive));
-  texts(append(axis, 'span', 'bt-axis-birth'), '出生时间', ' ' + d.original_birth_local.slice(11, 16)).style.left = at(birthAt) + '%';
+  const birthLabel = texts(append(axis, 'span', 'bt-axis-birth'), '出生时间', ' ' + d.original_birth_local.slice(11, 16));
+  birthLabel.style.left = birthAtPct + '%'; birthLabel.style.transform = `translateX(-${birthAtPct}%)`;
   append(axis, 'span', null, clock(d.segments[d.segments.length - 1].end_local_exclusive));
   // What changes at each switch, read from the segments on either side of it.
   const changes = (a, b) => {
@@ -8191,7 +8200,7 @@ function cwToolFact(tool, r, shown, hourUnknown) {
     const p = r.start_age_traditional_parts;
     return [r.direction === 'forward' ? '顺排' : '逆排', ' · ', '起运约', ' ', p.years, ' 岁', ' ', p.months, ' 个月', ' · ', r.periods.length, ' 步大运'];
   }
-  if (tool === 'birth_boundary_map') return ['误差', ' ±' + r.uncertainty_minutes, ' 分钟', ' · ', r.boundaries.length, ' 个规则切换点'];
+  if (tool === 'birth_boundary_map') return ['误差', ' ±' + r.uncertainty_minutes, ' 分钟', ...((r.clipped_to_supported_range || []).length ? [' · ', '已截到支持范围'] : []), ' · ', r.boundaries.length, ' 个规则切换点'];
   if (tool === 'structured_report') return [r.sections.length, ' 节'];
   if (tool === 'decision_matrix' && r.ranked_options.length) return ['排在第一', ' ', r.ranked_options[0].name];
   if (/^qimen_hour_chart_/.test(tool)) return [r.solar_term, ' · ', r.dun, ' ' + r.bureau, ' 局', ' · ', r.yuan, ' · ', '值符', ' ', r.zhi_fu_star, ' · ', '值使', ' ', r.zhi_shi_door];
