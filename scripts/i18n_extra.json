@@ -1007,13 +1007,33 @@
   "San Ming Tong Hui, vol. 3: On Tian De and Yue De (the text gives month 1 丁, month 2 Kun, month 3 壬 and month 4 辛; the other months follow the common table)",
   "『三命通会』巻三・論天月徳（原文は正月丁・二月坤・三月壬・四月辛を挙げ、他の月は通行の表による）"
  ],
+ "《三命通会》卷三·论太极贵": [
+  "San Ming Tong Hui, vol. 3: On the Tai Ji Noble",
+  "『三命通会』巻三・論太極貴"
+ ],
  "《三命通会》卷三·论孤辰寡宿": [
   "San Ming Tong Hui, vol. 3: On Gu Chen and Gua Su",
   "『三命通会』巻三・論孤辰寡宿"
  ],
+ "《三命通会》卷三·论学堂词馆（原文举金命见壬申，其余按「余以类推」）": [
+  "San Ming Tong Hui, vol. 3: On Xue Tang and Ci Guan (the text gives 壬申 for a Metal year; the others follow its \"the rest by analogy\")",
+  "『三命通会』巻三・論学堂詞館（原文は金命に壬申を挙げ、他は「余は類推す」による）"
+ ],
+ "《三命通会》卷三·论学堂词馆（原文举金命见辛巳，其余按「余以类推」）": [
+  "San Ming Tong Hui, vol. 3: On Xue Tang and Ci Guan (the text gives 辛巳 for a Metal year; the others follow its \"the rest by analogy\")",
+  "『三命通会』巻三・論学堂詞館（原文は金命に辛巳を挙げ、他は「余は類推す」による）"
+ ],
+ "《三命通会》卷三·论干支诸字杂犯神煞（桃花红艳煞）": [
+  "San Ming Tong Hui, vol. 3: On the miscellaneous Shen Sha of stems and branches (Peach Blossom Hong Yan Sha)",
+  "『三命通会』巻三・論干支諸字雑犯神煞（桃花紅艶煞）"
+ ],
  "《三命通会》卷三·论羊刃": [
   "San Ming Tong Hui, vol. 3: On Yang Ren",
   "『三命通会』巻三・論羊刃"
+ ],
+ "《三命通会》卷三·论金舆": [
+  "San Ming Tong Hui, vol. 3: On Jin Yu",
+  "『三命通会』巻三・論金輿"
  ],
  "《三命通会》卷三·论驿马": [
   "San Ming Tong Hui, vol. 3: On Yi Ma",
@@ -2263,9 +2283,9 @@
   "A sequence of stem-branch pairs counted forward or backward from the month pillar, changing every ten years.",
   "月柱から六十干支を順または逆にたどり、十年ごとに替わる干支の列。"
  ],
- "从某一柱的干或支出发，按固定的查法表在四柱中找到的传统标签。": [
-  "Traditional labels found in the four pillars by fixed lookup tables, starting from the stem or branch of one pillar.",
-  "ある柱の干または支から、決まった表で四柱の中に見つける伝統的なラベル。"
+ "从某一柱的干、支或纳音出发，按固定的查法表在四柱中找到的传统标签。": [
+  "Traditional labels found in the four pillars by fixed lookup tables, starting from the stem, branch or Na Yin of one pillar.",
+  "ある柱の干・支または納音から、決まった表で四柱の中に見つける伝統的なラベル。"
  ],
  "从此人看 → 对方": [
   "From this person → other",
@@ -3919,10 +3939,6 @@
   "Day 16",
   "16日"
  ],
- "十六种神煞逐柱比较": [
-  "sixteen Shen Sha compared pillar by pillar",
-  "十六種の神煞を柱ごとに比較"
- ],
  "十四": [
   "Day 14",
   "14日"
@@ -4155,9 +4171,9 @@
   "Reference",
   "参照ライブラリ"
  ],
- "参考库给阴干也排羊刃、孤辰寡宿兼以日支查、大运流年也标魁罡，与玄枢所引规则不同，这几处不比较。": [
-  "The reference library also gives yin stems a Yang Ren, reads Gu Chen and Gua Su from the day branch as well, and marks Kui Gang on luck and year pillars; these differ from the rules XuanShu cites and are not compared.",
-  "参照ライブラリは陰干にも羊刃を置き、孤辰・寡宿を日支からも求め、大運・流年にも魁罡を付けます。玄枢が引く規則と異なるため、これらは比較しません。"
+ "参考库给阴干也排羊刃、孤辰寡宿兼以日支查、大运流年也标魁罡、太极贵人戊己只取辰戌丑未、红艳按今通行表、学堂词馆按日干查，与玄枢所引规则不同，这几处不比较。": [
+  "The reference library also gives yin stems a Yang Ren, reads Gu Chen and Gua Su from the day branch as well, marks Kui Gang on luck and year pillars, gives 戊 and 己 only 辰戌丑未 for Tai Ji, uses the common Hong Yan table of today, and reads Xue Tang and Ci Guan from the day stem; these differ from the rules XuanShu cites and are not compared.",
+  "参照ライブラリは陰干にも羊刃を置き、孤辰・寡宿を日支からも求め、大運・流年にも魁罡を付け、太極貴人の戊己は辰戌丑未のみとし、紅艶は今の通行表に、学堂・詞館は日干によります。玄枢が引く規則と異なるため、これらは比較しません。"
  ],
  "参考文档只支持方法描述，不意味着 XuanShu 的逐盘算法通过独立认证。": [
   "Reference documents only support the method description and do not mean that XuanShu's chart-by-chart algorithm has passed independent certification.",
@@ -4343,9 +4359,9 @@
   "Only places each person's four pillars side by side and marks the traditional ten-god, stem-combination, six-harmony, six-clash, six-harm, punishment and three-harmony labels. It does not judge any relationship and gives no compatibility score or ranking.",
   "各人の四柱を並べ、十神・天干五合・地支六合・六冲・六害・相刑・三合という伝統的なラベルを示すだけです。関係の良し悪しは評価せず、相性スコアや順位も出しません。"
  ],
- "只收在古籍里查得到安法的十六种，每种列出查法与出处；不分吉神凶煞。": [
-  "Only the sixteen whose placement rules can be found in classical texts are included, each with its rule and source; they are not split into lucky and unlucky.",
-  "古典で配置法を確認できる十六種だけを収め、それぞれに配置法と出典を示します。吉神・凶殺には分けません。"
+ "只收在古籍里查得到安法的二十一种，每种列出查法与出处；不分吉神凶煞。": [
+  "Only the twenty-one whose placement rules can be found in classical texts are included, each with its rule and source; they are not split into lucky and unlucky.",
+  "古典で配置法を確認できる二十一種だけを収め、それぞれに配置法と出典を示します。吉神・凶殺には分けません。"
  ],
  "只是提议：用户在浏览器里点击确认后才会保存。不要提议保存出生资料以外的敏感信息。": [
   "Only a proposal: it is saved only after the user clicks confirm in the browser. Do not propose saving sensitive information other than birth data.",
@@ -4979,9 +4995,9 @@
   "Void branches of the four pillars",
   "四柱の旬空"
  ],
- "四柱没有所收十六种神煞。": [
-  "None of the sixteen listed Shen Sha falls on the four pillars.",
-  "収録している十六種の神煞は四柱にありません。"
+ "四柱没有所收二十一种神煞。": [
+  "None of the twenty-one listed Shen Sha falls on the four pillars.",
+  "収録している二十一種の神煞は四柱にありません。"
  ],
  "四柱都不计入": [
   "No pillar counted",
@@ -5571,9 +5587,9 @@
   "Shen Sha on luck and year pillars",
   "大運・流年干支の神煞"
  ],
- "大运流年的神煞按原局日干、年干、年支、日支、月支查，只列名称与查法出处，不断吉凶。": [
-  "Shen Sha on luck and year pillars are read from the natal day stem, year stem, year branch, day branch and month branch; only names, rules and sources are given, with no good-or-bad reading.",
-  "大運・流年の神煞は原局の日干・年干・年支・日支・月支から求め、名称と求め方・出典だけを示し、吉凶は判断しません。"
+ "大运流年的神煞按原局日干、年干、年支、日支、月支和年柱纳音查，只列名称与查法出处，不断吉凶。": [
+  "Shen Sha on luck and year pillars are read from the natal day stem, year stem, year branch, day branch, month branch and the year pillar's Na Yin; only names, rules and sources are given, with no good-or-bad reading.",
+  "大運・流年の神煞は原局の日干・年干・年支・日支・月支と年柱の納音から求め、名称と求め方・出典だけを示し、吉凶は判断しません。"
  ],
  "大运页列出每步大运里的流年以及它与原局的关系；紫微的流年层和年干四化按农历年。": [
   "The luck page lists the annual pillars within each luck pillar and their relations to the natal chart; Zi Wei's annual layer and year-stem transformations use the lunar year.",
@@ -5831,6 +5847,10 @@
   "Taiyuan",
   "太原"
  ],
+ "太极贵人": [
+  "Tai Ji Noble",
+  "太極貴人"
+ ],
  "太阳": [
   "Tai Yang",
   "太陽"
@@ -6030,6 +6050,10 @@
  "学习、职业与公共角色": [
   "Study, career and public roles",
   "学習、職業と公的な役割"
+ ],
+ "学堂": [
+  "Xue Tang",
+  "学堂"
  ],
  "安装需要联网下载这个包；排盘计算在本机进行，不会把出生资料发给第三方。": [
   "Installing downloads this package from the internet; the chart itself is computed on this machine and no birth details go to third parties.",
@@ -6663,9 +6687,9 @@
   "AES-256-GCM encrypted backup created; the passphrase is neither saved nor uploaded to the server.",
   "AES-256-GCM 暗号化バックアップを作成しました。パスフレーズは保存もサーバーへのアップロードもされません。"
  ],
- "已知的年、月、日三柱没有所收十六种神煞。": [
-  "None of the sixteen stars falls on the known year, month and day pillars.",
-  "判明している年・月・日の三柱には、収録した十六種の神煞がありません。"
+ "已知的年、月、日三柱没有所收二十一种神煞。": [
+  "None of the twenty-one stars falls on the known year, month and day pillars.",
+  "判明している年・月・日の三柱には、収録した二十一種の神煞がありません。"
  ],
  "已获对方同意使用其出生资料（双人或多人）": [
   "The other person or people agreed to use their birth data",
@@ -6831,6 +6855,14 @@
   "?",
   "年は？"
  ],
+ "年命纳音五行的临官为词馆，正位要这一柱的纳音也属同一五行：金命见壬申，木命见庚寅，水命见癸亥，火命见乙巳，土命见丁亥；查年柱以外各柱，年柱本身这里不算": [
+  "Ci Guan is the office (Lin Guan) branch of the phase of the year's Na Yin; in its true seat that pillar's own Na Yin has the same phase: Metal year 壬申, Wood 庚寅, Water 癸亥, Fire 乙巳, Earth 丁亥; looked for on the pillars other than the year; the year pillar itself is not counted here",
+  "年命の納音五行の臨官を詞館とし、正位はその柱の納音も同じ五行であること：金命は壬申、木命は庚寅、水命は癸亥、火命は乙巳、土命は丁亥。年柱以外の柱を見て、年柱自体はここでは数えない"
+ ],
+ "年命纳音五行的长生为学堂，正位要这一柱的纳音也属同一五行：金命见辛巳，木命见己亥，水命见甲申，火命见丙寅，土命见戊申（土随水长生于申）；查年柱以外各柱，年柱本身这里不算": [
+  "Xue Tang is the growth (Chang Sheng) branch of the phase of the year's Na Yin; in its true seat that pillar's own Na Yin has the same phase: Metal year 辛巳, Wood 己亥, Water 甲申, Fire 丙寅, Earth 戊申 (Earth is born at 申 with Water); looked for on the pillars other than the year; the year pillar itself is not counted here",
+  "年命の納音五行の長生を学堂とし、正位はその柱の納音も同じ五行であること：金命は辛巳、木命は己亥、水命は甲申、火命は丙寅、土命は戊申（土は水に従い申に長生）。年柱以外の柱を見て、年柱自体はここでは数えない"
+ ],
  "年干": [
   "Year stem",
   "年干"
@@ -6910,6 +6942,10 @@
  "年柱以立春为界，月柱以节令为界；其他流派可能存在差异。": [
   "The year pillar changes at Start of Spring (Lichun) and the month pillar at the sectional solar terms; other schools may differ.",
   "年柱は立春を境とし、月柱は節気を境とします。他の流派では異なる場合があります。"
+ ],
+ "年柱纳音": [
+  "Year pillar's Na Yin",
+  "年柱の納音"
  ],
  "年界按立春、月界按节令，日界和太阳时按输入选项；不是现实性格推断。": [
   "Year boundary at Start of Spring (Lichun), month boundary at the sectional solar terms, day boundary and solar time per the input options; not an inference of real-world personality.",
@@ -10955,6 +10991,14 @@
   "Jia Yi Bing Ding Wu Ji Geng Xin Ren Gui",
   "甲乙丙丁戊己庚辛壬癸"
  ],
+ "甲乙见午，丙见寅，丁见未，戊见子，己见辰，庚见戌，辛见酉，壬见巳，癸见申；依原文，与《星学大成》红艳煞歌和今通行表的乙见申、戊见辰、壬见子不同；原文未写以哪一干查，这里同天乙贵人以日干、年干查四柱地支": [
+  "甲乙 → 午, 丙 → 寅, 丁 → 未, 戊 → 子, 己 → 辰, 庚 → 戌, 辛 → 酉, 壬 → 巳, 癸 → 申; as in the text, which differs from the Hong Yan verse of the Xing Xue Da Cheng and the common table of today (乙 申, 戊 辰, 壬 子); the text does not say which stem, so, as for the Tian Yi Noble, the day and year stems are looked up in the four branches",
+  "甲乙は午、丙は寅、丁は未、戊は子、己は辰、庚は戌、辛は酉、壬は巳、癸は申。原文どおりで、『星学大成』の紅艶煞歌や今の通行表（乙は申、戊は辰、壬は子）とは異なる。原文はどの干で見るかを記さないため、天乙貴人と同じく日干・年干から四柱の地支を見る"
+ ],
+ "甲乙见子午，丙丁见卯酉，戊己见申和辰戌丑未，庚辛见寅亥，壬癸见申巳；原文说各干「有始有终」，戊己「喜生乎申，得辰戌丑未为正库」，所以戊己也取申，今通行表戊己只取辰戌丑未；原文未写以哪一干查，这里同天乙贵人以日干、年干查四柱地支": [
+  "甲乙 → 子午, 丙丁 → 卯酉, 戊己 → 申 and 辰戌丑未, 庚辛 → 寅亥, 壬癸 → 申巳; the text gives each stem a beginning and an end, and says 戊己 are born at 申 and have 辰戌丑未 as their stores, so 戊己 also take 申, while the common table of today gives them 辰戌丑未 only; the text does not say which stem, so, as for the Tian Yi Noble, the day and year stems are looked up in the four branches",
+  "甲乙は子午、丙丁は卯酉、戊己は申と辰戌丑未、庚辛は寅亥、壬癸は申巳。原文は各干に「始めと終わり」があるとし、戊己は「申に生じ、辰戌丑未を正庫とする」ので、戊己も申を取る。今の通行表は戊己に辰戌丑未のみ。原文はどの干で見るかを記さないため、天乙貴人と同じく日干・年干から四柱の地支を見る"
+ ],
  "甲公司": [
   "Company A",
   "甲社"
@@ -11207,17 +11251,17 @@
   "Shen Sha: rules and sources",
   "神煞の求め方と出典"
  ],
- "神煞是传统标签：只收能在古籍里查到安法的十六种，以日干、年干、年支、日支、月支查四柱，时柱不作查法起点；同一种神煞各家表格不尽相同（如阴干是否有羊刃），这里按所列出处。只列名称，不断吉凶。": [
-  "Shen Sha are traditional labels. Only the sixteen whose placement can be found in a classical text are included, read from the day stem, year stem, year branch, day branch and month branch against the four pillars; the hour pillar is never a starting point. Tables for the same star differ between schools (for example whether yin stems have a Yang Ren); these follow the sources listed. Names only, with no good-or-bad reading.",
-  "神煞は伝統的なラベルです。古典で配置法を確認できる十六種だけを収め、日干・年干・年支・日支・月支から四柱を見ます。時柱は起点にしません。同じ神煞でも流派により表が異なり（陰干に羊刃があるか等）、ここでは掲げた出典に従います。名称のみで吉凶は判断しません。"
+ "神煞是传统标签：只收能在古籍里查到安法的二十一种，以日干、年干、年支、日支、月支和年柱纳音查四柱，时柱不作查法起点；同一种神煞各家表格不尽相同（如阴干是否有羊刃、红艳的几干），这里按所列出处。只列名称，不断吉凶。": [
+  "Shen Sha are traditional labels. Only the twenty-one whose placement can be found in a classical text are included, read from the day stem, year stem, year branch, day branch, month branch and the year pillar's Na Yin against the four pillars; the hour pillar is never a starting point. Tables for the same star differ between schools (for example whether yin stems have a Yang Ren, or some stems of Hong Yan); these follow the sources listed. Names only, with no good-or-bad reading.",
+  "神煞は伝統的なラベルです。古典で配置法を確認できる二十一種だけを収め、日干・年干・年支・日支・月支と年柱の納音から四柱を見ます。時柱は起点にしません。同じ神煞でも流派により表が異なり（陰干に羊刃があるか、紅艶の一部の干など）、ここでは掲げた出典に従います。名称のみで吉凶は判断しません。"
  ],
  "神煞：": [
   "Shen Sha: ",
   "神煞："
  ],
- "神煞：只收能在古籍里查到安法的十六种，以日干、年干、年支、日支、月支查四柱，时柱不作查法起点；每种附查法与出处，只作标签，不断吉凶": [
-  "Shen Sha: only the sixteen whose placement can be found in a classical text, read from the day stem, year stem, year branch, day branch and month branch against the four pillars, never from the hour pillar; each with its rule and source, as labels only, with no good-or-bad reading",
-  "神煞：古典で配置法を確認できる十六種のみ。日干・年干・年支・日支・月支から四柱を見て、時柱は起点にしない。各々に求め方と出典を付け、ラベルとしてのみ扱い吉凶は判断しない"
+ "神煞：只收能在古籍里查到安法的二十一种，以日干、年干、年支、日支、月支和年柱纳音查四柱，时柱不作查法起点；每种附查法与出处，只作标签，不断吉凶": [
+  "Shen Sha: only the twenty-one whose placement can be found in a classical text, read from the day stem, year stem, year branch, day branch, month branch and the year pillar's Na Yin against the four pillars, never from the hour pillar; each with its rule and source, as labels only, with no good-or-bad reading",
+  "神煞：古典で配置法を確認できる二十一種のみ。日干・年干・年支・日支・月支と年柱の納音から四柱を見て、時柱は起点にしない。各々に求め方と出典を付け、ラベルとしてのみ扱い吉凶は判断しない"
  ],
  "神煞：随时辰而定": [
   "Auxiliary stars: depend on the hour",
@@ -11230,6 +11274,10 @@
  "禄入": [
   "Lu in",
   "禄入"
+ ],
+ "禄前二辰：甲辰，乙巳，丙戊未，丁己申，庚戌，辛亥，壬丑，癸寅；原文举甲子人禄在寅、辰为金舆，是以年干查，这里同天乙贵人以日干、年干查四柱地支；同章所引《八字金书》以驿马前二辰为金舆，这里不用": [
+  "Two branches after the Lu: 甲 辰, 乙 巳, 丙 and 戊 未, 丁 and 己 申, 庚 戌, 辛 亥, 壬 丑, 癸 寅; the text gives a 甲子 person, whose Lu is 寅, with Jin Yu at 辰, which reads the year stem; as for the Tian Yi Noble, the day and year stems are looked up in the four branches; the Ba Zi Jin Shu quoted in the same chapter puts Jin Yu two branches after the Yi Ma instead, which is not used here",
+  "禄の二つ先：甲は辰、乙は巳、丙・戊は未、丁・己は申、庚は戌、辛は亥、壬は丑、癸は寅。原文は甲子の人（禄は寅）で辰を金輿とする例を挙げ、これは年干で見ている。ここでは天乙貴人と同じく日干・年干から四柱の地支を見る。同じ章が引く『八字金書』は駅馬の二つ先を金輿とするが、ここでは用いない"
  ],
  "禄存": [
   "Lu Cun",
@@ -11270,6 +11318,10 @@
  "种不同规则下结果与当前完全相同": [
   "alternative rules give exactly the same result",
   "通りの別ルールで結果がまったく同じ"
+ ],
+ "种神煞逐柱比较": [
+  "Shen Sha compared pillar by pillar",
+  "種の神煞を柱ごとに比較"
  ],
  "种组合": [
   "combinations",
@@ -11634,6 +11686,10 @@
  "繼續": [
   "continue",
   "続ける"
+ ],
+ "红艳": [
+  "Hong Yan",
+  "紅艶"
  ],
  "红鸾": [
   "Hong Luan",
@@ -12362,6 +12418,10 @@
  "识别时辰、日界、节令和时区变更。仅保证当前已实现规则的数值分段，不保证所有流派的专业命盘。": [
   "Detects changes of double hour, day boundary, solar term and time zone. Only the numerical segmentation of currently implemented rules is guaranteed, not professional charts of every school.",
   "時辰・日界・節令・タイムゾーンの変化を識別します。保証するのは現在実装済みルールの数値的分割のみで、すべての流派の専門的な命盤は保証しません。"
+ ],
+ "词馆": [
+  "Ci Guan",
+  "詞館"
  ],
  "试一试": [
   "Try it",
@@ -13443,6 +13503,10 @@
   "Gold Leaf Metal (Jin Bo Jin)",
   "金箔金"
  ],
+ "金舆": [
+  "Jin Yu",
+  "金輿"
+ ],
  "钗钏金": [
   "Hairpin Metal (Chai Chuan Jin)",
   "釵釧金"
@@ -14102,5 +14166,9 @@
  "？：这一柱不参与比较（时辰不详；年、月、日柱则是时辰不详且出生当天交节或换日）。": [
   "?: this pillar is not compared (birth hour unknown; for a year, month or day pillar, the hour is unknown and a solar term or day change falls on the birth day).",
   "？：この柱は比較しません（出生時刻が不明。年・月・日柱は、時刻不明かつ出生日に節入りまたは日替わりがある場合）。"
+ ],
+ "这一节单独重跑于": [
+  "Section re-run on its own on",
+  "この節の単独再実行日"
  ]
 }

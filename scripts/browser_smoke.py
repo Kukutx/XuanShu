@@ -420,8 +420,9 @@ def main() -> None:
             assert sorted(page.locator('.pillar-links:not(.below) .pillar-link-label').all_inner_texts()) == ['庚甲相冲', '甲庚相冲']
             assert page.locator('.pillar-links.below .pillar-link-label').all_inner_texts() == ['申寅六冲·相刑']
             # 神煞 on each pillar, named by what places them (华盖 by the year branch 辰), and a table of rules and sources.
+            # 寅 is the 太极 of the year stem 庚 and, in the 三命通会's table, the 红艳 of the day stem 丙.
             assert [page.locator('.pillar').nth(i).locator('.shensha-tag').all_inner_texts() for i in range(4)] == [
-                ['华盖'], ['驿马'], ['羊刃', '将星'], ['驿马']]
+                ['华盖'], ['驿马'], ['羊刃', '将星'], ['驿马', '太极贵人', '红艳']]
             assert page.locator('.pillar').nth(0).locator('.shensha-tag').get_attribute('data-tip') == '查法起点：年支 辰'
             # Hints are drawn by tips.js in the project's style, not as the browser's title tooltip: hover shows one,
             # Escape closes it, and a click pins a plain label's hint until the next click.
@@ -459,7 +460,8 @@ def main() -> None:
             assert page.evaluate('window.__esc') == 0
             page.mouse.move(2, 2)
             rules_rows = page.locator('#shensha-rules tbody tr')
-            assert [rules_rows.nth(i).locator('td').first.inner_text() for i in range(rules_rows.count())] == ['羊刃', '驿马', '将星', '华盖']
+            assert [rules_rows.nth(i).locator('td').first.inner_text() for i in range(rules_rows.count())] == ['羊刃', '驿马', '将星', '华盖', '太极贵人', '红艳']
+            assert '《三命通会》卷三·论干支诸字杂犯神煞（桃花红艳煞）' in rules_rows.nth(5).inner_text()
             assert rules_rows.nth(1).locator('.shensha-where').all_inner_texts() == ['月柱甲申', '时柱庚寅']
             assert '《三命通会》卷三·论驿马' in rules_rows.nth(1).inner_text()
             # Decade and annual pillars under the BaZi chart; a year opens the Zi Wei year layer.
@@ -1460,7 +1462,7 @@ def main() -> None:
             assert '干支：庚辰　　甲申　　丙午　　庚寅' in text_chart and '空亡：月柱申（年空），时柱寅（日空）' in text_chart, text_chart
             assert '命宫在壬午，身宫在官禄宫，木三局，命主破军，身主文昌' in text_chart and '大限' not in text_chart and '坤造' not in text_chart
             assert '天干关系：年月 庚甲相冲　月时 甲庚相冲' in text_chart and '地支关系：月时 申寅六冲·相刑' in text_chart
-            assert '\n神煞：年柱 华盖｜月柱 驿马｜日柱 羊刃、将星｜时柱 驿马\n' in text_chart, text_chart
+            assert '\n神煞：年柱 华盖｜月柱 驿马｜日柱 羊刃、将星｜时柱 驿马、太极贵人、红艳\n' in text_chart, text_chart
             page.locator('#share-gender').check()
             text_chart = page.evaluate(share_text)
             assert '坤造' in text_chart and '命宫（壬午）：紫微庙｜文曲陷 凤阁 蜚廉｜大限 3–12' in text_chart
@@ -1523,6 +1525,9 @@ def main() -> None:
             page.locator('#crosscheck-differences li').first.wait_for(timeout=30000)
             assert page.locator('#crosscheck-dialog .crosscheck-table tbody tr').count() == 41
             assert page.locator('#crosscheck-dialog h4', has_text='八字神煞对照').count() == 1
+            shensha_line = page.locator('#crosscheck-dialog p', has_text='种神煞逐柱比较').inner_text()
+            rerun = json.loads((ROOT / 'static/crosscheck-summary.json').read_text(encoding='utf-8'))['shensha'].get('generated')
+            assert '19 种神煞逐柱比较' in shensha_line and (('这一节单独重跑于 ' + rerun) in shensha_line if rerun else '重跑' not in shensha_line), shensha_line
             assert '100.000%' in page.locator('#crosscheck-dialog').inner_text()
             # The dialog's wide tables are marked like the page's own: an edge fade wherever one scrolls sideways.
             page.wait_for_timeout(100)
