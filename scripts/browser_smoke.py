@@ -3050,10 +3050,12 @@ def main() -> None:
                     clipped = page.evaluate(CLIPPED_HINTS)
                     assert clipped == [], (lang, width, clipped)
             # No element runs out of its box on any page in English at 900 px, where the side panel is back and the
-            # column is at its narrowest: a palace's stars, the rule cards, a date-scan day, a group member's pillars.
-            page.set_viewport_size({'width': 900, 'height': 920})
+            # column is at its narrowest (a palace's stars, the rule cards, a date-scan day, a group member's pillars),
+            # nor on a 360 px phone (an hour of the Qimen day strip).
             back, overflow = page.evaluate('active'), {}
-            for tab in page.evaluate("[...document.querySelectorAll('[data-tab]')].map(t => t.dataset.tab)"):
+            for width in (900, 360):
+              page.set_viewport_size({'width': width, 'height': 920})
+              for tab in page.evaluate("[...document.querySelectorAll('[data-tab]')].map(t => t.dataset.tab)"):
                 page.evaluate("(tab) => document.querySelector(`[data-tab='${tab}']`).click()", tab)
                 page.wait_for_timeout(1500)
                 found = page.evaluate(OVERFLOW)
@@ -3064,7 +3066,7 @@ def main() -> None:
                       return w < 16 * em - 1 && w < c.parentElement.clientWidth - 30;
                     }).map(c => 'narrow rule card: ' + c.getBoundingClientRect().width)""")
                 if found:
-                    overflow[tab] = found
+                    overflow[(width, tab)] = found
             assert overflow == {}, overflow
             page.evaluate("(tab) => document.querySelector(`[data-tab='${tab}']`).click()", back)
             page.set_viewport_size({'width': 1440, 'height': 920})
