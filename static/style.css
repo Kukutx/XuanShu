@@ -138,7 +138,9 @@ body.has-chart .today-chip{margin:0}
 .input-panel label{display:block;margin:14px 0 6px;font-size:12px;font-weight:600;color:var(--text2)}
 .input-panel input[type=datetime-local],.input-panel input[type=password],.input-panel input[type=number],.input-panel input[type=text],.input-panel input[type=date],.input-panel select{width:100%;padding:10px 12px;border:1px solid var(--border-strong);background:var(--panel2);border-radius:var(--radius);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s,background .15s;min-height:44px}
 .input-panel input:hover,.input-panel select:hover{border-color:var(--gold)}
-.input-panel input:focus,.input-panel select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--ring);background:var(--panel)}
+/* A focused field has a solid ring (at least 3:1 against the panel, and kept by a contrast theme, which drops shadows)
+   with a soft halo outside it. */
+.input-panel input:focus,.input-panel select:focus{border-color:var(--gold);outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring);background:var(--panel)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 /* Zone names run long (America/Argentina/Buenos Aires · UTC-3), so 时区 and 性别 take a row each. */
 .form-row.tz-row{grid-template-columns:minmax(0,1fr);gap:0}
@@ -225,7 +227,7 @@ body.has-chart .today-chip{margin:0}
 .tool-search-box{position:relative;flex:1;min-width:min(100%,310px);max-width:360px}
 .tool-finder input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel) no-repeat 12px 50%/15px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8f96' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
 .tool-finder input:hover{border-color:var(--border-strong)}
-.tool-finder input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--ring)}
+.tool-finder input:focus{border-color:var(--gold);outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring)}
 .tool-finder small{color:var(--muted);font-size:12px;white-space:nowrap}
 /* The command palette under the search box: matching tools and page actions, the chosen one highlighted. */
 .tool-palette{position:absolute;z-index:35;top:calc(100% + 6px);left:0;width:max(100%,320px);max-width:calc(100vw - 32px);max-height:min(360px,60vh);overflow:auto;margin:0;padding:6px;list-style:none;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow);animation:xs-pop .14s var(--ease) backwards}
@@ -1178,6 +1180,8 @@ html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .brig
 .palace-btn{cursor:pointer;text-align:left;color:inherit;font:inherit}
 .palace-btn:hover{border-color:var(--gold)}
 .palace-btn.selected{outline:2px solid var(--gold2);outline-offset:-2px}
+/* The selected palace (or a flying-star end) with focus: a double ring, the selection inside and focus outside. */
+.palace-btn.selected:focus-visible,.ziwei-board .palace.fly-end:focus-visible{outline:6px double var(--gold2);outline-offset:-4px}
 .layer-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:4px 0 12px}
 .layer-modes{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--border-strong);border-radius:999px;padding:2px;background:var(--panel2)}
 .layer-btn{border:0;background:transparent;color:var(--text2);padding:5px 14px;border-radius:999px;font-size:13px;cursor:pointer}
@@ -1348,6 +1352,8 @@ html[lang=en] .qh-name,html[lang=en] .qh-bureau,html[lang=en] .qh-duty{white-spa
 .chat-memory-row span{overflow-wrap:anywhere}
 .chat-composer{position:relative;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--panel2);padding:10px 10px 8px;transition:border-color .15s}
 .chat-composer:focus-within{border-color:var(--gold)}
+/* The question box draws no frame of its own: the composer around it takes the focus ring. */
+.chat-composer:has(textarea:focus-visible){outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring)}
 /* Before a model is configured the composer reads as unavailable, not as an empty box waiting for text. */
 .chat-composer:has(textarea:disabled){background:var(--panel3);border-style:dashed}
 .chat-composer textarea:disabled{cursor:not-allowed;color:var(--muted)}
@@ -1499,6 +1505,8 @@ html[lang=en] .qh-name,html[lang=en] .qh-bureau,html[lang=en] .qh-duty{white-spa
 .ic-tag.ic-near{color:var(--warn);font-weight:600}
 .ic-missing{color:var(--warn)}
 .ic-hour.is-picked{background:var(--accent-soft);outline:2px solid var(--gold);outline-offset:1px}
+/* The picked hour with focus: a double ring, its own ring inside and the focus ring around it. */
+.ic-hour.is-picked:focus-visible{outline:6px double var(--gold2);outline-offset:0}
 .ic-name{font-size:11px;color:var(--muted);white-space:nowrap}
 .ic-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.25}
 .ic-clock{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
@@ -2512,9 +2520,9 @@ textarea{resize:vertical}
 /* A hint or value longer than its field ends in an ellipsis rather than a hard cut. */
 input:not([type=checkbox],[type=radio],[type=range],[type=file]){text-overflow:ellipsis}
 input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,select:-webkit-autofill{-webkit-text-fill-color:var(--text);caret-color:var(--text);box-shadow:0 0 0 1000px var(--panel2) inset;transition:background-color 99999s}
-input:-webkit-autofill:focus{box-shadow:0 0 0 1000px var(--panel) inset,0 0 0 3px var(--ring)}
+input:-webkit-autofill:focus{box-shadow:0 0 0 1000px var(--panel) inset,0 0 0 4px var(--ring)}
 :is(input,select,textarea):disabled{opacity:.55;cursor:not-allowed}
-:is(.inline-control,.profile-zone,.group-picker,.ps-label) :is(input:not([type=checkbox]),select,textarea):focus-visible,#consult-question:focus-visible{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--ring)}
+:is(.inline-control,.profile-zone,.group-picker,.ps-label) :is(input:not([type=checkbox]),select,textarea):focus-visible,#consult-question:focus-visible{border-color:var(--gold);outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring)}
 
 /* Disclosure: one rotating chevron for every <details> that showed the browser triangle or no marker at all. */
 code,kbd,samp,pre{font-family:var(--mono)}
@@ -2583,14 +2591,14 @@ html:has(body.api-page){scroll-padding-top:calc(var(--header-h) + 18px)}
 .api-auth label{display:block;margin:4px 0 6px;font-size:12px;font-weight:600;color:var(--text2)}
 .api-auth input{width:100%;max-width:440px;padding:9px 12px;border:1px solid var(--border-strong);background:var(--panel2);border-radius:var(--radius-sm);transition:border-color .15s,box-shadow .15s}
 .api-auth input:hover{border-color:var(--gold)}
-.api-auth input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--ring);background:var(--panel)}
+.api-auth input:focus{border-color:var(--gold);outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring);background:var(--panel)}
 .api-auth input::placeholder{color:var(--faint)}
 .api-tools{margin:18px 0 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;align-items:center}
 @media (min-width:861px){.api-tools{position:sticky;top:var(--header-h);z-index:30;margin:18px -32px 0;padding:12px 32px;background:var(--glass);-webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px);border-bottom:1px solid var(--border)}
   html:has(body.api-page){scroll-padding-top:calc(var(--header-h) + var(--api-tools-h,116px) + 12px)}}
 .api-search input{width:100%;padding:10px 14px;border:1px solid var(--border-strong);background:var(--panel2);border-radius:var(--radius);font-size:13.5px;transition:border-color .15s,box-shadow .15s,background .15s}
 .api-search input:hover:not(:disabled){border-color:var(--gold)}
-.api-search input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--ring);background:var(--panel)}
+.api-search input:focus{border-color:var(--gold);outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring);background:var(--panel)}
 .api-search input:disabled{opacity:.6;cursor:not-allowed}
 .api-search input::placeholder{color:var(--faint)}
 .api-count{margin:0;display:inline-flex;gap:5px;align-items:baseline;color:var(--muted);font-size:12.5px;white-space:nowrap}
@@ -2650,7 +2658,7 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
 .api-param .api-muted{font-weight:400}
 .api-try input[type=text],.api-body{width:100%;border:1px solid var(--border-strong);background:var(--code-bg);color:var(--code-text);border-radius:var(--radius-sm);padding:9px 11px;font:12.5px/1.6 var(--mono);transition:border-color .15s,box-shadow .15s}
 .api-try input[type=text]:hover,.api-body:hover{border-color:var(--gold)}
-.api-try input[type=text]:focus,.api-body:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--ring)}
+.api-try input[type=text]:focus,.api-body:focus{border-color:var(--gold);outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring)}
 .api-body{min-height:96px;tab-size:2}
 .api-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
 .api-send{border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:12.5px;font-weight:700;letter-spacing:.03em;color:var(--on-gold);background:linear-gradient(135deg,var(--gold2),var(--gold));box-shadow:0 8px 18px -12px var(--gold);transition:filter .15s,transform .1s}
@@ -2751,6 +2759,9 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .switch-row input[type=checkbox]:checked::before{background:HighlightText}
   input:is([type=date],[type=datetime-local],[type=month],[type=time])::-webkit-calendar-picker-indicator{forced-color-adjust:none;background:CanvasText}
   :focus-visible{outline-color:Highlight}
+  /* A chosen item with focus: a double ring, so focus never hides behind the chosen ring. */
+  :is(.tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,.cal-day.is-selected,.ds-day.is-selected,
+  .dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,.palette-opt.is-active,.dy-day[aria-expanded="true"],[aria-pressed="true"]):focus-visible{outline:6px double Highlight;outline-offset:0}
   .skip-link{border:2px solid ButtonText}
 }
 /* People who ask for less transparency get solid bars instead of frosted glass. */
