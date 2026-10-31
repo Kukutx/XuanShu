@@ -73,3 +73,17 @@ def test_taiji_emblem_is_drawn_and_centre_text_sits_on_plates():
     assert "'☯'" not in APP and '☯' not in HTML
     assert APP.count('taijiMark(') == 3 and HTML.count('<svg class="taiji"') == 1
     assert '.board-center.see-through>:not(.center-symbol){padding:0 6px;border-radius:4px;background:var(--panel)}' in CSS
+
+
+def test_small_labels_are_at_least_eleven_pixels():
+    # Badges and notes that stand on their own (the year marks, this chart, duty star and door, the UTC start, the
+    # lunar entry hint, parameter types, the jie note in the officers month) are 11px; the phone calendar keeps its own.
+    for rule in ('.ay-facts small.ay-now{margin-left:6px;font-size:11px;', 'small.yt-now{font-size:11px;', '.bt-utc{font-size:11px;',
+                 '.bt-pillar small{font-size:11px;', '.qh-tag{font-size:11px;', '.qh-duty{font-size:11px;', '.ic-tag{font-size:11px;',
+                 '.form-section>summary small{color:var(--muted);font-size:11px;', '.ag-param small{font-size:11px;',
+                 '.of-jie{display:block;margin-top:2px;font-size:11px;'):
+        assert rule in CSS, rule
+    assert 'html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:center;line-height:1.2}' in CSS
+    assert 'html[lang=en] .ic-name{white-space:normal;' in CSS
+    # On a 360px phone today's mark keeps inside its day.
+    assert '.of-date{top:3px;left:4px;font-size:10px}.of-day.is-today .of-date{left:2px;padding:0 3px}' in CSS

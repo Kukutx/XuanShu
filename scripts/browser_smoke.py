@@ -1843,12 +1843,13 @@ def main() -> None:
             assert page.locator('#calendar-day-' + page.evaluate('localToday()')).get_attribute('aria-current') == 'date'
             # While a month loads, its grid is already drawn (Gregorian days, hidden from screen readers), and once
             # it has come the months before and after are fetched while the page is idle.
-            page.evaluate("() => {window.__postJSON = postJSON; window.__release = null; postJSON = (url, body) => url === '/api/calendar' ? new Promise(go => {window.__release = go;}).then(() => window.__postJSON(url, body)) : window.__postJSON(url, body);}")
+            # Every month asked for meanwhile is held, the neighbours of this month fetched while idle among them.
+            page.evaluate("() => {window.__postJSON = postJSON; window.__release = []; postJSON = (url, body) => url === '/api/calendar' ? new Promise(go => {window.__release.push(go);}).then(() => window.__postJSON(url, body)) : window.__postJSON(url, body);}")
             page.evaluate("() => showCalendarDay('1990-05-10')")
             page.locator('#calendar-loading').wait_for(timeout=5000)
             assert page.locator('.cal-skeleton[aria-hidden=true] .cal-grid .cal-day').count() == 31
             assert page.locator('.cal-skeleton .cal-title').inner_text() == '1990年5月' and page.locator('.cal-skeleton button').count() == 0
-            page.evaluate("() => {postJSON = window.__postJSON; window.__release();}")
+            page.evaluate("() => {postJSON = window.__postJSON; window.__release.forEach(go => go());}")
             page.locator('#calendar-day-1990-05-31').wait_for(timeout=30000)
             assert page.locator('.cal-skeleton').count() == 0
             page.wait_for_function("() => calendarMonths['1990-04'] && calendarMonths['1990-04'].days && calendarMonths['1990-06'] && calendarMonths['1990-06'].days", timeout=15000)
@@ -2874,7 +2875,7 @@ def main() -> None:
             # most, the stars column wrapping instead, and where that leaves no room the rows stack.
             page.locator('#ui-language').select_option('en')
             page.wait_for_function("document.documentElement.lang === 'en'", timeout=5000)
-            for width in (1100, 1280, 1440):
+            for width in (900, 1100, 1280, 1440):
                 page.set_viewport_size({'width': width, 'height': 844})
                 page.wait_for_timeout(300)
                 kept = page.evaluate('''() => [...document.querySelectorAll('#result table.dy-stack:not(.is-stacked)')].map(t => {

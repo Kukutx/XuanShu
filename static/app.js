@@ -5120,7 +5120,7 @@ function renderToday() {
       append(tr, 'th', null, nameMap[row.pillar_of]);
       const cell = append(tr, 'td', 'pillar-cell');
       append(cell, 'b', stemClass(row.pillar[0]), row.pillar[0]); append(cell, 'b', branchClass(row.pillar[1]), row.pillar[1]);
-      stackLabel(append(tr, 'td', 'today-god'), '天干十神').append(row.stem_ten_god);
+      stackLabel(append(tr, 'td', 'today-god dy-short'), '天干十神').append(row.stem_ten_god);
       const rel = stackLabel(append(tr, 'td', 'today-rel'), '地支与本命');
       if (!row.branch_relations.length) append(rel, 'span', 'muted', '—');
       row.branch_relations.forEach(x => {

@@ -646,8 +646,6 @@ button:disabled{cursor:not-allowed}
 .dy-years tr.is-current td,.dy-years tr.is-current th{background:var(--accent-soft)}
 .dy-years .pillar-cell,.dy-years th[scope=row]{white-space:nowrap}
 .dy-years td,.dy-years th{vertical-align:top}
-/* A ten god or growth stage spelled out in letters (Direct Resource (Zheng Yin)) keeps about two lines' width, so the stars wrap instead */
-html:not(:lang(zh),:lang(ja),:lang(ko)) .dy-stack:not(.is-stacked) td.dy-short{min-width:11.5em}
 .dy-change{margin:8px 0 0}
 .dy-years-hint{margin:10px 0 0}
 .dy-year-toggle{display:inline-flex;align-items:center;gap:7px;margin:-3px -9px -3px -7px;padding:2px 9px 2px 7px;border:1px solid transparent;border-radius:999px;background:transparent;color:inherit;font:inherit;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
@@ -709,6 +707,9 @@ html:not(:lang(zh),:lang(ja),:lang(ko)) .dy-stack:not(.is-stacked) td.dy-short{m
    that need one show a label. Print keeps the columns. */
 .dy-stack-label{display:none}
 @media screen{
+  /* A ten god or growth stage spelled out in letters (Direct Resource (Zheng Yin)) keeps about two lines' width, so the
+     stars wrap instead and a table that then overflows stacks; on paper, where nothing stacks, it may shrink */
+  html:not(:lang(zh),:lang(ja),:lang(ko)) .dy-stack:not(.is-stacked) td.dy-short{min-width:11.5em}
   .dy-stack.is-stacked,.dy-stack.is-stacked tbody{display:block;width:100%}
   .dy-stack.is-stacked thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .dy-stack.is-stacked tr{display:flex;flex-wrap:wrap;align-items:baseline;align-content:flex-start;gap:6px 12px;padding:10px 8px;border-bottom:1px solid var(--border)}
@@ -1480,13 +1481,13 @@ html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:cent
 .ic-clock{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
 .ic-count{font-size:11px;color:var(--muted)}
 .ic-hour.is-match .ic-count{color:var(--green);font-weight:600}
-.ic-tag{font-size:10px;color:var(--gold2);border-top:1px dashed var(--border);margin-top:2px;padding-top:1px}
+.ic-tag{font-size:11px;color:var(--gold2);border-top:1px dashed var(--border);margin-top:2px;padding-top:1px}
 .ic-detail{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel2);padding:10px 14px;margin:0 0 14px;font-size:13px}
 .ic-detail p{margin:0 0 6px}
 .ic-detail-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
 .ic-detail-diff{color:var(--text2)}
 .ic-detail-ok{color:var(--green)}
-html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-height:1.2}
+html[lang=en] .ic-name{white-space:normal;text-align:center;line-height:1.2}
 .import-result.same{color:var(--green);white-space:nowrap}
 .import-result.diff{color:var(--warn);white-space:nowrap;font-weight:600}
 .plain-list{margin:6px 0 12px 18px;font-size:13px;line-height:1.7;color:var(--text2)}
@@ -1628,7 +1629,7 @@ html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-
 .bt-badge{font-size:11px;font-weight:600;color:var(--gold2);border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:999px;padding:0 8px}
 .bt-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
 .bt-pillar{display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel);padding:4px 2px}
-.bt-pillar small{font-size:10px;line-height:1.2;color:var(--muted)}
+.bt-pillar small{font-size:11px;line-height:1.2;color:var(--muted)}
 .bt-pillar.is-changed{border-color:var(--warn-line);background:var(--warn-soft)}
 .bt-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.25}
 .bt-ziwei,.bt-lunar{display:flex;flex-wrap:wrap;gap:3px 10px;margin:0;font-size:12px;color:var(--text2)}
