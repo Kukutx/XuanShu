@@ -1520,7 +1520,7 @@
   "原局との関係"
  ],
  "与原局一栏：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空，悬停可看全部关系。流年以立春换年，虚龄从农历出生年起算。只列关系与标签，不判断吉凶。": [
-  "\"With the natal chart\": 冲月 means a clash with the month branch, 合, 刑 and 害 likewise, 同 the same branch; 日空 and 年空 mean the day or year void. Hover for every relation. Years change at Lichun; nominal age counts from the lunar birth year. Relations and labels only, no judgement of good or bad.",
+  "\"With the natal chart\": Clash M means a six-clash with the month pillar (Y, M, D and H are the year, month, day and hour pillars), Combine, Punish and Harm likewise, Same the same branch; Void D and Void Y mean it falls in the day or year pillar's void. Hover for every relation. Years change at Lichun; nominal age counts from the lunar birth year. Relations and labels only, no judgement of good or bad.",
   "「原局との関係」欄：冲月は月柱との六冲、合・刑・害も同様、同は同じ地支です。日空・年空は日柱・年柱の旬空に当たることを示します。ホバーで全ての関係を表示します。流年は立春で切り替わり、数え年は旧暦の生年から数えます。関係とラベルのみで、吉凶は判断しません。"
  ],
  "与原局地支无冲合": [
@@ -3964,7 +3964,7 @@
   "十神は日主から見た天干です。交運年は三日一歳の換算による概算で、流年は立春で替わります。流年をクリックすると紫微盤で同じ年の流年層を開きます。"
  ],
  "十神按日主看天干，下面的小字是日主在该支的星运。格子底部是与原局地支的关系：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空。所选大运的天干关系、三合三会和神煞写在上方一行，流年的写在悬停说明里。只列关系与标签，不判断吉凶。交运年份由三日折一岁换算，是近似值；流年以立春换年。点流年会在紫微盘打开同一年的流年层。": [
-  "Ten gods are the stems seen from the day master; the small text below is the day master's growth stage at that branch. The bottom of each cell shows relations with the natal branches: 冲月 is a six-clash with the month pillar, and likewise 合, 刑 and 害; 同 is the same branch; 日空 and 年空 mean it falls in the day or year pillar's void. Stem relations, three-harmony and seasonal groups and Shen Sha of the selected decade are on the line above; those of a year are in its hover text. Relations and labels only, no good-or-bad reading. Decade change years use three days per year and are approximate; years change at Start of Spring. Click a year to open the same year's layer on the Zi Wei chart.",
+  "Ten gods are the stems seen from the day master; the small text below is the day master's growth stage at that branch. The bottom of each cell shows relations with the natal branches: Clash M is a six-clash with the month pillar (Y, M, D and H are the year, month, day and hour pillars), and likewise Combine, Punish and Harm; Same is the same branch; Void D and Void Y mean it falls in the day or year pillar's void. Stem relations, three-harmony and seasonal groups and Shen Sha of the selected decade are on the line above; those of a year are in its hover text. Relations and labels only, no good-or-bad reading. Decade change years use three days per year and are approximate; years change at Start of Spring. Click a year to open the same year's layer on the Zi Wei chart.",
   "十神は日主から見た天干、下の小さな字は日主のその支での星運です。マスの下部は原局の地支との関係：冲月は月柱との六冲、合・刑・害も同様、同は同じ支。日空・年空は日柱・年柱の旬空に入ること。選んだ大運の天干関係、三合・三会と神煞は上の行に、流年のものはホバー説明にあります。関係とラベルのみで吉凶は判断しません。交運の年は三日を一年に換算した概算、流年は立春で切り替わります。流年を押すと紫微盤で同じ年の流年層を開きます。"
  ],
  "十神是有方向的：A 看 B 与 B 看 A 往往不同，两者都列出。": [
@@ -10012,7 +10012,7 @@
   "一年ごとに一宮ずつ進む運限。数え年で並べます。"
  ],
  "每张卡片是这一年里此人所在的大运和流年：十神以本人日主看天干；流年下面的小字是与本人原局地支的关系（冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在旬空），悬停可看全文。年龄是这一年里满的周岁。": [
-  "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (冲月 clashes the month branch; 合, 刑 and 害 likewise; 同 is the same branch; 日空 and 年空 fall in a void); hover for the full text. Age is the age reached during that year.",
+  "Each card shows the luck pillar this person is in and the annual pillar of the year: ten gods are read from the person's own day master. The small marks after the annual pillar are its relations with the natal branches (Clash M clashes the month branch, with Y, M, D and H for the year, month, day and hour pillars; Combine, Punish and Harm likewise; Same is the same branch; Void D and Void Y fall in the day or year void); hover for the full text. Age is the age reached during that year.",
   "各カードはこの年に本人がいる大運と流年です。十神は本人の日主から天干を見ます。流年の後ろの小さな印は原局の地支との関係（冲月は月柱と六冲、合・刑・害も同様、同は同支、日空・年空は旬空に当たる）で、ホバーで全文が見られます。年齢はその年に達する満年齢です。"
  ],
  "每日宜忌参考": [

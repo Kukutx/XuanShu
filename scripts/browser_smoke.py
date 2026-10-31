@@ -478,6 +478,22 @@ def main() -> None:
             assert page.locator('#luck-year-2015').get_attribute('data-tip').startswith('2015 乙未 · 星运 衰')
             assert '神煞 天乙贵人' in page.locator('#luck-year-2015').get_attribute('data-tip')
             assert page.locator('#luck-decade-4 .luck-mark').all_inner_texts() == ['害年', '日空']  # 己卯
+            # The badges follow the interface language: 繁體 and Japanese write 沖/時, English names the relation.
+            marks_zh = page.locator('.luck-mark').all_inner_texts()
+            page.locator('#ui-language').select_option('en')
+            page.wait_for_function("() => document.documentElement.lang === 'en'")
+            assert page.locator('#luck-decade-1 .luck-mark').all_inner_texts() == ['Same D', 'Punish D']
+            assert page.locator('#luck-decade-4 .luck-mark').all_inner_texts() == ['Harm Y', 'Void D']
+            assert not any(re.search('[\u4e00-\u9fff]', t) for t in page.locator('.luck-mark').all_inner_texts())
+            page.locator('#ui-language').select_option('ja')
+            page.wait_for_function("() => document.documentElement.lang === 'ja'")
+            assert page.locator('.luck-mark').all_inner_texts() == [t.replace('时', '時') for t in marks_zh]
+            page.locator('#ui-language').select_option('zh-TW')
+            page.wait_for_function("() => document.documentElement.lang === 'zh-TW'")
+            assert page.locator('.luck-mark').all_inner_texts() == [t.replace('冲', '沖').replace('时', '時') for t in marks_zh]
+            page.locator('#ui-language').select_option('zh-CN')
+            page.wait_for_function("() => document.documentElement.lang === 'zh-CN'")
+            assert page.locator('.luck-mark').all_inner_texts() == marks_zh
             # 五行生克: five phases, the 生 circle and the 克 star; the day master's phase is open first.
             assert page.locator('#wuxing .wx-node').count() == 5 and page.locator('#wuxing .wx-edge').count() == 10
             assert page.locator('#wuxing-fire').get_attribute('aria-checked') == 'true' and 'is-master' in page.locator('#wuxing-fire').get_attribute('class')
