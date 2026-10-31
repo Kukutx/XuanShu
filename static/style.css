@@ -368,6 +368,8 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .jv-tree{padding:8px 12px 10px;font:12.5px/1.6 var(--mono);color:var(--code-text,var(--text));overflow-x:auto}
 .jv-node>summary{cursor:pointer;list-style:none;white-space:nowrap;border-radius:4px;padding:0 4px;margin-left:-4px}
 .jv-node>summary::-webkit-details-marker{display:none}
+/* Each row that opens is at least 24 px tall (WCAG target size), so a fingertip opens the row it means. */
+.jv-node>summary{padding-block:2.5px}
 .jv-node>summary::before{content:'▸';display:inline-block;width:1em;color:var(--muted);transition:transform .15s}
 .jv-node[open]>summary::before{transform:rotate(90deg)}
 .jv-node>summary:hover{background:var(--accent-soft)}
@@ -2106,7 +2108,7 @@ html[lang="en"] .qr-root{grid-template-columns:repeat(auto-fill,minmax(180px,1fr
 .qr-cell.is-filled{border-color:var(--gold);border-width:2px;padding:5px 9px 9px}
 .qr-field.is-odd select{border-style:dashed}
 .qr-extra-item{display:inline-flex;align-items:center;gap:2px;margin:0 8px 0 0}
-.qr-extra-remove{min-width:22px;min-height:22px;padding:0 4px;border:0;background:none;color:var(--muted);cursor:pointer}
+.qr-extra-remove{min-width:24px;min-height:24px;padding:0 4px;border:0;background:none;color:var(--muted);cursor:pointer}
 .qr-extra-remove:hover{color:var(--red)}
 .qr-cell-head{padding:0 4px;font-size:12.5px;font-weight:600;color:var(--gold2)}
 .qr-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 8px}
@@ -2717,9 +2719,25 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .cal-ghost,.xs-ghost>span{forced-color-adjust:none;background:GrayText;opacity:.5;animation:none}
   .tab-pill{display:none}
   .palette-opt.is-active{outline:2px solid Highlight;outline-offset:-2px}
-  .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
+  .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.qr-run .scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
+  /* Buttons drawn as plain text or as a whole cell (a palace, a year heading, a candidate day, the × that drops a
+     field taken from JSON) keep a frame, or they read as plain text once colours go; the chosen day alone takes the
+     Highlight ring. */
+  .fh-pick,.yt-year,.tl-year,.ds-pick,.qr-extra-remove{border:1px solid ButtonText}
+  /* The drop-down chevron is drawn with gradients, which a contrast theme removes: the browser's own drop-down,
+     drawn in system colours, comes back so a select does not read as a text field. */
+  select:not([multiple]):not([size]){appearance:auto}
+  /* Bars, swatches and pins painted only with a background vanish once it turns to Canvas. A track gets a frame, a
+     single bar or pin is drawn in a system colour, and the decision matrix's criteria keep their own colours, since
+     its legend tells them apart by colour alone. */
+  .element-track,.today-term-track,.dm-track,.dm-weights,.dm-range,.ps-track{outline:1px solid CanvasText;outline-offset:-1px}
+  .element-fill,.element-legend i,.dm-mark,.ps-mark::after{forced-color-adjust:none;background:CanvasText}
+  .today-term-fill,.bt-pin{forced-color-adjust:none;background:Highlight}
+  .dm-band{forced-color-adjust:none;background:GrayText}
+  .ps-now{forced-color-adjust:none;background:CanvasText}.ps-now small{color:CanvasText}
+  .dm-seg,.dm-swatch,.ag-dot,.group-dot:not(.dot-unknown){forced-color-adjust:none}
   .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,
-  .cal-day.is-selected,.ds-day.is-selected,.ds-day.is-pick,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,
+  .cal-day.is-selected,.ds-day.is-selected,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,
   [aria-pressed="true"]{outline:2px solid Highlight;outline-offset:1px}
   input[type=checkbox],.switch-row input[type=checkbox]{forced-color-adjust:none;background:Canvas;border-color:ButtonText}
   input[type=checkbox]::before{background:HighlightText}
