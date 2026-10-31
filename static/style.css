@@ -1135,9 +1135,10 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .star-primary{display:flex;flex-wrap:wrap;gap:2px 6px;color:var(--gold2);font-size:13px;line-height:1.5;margin-top:7px;font-weight:600}
 .star-primary .star{white-space:nowrap}
 /* Spelled out in letters (Tian Tong High) a main star can outgrow a narrow palace: the brightness and the badges then
-   take the next line, the name kept whole */
+   take the next line, the name kept whole. The brightness sits 1px up, so the underline of a stacked transformation
+   goes 1px further down to meet the name's */
 html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .star{white-space:normal}
-html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .bright{display:inline-block;text-decoration:inherit}
+html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .bright{display:inline-block;text-decoration:inherit;text-underline-offset:4px}
 .star-secondary{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
 .hua{display:inline-block;font-size:11px;line-height:1;font-weight:700;padding:2px 3px;border-radius:3px;margin-left:2px;vertical-align:2px;color:var(--on-hua)}
 .hua-lu{background:var(--lu)}.hua-quan{background:var(--quan)}.hua-ke{background:var(--ke)}.hua-ji{background:var(--ji)}
@@ -1617,6 +1618,8 @@ html[lang=en] .ic-name{white-space:normal;text-align:center;line-height:1.2}
 .bt-pin{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);box-shadow:0 0 0 1px var(--gold)}
 .bt-axis{position:relative;display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 .bt-axis-birth{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;color:var(--gold2);font-weight:600}
+.bt-axis.has-birth-row{padding-bottom:1.5em}
+.bt-axis.has-birth-row .bt-axis-birth{top:1.5em}
 .bt-switches{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
 .bt-switch{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel2);padding:9px 12px}
 .bt-switch .bt-tick-num{margin-top:2px}

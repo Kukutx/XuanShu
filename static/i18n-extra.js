@@ -12482,6 +12482,18 @@ const UI_EXTRA = {
 "Uncertainty",
 "誤差"
 ],
+"误差区间早于 1901 年的部分超出支持范围，从 1901-01-01 00:00 起检查。": [
+"The part of the window before 1901 is outside the supported range, so checking starts at 1901-01-01 00:00.",
+"検出範囲のうち1901年より前の部分は対応範囲外のため、1901-01-01 00:00 から確認します。"
+],
+"误差区间晚于 2099 年的部分超出支持范围，检查到 2099-12-31 23:59:59 为止。": [
+"The part of the window after 2099 is outside the supported range, so checking stops at 2099-12-31 23:59:59.",
+"検出範囲のうち2099年より後の部分は対応範囲外のため、2099-12-31 23:59:59 までを確認します。"
+],
+"误差区间超出支持的 1901–2099 年，只检查到支持范围的边缘；超出的部分没有检查。": [
+"The window runs past the supported years 1901–2099; it is checked only up to the edge of that range, and the part beyond is not checked.",
+"検出範囲が対応する1901–2099年を超えています。対応範囲の端までのみ確認し、超えた部分は確認していません。"
+],
 "误差范围必须是1–120的整数": [
 "Error range must be an integer from 1–120",
 "誤差範囲は1–120の整数で指定"

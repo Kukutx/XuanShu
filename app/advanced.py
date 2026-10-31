@@ -258,14 +258,21 @@ def birth_boundary_map(request: BirthBoundaryRequest) -> dict:
     midpoint = original.astimezone(timezone.utc)
     start = midpoint - timedelta(minutes=request.uncertainty_minutes)
     end = midpoint + timedelta(minutes=request.uncertainty_minutes)
-    if start.astimezone(original.tzinfo).year < 1901 or end.astimezone(original.tzinfo).year > 2099:
-        raise ValueError('Uncertainty interval must stay within supported 1901–2099 birth years')
+    # A birth within the window of the supported years' edge keeps the side that can be charted: the interval stops
+    # at the first or last supported local second, and the response names the side that was cut.
+    clipped = []
+    if start.astimezone(original.tzinfo).year < 1901:
+        start = datetime(1901, 1, 1, tzinfo=original.tzinfo).astimezone(timezone.utc)
+        clipped.append('start')
+    if end.astimezone(original.tzinfo).year > 2099:
+        end = datetime(2099, 12, 31, 23, 59, 59, tzinfo=original.tzinfo).astimezone(timezone.utc)
+        clipped.append('end')
     state = lambda moment: _wall_state(moment, request.birth)
     raw_events: dict[datetime, set[str]] = {}
     previous = start
     prev_state = state(previous)
-    for index in range(1, request.uncertainty_minutes * 2 + 1):
-        now = start + timedelta(minutes=index)
+    for index in range(1, ceil((end - start).total_seconds() / 60) + 1):
+        now = min(start + timedelta(minutes=index), end)
         next_state = state(now)
         if next_state != prev_state:
             candidate = _find_first_changed_second(previous, now, state, prev_state)
@@ -315,8 +322,10 @@ def birth_boundary_map(request: BirthBoundaryRequest) -> dict:
         'system': 'birth-chart-modeled-boundary-map',
         'original_birth_local': original.isoformat(timespec='minutes'),
         'uncertainty_minutes': request.uncertainty_minutes,
+        'birth_utc': midpoint.isoformat(timespec='seconds'),
         'start_utc': start.isoformat(timespec='seconds'),
         'end_utc': end.isoformat(timespec='seconds'),
+        'clipped_to_supported_range': clipped,
         'boundary_resolution_seconds': 1,
         'boundaries': [
             {'utc': instant.isoformat(timespec='seconds'),
@@ -330,5 +339,5 @@ def birth_boundary_map(request: BirthBoundaryRequest) -> dict:
             '边界仅覆盖当前八字及部分紫微实现的日、时辰、十二节令、时区转变；不保证覆盖未实现的流派或星曜规则。',
             '边界时间已量化到1秒，天文学数值存在求根误差；不应据此声称秒级出生时间的真实准确性。',
             '每段按中点计算代表盘，边界端点附近应使用原始出生记录重新核对。',
-        ],
+        ] + (['误差区间超出支持的 1901–2099 年，只检查到支持范围的边缘；超出的部分没有检查。'] if clipped else []),
     }

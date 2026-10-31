@@ -188,9 +188,20 @@ def test_boundary_map_rejects_bad_radius(radius):
     with pytest.raises(ValidationError): BirthBoundaryRequest(birth=birth(),uncertainty_minutes=radius)
 
 
-def test_boundary_map_near_1901_boundary_is_rejected():
-    with pytest.raises(ValueError,match='1901'):
-        birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='1901-01-01T00:10'),uncertainty_minutes=60))
+def test_boundary_map_near_the_supported_years_stops_at_their_edge():
+    # The side that can be charted is still mapped; the birth instant is given, as the window is no longer symmetric.
+    early=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='1901-01-01T00:10'),uncertainty_minutes=60))
+    assert early['clipped_to_supported_range']==['start'] and early['birth_utc']=='1900-12-31T16:10:00+00:00'
+    assert early['segments'][0]['start_local_inclusive']=='1901-01-01T00:00:00+08:00'
+    assert early['segments'][-1]['end_local_exclusive']=='1901-01-01T01:10:00+08:00'
+    assert [b['local'] for b in early['boundaries']]==['1901-01-01T01:00:00+08:00']
+    assert any('1901–2099' in line for line in early['limitations'])
+    late=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2099-12-31T23:30'),uncertainty_minutes=60))
+    assert late['clipped_to_supported_range']==['end'] and late['end_utc']=='2099-12-31T15:59:59+00:00'
+    assert late['segments'][0]['start_local_inclusive']=='2099-12-31T22:30:00+08:00'
+    # Inside the supported years nothing is cut and no line about it is added.
+    inside=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2000-08-16T14:00'),uncertainty_minutes=60))
+    assert inside['clipped_to_supported_range']==[] and not any('1901–2099' in line for line in inside['limitations'])
 
 
 def test_boundary_map_no_events_is_single_segment():
