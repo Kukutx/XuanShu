@@ -116,7 +116,17 @@ def test_luck_page_years_open_their_months():
     assert "ask({month_year: load.year, day_month: month.month, hour_date: today})" in script
     # Today and the hour now are read on the birth zone's clock; the year and month by today's date there.
     assert "JSON.parse(dayunKey).birth.timezone" in script and "today >= data.flow_months.months[0].start_local.slice(0, 10)" in script
-    assert 'if (decade) dayunPick = decade.sequence;' in script and 'event.altKey || event.ctrlKey || event.metaKey' in script
+    assert '      dayunPick = decade.sequence;' in script and 'event.altKey || event.ctrlKey || event.metaKey' in script
+    # A month's days export as an iCalendar file made in the page, lines folded by octets, no birth data, tagged per chart.
+    assert "save.id = 'dayun-days-ics'" in script and "'DTSTART;VALUE=DATE:' + compact(day.date)" in script and 'size(part + ch) > (parts.length ? 74 : 75)' in script
+    assert "'UID:flow-day-' + compact(day.date) + '-' + tag + '@xuanshu.local', 'SEQUENCE:' + sequence" in script and 'chartTag(dayunKey)' not in script
+    # The tag is made from the settled natal pillars the notes show, never from the request holding the birth minute.
+    assert "const tag = chartTag(['year', 'month', 'day', 'hour'].map(k => o.open.has(k) ? '' : current.bazi.pillars[k].text).join(' '));" in script
+    assert "words('神煞') + ' ' + words('随时辰而定')" in script and 'words(TEXT_FOOTER[0])' in script
+    # Today's flow year before the first decade says so; 2100 days open no hours; the day's relations head its hours.
+    assert "if (!decade) throw new Error('今天所在的流年早于第一步大运" in script and "dayunMonthsError = {key, year: start, text:" in script
+    assert "const closed = day.date > FLOW_HOUR_LAST_DATE;" in script and "append(item, closed ? 'div' : 'button'" in script and "if (!closed) open.addEventListener('click'" in script
+    assert "texts(append(panel, 'p', 'field-help dy-hour-day'), '当日', '：', natalText(settledInteractions(day, o)))" in script
     assert 'const expanded = !loading && !!hours && hours.date === day.date;' in script and "failed.date.slice(5).replace('-', '/'), ' ', '流时计算失败：'" in script
     assert '.dy-year-toggle[aria-expanded="true"]' in open('static/style.css', encoding='utf-8').read()
     # Each month in turn opens its days as cards.
