@@ -226,10 +226,11 @@ def _within_supported_years(instant_utc: datetime, birth: BirthInput) -> bool:
 
 
 def _supported_edge(outside: datetime, inside: datetime, supported) -> datetime:
-    """Bisect to within a second the edge between an unsupported and a supported instant: the first supported
-    instant when the edge is before the birth (an inclusive start), the first unsupported one after it (an exclusive
-    end)."""
+    """Bisect on whole seconds the edge between an unsupported and a supported instant: the first supported second
+    when the edge is before the birth (an inclusive start), the first unsupported one after it (an exclusive end).
+    Whole seconds keep the edge on the second a detected boundary lands on, so no sliver of a segment lies beyond it."""
     lo, hi = (outside, inside) if outside < inside else (inside, outside)
+    lo, hi = lo.replace(microsecond=0), _instant_ceil_second(hi)
     while (hi - lo).total_seconds() > 1:
         mid = lo + timedelta(seconds=(hi - lo).total_seconds() // 2)
         if supported(mid) == (outside < inside):
@@ -290,7 +291,7 @@ def birth_boundary_map(request: BirthBoundaryRequest) -> dict:
     if not supported(start):
         start = _supported_edge(start, midpoint, supported)
         clipped.append('start')
-    if not supported(end - timedelta(seconds=1)):
+    if not supported(end - timedelta(microseconds=1)):
         end = _supported_edge(end, midpoint, supported)
         clipped.append('end')
     state = lambda moment: _wall_state(moment, request.birth)

@@ -205,6 +205,10 @@ def test_boundary_map_near_the_supported_years_stops_at_their_edge():
     # In solar time the edge is where the solar reading leaves 2099: an hour early at longitude 135 in China time.
     solar=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2099-12-31T22:30',time_mode='mean_solar',longitude=135.0),uncertainty_minutes=60))
     assert solar['clipped_to_supported_range']==['end'] and solar['segments'][-1]['end_local_exclusive']=='2099-12-31T23:00:00+08:00'
+    # A birth with a fraction of a second still ends on a whole second, with no sliver of a segment in 2100.
+    for when in ('2099-12-31T23:30:00.500','2099-12-31T23:00:00.500'):
+        frac=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime=when),uncertainty_minutes=60))
+        assert frac['segments'][-1]['end_local_exclusive']=='2100-01-01T00:00:00+08:00'
     early_solar=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='1901-01-01T01:30',time_mode='mean_solar',longitude=100.0),uncertainty_minutes=120))
     assert early_solar['segments'][0]['start_local_inclusive']=='1901-01-01T01:20:00+08:00'
     assert late['segments'][0]['start_local_inclusive']=='2099-12-31T22:30:00+08:00'
