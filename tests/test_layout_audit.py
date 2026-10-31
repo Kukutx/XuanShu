@@ -107,3 +107,17 @@ def test_more_small_labels_and_narrow_cells():
     # Two group cards a row on a phone: pillar names in letters take two pillars a row, and no pillar overflows.
     assert '.group-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}' in CSS
     assert '@container group-member (max-width:156px){html:not(:lang(zh),:lang(ja),:lang(ko)) .group-pillars{grid-template-columns:repeat(2,minmax(0,1fr))}}' in CSS
+
+
+def test_palace_stars_and_rule_cards_keep_inside():
+    # In letters a main star with its brightness and badge (Tian Tong High 权) outgrows a 106px palace with the side
+    # panel back: the brightness and badges take the next line, the name kept whole; in Chinese and Japanese the star
+    # stays on one line. A minor star moves to the next line whole, and one longer than the line wraps inside it.
+    assert '.star-primary .star{white-space:nowrap}' in CSS
+    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .star{white-space:normal}' in CSS
+    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .bright{display:inline-block}' in CSS
+    assert '.star-secondary .star{display:inline-block;white-space:normal}' in CSS
+    # The rule comparison cards are at least 16em each and wrap, instead of an auto first column taking the length of
+    # its English sentence and leaving the two field lists a few letters wide.
+    assert '.rule-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16em),1fr));' in CSS
+    assert 'minmax(150px,auto) minmax(0,1fr) minmax(0,1fr)' not in CSS

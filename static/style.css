@@ -1134,6 +1134,10 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .palace-head .palace-ganzhi{font-family:'Songti SC','STSong','Noto Serif SC',serif;color:var(--muted)}
 .star-primary{display:flex;flex-wrap:wrap;gap:2px 6px;color:var(--gold2);font-size:13px;line-height:1.5;margin-top:7px;font-weight:600}
 .star-primary .star{white-space:nowrap}
+/* Spelled out in letters (Tian Tong High) a main star can outgrow a narrow palace: the brightness and the badges then
+   take the next line, the name kept whole */
+html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .star{white-space:normal}
+html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .bright{display:inline-block}
 .star-secondary{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
 .hua{display:inline-block;font-size:11px;line-height:1;font-weight:700;padding:2px 3px;border-radius:3px;margin-left:2px;vertical-align:2px;color:var(--on-hua)}
 .hua-lu{background:var(--lu)}.hua-quan{background:var(--quan)}.hua-ke{background:var(--ke)}.hua-ji{background:var(--ji)}
@@ -1177,7 +1181,8 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .palace-mark.layer-mark{border-style:dashed}
 .center-layer{font-size:12px;color:var(--gold2);margin-top:4px}
 .layer-line{color:var(--gold2)}
-.star-secondary .star{white-space:nowrap}
+/* Each name moves to the next line whole, and one longer than the line wraps inside it */
+.star-secondary .star{display:inline-block;white-space:normal}
 .board-center{position:relative;z-index:1;grid-area:2 / 2 / 4 / 4;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;background:radial-gradient(circle,var(--accent-soft),transparent 75%);padding:12px;pointer-events:none}
 .board-center.see-through{background:transparent;border-style:dashed}
 .center-symbol{color:var(--gold);line-height:0;margin-bottom:4px}
@@ -1944,7 +1949,9 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .group-who{font-size:13px}
 .today-ics{color:var(--gold2);text-decoration:underline;text-underline-offset:3px}
 /* Rule sensitivity matrix */
-.rule-summary{display:grid;grid-template-columns:minmax(150px,auto) minmax(0,1fr) minmax(0,1fr);gap:10px;margin:4px 0 12px}
+/* Cards of at least 16em side by side: an auto first column took the length of its English sentence and left the
+   two field lists a few letters wide when the side panel narrows the page */
+.rule-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16em),1fr));gap:10px;margin:4px 0 12px}
 .rule-card{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel2);padding:10px 14px;display:flex;flex-direction:column;gap:6px}
 .rule-card small{font-size:12px;color:var(--muted)}
 .rule-big{font-size:28px;line-height:1.1;color:var(--gold2);font-variant-numeric:tabular-nums}
