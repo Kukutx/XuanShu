@@ -175,3 +175,22 @@ def test_contrast_theme_keeps_drop_downs_and_data_marks():
     assert '.qr-extra-remove{min-width:24px;min-height:24px;' in CSS
     smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
     assert 'found += page.evaluate(UNFRAMED) + page.evaluate(MARKS_LOST)' in smoke
+
+
+def test_wider_text_spacing_cuts_nothing_off():
+    # WCAG 1.4.12: with a reader's own line, letter and word spacing, labels wrap or their box grows instead.
+    assert '.dy-axis{position:relative;display:grid;grid-template-rows:auto;min-height:120px;min-width:600px;padding:18px 0 24px}' in CSS
+    assert '.dy-band{position:relative;grid-row:1;' in CSS and 'axis.style.gridTemplateColumns = ' in APP
+    assert '.dy-band small{max-width:100%;' in CSS
+    assert '.shensha-tag{max-width:100%;padding:0 6px;border:1px solid var(--border);border-radius:11px;' in CSS
+    assert '.luck-cell .luck-mark,.group-year-row .luck-mark{max-width:100%;white-space:normal}' in CSS
+    assert '.group-member-head strong{min-width:0}' in CSS
+    assert '.ag-method{min-width:0;' in CSS and '.ag-param code{min-width:0;font-size:11.5px;overflow-wrap:anywhere}' in CSS
+    assert '.chat-panel .profile-actions button{width:auto;flex:0 1 auto;max-width:100%;' in CSS
+    assert '.qr-value dd{display:flex;flex-wrap:wrap;gap:0 8px;margin:0;color:var(--text);overflow-wrap:anywhere}' in CSS
+    assert 'width:max-content;margin:2px auto 0' not in CSS
+    # A named day in the calendar or the date picker shows its whole name, however many lines it takes; only a tool's
+    # long description folds, behind its own Show more.
+    assert re.findall(r'-webkit-line-clamp:\d', CSS) == ['-webkit-line-clamp:3']
+    smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
+    assert 'spaced = page.add_style_tag(content=SPACING)' in smoke

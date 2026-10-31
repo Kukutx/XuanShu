@@ -6902,16 +6902,17 @@ function dayunAxis(d, live, pick, now) {
     const mark = append(axis, 'div', 'dy-today'); mark.style.left = at(now);
     texts(append(mark, 'small'), '今天');
   }
-  const before = append(axis, 'div', 'dy-band dy-before');
-  before.style.left = '0'; before.style.width = at(d.periods[0].approx_start_local);
+  // One column per span of days, from birth to each decade's start and on to the last decade's end, so the bands
+  // stay in proportion to the years while each grows as tall as its labels need.
+  const edges = [t0, ...d.periods.map(x => day(x.approx_start_local)), t1];
+  axis.style.gridTemplateColumns = edges.slice(1).map((t, i) => 'minmax(0,' + Math.max(0, (t - edges[i]) / 864e5) + 'fr)').join(' ');
+  append(axis, 'div', 'dy-band dy-before');
   append(axis, 'small', 'dy-before-label', '起运前');
   d.periods.forEach((x, i) => {
     const band = append(axis, 'button', 'dy-band dy-decade' + (x === pick ? ' is-picked' : '') + (i === live ? ' is-now' : ''));
     band.type = 'button'; band.id = 'dayun-band-' + x.sequence; band.setAttribute('aria-pressed', String(x === pick));
     band.style.setProperty('--band', 'var(--' + stemClass(x.pillar[0]).slice(3) + ')');  // the decade stem's phase along the top
     if (i === live) band.setAttribute('aria-current', 'date');
-    band.style.left = at(x.approx_start_local);
-    band.style.width = 'calc(' + at(x.approx_end_local_exclusive) + ' - ' + at(x.approx_start_local) + ')';
     const gz = append(band, 'b', 'dy-band-gz'); gz.dataset.noI18n = '';
     append(gz, 'span', stemClass(x.pillar[0]), x.pillar[0]); append(gz, 'span', branchClass(x.pillar[1]), x.pillar[1]);
     append(band, 'small', null, x.approx_start_local.slice(0, 4));

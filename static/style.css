@@ -406,7 +406,7 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .ag-steps{display:grid;gap:0;margin:0 0 10px;padding:0;list-style:none;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
 .ag-step{display:grid;grid-template-columns:auto minmax(120px,max-content) auto 1fr auto;align-items:center;gap:6px 12px;padding:8px 14px;font-size:13px;color:var(--text2)}
 .ag-step+.ag-step{border-top:1px solid var(--border)}
-.ag-method{font-size:12.5px;color:var(--text)}
+.ag-method{min-width:0;font-size:12.5px;color:var(--text);overflow-wrap:anywhere}
 .ag-proto{justify-self:start;font-size:11px;padding:1px 7px;border:1px solid var(--border-strong);border-radius:999px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .ag-detail{min-width:0;overflow-wrap:anywhere}
 .ag-step.is-fail .ag-detail{color:var(--red)}
@@ -455,8 +455,8 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .ag-more:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 @media print{.ag-desc.is-clamped{display:block;-webkit-line-clamp:unset;overflow:visible}.ag-more{display:none}}
 .ag-params{display:flex;flex-wrap:wrap;gap:4px;margin:0;padding:0;list-style:none}
-.ag-param{display:inline-flex;align-items:baseline;gap:4px;padding:1px 7px;border:1px solid var(--border);border-radius:999px;font-size:11.5px;color:var(--text2)}
-.ag-param code{font-size:11.5px}
+.ag-param{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;padding:1px 7px;border:1px solid var(--border);border-radius:11px;font-size:11.5px;color:var(--text2)}
+.ag-param code{min-width:0;font-size:11.5px;overflow-wrap:anywhere}
 .ag-param small{font-size:11px;color:var(--muted)}
 .ag-param.is-required{border-color:var(--accent-line);color:var(--text)}
 .ag-param.is-required code{color:var(--gold2)}
@@ -489,7 +489,7 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .ag-run-links{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 0;font-size:12px;color:var(--muted)}
 .ag-run-links .tiny-button{font-family:var(--mono);font-size:11.5px}
 .ag-digest{font-size:11px;color:var(--muted);font-family:var(--mono)}
-@media(max-width:640px){.ag-step{grid-template-columns:auto 1fr auto;grid-template-areas:'dot method ms' '. proto proto' '. detail detail';row-gap:3px}.ag-step>.ag-dot{grid-area:dot}.ag-method{grid-area:method}.ag-ms{grid-area:ms}.ag-proto{grid-area:proto}.ag-detail{grid-area:detail}.ag-tools,.ag-list{grid-template-columns:1fr}}
+@media(max-width:640px){.ag-step{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'dot method ms' '. proto proto' '. detail detail';row-gap:3px}.ag-step>.ag-dot{grid-area:dot}.ag-method{grid-area:method}.ag-ms{grid-area:ms}.ag-proto{grid-area:proto}.ag-detail{grid-area:detail}.ag-tools,.ag-list{grid-template-columns:1fr}}
 @media print{.ag-nav,.ag-toolbar,.ag-groups,.ag-actions,.ag-path,.ag-segment,#integration-recheck{display:none}.ag-tool,.ag-item,.ag-doc{break-inside:avoid}.ag-doc-text,.ag-block .json-code,.ag-example .json-code{max-height:none;overflow:visible}}
 /* Optional professional Zi Wei page: install status, request form, board, comparison and period layers. */
 .pf-status{margin:6px 0 12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel2);font-size:13.5px;color:var(--text2)}
@@ -619,8 +619,10 @@ button:disabled{cursor:not-allowed}
 .dy-warn p{margin:0 0 4px}.dy-warn p:last-child{margin:0}
 .dy-axis-wrap{overflow-x:auto;margin:4px 0 14px;padding-bottom:4px}
 /* Wide enough to read on a phone, where the axis scrolls sideways; a desktop panel shows it whole. */
-.dy-axis{position:relative;height:120px;min-width:600px}
-.dy-band{position:absolute;top:18px;bottom:24px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:6px 2px 4px;border:1px solid var(--border);border-top:4px solid var(--band,var(--border));border-radius:var(--radius-sm);background:var(--panel2);color:var(--text);font:inherit;min-width:0;overflow:hidden}
+/* One grid row, its columns as long as each span of years (set by script): a band grows with its labels, so wider
+   letter or line spacing (WCAG 1.4.12) never cuts an age off. */
+.dy-axis{position:relative;display:grid;grid-template-rows:auto;min-height:120px;min-width:600px;padding:18px 0 24px}
+.dy-band{position:relative;grid-row:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:6px 2px 4px;border:1px solid var(--border);border-top:4px solid var(--band,var(--border));border-radius:var(--radius-sm);background:var(--panel2);color:var(--text);font:inherit;min-width:0;overflow:hidden}
 .dy-before{border-top-color:var(--border);border-style:dashed;color:var(--muted);justify-content:center;font-size:11px}
 /* The years before the first decade are often too narrow a band for any words, so their label runs along under the axis. */
 .dy-before-label{position:absolute;left:0;bottom:3px;padding-left:6px;border-left:1px dashed var(--border-strong);font-size:11px;line-height:16px;color:var(--muted);white-space:nowrap}
@@ -629,7 +631,7 @@ button:disabled{cursor:not-allowed}
 .dy-decade:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .dy-decade.is-picked{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--gold)}
 .dy-band-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.2}
-.dy-band small{font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.dy-band small{max-width:100%;font-size:11px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
 /* The current decade's dot sits in the band's corner, clear of a long age line. */
 .dy-decade.is-now::after{content:'';position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--gold2)}
 /* Today: a line in the gutter above the bands and a tick below them, never across a decade's labels. */
@@ -912,7 +914,7 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 
 /* ---- BaZi ---- */
 .pillar-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
-.pillar{position:relative;border:1px solid var(--border);padding:16px 8px 14px;text-align:center;background:var(--panel2);border-radius:var(--radius-sm)}
+.pillar{position:relative;border:1px solid var(--border);padding:16px 8px 14px;text-align:center;overflow-wrap:anywhere;background:var(--panel2);border-radius:var(--radius-sm)}
 .pillar.day-master{border-color:var(--gold);background:linear-gradient(180deg,var(--accent-soft),transparent),var(--panel2)}
 /* The day pillar's badge sits on its top edge, so a long heading (Day pillar) never runs under it. */
 .pillar-badge{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);white-space:nowrap;font-size:11px;line-height:18px;font-weight:600;color:var(--on-gold);background:var(--gold);border-radius:999px;padding:0 9px;box-shadow:0 0 0 3px var(--panel)}
@@ -935,8 +937,8 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 /* In a narrow pillar the void mark goes under the branch instead of over its right side; an English mark (year void) needs
    a wider column to sit beside the glyph than a two-character one. */
 .pillar{container:pillar / inline-size}
-@container pillar (max-width:150px){.void-mark{position:static;display:block;width:max-content;margin:2px auto 0}}
-@container pillar (max-width:240px){:lang(en) .void-mark{position:static;display:block;width:max-content;margin:2px auto 0}}
+@container pillar (max-width:150px){.void-mark{position:static;display:block;width:fit-content;max-width:100%;margin:2px auto 0}}
+@container pillar (max-width:240px){:lang(en) .void-mark{position:static;display:block;width:fit-content;max-width:100%;margin:2px auto 0}}
 .pillar-links{--gap:11px;display:flex;flex-direction:column;gap:2px;margin:2px 0 6px}
 .pillar-links.below{margin:6px 0 2px}
 .pillar-link-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:var(--gap)}
@@ -950,7 +952,7 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .pillar-nayin{font-size:12px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--border);padding-top:7px}
 /* 神煞: one neutral style for every star, since the labels carry no good-or-bad reading here. */
 .pillar-shensha{font-size:12px;color:var(--text2);margin-top:7px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px 4px}
-.shensha-tag{padding:0 6px;border:1px solid var(--border);border-radius:999px;background:var(--panel);line-height:1.6;white-space:nowrap;cursor:help}
+.shensha-tag{max-width:100%;padding:0 6px;border:1px solid var(--border);border-radius:11px;background:var(--panel);line-height:1.6;cursor:help}
 .shensha-table td{vertical-align:top}
 .shensha-table .shensha-name{white-space:nowrap;font-weight:500}
 .shensha-where{display:table;cursor:help;border-bottom:1px dotted var(--border-strong);white-space:nowrap}
@@ -1004,9 +1006,9 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .cal-day.cal-festival .cal-lunar{color:var(--red);font-weight:600}
 .cal-day.cal-season .cal-lunar{color:var(--water);font-weight:600}
 /* A named day (a term, festival, fu or nine, a month's first day) may take two lines, broken between words. */
-.cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{white-space:normal;line-height:1.15;text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
+.cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{white-space:normal;line-height:1.15;text-align:center;overflow-wrap:break-word}
 /* A solar term on a festival day, under the festival. */
-.cal-also{max-width:100%;overflow:hidden;text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word;font-size:11px;line-height:1.15;color:var(--green);font-weight:600}
+.cal-also{max-width:100%;text-align:center;overflow-wrap:break-word;font-size:11px;line-height:1.15;color:var(--green);font-weight:600}
 .cal-day .cal-gz{font-family:'Noto Serif SC','Songti SC','STSong',serif;font-size:12px;letter-spacing:.04em}
 .cal-day.is-today{border-color:var(--gold)}
 .cal-day.is-today .cal-num{color:var(--gold2)}
@@ -1353,7 +1355,7 @@ html[lang=en] .qh-name,html[lang=en] .qh-bureau,html[lang=en] .qh-duty{white-spa
 .chat-composer-bar small{color:var(--faint);font-size:12px}
 .chat-panel textarea{width:100%}
 .chat-panel .profile-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.chat-panel .profile-actions button{width:auto;flex:0 0 auto;min-height:36px;padding:0 14px}
+.chat-panel .profile-actions button{width:auto;flex:0 1 auto;max-width:100%;min-height:36px;padding:0 14px}
 .chat-panel .primary-btn{margin-top:0;width:auto;gap:10px}
 .chat-confidence{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .conf-tag{font-size:12px;border:1px solid var(--border);border-radius:3px;padding:2px 7px}
@@ -1427,6 +1429,7 @@ html[lang=en] .qh-name,html[lang=en] .qh-bureau,html[lang=en] .qh-duty{white-spa
 .luck-marks{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:2px;max-width:100%}
 .luck-mark{font-size:11px;line-height:1.2;padding:0 3px;border:1px solid var(--link);border-radius:3px;color:var(--link);white-space:nowrap}
 .luck-mark.link-clash{border-style:dashed}
+.luck-cell .luck-mark,.group-year-row .luck-mark{max-width:100%;white-space:normal}
 .link-void{--link:var(--muted)}
 .luck-natal{font-size:12px;color:var(--text2);margin:-2px 0 8px;line-height:1.7}
 
@@ -1862,7 +1865,7 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .group-member{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;background:var(--panel2);display:flex;flex-direction:column;gap:6px}
 .group-member.is-focus{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--accent-line)}
 .group-member-head{display:flex;align-items:center;gap:8px;min-width:0}
-.group-member-head strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.group-member-head strong{min-width:0}
 .group-member small{font-size:12px}
 .group-dot{width:10px;height:10px;border-radius:50%;flex:none}
 .group-dot.dot-unknown{border:1px dashed var(--border-strong)}
@@ -2153,7 +2156,7 @@ html[lang="en"] .qr-value{grid-template-columns:6.6em minmax(0,1fr)}
    Combinations or Xuan Wu (Black Tortoise): the English label then sits above its value, as on a phone */
 @container qr-cell (max-width:190px){html[lang="en"] .qr-value{grid-template-columns:minmax(0,1fr);gap:0}}
 .qr-value dt{font-size:12px;color:var(--muted)}
-.qr-value dd{display:flex;flex-wrap:wrap;gap:0 8px;margin:0;color:var(--text)}
+.qr-value dd{display:flex;flex-wrap:wrap;gap:0 8px;margin:0;color:var(--text);overflow-wrap:anywhere}
 .qr-value:not(.is-ok):not(.is-diff) .qr-ours{color:var(--text2)}
 @media(max-width:860px){.qr-fields{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:640px){.qr-step .inline-control>label:not(.check-line){flex:1 1 100%}.qr-step .inline-control input:not([type=checkbox]),.qr-step .inline-control select{width:100%}.qr-step{padding:10px}.qr-board{gap:4px}.qr-cell{padding:4px 6px 8px}.qr-field{font-size:11px}.qr-field select{padding-left:4px;padding-right:2px;font-size:13px}.qr-cell-head{font-size:11px;padding:0 2px}.qr-value{grid-template-columns:2.3em minmax(0,1fr);gap:4px}html[lang="en"] .qr-value{grid-template-columns:minmax(0,1fr);gap:0}.qr-value dt{font-size:10.5px}.qr-value dd{font-size:12.5px}.qr-board-result .qr-cell{padding:6px}.qr-summary{grid-template-columns:1fr}.qr-big{grid-row:auto}.qr-facts{grid-column:auto}}
@@ -2279,10 +2282,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .cal-grid{width:calc(100% + 4px);border-spacing:2px;margin:2px -2px 8px}.cal-day{min-height:60px;padding:5px 1px;gap:1px;border-radius:7px}
   .of-grid{width:calc(100% + 4px);border-spacing:2px;margin:0 -2px}.of-day{height:72px;padding:4px 1px;border-radius:7px}.of-date{top:3px;left:4px;font-size:10px}.of-day.is-today .of-date{left:2px;padding:0 3px}.of-gz{margin-top:11px;font-size:11px;letter-spacing:0}.of-officer{font-size:18px}.of-jie{font-size:9.5px}html[lang="en"] .of-officer{font-size:10.5px}.ds-pick{min-height:70px;padding:4px 1px}.ds-reason,.ds-clash,.ds-hours{font-size:9.5px}.ds-clash{padding:0 3px}.ds-reason:not(.is-unscanned){display:none}.ds-reason-short{display:block}.ds-hour-bureau{display:none}
   .cal-num{font-size:15px}.cal-lunar{font-size:10px}.cal-also{font-size:9.5px}.cal-day .cal-gz{font-size:10px;letter-spacing:0}.cal-title{font-size:20px}
-  /* A phone cell is too narrow for Awakening of Insects on two lines: long names take a third line, English ones a
-     lighter, smaller face, and on the narrowest phones a plain Day 20 wraps rather than losing its number. */
-  .cal-day .cal-lunar{white-space:normal;line-height:1.15;text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow-wrap:break-word;hyphens:auto}
-  .cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{-webkit-line-clamp:3}
+  /* A phone cell is too narrow for Awakening of Insects on two lines: a named day takes the lines it needs, English
+     names a lighter, smaller face, and on the narrowest phones a plain Day 20 wraps rather than losing its number. */
+  .cal-day .cal-lunar{white-space:normal;line-height:1.15;text-align:center;overflow-wrap:break-word;hyphens:auto}
   html[lang="en"] .cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{font-size:9.5px;font-weight:500}
   .brand-en,.brand small,.ui-lang span,.theme-toggle .theme-label{display:none}
   .header .brand-mark{width:36px;height:36px;font-size:21px;border-radius:var(--radius)}
@@ -2290,7 +2292,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .header-right{gap:8px}
   .pillar-grid{gap:5px}
   .pillar-links{--gap:5px}
-  .void-mark{position:static;display:block;width:max-content;margin:2px auto 0}
+  .void-mark{position:static;display:block;width:fit-content;max-width:100%;margin:2px auto 0}
   .pillar-link-label{font-size:11px}
   .pillar{padding:12px 3px 10px}
   .dayun-now{display:block;width:max-content;margin:3px 0 0}
@@ -2306,12 +2308,11 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .ziwei-scroll-hint{display:block}
   .pillar-god,.pillar-sub,.pillar-nayin,.pillar-shensha{font-size:11px}
   .shensha-tag{padding:0 4px;border-radius:var(--radius-sm);text-align:center;max-width:100%}
-  html[lang="en"] .shensha-tag{white-space:normal}
   .layer-modes{border-radius:14px}
   .pillar-shensha .pillar-stage-label{flex-basis:100%}  /* narrow columns: the label on its own line above the stars */
   .rp-module-fields.inline-control input{width:100%}
 }
-@media(max-width:340px){html[lang="en"] .cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{font-size:9px;-webkit-line-clamp:4}}
+@media(max-width:340px){html[lang="en"] .cal-day:is(.cal-month,.cal-term,.cal-festival,.cal-season) .cal-lunar{font-size:9px}}
 
 /* ---- print: a clean report on paper ---- */
 @media print{
@@ -2469,7 +2470,7 @@ input::-webkit-calendar-picker-indicator:hover{background:var(--gold)}
 .xs-dp-day:hover:not(:disabled){background:var(--hover);border-color:var(--accent-line)}
 .xs-dp-num{font-size:14px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
 /* Up to three lines: English names such as Awakening of Insects need them in a cell this narrow. */
-.xs-dp-lunar{max-width:100%;overflow:hidden;font-size:10px;line-height:1.15;color:var(--muted);text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow-wrap:break-word;hyphens:auto}
+.xs-dp-lunar{max-width:100%;overflow:hidden;font-size:10px;line-height:1.15;color:var(--muted);text-align:center;overflow-wrap:break-word;hyphens:auto}
 .xs-dp-day.is-weekend .xs-dp-num{color:var(--red)}
 .xs-dp-day.xs-dp-k-month .xs-dp-lunar{color:var(--gold2);font-weight:600}
 .xs-dp-day.xs-dp-k-term .xs-dp-lunar{color:var(--green);font-weight:600}
