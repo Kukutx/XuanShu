@@ -139,11 +139,12 @@ def test_luck_page_years_open_their_months():
     # At phone width the four tables stack each row; the roles keep them tables to screen readers, a cell label only
     # where a stacked cell needs it, hidden from them.
     style = open('static/style.css', encoding='utf-8').read()
-    assert script.count('  stackTable(table);') == 4 and "table.querySelectorAll('td').forEach(cell => cell.setAttribute('role', 'cell'));" in script
+    # The four luck tables, the 神煞 rules, today's pillars and the year's four transformations.
+    assert script.count('  stackTable(table);') == 7 and "table.querySelectorAll('td').forEach(cell => cell.setAttribute('role', 'cell'));" in script
     assert "label.setAttribute('aria-hidden', 'true');" in script and "stackLabel(append(tr, 'td'), '虚龄')" in script and "stackLabel(append(tr,'td'),'起运')" in script
     # They stack only when their columns overflow the wrapper, measured as a table at each redraw, resize and translation.
     assert "table.classList.toggle('is-stacked', narrow || table.offsetWidth > table.parentElement.clientWidth + 1);" in script
-    assert "stars.getBoundingClientRect().width < 7.5 * parseFloat(getComputedStyle(stars).fontSize)" in script
+    assert "cell.getBoundingClientRect().width < parseFloat(table.dataset.fitEm || '7.5') * parseFloat(getComputedStyle(cell).fontSize)" in script
     assert '  renderView();\n  fitStacks();' in script and 'requestAnimationFrame(() => {fitStacks(); markScrollAreas();});' in script
     assert '.dy-stack.is-stacked thead{position:absolute;' in style and '.dy-stack-label{display:none}' in style
     # Print keeps the year and jie toggles, so those cells are not blank on paper.
