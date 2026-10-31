@@ -115,9 +115,15 @@ def test_palace_stars_and_rule_cards_keep_inside():
     # stays on one line. A minor star moves to the next line whole, and one longer than the line wraps inside it.
     assert '.star-primary .star{white-space:nowrap}' in CSS
     assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .star{white-space:normal}' in CSS
-    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) .star-primary .bright{display:inline-block}' in CSS
+    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .bright{display:inline-block}' in CSS
     assert '.star-secondary .star{display:inline-block;white-space:normal}' in CSS
     # The rule comparison cards are at least 16em each and wrap, instead of an auto first column taking the length of
     # its English sentence and leaving the two field lists a few letters wide.
     assert '.rule-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16em),1fr));' in CSS
     assert 'minmax(150px,auto) minmax(0,1fr) minmax(0,1fr)' not in CSS
+    # An English audit palace too narrow for a label beside its value puts the label above it.
+    assert '.qr-board-result .qr-cell{display:flex;flex-direction:column;gap:6px;padding:8px 10px 10px;container:qr-cell / inline-size}' in CSS
+    assert '@container qr-cell (max-width:190px){html[lang="en"] .qr-value{grid-template-columns:minmax(0,1fr);gap:0}}' in CSS
+    # The browser smoke walks every page in English at 900 px for an element running out of its box.
+    smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
+    assert 'OVERFLOW = ' in smoke and 'assert overflow == {}, overflow' in smoke

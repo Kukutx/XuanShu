@@ -133,6 +133,27 @@ def check_relation_card(page, kind: str, screenshot: Path) -> None:
     assert page.locator('#relation-card-dialog[open]').count() == 0
 
 
+# Elements running out of their box: the nearest ancestor with a border or a background, or a table cell. Skipped are
+# what is positioned, hidden for screen readers (the column heads of a stacked table among them), drawn in SVG or in a
+# scroll area, and the year toggles of the luck tables, which reach into their cell's padding on purpose.
+OVERFLOW = """() => {
+  const root = document.getElementById('result'), out = [];
+  const scrolls = el => ['auto', 'scroll'].includes(getComputedStyle(el).overflowX);
+  const boxed = el => {const s = getComputedStyle(el); return el.tagName === 'TD' || el.tagName === 'TH' || parseFloat(s.borderLeftWidth) > 0
+    || parseFloat(s.borderRightWidth) > 0 || !['rgba(0, 0, 0, 0)', 'transparent'].includes(s.backgroundColor);};
+  for (const el of root.querySelectorAll('*')) {
+    if (!el.checkVisibility() || el.closest('.visually-hidden, thead, svg, .dy-year-toggle')) continue;
+    let skip = false, box = el.parentElement;
+    for (let a = el; a && a !== root && !skip; a = a.parentElement) skip = ['absolute', 'fixed'].includes(getComputedStyle(a).position);
+    while (!skip && box && box !== root && !boxed(box)) {skip = scrolls(box); box = box.parentElement;}
+    if (skip || !box || box === root || scrolls(box)) continue;
+    const r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+    if (r.width && r.height && (r.right > b.right + 1.5 || r.left < b.left - 1.5))
+      out.push(el.className + ' in ' + box.className + ': ' + el.textContent.trim().slice(0, 30));
+  }
+  return out.slice(0, 5);
+}"""
+
 # Text fields whose hint is wider than the field, measured in the field's own font (folded settings opened for it).
 CLIPPED_HINTS = """() => {
   const folds = [...document.querySelectorAll('#connection-settings, .vault-pane')].filter(d => !d.open);
@@ -3028,6 +3049,24 @@ def main() -> None:
                     page.set_viewport_size({'width': width, 'height': height})
                     clipped = page.evaluate(CLIPPED_HINTS)
                     assert clipped == [], (lang, width, clipped)
+            # No element runs out of its box on any page in English at 900 px, where the side panel is back and the
+            # column is at its narrowest: a palace's stars, the rule cards, a date-scan day, a group member's pillars.
+            page.set_viewport_size({'width': 900, 'height': 920})
+            back, overflow = page.evaluate('active'), {}
+            for tab in page.evaluate("[...document.querySelectorAll('[data-tab]')].map(t => t.dataset.tab)"):
+                page.evaluate("(tab) => document.querySelector(`[data-tab='${tab}']`).click()", tab)
+                page.wait_for_timeout(1500)
+                found = page.evaluate(OVERFLOW)
+                if tab == 'rule-matrix':
+                    # A rule card is at least 16em wide, or alone on its row.
+                    found += page.evaluate("""() => [...document.querySelectorAll('.rule-card')].filter(c => {
+                      const em = parseFloat(getComputedStyle(c).fontSize), w = c.getBoundingClientRect().width;
+                      return w < 16 * em - 1 && w < c.parentElement.clientWidth - 30;
+                    }).map(c => 'narrow rule card: ' + c.getBoundingClientRect().width)""")
+                if found:
+                    overflow[tab] = found
+            assert overflow == {}, overflow
+            page.evaluate("(tab) => document.querySelector(`[data-tab='${tab}']`).click()", back)
             page.set_viewport_size({'width': 1440, 'height': 920})
             page.locator('#ui-language').select_option('zh-CN')
             assert page.locator('[data-tab="calendar"]').inner_text() == '历法日历'
