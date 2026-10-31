@@ -129,6 +129,18 @@ def test_luck_page_years_open_their_months():
     assert "texts(append(panel, 'p', 'field-help dy-hour-day'), '当日', '：', natalText(settledInteractions(day, o)))" in script
     assert 'const expanded = !loading && !!hours && hours.date === day.date;' in script and "failed.date.slice(5).replace('-', '/'), ' ', '流时计算失败：'" in script
     assert '.dy-year-toggle[aria-expanded="true"]' in open('static/style.css', encoding='utf-8').read()
+    # At phone width the four tables stack each row; the roles keep them tables to screen readers, a cell label only
+    # where a stacked cell needs it, hidden from them.
+    style = open('static/style.css', encoding='utf-8').read()
+    assert script.count('  stackTable(table);') == 4 and "table.querySelectorAll('td').forEach(cell => cell.setAttribute('role', 'cell'));" in script
+    assert "label.setAttribute('aria-hidden', 'true');" in script and "stackLabel(append(tr, 'td'), '虚龄')" in script and "stackLabel(append(tr,'td'),'起运')" in script
+    # They stack only when their columns overflow the wrapper, measured as a table at each redraw, resize and translation.
+    assert "table.classList.toggle('is-stacked', narrow || table.offsetWidth > table.parentElement.clientWidth + 1);" in script
+    assert "stars.getBoundingClientRect().width < 7.5 * parseFloat(getComputedStyle(stars).fontSize)" in script
+    assert '  renderView();\n  fitStacks();' in script and 'requestAnimationFrame(() => {fitStacks(); markScrollAreas();});' in script
+    assert '.dy-stack.is-stacked thead{position:absolute;' in style and '.dy-stack-label{display:none}' in style
+    # Print keeps the year and jie toggles, so those cells are not blank on paper.
+    assert ':not(.dy-decade):not(.dy-year-toggle){display:none!important}' in style
     # Each month in turn opens its days as cards.
     assert 'day_month: month' in script and "box.id = 'dayun-days'" in script and "list.id = 'dayun-day-grid'" in script
 

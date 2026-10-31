@@ -2138,6 +2138,9 @@ def main() -> None:
             page.locator('#dayun-hour-table tbody tr').nth(12).wait_for(timeout=30000)
             assert first_day.get_attribute('aria-expanded') == 'true' and page.evaluate('document.activeElement.id') == first_day.get_attribute('id')
             assert page.locator('#dayun-hour-table tbody tr').count() == 13
+            # On a wide screen the tables keep their columns; the labels the stacked rows show are hidden.
+            assert page.evaluate("getComputedStyle(document.querySelector('#dayun-hour-table td.dy-star-cell')).display") == 'table-cell'
+            assert not page.locator('#dayun-hour-table .dy-stack-label').first.is_visible()
             # The day's own relations in full head its hours: a tap on the card opens them, not a hint, on a touch screen.
             assert page.locator('#dayun-hours .dy-hour-day').inner_text().startswith('当日')
             assert page.evaluate('''() => {
@@ -2762,6 +2765,35 @@ def main() -> None:
                 assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth"), tab
                 assert page.evaluate('''() => [...document.querySelectorAll('#result .inline-control > label > :is(input, select)')]
                   .every(f => f.getBoundingClientRect().right <= f.parentElement.getBoundingClientRect().right + 1)'''), tab
+            # On a phone the decade, year, month and hour tables stack each row: the relations and the stars take full
+            # lines of their own instead of columns a few characters wide, no table scrolls sideways, and the column
+            # heads, out of sight, stay for screen readers with the table roles.
+            page.locator('[data-tab="dayun"]').click()
+            page.locator('#dayun-table').wait_for(timeout=30000)
+            page.locator('#dayun-years .dy-year-toggle').first.click()
+            page.locator('#dayun-month-1').click()
+            page.locator('#dayun-day-grid button.dy-day').first.click()
+            page.locator('#dayun-hour-table tbody tr').nth(12).wait_for(timeout=30000)
+            stacked_tables = '''() => [...document.querySelectorAll('#result table.dy-stack.is-stacked')].map(t => ({id: t.id,
+              scroll: t.parentElement.scrollWidth > t.parentElement.clientWidth + 1, head: getComputedStyle(t.querySelector('thead')).position,
+              full: [...t.querySelectorAll('td.dy-mark-cell, td.dy-star-cell')].every(c => c.getBoundingClientRect().width >= t.getBoundingClientRect().width - 20)}))'''
+            stacked = page.evaluate(stacked_tables)
+            assert sorted(t['id'] for t in stacked) == ['dayun-hour-table', 'dayun-month-table', 'dayun-table', 'dayun-years'], stacked
+            assert all(not t['scroll'] and t['full'] and t['head'] == 'absolute' for t in stacked), stacked
+            assert page.locator('#dayun-table').get_attribute('role') == 'table' and page.locator('#dayun-table td.dy-star-cell').first.get_attribute('role') == 'cell'
+            assert page.locator('#dayun-table td.dy-star-cell .dy-stack-label').first.is_visible()
+            # The column decides, not the screen: at 900 px the side panel is back and the column is narrower than at
+            # 600 px. At any width a table either stacks or keeps columns that fit, its stars column at least 7.5em wide.
+            for width in (900, 1100, 1440):
+                page.set_viewport_size({'width': width, 'height': 844})
+                page.wait_for_timeout(300)
+                kept = page.evaluate('''() => [...document.querySelectorAll('#result table.dy-stack:not(.is-stacked)')].map(t => {
+                  const c = t.querySelector('tbody td.dy-star-cell'); return {id: t.id, over: t.offsetWidth > t.parentElement.clientWidth + 1,
+                  narrow: c.getBoundingClientRect().width < 7.5 * parseFloat(getComputedStyle(c).fontSize)};})''')
+                assert not any(t['over'] or t['narrow'] for t in kept), (width, kept)
+                assert all(not t['scroll'] for t in page.evaluate(stacked_tables)), width
+            assert page.locator('#dayun-table.is-stacked').count() == 0, 'columns kept on a wide screen'
+            page.set_viewport_size({'width': 390, 'height': 844})
             # Today's pill in the officers month never covers that day's stem-branch.
             assert page.evaluate('''() => {const d = document.querySelector('.of-day.is-today'); return !d ||
               d.querySelector('.of-date').getBoundingClientRect().bottom <= d.querySelector('.of-gz').getBoundingClientRect().top + 1;}''')

@@ -698,6 +698,28 @@ button:disabled{cursor:not-allowed}
 /* The current year, month or hour row: its colour wash is dropped in forced colours, a dashed frame on its first cell stays. */
 @media (forced-colors:active){.dy-years tr.is-current>th:first-child{outline:2px dashed CanvasText;outline-offset:-3px}}
 @media print{.dy-years-hint{display:none}.dy-year-toggle{margin:0;padding:0;border:0}.dy-year-toggle::after{display:none}.dy-months{background:none}.dy-month-table{break-inside:avoid}}
+/* Columns that do not fit: each row of the decade, year, month and hour tables stacks (stackTable, fitStacks) - the first
+   cell, the pillar and the short cells on one line, the relations and then the stars on lines of their own - so no
+   column is squeezed to a few characters and stretches its row. The column heads stay for screen readers; the cells
+   that need one show a label. Print keeps the columns. */
+.dy-stack-label{display:none}
+@media screen{
+  .dy-stack.is-stacked,.dy-stack.is-stacked tbody{display:block;width:100%}
+  .dy-stack.is-stacked thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .dy-stack.is-stacked tr{display:flex;flex-wrap:wrap;align-items:baseline;align-content:flex-start;gap:6px 12px;padding:10px 8px;border-bottom:1px solid var(--border)}
+  .data-table.dy-stack.is-stacked tbody th,.data-table.dy-stack.is-stacked tbody td{display:block;min-width:0;padding:0;border:0;background:none!important}
+  .dy-years.dy-stack.is-stacked tbody tr>:first-child{flex:0 0 auto;min-width:7.2em}
+  .dy-stack.is-stacked tr.is-current{background:var(--accent-soft)}
+  .dy-stack.is-stacked td.dy-mark-cell,.dy-stack.is-stacked td.dy-star-cell{flex-basis:100%}
+  .dy-stack.is-stacked td.dy-mark-cell .luck-marks{justify-content:flex-start;gap:3px;margin-top:0}
+  .dy-stack.is-stacked td.dy-star-cell{line-height:1.55}
+  .dy-stack.is-stacked .dy-stack-label{display:inline;margin-right:3px;color:var(--muted);font-size:11px}
+  .dy-stack.is-stacked .dayun-now{display:inline-block;margin:0 0 0 6px}
+  .dy-stack.is-stacked td.dy-seq{min-width:1.2em;color:var(--muted);font-variant-numeric:tabular-nums}
+  .dy-stack.is-stacked .dy-year-toggle{margin:-3px 0 -3px -6px}
+  /* The current row's dashed frame goes round the whole stacked row: on the unpadded first cell it crossed the text. */
+  @media (forced-colors:active){.dy-stack.is-stacked tr.is-current{outline:2px dashed CanvasText;outline-offset:-2px}.dy-years.dy-stack.is-stacked tr.is-current>th:first-child{outline:none}}
+}
 @media(max-width:640px){
   .dy-calc{flex-direction:column;align-items:stretch}
   .dy-gap{min-height:54px}
@@ -2251,7 +2273,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--panel3:#f4f1ea;--border:#d9d2c3;--border-strong:#c9bfa9;--text:#111;--text2:#222;--muted:#555;--faint:#6b6155;--gold:#825c1e;--gold2:#6e4a14;--on-gold:#fffaf0;--accent-soft:#faf7f0;--accent-line:#d9c7a3;--code-bg:#f7f5f0;--code-text:#111;--shadow:none;--wood:#237544;--fire:#b03a22;--earth:#8a5a12;--metal:#696251;--water:#2563a6;--lu:#1b6e40;--quan:#7a48b8;--ke:#2563a8;--ji:#b53526;--on-hua:#fff;--green:#2d7552;--red:#b23d2d;--warn:#875610;--warn-soft:rgba(214,150,60,.12);--warn-line:rgba(180,120,40,.45);--dm-0:#9a6a1c;--dm-1:#2f6db5;--dm-2:#2e7d4a;--dm-3:#c0482f;--dm-4:#7550b5;--dm-5:#1f7f7f;--dm-6:#b0427a;--dm-7:#5c6877}
   .dm-seg,.dm-swatch,.dm-band,.dm-mark,.dm-weights,.dm-track,.dm-range,.is-lead .dm-rank,.bt-track,.bt-seg,.bt-tick,.bt-tick-num,.bt-pin,.bt-pillar.is-changed,.today-term-track,.today-term-fill,.ps-track,.ps-now,.ps-mark::after,.hua{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff;font-size:12px}
-  .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,.of-legend,.of-views,.fh-views,.ds-hour-card .tiny-button,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip):not(.fh-pick):not(.ds-pick):not(.ic-hour):not(.qh-hour):not(.rm-value):not(.dy-decade){display:none!important}
+  .ambient,.header-right,.hero,.input-panel,.tool-finder,.tabbar,.toolbar,.stale-birth-warning,.skip-link,footer .feature-strips,.inline-control,.chat-composer,.chat-msg-actions,.chat-followups,.chat-settings,.share-dialog,.text-export,.layer-bar,.ziwei-scroll-hint,.cal-links,.reading-nav,.of-legend,.of-views,.fh-views,.ds-hour-card .tiny-button,button:not(.palace-btn):not(.cal-day):not(.cal-term-chip):not(.fh-pick):not(.ds-pick):not(.ic-hour):not(.qh-hour):not(.rm-value):not(.dy-decade):not(.dy-year-toggle){display:none!important}
   .shell{max-width:none;padding:0}
   .header{position:static;margin:0;padding:0;background:none;-webkit-backdrop-filter:none;backdrop-filter:none}
   .main-grid{display:block}
