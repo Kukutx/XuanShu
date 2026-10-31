@@ -139,16 +139,19 @@ def check_relation_card(page, kind: str, screenshot: Path) -> None:
 OVERFLOW = """() => {
   const root = document.getElementById('result'), out = [];
   const scrolls = el => ['auto', 'scroll'].includes(getComputedStyle(el).overflowX);
-  const boxed = el => {const s = getComputedStyle(el); return el.tagName === 'TD' || el.tagName === 'TH' || parseFloat(s.borderLeftWidth) > 0
+  const boxed = el => {const s = getComputedStyle(el); return el.tagName === 'TD' || el.tagName === 'TH'
     || parseFloat(s.borderRightWidth) > 0 || !['rgba(0, 0, 0, 0)', 'transparent'].includes(s.backgroundColor);};
+  // A rule down the left only (a note's accent, a tree's guide line) bounds the left side alone: on the right the
+  // text is judged by the box around it.
+  const ruled = el => parseFloat(getComputedStyle(el).borderLeftWidth) > 0;
   for (const el of root.querySelectorAll('*')) {
     if (!el.checkVisibility() || el.closest('.visually-hidden, thead, svg, .dy-year-toggle')) continue;
-    let skip = false, box = el.parentElement;
+    let skip = false, box = el.parentElement, left = null;
     for (let a = el; a && a !== root && !skip; a = a.parentElement) skip = ['absolute', 'fixed'].includes(getComputedStyle(a).position);
-    while (!skip && box && box !== root && !boxed(box)) {skip = scrolls(box); box = box.parentElement;}
+    while (!skip && box && box !== root && !boxed(box)) {if (!left && ruled(box)) left = box; skip = scrolls(box); box = box.parentElement;}
     if (skip || !box || box === root || scrolls(box)) continue;
-    const r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
-    if (r.width && r.height && (r.right > b.right + 1.5 || r.left < b.left - 1.5))
+    const r = el.getBoundingClientRect(), b = box.getBoundingClientRect(), l = (left || box).getBoundingClientRect();
+    if (r.width && r.height && (r.right > b.right + 1.5 || r.left < l.left - 1.5))
       out.push(el.className + ' in ' + box.className + ': ' + el.textContent.trim().slice(0, 30));
   }
   return out.slice(0, 5);
@@ -188,6 +191,24 @@ MARKS_LOST = """() => {
       || !['none', 'none, none'].includes(s.backgroundImage) || (bg !== page && bg !== 'rgba(0, 0, 0, 0)' && !/, 0\\)$/.test(bg));
     if (!kept) out.add('lost in contrast theme ' + el.tagName.toLowerCase() + '.' + String(el.className).split(' ').filter(Boolean).join('.'));
     el.removeAttribute('data-smoke-mark');
+  }
+  return [...out];
+}"""
+
+# WCAG 1.4.12: a reader's own style sheet may set line height to 1.5, letter spacing to 0.12em, word spacing to 0.16em
+# and paragraph spacing to 2em; nothing may run out of its box or be cut off when it does.
+SPACING = '* {line-height:1.5 !important; letter-spacing:0.12em !important; word-spacing:0.16em !important} p {margin-bottom:2em !important}'
+# Text cut off by a box that hides its overflow. A label in the luck timeline is cut to its run of years on purpose
+# (the cell's tip has it whole), and so is the one-line preview of a folded data branch.
+CUT_TEXT = """() => {
+  const out = new Set();
+  for (const el of document.body.querySelectorAll('*')) {
+    if (!el.checkVisibility() || el.closest('.visually-hidden, svg, canvas, .tl-label, .jv-preview')) continue;
+    const s = getComputedStyle(el), x = ['hidden', 'clip'].includes(s.overflowX), y = ['hidden', 'clip'].includes(s.overflowY);
+    // A box of a pixel or less is hidden on purpose (a stacked table's header kept for screen readers).
+    if ((!x && !y) || !el.textContent.trim() || el.clientWidth <= 1 || el.clientHeight <= 1) continue;
+    if ((y && el.scrollHeight > el.clientHeight + 1) || (x && el.scrollWidth > el.clientWidth + 1))
+      out.add('cut ' + el.tagName.toLowerCase() + '.' + [...el.classList].join('.') + ': ' + el.textContent.trim().slice(0, 30));
   }
   return [...out];
 }"""
@@ -3113,7 +3134,8 @@ def main() -> None:
             # column is at its narrowest (a palace's stars, the rule cards, a date-scan day, a group member's pillars),
             # nor on a 360 px phone (an hour of the Qimen day strip). At 900 px every control also keeps a frame in a
             # Windows contrast theme (the Qimen check's run button, a flying-star palace, a timeline year), and no bar
-            # or swatch drawn only with a background disappears there (the five-element bars, a decision weight).
+            # or swatch drawn only with a background disappears there (the five-element bars, a decision weight). The
+            # same holds with WCAG 1.4.12 spacing (a decade's age line, a star tag, a member's name, a festival).
             back, overflow = page.evaluate('active'), {}
             for width in (900, 360):
               page.set_viewport_size({'width': width, 'height': 920})
@@ -3121,6 +3143,11 @@ def main() -> None:
                 page.evaluate("(tab) => document.querySelector(`[data-tab='${tab}']`).click()", tab)
                 page.wait_for_timeout(1500)
                 found = page.evaluate(OVERFLOW)
+                # With a reader's own wider spacing nothing runs out of its box and nothing more is cut off.
+                cut = set(page.evaluate(CUT_TEXT))
+                spaced = page.add_style_tag(content=SPACING)
+                found += ['spaced ' + f for f in page.evaluate(OVERFLOW) + sorted(set(page.evaluate(CUT_TEXT)) - cut)]
+                spaced.evaluate('s => s.remove()')
                 if width == 900:
                     page.evaluate(MARKS_TAG)
                     page.emulate_media(forced_colors='active')
