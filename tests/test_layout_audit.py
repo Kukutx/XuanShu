@@ -138,3 +138,13 @@ def test_boundary_line_keeps_the_birth_label_inside_a_cut_window():
     assert "birthLabel.style.transform = `translateX(-${birthAtPct}%)`" in js
     assert "'bt-axis' + (clipped.length ? ' has-birth-row' : '')" in js
     assert '.bt-axis.has-birth-row .bt-axis-birth{top:1.5em}' in CSS
+
+
+def test_long_typed_names_wrap_inside_their_cards():
+    # A name typed as one long run wraps anywhere; in a table cell it stays whole and the table scrolls instead.
+    assert '.user-text{overflow-wrap:anywhere}' in CSS
+    assert ':is(td,th).user-text,:is(td,th) .user-text{overflow-wrap:break-word}' in CSS
+    # Only the tags are pills: a name or a day count inside a tag is plain text, and a wrapped tag is a rounded box.
+    assert '.meta-tags span{' not in CSS and '.meta-tags>span{font-size:12px;' in CSS and 'border-radius:15px}' in CSS
+    assert '.group-profile small{margin-left:auto;font-size:11px;white-space:nowrap}' in CSS
+    assert '  .dm-sens .dm-sens-name{white-space:normal}' in CSS

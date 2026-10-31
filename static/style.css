@@ -67,6 +67,11 @@
 html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--header-h) + 14px)}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 var(--sans);transition:background .25s,color .25s;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 ::selection{background:var(--ring);color:var(--text)}
+/* Names and notes people type can be one long run with no space (an e-mail-like handle, a name in Latin letters):
+   they wrap anywhere rather than push their row out of its card. In a table cell the word stays whole and the
+   table scrolls instead, so short names are never split to squeeze a column. */
+.user-text{overflow-wrap:anywhere}
+:is(td,th).user-text,:is(td,th) .user-text{overflow-wrap:break-word}
 /* Hints in empty fields: the theme's quiet text colour in both themes (Firefox would also fade it to half). */
 ::placeholder{color:var(--faint);opacity:1}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -122,7 +127,7 @@ body.has-chart .today-chip{margin:0}
 /* ---- layout ---- */
 .main-grid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px;align-items:start}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow)}
-.input-panel{padding:22px;position:sticky;top:calc(var(--header-h) + 16px);max-height:calc(100vh - var(--header-h) - 32px);overflow:auto}
+.input-panel{padding:22px;position:sticky;top:calc(var(--header-h) + 16px);max-height:calc(100vh - var(--header-h) - 32px);max-height:calc(100dvh - var(--header-h) - 32px);overflow:auto}
 .section-head{display:flex;align-items:flex-start;gap:14px}
 .section-num{flex:none;font-size:11px;line-height:1;color:var(--gold2);font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums;padding:6px 7px;border:1px solid var(--accent-line);border-radius:var(--radius-sm);background:var(--accent-soft)}
 .section-head h2{font-size:18px;font-weight:600;line-height:1.25;letter-spacing:.02em;margin:0}
@@ -291,7 +296,9 @@ h4.subheading[tabindex="-1"]:focus-visible{outline:2px solid var(--gold2);outlin
 @media print{.page-index{display:none}}
 .disclaimer{font-size:12px;color:var(--muted);border-left:2px solid var(--gold);padding-left:12px;margin-top:22px}
 .meta-tags{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 16px}
-.meta-tags span{font-size:12px;border:1px solid var(--border-strong);color:var(--muted);padding:4px 9px;border-radius:999px}
+/* Only the tags themselves are pills: a name or a day count set inside a tag stays plain text. The radius is half a
+   one-line tag, so a tag that wraps (a long name) becomes a rounded box rather than an oval. */
+.meta-tags>span{font-size:12px;border:1px solid var(--border-strong);color:var(--muted);padding:4px 9px;border-radius:15px}
 .rule-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 .rule-box{background:var(--panel2);padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
 .rule-box small{display:block;color:var(--gold);font-size:11px}
@@ -892,6 +899,7 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
   .dm-sens thead{display:none}
   .dm-sens tr{padding:10px 0;border-bottom:1px solid var(--border)}
   .dm-sens th,.dm-sens td{border:0;padding:3px 0}
+  .dm-sens .dm-sens-name{white-space:normal}
   .dm-cell-label{display:block;font-size:11px;color:var(--muted)}
   .dm-range-cell{min-width:0}
 }
@@ -1836,7 +1844,7 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .group-profile{cursor:pointer}
 .group-label{max-width:160px}
 .group-profiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 14px}
-.group-profile small{margin-left:auto;font-size:11px}
+.group-profile small{margin-left:auto;font-size:11px;white-space:nowrap}
 .group-extra{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:4px 0;border-bottom:1px dashed var(--border)}
 .group-extra small{font-size:11px}
 .group-profile-item{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -2165,7 +2173,7 @@ html[lang="en"] .qr-value{grid-template-columns:6.6em minmax(0,1fr)}
 .stable-tag.changing{color:var(--warn);border-color:var(--warn-line)}
 .stable-tag.changing::before{content:'↻ '}
 
-.share-dialog{border:1px solid var(--border-strong);border-radius:var(--radius-xl);background:var(--panel);color:var(--text);padding:18px 20px;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-shadow:var(--shadow)}
+.share-dialog{border:1px solid var(--border-strong);border-radius:var(--radius-xl);background:var(--panel);color:var(--text);padding:18px 20px;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;box-shadow:var(--shadow)}
 .share-dialog::backdrop{background:rgba(4,6,10,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .share-dialog[open]{animation:xs-pop .2s var(--ease) backwards}
 @keyframes xs-pop{from{opacity:0;transform:translateY(8px) scale(.985)}}
@@ -2437,7 +2445,7 @@ input[type=time]::-webkit-calendar-picker-indicator{background:var(--muted);-web
 input::-webkit-calendar-picker-indicator:hover{background:var(--gold)}
 
 /* The calendar the date fields open (static/datepicker.js), in place of the browser's own picker. */
-.xs-dp{position:fixed;inset:auto;z-index:300;margin:0;width:min(372px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;padding:12px;border:1px solid var(--border-strong);border-radius:var(--radius-xl);background:var(--panel);color:var(--text);box-shadow:var(--shadow);font-size:13px;opacity:1;transform:none;transition:opacity .14s var(--ease),transform .14s var(--ease),overlay .14s allow-discrete,display .14s allow-discrete}
+.xs-dp{position:fixed;inset:auto;z-index:300;margin:0;width:min(372px,calc(100vw - 16px));max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);overflow:auto;padding:12px;border:1px solid var(--border-strong);border-radius:var(--radius-xl);background:var(--panel);color:var(--text);box-shadow:var(--shadow);font-size:13px;opacity:1;transform:none;transition:opacity .14s var(--ease),transform .14s var(--ease),overlay .14s allow-discrete,display .14s allow-discrete}
 @starting-style{.xs-dp:popover-open{opacity:0;transform:translateY(-4px)}}
 /* Closing fades out the same way (display and overlay wait for it). */
 .xs-dp:not(:popover-open){opacity:0;transform:translateY(-4px)}
