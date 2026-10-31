@@ -197,7 +197,16 @@ def test_boundary_map_near_the_supported_years_stops_at_their_edge():
     assert [b['local'] for b in early['boundaries']]==['1901-01-01T01:00:00+08:00']
     assert any('1901–2099' in line for line in early['limitations'])
     late=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2099-12-31T23:30'),uncertainty_minutes=60))
-    assert late['clipped_to_supported_range']==['end'] and late['end_utc']=='2099-12-31T15:59:59+00:00'
+    assert late['clipped_to_supported_range']==['end'] and late['end_utc']=='2099-12-31T16:00:00+00:00'
+    # The end is exclusive, so a birth in the last second of 2099 still lies in a segment.
+    last=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2099-12-31T23:59:59'),uncertainty_minutes=5))
+    assert last['segments'][-1]['end_local_exclusive']=='2100-01-01T00:00:00+08:00'
+    assert last['segments'][-1]['start_utc_inclusive']<=last['birth_utc']<last['segments'][-1]['end_utc_exclusive']
+    # In solar time the edge is where the solar reading leaves 2099: an hour early at longitude 135 in China time.
+    solar=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2099-12-31T22:30',time_mode='mean_solar',longitude=135.0),uncertainty_minutes=60))
+    assert solar['clipped_to_supported_range']==['end'] and solar['segments'][-1]['end_local_exclusive']=='2099-12-31T23:00:00+08:00'
+    early_solar=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='1901-01-01T01:30',time_mode='mean_solar',longitude=100.0),uncertainty_minutes=120))
+    assert early_solar['segments'][0]['start_local_inclusive']=='1901-01-01T01:20:00+08:00'
     assert late['segments'][0]['start_local_inclusive']=='2099-12-31T22:30:00+08:00'
     # Inside the supported years nothing is cut and no line about it is added.
     inside=birth_boundary_map(BirthBoundaryRequest(birth=birth(birth_datetime='2000-08-16T14:00'),uncertainty_minutes=60))
@@ -290,6 +299,16 @@ def test_report_opt_in_advanced_sections():
     assert len(dossier['sections'])==6
     response=CLIENT.post('/api/report',json={'birth':BASE,'include_dayun':True,'birth_boundary_minutes':8})
     assert response.status_code==200 and response.json()==dossier
+
+
+def test_report_says_what_a_cut_boundary_window_checked():
+    # The report and its Markdown carry the interval actually checked and the note that the rest was not.
+    dossier=structured_report(ReportRequest(birth=birth(birth_datetime='1901-01-01T00:10'),birth_boundary_minutes=60))
+    facts=next(x for x in dossier['sections'] if x['id']=='birth_boundaries')['facts']
+    assert '实际检查 1901-01-01T00:00:00+08:00 – 1901-01-01T01:10:00+08:00。' in facts
+    assert any('1901–2099' in fact for fact in facts) and '只检查到支持范围的边缘' in dossier['markdown']
+    inside=structured_report(ReportRequest(birth=birth(),birth_boundary_minutes=8))
+    assert not any('实际检查' in fact for x in inside['sections'] for fact in x['facts'])
 
 
 def test_report_default_unchanged_and_no_implied_direction():

@@ -219,6 +219,26 @@ def _wall_state(instant_utc: datetime, birth: BirthInput) -> tuple:
     return (effective.date(), date_roll, hour_branch_index(effective.hour), int(local.utcoffset().total_seconds()))
 
 
+def _within_supported_years(instant_utc: datetime, birth: BirthInput) -> bool:
+    local = instant_utc.astimezone(ZoneInfo(birth.timezone))
+    effective, _ = time_basis(local, birth.time_mode, birth.longitude)
+    return 1901 <= local.year <= 2099 and 1901 <= effective.year <= 2099
+
+
+def _supported_edge(outside: datetime, inside: datetime, supported) -> datetime:
+    """Bisect to within a second the edge between an unsupported and a supported instant: the first supported
+    instant when the edge is before the birth (an inclusive start), the first unsupported one after it (an exclusive
+    end)."""
+    lo, hi = (outside, inside) if outside < inside else (inside, outside)
+    while (hi - lo).total_seconds() > 1:
+        mid = lo + timedelta(seconds=(hi - lo).total_seconds() // 2)
+        if supported(mid) == (outside < inside):
+            hi = mid
+        else:
+            lo = mid
+    return hi
+
+
 def _instant_ceil_second(value: datetime) -> datetime:
     return value.replace(microsecond=0) + (timedelta(seconds=1) if value.microsecond else timedelta())
 
@@ -247,6 +267,9 @@ def _find_first_changed_second(start: datetime, end: datetime, state, reference:
     return candidate
 
 
+CLIPPED_WINDOW_NOTE = '误差区间超出支持的 1901–2099 年，只检查到支持范围的边缘；超出的部分没有检查。'
+
+
 def birth_boundary_map(request: BirthBoundaryRequest) -> dict:
     """Partition a UTC birth interval at every modeled discontinuity.
 
@@ -259,13 +282,16 @@ def birth_boundary_map(request: BirthBoundaryRequest) -> dict:
     start = midpoint - timedelta(minutes=request.uncertainty_minutes)
     end = midpoint + timedelta(minutes=request.uncertainty_minutes)
     # A birth within the window of the supported years' edge keeps the side that can be charted: the interval stops
-    # at the first or last supported local second, and the response names the side that was cut.
+    # where the reading the charts use (clock or solar time) leaves 1901–2099, and the response names the side cut.
+    supported = lambda moment: _within_supported_years(moment, request.birth)
+    if not supported(midpoint):
+        raise ValueError('Supported birth years: 1901–2099')
     clipped = []
-    if start.astimezone(original.tzinfo).year < 1901:
-        start = datetime(1901, 1, 1, tzinfo=original.tzinfo).astimezone(timezone.utc)
+    if not supported(start):
+        start = _supported_edge(start, midpoint, supported)
         clipped.append('start')
-    if end.astimezone(original.tzinfo).year > 2099:
-        end = datetime(2099, 12, 31, 23, 59, 59, tzinfo=original.tzinfo).astimezone(timezone.utc)
+    if not supported(end - timedelta(seconds=1)):
+        end = _supported_edge(end, midpoint, supported)
         clipped.append('end')
     state = lambda moment: _wall_state(moment, request.birth)
     raw_events: dict[datetime, set[str]] = {}
@@ -339,5 +365,5 @@ def birth_boundary_map(request: BirthBoundaryRequest) -> dict:
             '边界仅覆盖当前八字及部分紫微实现的日、时辰、十二节令、时区转变；不保证覆盖未实现的流派或星曜规则。',
             '边界时间已量化到1秒，天文学数值存在求根误差；不应据此声称秒级出生时间的真实准确性。',
             '每段按中点计算代表盘，边界端点附近应使用原始出生记录重新核对。',
-        ] + (['误差区间超出支持的 1901–2099 年，只检查到支持范围的边缘；超出的部分没有检查。'] if clipped else []),
+        ] + ([CLIPPED_WINDOW_NOTE] if clipped else []),
     }

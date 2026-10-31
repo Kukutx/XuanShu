@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Literal
-from .advanced import DayunRequest, BirthBoundaryRequest, dayun_sequence, birth_boundary_map
+from .advanced import DayunRequest, BirthBoundaryRequest, CLIPPED_WINDOW_NOTE, dayun_sequence, birth_boundary_map
 
 from . import __version__
 from .engines import BirthInput, calculate_bazi, calculate_ziwei
@@ -113,6 +113,10 @@ def structured_report(request: ReportRequest) -> dict:
             uncertainty_minutes=request.birth_boundary_minutes))
         sections.append({'id': 'birth_boundaries', 'title': '出生时刻模型边界地图', 'facts': [
             f"检查前后 {request.birth_boundary_minutes} 分钟，检出 {len(boundaries['boundaries'])} 个边界、{len(boundaries['segments'])} 段代表盘。",
+            # Cut at the supported years, the report says what was actually checked and that the rest was not.
+            *(['实际检查 ' + boundaries['segments'][0]['start_local_inclusive'] + ' – '
+               + boundaries['segments'][-1]['end_local_exclusive'] + '。', CLIPPED_WINDOW_NOTE]
+              if boundaries['clipped_to_supported_range'] else []),
             *[b['local'] + ' ' + '/'.join(b['types']) for b in boundaries['boundaries']],
             '数值定位精度不等于真实出生记录精度；仅覆盖当前实现的流派规则。',
         ], 'provenance': 'app.advanced.birth_boundary_map / app.timebasis / app.astronomy'})

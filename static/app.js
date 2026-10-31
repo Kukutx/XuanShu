@@ -7377,8 +7377,8 @@ function renderBirthBoundaries(){
   meta(result,[`检测区间 ±${d.uncertainty_minutes}分钟`,`${d.boundaries.length}个边界`,`${d.segments.length}个区间`]);
   // Near the edge of the supported years the window stops there, and the page says which side was cut.
   const clipped = d.clipped_to_supported_range || [];
-  if (clipped.includes('start')) append(result, 'p', 'info-inline', '误差区间早于 1901 年的部分超出支持范围，从 1901-01-01 00:00 起检查。');
-  if (clipped.includes('end')) append(result, 'p', 'info-inline', '误差区间晚于 2099 年的部分超出支持范围，检查到 2099-12-31 23:59:59 为止。');
+  if (clipped.includes('start')) append(result, 'p', 'info-inline', '误差区间早于支持范围（1901 年起）的部分没有检查，时间轴从支持范围的起点开始。');
+  if (clipped.includes('end')) append(result, 'p', 'info-inline', '误差区间晚于支持范围（到 2099 年为止）的部分没有检查，时间轴到支持范围的终点为止。');
   // The interval as a line: a band per segment, a numbered tick per switch and a pin at the recorded birth time.
   // The window is symmetric around the birth instant unless it was cut at the supported years. (Old zone offsets such
   // as +01:19:32 do not parse in JS, so the local birth string is not read as a time; the UTC instant is.)
@@ -8200,7 +8200,7 @@ function cwToolFact(tool, r, shown, hourUnknown) {
     const p = r.start_age_traditional_parts;
     return [r.direction === 'forward' ? '顺排' : '逆排', ' · ', '起运约', ' ', p.years, ' 岁', ' ', p.months, ' 个月', ' · ', r.periods.length, ' 步大运'];
   }
-  if (tool === 'birth_boundary_map') return ['误差', ' ±' + r.uncertainty_minutes, ' 分钟', ' · ', r.boundaries.length, ' 个规则切换点'];
+  if (tool === 'birth_boundary_map') return ['误差', ' ±' + r.uncertainty_minutes, ' 分钟', ...((r.clipped_to_supported_range || []).length ? [' · ', '已截到支持范围'] : []), ' · ', r.boundaries.length, ' 个规则切换点'];
   if (tool === 'structured_report') return [r.sections.length, ' 节'];
   if (tool === 'decision_matrix' && r.ranked_options.length) return ['排在第一', ' ', r.ranked_options[0].name];
   if (/^qimen_hour_chart_/.test(tool)) return [r.solar_term, ' · ', r.dun, ' ' + r.bureau, ' 局', ' · ', r.yuan, ' · ', '值符', ' ', r.zhi_fu_star, ' · ', '值使', ' ', r.zhi_shi_door];
