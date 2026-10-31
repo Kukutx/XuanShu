@@ -158,9 +158,20 @@ def test_contrast_theme_keeps_a_frame_on_every_button():
     # Gold-filled run buttons and buttons that fill a heading cell keep a frame once a contrast theme drops colour.
     assert '.consult-shortcuts>button.scan-run,.qr-run .scan-run,.layer-btn,.api-send{border:1px solid ButtonText}' in CSS
     assert '  .fh-pick,.yt-year,.tl-year,.ds-pick,.qr-extra-remove{border:1px solid ButtonText}' in CSS
-    smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
-    assert "found += page.evaluate(UNFRAMED)" in smoke
 
 
 def test_json_tree_rows_are_tall_enough_to_tap():
     assert '.jv-node>summary{padding-block:2.5px}' in CSS
+
+
+def test_contrast_theme_keeps_drop_downs_and_data_marks():
+    # Gradients go in a contrast theme: the browser's own drop-down comes back, bars and pins take system colours.
+    assert '  select:not([multiple]):not([size]){appearance:auto}' in CSS
+    assert '  .element-fill,.element-legend i,.dm-mark,.ps-mark::after{forced-color-adjust:none;background:CanvasText}' in CSS
+    assert '  .today-term-fill,.bt-pin{forced-color-adjust:none;background:Highlight}' in CSS
+    assert '  .dm-seg,.dm-swatch,.ag-dot,.group-dot:not(.dot-unknown){forced-color-adjust:none}' in CSS
+    # Only the chosen candidate day takes the Highlight ring; every candidate has its own frame.
+    assert '.ds-day.is-selected,.dy-decade.is-picked,' in CSS and '.ds-day.is-pick,.dy-decade' not in CSS
+    assert '.qr-extra-remove{min-width:24px;min-height:24px;' in CSS
+    smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
+    assert 'found += page.evaluate(UNFRAMED) + page.evaluate(MARKS_LOST)' in smoke

@@ -8680,7 +8680,8 @@ function measureSelects() {
     if (sel.multiple || sel.size > 1 || sel.options.length < 2 || !drawn(sel)) return;
     const style = getComputedStyle(sel);
     const labels = [...sel.options].map(option => option.label);
-    const key = [sel.id, sel.className, style.font, innerWidth, ...labels].join('\n');
+    // The appearance is part of the key: a contrast theme brings back the browser's own drop-down, sized its own way.
+    const key = [sel.id, sel.className, style.font, style.appearance, innerWidth, ...labels].join('\n');
     if (sel.xsSteadyKey === key) return;
     if (steadyKnown.has(key)) {known.push([sel, key]); return;}
     ruler.font = style.font || `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
@@ -8736,6 +8737,8 @@ if (BASE_SELECT) {
       });
     });
   }).observe(document.body, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['open']});
+  // A contrast theme switched on or off changes how a select is drawn, so every select is measured again.
+  if (window.matchMedia) matchMedia('(forced-colors: active)').addEventListener('change', () => document.querySelectorAll('select').forEach(steadySelect));
   // A select that was hidden (a folded section, another tab) is measured when it is shown or first used.
   document.addEventListener('toggle', e => {if (e.target instanceof Element) e.target.querySelectorAll('select').forEach(steadySelect);}, true);
   // Measured at once on first use, before its list opens, so the list never sees the option change under it.

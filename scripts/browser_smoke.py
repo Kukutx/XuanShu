@@ -168,6 +168,30 @@ UNFRAMED = """() => {
   return [...out];
 }"""
 
+# Bars, swatches and dots drawn only with a background (no text inside): tagged with the page's own colours, then
+# checked in a contrast theme, where a background turns to Canvas, for a frame, an outline or a colour of their own.
+MARKS_TAG = """() => {
+  for (const el of document.querySelectorAll('#result *')) {
+    if (!el.checkVisibility() || el.textContent.trim() || el.closest('svg') || el.querySelector('svg, img, canvas')
+        || ['INPUT', 'SELECT', 'TEXTAREA', 'IMG', 'CANVAS'].includes(el.tagName)) continue;
+    const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+    if (r.width * r.height >= 9 && ((s.backgroundColor !== 'rgba(0, 0, 0, 0)' && !/, 0\\)$/.test(s.backgroundColor)) || s.backgroundImage !== 'none'))
+      el.dataset.smokeMark = '';
+  }
+}"""
+MARKS_LOST = """() => {
+  const out = new Set(), page = getComputedStyle(document.body).backgroundColor;
+  for (const el of document.querySelectorAll('[data-smoke-mark]')) {
+    const s = getComputedStyle(el), bg = s.backgroundColor;
+    const kept = s.forcedColorAdjust === 'none' || s.outlineStyle !== 'none' || s.boxShadow !== 'none'
+      || ['Top', 'Right', 'Bottom', 'Left'].some(k => parseFloat(s['border' + k + 'Width']) > 0 && s['border' + k + 'Style'] !== 'none')
+      || !['none', 'none, none'].includes(s.backgroundImage) || (bg !== page && bg !== 'rgba(0, 0, 0, 0)' && !/, 0\\)$/.test(bg));
+    if (!kept) out.add('lost in contrast theme ' + el.tagName.toLowerCase() + '.' + String(el.className).split(' ').filter(Boolean).join('.'));
+    el.removeAttribute('data-smoke-mark');
+  }
+  return [...out];
+}"""
+
 # Text fields whose hint is wider than the field, measured in the field's own font (folded settings opened for it).
 CLIPPED_HINTS = """() => {
   const folds = [...document.querySelectorAll('#connection-settings, .vault-pane')].filter(d => !d.open);
@@ -3088,7 +3112,8 @@ def main() -> None:
             # No element runs out of its box on any page in English at 900 px, where the side panel is back and the
             # column is at its narrowest (a palace's stars, the rule cards, a date-scan day, a group member's pillars),
             # nor on a 360 px phone (an hour of the Qimen day strip). At 900 px every control also keeps a frame in a
-            # Windows contrast theme (the Qimen check's run button, a flying-star palace, a timeline year).
+            # Windows contrast theme (the Qimen check's run button, a flying-star palace, a timeline year), and no bar
+            # or swatch drawn only with a background disappears there (the five-element bars, a decision weight).
             back, overflow = page.evaluate('active'), {}
             for width in (900, 360):
               page.set_viewport_size({'width': width, 'height': 920})
@@ -3097,8 +3122,9 @@ def main() -> None:
                 page.wait_for_timeout(1500)
                 found = page.evaluate(OVERFLOW)
                 if width == 900:
+                    page.evaluate(MARKS_TAG)
                     page.emulate_media(forced_colors='active')
-                    found += page.evaluate(UNFRAMED)
+                    found += page.evaluate(UNFRAMED) + page.evaluate(MARKS_LOST)
                     page.emulate_media(forced_colors='none')
                 if tab == 'rule-matrix':
                     # A rule card is at least 16em wide, or alone on its row.
@@ -3152,12 +3178,14 @@ def main() -> None:
             page.wait_for_function(f"() => {level} === {json.dumps(' '.join(marks))}", timeout=10000)
             # Windows contrast themes repaint every colour: a checked box and the selected tool keep a system-colour mark.
             page.emulate_media(forced_colors='active')
+            # As above, the box's colour transition is off so the computed colour is the settled one.
             marks = page.evaluate('''() => {
+              const still = document.createElement('style'); still.textContent = '#late_zi_day_rollover{transition:none!important}'; document.head.append(still);
               const box = document.getElementById('late_zi_day_rollover'), was = box.checked; box.checked = true;
               const style = getComputedStyle(box), tab = getComputedStyle(document.querySelector('.tab.active'));
               const out = [style.backgroundColor, getComputedStyle(document.body).backgroundColor, tab.outlineStyle,
                            getComputedStyle(document.getElementById('run-btn')).borderTopStyle];
-              box.checked = was; return out;}''')
+              box.checked = was; still.remove(); return out;}''')
             assert marks[0] != marks[1] and marks[2] == 'solid' and marks[3] == 'solid', marks
             page.emulate_media(forced_colors='none')
             # Every IANA zone is listed (common ones first, then by region with the UTC offset); a saved zone the list
