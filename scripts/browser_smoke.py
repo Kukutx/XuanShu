@@ -213,6 +213,27 @@ CUT_TEXT = """() => {
   return [...out];
 }"""
 
+# Controls whose look does not change when they take keyboard focus: a chosen item's own ring hiding the focus ring,
+# a field whose only mark is a shadow a contrast theme drops. Transitions are held still while reading; a ring drawn
+# on a child (the five-element and group pictures) or on the frame around the question box counts.
+FOCUS_HIDDEN = """() => {
+  const still = document.createElement('style'); still.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}'; document.head.append(still);
+  const one = el => {const s = getComputedStyle(el); return [s.outlineStyle, s.outlineWidth, s.outlineColor, s.outlineOffset, s.boxShadow, s.borderColor, s.backgroundColor, s.textDecorationLine].join('|');};
+  const look = el => one(el) + (el.closest('.chat-composer') ? one(el.closest('.chat-composer')) : '')
+    + [...el.querySelectorAll('.wx-focus-ring, .node-disc')].map(n => {const t = getComputedStyle(n); return t.opacity + t.strokeWidth + t.strokeDasharray;}).join('');
+  const back = document.activeElement, out = new Set();
+  const items = [...document.querySelectorAll('body :is(a[href], button, input, select, textarea, summary, [tabindex])')]
+    .filter(el => el.tabIndex >= 0 && !el.disabled && el.checkVisibility() && !el.closest('[inert]')).slice(0, 500);
+  for (const el of items) {
+    el.focus({preventScroll: true, focusVisible: true});
+    if (document.activeElement !== el || !el.matches(':focus-visible')) continue;
+    const on = look(el); el.blur();
+    if (on === look(el)) out.add('no focus mark ' + el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + '.' + [...el.classList].join('.'));
+  }
+  still.remove(); if (back && back.focus) back.focus({preventScroll: true});
+  return [...out];
+}"""
+
 # Text fields whose hint is wider than the field, measured in the field's own font (folded settings opened for it).
 CLIPPED_HINTS = """() => {
   const folds = [...document.querySelectorAll('#connection-settings, .vault-pane')].filter(d => !d.open);
@@ -3135,7 +3156,9 @@ def main() -> None:
             # nor on a 360 px phone (an hour of the Qimen day strip). At 900 px every control also keeps a frame in a
             # Windows contrast theme (the Qimen check's run button, a flying-star palace, a timeline year), and no bar
             # or swatch drawn only with a background disappears there (the five-element bars, a decision weight). The
-            # same holds with WCAG 1.4.12 spacing (a decade's age line, a star tag, a member's name, a festival).
+            # same holds with WCAG 1.4.12 spacing (a decade's age line, a star tag, a member's name, a festival), and
+            # at 900 px every visible control shows keyboard focus in the light and the contrast theme (the selected
+            # palace, a text field).
             back, overflow = page.evaluate('active'), {}
             for width in (900, 360):
               page.set_viewport_size({'width': width, 'height': 920})
@@ -3149,9 +3172,12 @@ def main() -> None:
                 found += ['spaced ' + f for f in page.evaluate(OVERFLOW) + sorted(set(page.evaluate(CUT_TEXT)) - cut)]
                 spaced.evaluate('s => s.remove()')
                 if width == 900:
+                    # Every visible control shows that it has keyboard focus, in the light and the contrast theme alike.
+                    page.keyboard.press('Shift')
+                    found += page.evaluate(FOCUS_HIDDEN)
                     page.evaluate(MARKS_TAG)
                     page.emulate_media(forced_colors='active')
-                    found += page.evaluate(UNFRAMED) + page.evaluate(MARKS_LOST)
+                    found += page.evaluate(UNFRAMED) + page.evaluate(MARKS_LOST) + page.evaluate(FOCUS_HIDDEN)
                     page.emulate_media(forced_colors='none')
                 if tab == 'rule-matrix':
                     # A rule card is at least 16em wide, or alone on its row.
