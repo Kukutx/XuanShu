@@ -8763,6 +8763,13 @@ const remarkScrollAreas = () => {cancelAnimationFrame(scrollAreaFrame); scrollAr
 window.addEventListener('resize', remarkScrollAreas);
 // Translated text is longer or shorter, so what overflows changes with the language even without a redraw.
 document.addEventListener('xuanshu-language', remarkScrollAreas);
+// So does the browser's text size, which a reader can change while the page is open: a hidden 1rem-wide probe
+// resizes with it.
+if (typeof ResizeObserver === 'function') {
+  const probe = append(document.body, 'span', 'rem-probe');
+  probe.setAttribute('aria-hidden', 'true');
+  new ResizeObserver(remarkScrollAreas).observe(probe);
+}
 // A reply that comes back after another chart was cast belongs to the old chart, so it is dropped (STALE). So is one
 // overtaken by a newer request to the same tool: a redraw while an automatic run is on its way brings back an enabled
 // button, and a run pressed then must not be overwritten when the older reply lands after it.

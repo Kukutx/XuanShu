@@ -198,6 +198,9 @@ MARKS_LOST = """() => {
 # WCAG 1.4.12: a reader's own style sheet may set line height to 1.5, letter spacing to 0.12em, word spacing to 0.16em
 # and paragraph spacing to 2em; nothing may run out of its box or be cut off when it does.
 SPACING = '* {line-height:1.5 !important; letter-spacing:0.12em !important; word-spacing:0.16em !important} p {margin-bottom:2em !important}'
+# The browser's own text size at its largest common setting (Chrome's 'Very large', 24 px for 16): the page's sizes
+# are in rem, so all its text grows by half; nothing may run out of its box or be cut off.
+LARGER = 'html{font-size:150% !important}'
 # Text cut off by a box that hides its overflow. A label in the luck timeline is cut to its run of years on purpose
 # (the cell's tip has it whole), and so is the one-line preview of a folded data branch.
 CUT_TEXT = """() => {
@@ -3156,9 +3159,10 @@ def main() -> None:
             # nor on a 360 px phone (an hour of the Qimen day strip). At 900 px every control also keeps a frame in a
             # Windows contrast theme (the Qimen check's run button, a flying-star palace, a timeline year), and no bar
             # or swatch drawn only with a background disappears there (the five-element bars, a decision weight). The
-            # same holds with WCAG 1.4.12 spacing (a decade's age line, a star tag, a member's name, a festival), and
-            # at 900 px every visible control shows keyboard focus in the light and the contrast theme (the selected
-            # palace, a text field).
+            # same holds with WCAG 1.4.12 spacing (a decade's age line, a star tag, a member's name, a festival) and
+            # with the browser's text size at 'Very large' (a tool group heading, a pillar link's label, a lunar day,
+            # a Qimen palace), and at 900 px every visible control shows keyboard focus in the light and the contrast
+            # theme (the selected palace, a text field).
             back, overflow = page.evaluate('active'), {}
             for width in (900, 360):
               page.set_viewport_size({'width': width, 'height': 920})
@@ -3171,6 +3175,12 @@ def main() -> None:
                 spaced = page.add_style_tag(content=SPACING)
                 found += ['spaced ' + f for f in page.evaluate(OVERFLOW) + sorted(set(page.evaluate(CUT_TEXT)) - cut)]
                 spaced.evaluate('s => s.remove()')
+                # Nor with a larger browser text size; the tables are measured again when it changes (the rem probe).
+                larger = page.add_style_tag(content=LARGER)
+                page.wait_for_timeout(300)
+                found += ['larger ' + f for f in page.evaluate(OVERFLOW) + sorted(set(page.evaluate(CUT_TEXT)) - cut)]
+                larger.evaluate('s => s.remove()')
+                page.wait_for_timeout(300)
                 if width == 900:
                     # Every visible control shows that it has keyboard focus, in the light and the contrast theme alike.
                     page.keyboard.press('Shift')

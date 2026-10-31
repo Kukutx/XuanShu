@@ -22,7 +22,7 @@ def test_day_pillar_badge_and_english_headings():
 
 
 def test_latin_text_uses_the_sans_face():
-    assert '--sans:' in CSS and 'font:14px/1.65 var(--sans)' in CSS
+    assert '--sans:' in CSS and 'font:.875rem/1.65 var(--sans)' in CSS
     assert '.void-mark{position:absolute;top:2px;right:2px;font-family:var(--sans);' in CSS
     rule = re.search(r':lang\(en\) :is\(([^)]*(?:\([^)]*\)[^)]*)*)\)\{font-family:var\(--sans\)\}', CSS)
     assert rule and all(s in rule.group(1) for s in ('.wuxing-detail h5 b', '.element-bar>b', '.transform-star', '.cal-title', '.share-text'))
@@ -78,27 +78,27 @@ def test_taiji_emblem_is_drawn_and_centre_text_sits_on_plates():
 def test_small_labels_are_at_least_eleven_pixels():
     # Badges and notes that stand on their own (the year marks, this chart, duty star and door, the UTC start, the
     # lunar entry hint, parameter types, the jie note in the officers month) are 11px; the phone calendar keeps its own.
-    for rule in ('.ay-facts small.ay-now{margin-left:6px;font-size:11px;', 'small.yt-now{font-size:11px;', '.bt-utc{font-size:11px;',
-                 '.bt-pillar small{font-size:11px;', '.qh-tag{font-size:11px;', '.qh-duty{font-size:11px;', '.ic-tag{font-size:11px;',
-                 '.form-section>summary small{color:var(--muted);font-size:11px;', '.ag-param small{font-size:11px;',
-                 '.of-jie{display:block;margin-top:2px;font-size:11px;'):
+    for rule in ('.ay-facts small.ay-now{margin-left:6px;font-size:.6875rem;', 'small.yt-now{font-size:.6875rem;', '.bt-utc{font-size:.6875rem;',
+                 '.bt-pillar small{font-size:.6875rem;', '.qh-tag{font-size:.6875rem;', '.qh-duty{font-size:.6875rem;', '.ic-tag{font-size:.6875rem;',
+                 '.form-section>summary small{color:var(--muted);font-size:.6875rem;', '.ag-param small{font-size:.6875rem;',
+                 '.of-jie{display:block;margin-top:2px;font-size:.6875rem;'):
         assert rule in CSS, rule
     assert 'html[lang=en] .qh-name,html[lang=en] .qh-bureau,html[lang=en] .qh-duty{white-space:normal;text-align:center;line-height:1.2}' in CSS
     assert 'html[lang=en] .ic-name{white-space:normal;' in CSS
     # On a 360px phone today's mark keeps inside its day.
-    assert '.of-date{top:3px;left:4px;font-size:10px}.of-day.is-today .of-date{left:2px;padding:0 3px}' in CSS
+    assert '.of-date{top:3px;left:4px;font-size:.625rem}.of-day.is-today .of-date{left:2px;padding:0 3px}' in CSS
 
 
 def test_more_small_labels_and_narrow_cells():
     # The rest of the labels standing on their own are 11px too: the palette kind, the pillar search axis, the deep
     # review pillars and file hashes, the group pillars, the report step numbers, the API required mark and the
     # date scan notes; the dense timeline and date picker cells keep theirs.
-    for rule in ('.palette-kind{flex:none;padding:1px 6px;border:1px solid var(--border);border-radius:999px;font-size:11px;',
-                 'width:18px;height:18px;border-radius:999px;background:var(--panel3);font-size:11px;', '.ps-mark small{font-size:11px;',
-                 '.ps-now small{position:absolute;top:15px;left:50%;transform:translateX(-50%);font-size:11px;',
-                 '.ev-self{border-left:1px solid currentColor;padding-left:4px;margin-left:2px;font-size:11px}', '.ev-pillar small{font-size:11px;',
-                 '.ev-hash{font-size:11px;', '.group-pillar small{font-size:11px;', '.api-req{display:inline-block;margin-left:6px;font-size:11px;',
-                 '.ds-reason{display:block;margin-top:3px;font-size:11px;', '.ds-hours{display:flex;flex-direction:column;margin-top:3px;font-size:11px;'):
+    for rule in ('.palette-kind{flex:none;padding:1px 6px;border:1px solid var(--border);border-radius:999px;font-size:.6875rem;',
+                 'width:18px;height:18px;border-radius:999px;background:var(--panel3);font-size:.6875rem;', '.ps-mark small{font-size:.6875rem;',
+                 '.ps-now small{position:absolute;top:15px;left:50%;transform:translateX(-50%);font-size:.6875rem;',
+                 '.ev-self{border-left:1px solid currentColor;padding-left:4px;margin-left:2px;font-size:.6875rem}', '.ev-pillar small{font-size:.6875rem;',
+                 '.ev-hash{font-size:.6875rem;', '.group-pillar small{font-size:.6875rem;', '.api-req{display:inline-block;margin-left:6px;font-size:.6875rem;',
+                 '.ds-reason{display:block;margin-top:3px;font-size:.6875rem;', '.ds-hours{display:flex;flex-direction:column;margin-top:3px;font-size:.6875rem;'):
         assert rule in CSS, rule
     assert 'html[lang="en"] .ds-reason{' not in CSS
     # A date scan day too narrow for its hour and bureau puts the bureau on the next line instead of over the next day.
@@ -145,10 +145,10 @@ def test_long_typed_names_wrap_inside_their_cards():
     assert '.user-text{overflow-wrap:anywhere}' in CSS
     assert ':is(td,th).user-text,:is(td,th) .user-text{overflow-wrap:break-word}' in CSS
     # Only the tags are pills: a name or a day count inside a tag is plain text, and a wrapped tag is a rounded box.
-    assert '.meta-tags span{' not in CSS and '.meta-tags>span{font-size:12px;' in CSS and 'border-radius:15px}' in CSS
+    assert '.meta-tags span{' not in CSS and '.meta-tags>span{font-size:.75rem;' in CSS and 'border-radius:15px}' in CSS
     # A saved profile's name and birth time wrap as a pair, so a medium name moves the time down instead of breaking.
     assert '.group-profile-text{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px}' in CSS
-    assert '.group-profile small{margin-left:auto;font-size:11px;white-space:nowrap}' in CSS
+    assert '.group-profile small{margin-left:auto;font-size:.6875rem;white-space:nowrap}' in CSS
     js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     assert "const what = append(row, 'span', 'group-profile-text');" in js
     assert '  .dm-sens .dm-sens-name{white-space:normal}' in CSS
@@ -187,7 +187,7 @@ def test_wider_text_spacing_cuts_nothing_off():
     assert '.luck-cell .luck-marks{margin-inline:-5px;max-width:calc(100% + 10px)}' in CSS
     assert '.luck-cell .luck-mark,.group-year-row .luck-mark{max-width:100%;white-space:normal}' in CSS
     assert '.group-member-head strong{min-width:0}' in CSS
-    assert '.ag-method{min-width:0;' in CSS and '.ag-param code{min-width:0;font-size:11.5px;overflow-wrap:anywhere}' in CSS
+    assert '.ag-method{min-width:0;' in CSS and '.ag-param code{min-width:0;font-size:.71875rem;overflow-wrap:anywhere}' in CSS
     assert '.chat-panel .profile-actions button{width:auto;flex:0 1 auto;max-width:100%;' in CSS
     assert '.qr-value dd{display:flex;flex-wrap:wrap;gap:0 8px;margin:0;color:var(--text);overflow-wrap:anywhere}' in CSS
     assert 'width:max-content;margin:2px auto 0' not in CSS
@@ -212,3 +212,20 @@ def test_keyboard_focus_stays_visible():
     assert ',[aria-pressed="true"]):focus-visible{outline:6px double Highlight;outline-offset:-3px}' in CSS
     smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
     assert 'found += page.evaluate(UNFRAMED) + page.evaluate(MARKS_LOST) + page.evaluate(FOCUS_HIDDEN)' in smoke
+
+
+def test_text_follows_the_browser_text_size():
+    # Font sizes are in rem, so a reader who sets a larger text size in the browser gets larger text. Only the
+    # labels drawn inside the fixed-size SVG charts and the logo glyph in its fixed square keep px.
+    px = set(re.findall(r'([^{}]*)\{[^{}]*font(?:-size)?:[^;}]*\d+(?:\.\d+)?px', CSS))
+    svg_labels = re.compile(r'\.(wx-char|wx-count|wx-group|edge-count|node-stem|node-name|brand-mark)\b')
+    assert px and all(svg_labels.search(sel) for sel in px), sorted(sel for sel in px if not svg_labels.search(sel))[:5]
+    assert 'font:.875rem/1.65 var(--sans)' in CSS
+    # The conversion kept every size: at the default text size the smallest is still the 9 px of a phone calendar day.
+    sizes = [round(float(v) * 16, 1) for v in re.findall(r'font-size:(\d*\.?\d+)rem', CSS)]
+    assert len(sizes) > 600 and min(sizes) == 9 and sizes.count(11) > 100
+    # Tables are measured again when the reader changes the text size with the page open, and the smoke test runs
+    # every page at the browser's 'Very large' text size.
+    assert "new ResizeObserver(remarkScrollAreas).observe(probe);" in APP and '.rem-probe{position:absolute;' in CSS and 'width:1rem;' in CSS
+    smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
+    assert "LARGER = 'html{font-size:150% !important}'" in smoke and "found += ['larger ' + f for f in" in smoke
