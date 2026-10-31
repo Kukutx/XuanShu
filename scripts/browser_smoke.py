@@ -25,6 +25,19 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 ROOT = Path(__file__).resolve().parents[1]
+# A table that stacks (stackTable, fitStacks) either keeps columns that fit its wrapper or stacks each row, the cells
+# given as full lines then each taking a whole line with its label shown; either way it keeps its table role.
+STACK_STATE = '''([id, cells]) => {const t = document.getElementById(id), lines = [...t.querySelectorAll(cells)];
+  return {stacked: t.classList.contains('is-stacked'), scroll: t.parentElement.scrollWidth > t.parentElement.clientWidth + 1,
+    full: lines.length > 0 && lines.every(c => c.getBoundingClientRect().width >= t.getBoundingClientRect().width - 20),
+    labels: lines.every(c => c.querySelector('.dy-stack-label').checkVisibility()), role: t.getAttribute('role'),
+    heads: [...t.querySelectorAll('thead th')].every(th => th.getAttribute('role') === 'columnheader')};}'''
+STACKED = {'stacked': True, 'scroll': False, 'full': True, 'labels': True, 'role': 'table', 'heads': True}
+
+
+def stack_ok(state: dict) -> bool:
+    return state == STACKED or (not state['stacked'] and not state['scroll'] and not state['labels'] and state['role'] == 'table'
+                                and state['heads'])
 
 
 def install_professional_stand_in(birth: dict) -> None:
@@ -759,6 +772,23 @@ def main() -> None:
             page.locator('#today-chip').click()
             page.locator('.today-table').wait_for(timeout=30000)
             assert page.locator('.today-pillar').count() == 4 and page.locator('.today-table tbody tr').count() == 4
+            # On a phone in English today's pillars stack: the ten god and the branch relations under the pillar, each
+            # labelled, with no sideways scroll; in Chinese the four columns fit, or the rows stack.
+            size = page.viewport_size
+            page.set_viewport_size({'width': 390, 'height': 844})
+            page.locator('#ui-language').select_option('en')
+            page.wait_for_function("document.documentElement.lang === 'en'", timeout=5000)
+            page.wait_for_timeout(300)
+            state = page.evaluate(STACK_STATE, ['today-table', 'td.today-god, td.today-rel'])
+            assert state == STACKED, state
+            page.locator('#ui-language').select_option('zh-CN')
+            page.wait_for_function("document.documentElement.lang === 'zh-CN'", timeout=5000)
+            page.wait_for_timeout(300)
+            state = page.evaluate(STACK_STATE, ['today-table', 'td.today-god, td.today-rel'])
+            assert stack_ok(state), state
+            page.set_viewport_size(size)
+            page.wait_for_timeout(300)
+            assert page.locator('#today-table.is-stacked').count() == 0
             assert page.locator('.moon-icon').count() == 2  # the card and the header chip
             assert '日主 丙火' in page.locator('#result').inner_text()
             page.screenshot(path=str(screenshot_dir / '35-today.png'), full_page=True)
@@ -2840,6 +2870,26 @@ def main() -> None:
                 assert not any(t['over'] or t['narrow'] for t in kept), (width, kept)
                 assert all(not t['scroll'] for t in page.evaluate(stacked_tables)), width
             assert page.locator('#dayun-table.is-stacked').count() == 0, 'columns kept on a wide screen'
+            page.set_viewport_size({'width': 390, 'height': 844})
+            # The 神煞 rules and the year's four transformations stack on a phone the same way: the rule and the source,
+            # the main stars and the natal star each take a labelled line of their own, and neither scrolls sideways. The
+            # rule column of the 神煞 table is under 12em on a phone even in Chinese. On a wide screen it keeps its columns.
+            page.locator('[data-tab="bazi"]').click()
+            page.locator('#shensha-rules').wait_for(timeout=30000)
+            page.wait_for_timeout(300)
+            state = page.evaluate(STACK_STATE, ['shensha-rules', 'td.shensha-rule, td.shensha-source'])
+            assert state == STACKED, state
+            page.locator('[data-tab="annual"]').click()
+            page.locator('#annual-table').wait_for(timeout=30000)
+            page.wait_for_timeout(300)
+            state = page.evaluate(STACK_STATE, ['annual-table', 'td.ay-row-mains, td.ay-row-natal'])
+            assert stack_ok(state), state
+            page.set_viewport_size({'width': 1440, 'height': 844})
+            page.locator('[data-tab="bazi"]').click()
+            page.locator('#shensha-rules').wait_for(timeout=30000)
+            page.wait_for_timeout(300)
+            assert stack_ok(page.evaluate(STACK_STATE, ['shensha-rules', 'td.shensha-rule, td.shensha-source']))
+            assert page.locator('#shensha-rules.is-stacked').count() == 0
             page.set_viewport_size({'width': 390, 'height': 844})
             # Today's pill in the officers month never covers that day's stem-branch.
             assert page.evaluate('''() => {const d = document.querySelector('.of-day.is-today'); return !d ||

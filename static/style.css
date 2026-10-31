@@ -720,6 +720,16 @@ button:disabled{cursor:not-allowed}
   .dy-stack.is-stacked .dayun-now{display:inline-block;margin:0 0 0 6px}
   .dy-stack.is-stacked td.dy-seq{min-width:1.2em;color:var(--muted);font-variant-numeric:tabular-nums}
   .dy-stack.is-stacked .dy-year-toggle{margin:-3px 0 -3px -6px}
+  /* 神煞 rules: the name and its pillars on one line, the rule and the source each on a line of its own. Today's pillars:
+     the ten god and the branch relations under the pillar. The year's four transformations: the palace beside the star,
+     the main stars and the natal one below. */
+  .data-table.shensha-table.is-stacked tbody td.shensha-places{display:flex;flex-wrap:wrap;gap:3px 12px}
+  .shensha-table.is-stacked .shensha-where + .shensha-where{margin-top:0}
+  .shensha-table.is-stacked td.shensha-rule,.shensha-table.is-stacked td.shensha-source,.today-table.is-stacked td.today-god,
+  .today-table.is-stacked td.today-rel,.ay-table.is-stacked td.ay-row-mains,.ay-table.is-stacked td.ay-row-natal{flex-basis:100%}
+  .shensha-table.is-stacked td.shensha-rule{line-height:1.6}
+  .today-table.is-stacked tbody tr>th:first-child{min-width:6.5em}
+  .ay-table.is-stacked td.ay-row-star{font-weight:600}
   /* The current row's dashed frame goes round the whole stacked row: on the unpadded first cell it crossed the text. */
   @media (forced-colors:active){.dy-stack.is-stacked tr.is-current{outline:2px dashed CanvasText;outline-offset:-2px}.dy-years.dy-stack.is-stacked tr.is-current>th:first-child{outline:none}}
 }
@@ -1795,6 +1805,7 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .today-facts{margin-top:10px}
 .today-empty{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:12px 14px}
 .today-table td,.today-table th{vertical-align:middle}
+.today-table td.pillar-cell{white-space:nowrap}
 .today-table td b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:16px;font-weight:500}
 .relation-chip{display:inline-block;margin:2px 6px 2px 0;padding:1px 8px;border-radius:999px;border:1px solid var(--border-strong);font-size:12px;white-space:nowrap}
 .relation-chip.rel-clash{border-color:var(--red);color:var(--red)}

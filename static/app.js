@@ -1841,19 +1841,22 @@ function renderShenshaRules(parent, b) {
   if (!found.length) {append(parent, 'p', 'info-inline', currentHourUnknown ? '已知的年、月、日三柱没有所收二十一种神煞。' : '四柱没有所收二十一种神煞。'); return;}
   const table = append(append(parent, 'div', 'table-wrap'), 'table', 'data-table shensha-table'); table.id = 'shensha-rules';
   const head = append(append(table, 'thead'), 'tr');
-  ['神煞', '所在', '查法', '出处'].forEach(x => append(head, 'th', null, x));
+  ['神煞', '所在', '查法', '出处'].forEach(x => {append(head, 'th', null, x).scope = 'col';});
   const body = append(table, 'tbody');
   (b.shensha_rules || []).filter(r => found.some(x => x.name === r.name)).forEach(r => {
     const tr = append(body, 'tr');
     append(tr, 'td', 'shensha-name', r.name);
-    const where = append(tr, 'td');
+    const where = append(tr, 'td', 'shensha-places');
     // One pillar per line, so no list separator needs translating.
     found.filter(x => x.name === r.name).forEach(x => {
       const item = append(where, 'span', 'shensha-where', nameMap[x.pillar] + b.pillars[x.pillar].text); tip(item, shenshaBasis(x));
     });
-    append(tr, 'td', null, r.rule);
-    append(tr, 'td', 'muted', r.source);
+    stackLabel(append(tr, 'td', 'dy-fit-cell shensha-rule'), '查法').append(r.rule);
+    stackLabel(append(tr, 'td', 'muted shensha-source'), '出处').append(r.source);
   });
+  // The rule is a sentence: under 12em it wraps a few characters to a line, so the rows stack instead.
+  table.dataset.fitEm = '12';
+  stackTable(table);
   append(parent, 'p', 'info-inline', '神煞是传统标签：只收能在古籍里查到安法的二十一种，以日干、年干、年支、日支、月支和年柱纳音查四柱，时柱不作查法起点；同一种神煞各家表格不尽相同（如阴干是否有羊刃、红艳的几干），这里按所列出处。只列名称，不断吉凶。');
 }
 function findPalace(z, name) {return z.palaces.find(item => item.name === name) || z.palaces.find(item => item.is_ming);}
@@ -5108,23 +5111,24 @@ function renderToday() {
     else tags.push('选择性别后显示大运');
     meta(result, tags);
     const wrap = append(result, 'div', 'table-wrap');
-    const table = append(wrap, 'table', 'data-table today-table');
+    const table = append(wrap, 'table', 'data-table today-table'); table.id = 'today-table';
     const head = append(append(table, 'thead'), 'tr');
-    ['', todayPick ? '当日' : '今日', '天干十神', '地支与本命'].forEach(text => append(head, 'th', null, text));
+    ['', todayPick ? '当日' : '今日', '天干十神', '地支与本命'].forEach(text => {append(head, 'th', null, text).scope = 'col';});
     const body = append(table, 'tbody');
     me.today_against_natal.forEach(row => {
       const tr = append(body, 'tr');
       append(tr, 'th', null, nameMap[row.pillar_of]);
       const cell = append(tr, 'td', 'pillar-cell');
       append(cell, 'b', stemClass(row.pillar[0]), row.pillar[0]); append(cell, 'b', branchClass(row.pillar[1]), row.pillar[1]);
-      append(tr, 'td', null, row.stem_ten_god);
-      const rel = append(tr, 'td');
+      stackLabel(append(tr, 'td', 'today-god'), '天干十神').append(row.stem_ten_god);
+      const rel = stackLabel(append(tr, 'td', 'today-rel'), '地支与本命');
       if (!row.branch_relations.length) append(rel, 'span', 'muted', '—');
       row.branch_relations.forEach(x => {
         const chip = append(rel, 'span', 'relation-chip rel-' + {'六冲': 'clash', '六合': 'harmony', '同支': 'same'}[x.type]);
         texts(chip, x.type, ' · ', x.with, ' ' + x.natal_branch);
       });
     });
+    stackTable(table);
   }
   t.limitations.forEach(text => note(result, text));
 }
@@ -5897,13 +5901,16 @@ function renderAnnual() {
   a.transformations.forEach(t => {
     const tr = append(tbody, 'tr');
     const first = append(tr, 'th'); first.scope = 'row'; quietBadge(first, t.type, true); first.append(' '); append(first, 'span', null, t.type);
-    append(tr, 'td', null, t.star);
-    append(tr, 'td', null, t.natal_palace + ' · ' + t.natal_branch);
+    append(tr, 'td', 'ay-row-star', t.star);
+    stackLabel(append(tr, 'td'), '落本命宫').append(t.natal_palace + ' · ' + t.natal_branch);
     const palace = z.palaces.find(p => p.name === t.natal_palace);
-    const mains = append(tr, 'td');
-    if (palace && palace.main_stars.length) enumList(mains, palace.main_stars); else mains.textContent = '无主星';
-    if (!natalOpen) append(tr, 'td', null, t.natal_type || '—');
+    const mains = stackLabel(append(tr, 'td', 'dy-fit-cell ay-row-mains'), '该宫主星');
+    if (palace && palace.main_stars.length) enumList(mains, palace.main_stars); else mains.append('无主星');
+    if (!natalOpen) stackLabel(append(tr, 'td', 'ay-row-natal'), '本命此星').append(t.natal_type || '—');
   });
+  // Under 6em the main stars wrap a name to a line.
+  table.dataset.fitEm = '6';
+  stackTable(table);
   const actions = append(result, 'div', 'ay-actions');
   const layer = append(actions, 'button', 'tiny-button', '在紫微盘打开该年流年层'); layer.type = 'button'; layer.id = 'annual-open-year';
   layer.addEventListener('click', () => {
@@ -6725,7 +6732,8 @@ function renderReport() {
 }
 // When their columns do not fit, the decade, year, month and hour tables stack each row (.dy-stack.is-stacked in the
 // stylesheet): the relations and the stars take lines of their own under the pillar instead of columns a few characters
-// wide that stretch a row to hundreds of pixels and scroll sideways. The roles keep the rows a table to screen readers
+// wide that stretch a row to hundreds of pixels and scroll sideways. The 神煞 rules, today's pillars and the year's four
+// transformations stack the same way. The roles keep the rows a table to screen readers
 // once they no longer display as table rows; a label a stacked cell needs, its column head being out of sight, is hidden
 // from them as the head says it already.
 function stackTable(table) {
@@ -6738,13 +6746,13 @@ function stackTable(table) {
 // Whether the columns fit is the table's own question, not the screen's: the side panel, the language and the content
 // all change it (with the panel back on a small laptop the column is narrower than on a large phone, and English needs
 // more room than Chinese). So each is laid out as a table and measured, and stacked when it overflows its wrapper or
-// its stars column is left under 7.5em, where the names wrap a few characters to a line and stretch every row; within
-// one task, so nothing is painted in between.
+// its stars column (or the cell marked dy-fit-cell) is left under 7.5em (or its data-fit-em), where the text wraps a
+// few characters to a line and stretches every row; within one task, so nothing is painted in between.
 function fitStacks() {
   document.querySelectorAll('table.dy-stack').forEach(table => {
     table.classList.remove('is-stacked');
-    const stars = table.querySelector('tbody td.dy-star-cell');
-    const narrow = stars && stars.getBoundingClientRect().width < 7.5 * parseFloat(getComputedStyle(stars).fontSize);
+    const cell = table.querySelector('tbody td.dy-star-cell, tbody td.dy-fit-cell');
+    const narrow = cell && cell.getBoundingClientRect().width < parseFloat(table.dataset.fitEm || '7.5') * parseFloat(getComputedStyle(cell).fontSize);
     table.classList.toggle('is-stacked', narrow || table.offsetWidth > table.parentElement.clientWidth + 1);
   });
 }
