@@ -1102,6 +1102,10 @@ const UI_EXTRA = {
 "The day split into twelve two-hour periods named by the branches; Zi runs from 23:00 to 01:00 the next day.",
 "一日を二時間ずつ十二に分け、地支で名付けたもの。子の刻は 23:00 から翌日 01:00 まで。"
 ],
+"一次展开今天所在的流月、流日和十二时辰": [
+"Open today's month, day and twelve double-hours in one go",
+"今日の流月・流日・十二時辰をまとめて開く"
+],
 "一至三十一日 · 以中国标准时间计算": [
 "1 to 31 days · computed in China Standard Time",
 "1〜31日 · 中国標準時で計算"
@@ -6434,6 +6438,14 @@ const UI_EXTRA = {
 "Rooftop Earth",
 "屋上土"
 ],
+"展开今天": [
+"Open today",
+"今日を開く"
+],
+"展开今天失败：": [
+"Could not open today: ",
+"今日を開けませんでした："
+],
 "展开全文": [
 "Show all",
 "全文を表示"
@@ -6449,6 +6461,10 @@ const UI_EXTRA = {
 "展开这个月每天的日柱": [
 "Show this month's daily pillars",
 "この月の毎日の日柱を開く"
+],
+"属次日": [
+"next day",
+"翌日扱い"
 ],
 "山下火": [
 "Fire Below the Mountain",
@@ -7593,6 +7609,14 @@ const UI_EXTRA = {
 "按出生地经度换算的地方时：UTC 加上东经度数乘以每度 4 分钟。": [
 "Local time from the birthplace's longitude: UTC plus 4 minutes for each degree east.",
 "出生地の経度から換算した地方時：UTC に東経の度数×4 分を加えます。"
+],
+"按出生时区的钟表时间分时辰": [
+"Double-hours by the clock in the birth time zone",
+"出生地のタイムゾーンの時計時刻で時辰を区切ります"
+],
+"按出生时区的钟表时间分时辰；23:00 起的子时已换到次日": [
+"Double-hours by the clock in the birth time zone; the Zi hour from 23:00 already belongs to the next day",
+"出生地のタイムゾーンの時計時刻で時辰を区切ります。23:00 からの子の刻は翌日扱いです"
 ],
 "按出生的农历月和时辰排出；时辰不详时无法确定。": [
 "Placed from the lunar birth month and the double hour; it cannot be set when the hour is unknown.",
@@ -10302,6 +10326,14 @@ const UI_EXTRA = {
 "Hour layer",
 "流時"
 ],
+"流时干支": [
+"Hour pillars",
+"流時の干支"
+],
+"流时按出生时区的钟表时间分时辰，不做真太阳时修正，时钟跳过的时辰不列出；23:00 起的子时是否换日跟随出生盘的子时设置。": [
+"Hour pillars split the day by the clock in the birth time zone, without true solar time correction, and double-hours the clock skips are not listed; whether the Zi hour from 23:00 starts the next day follows the natal chart's Zi-hour setting.",
+"流時は出生地のタイムゾーンの時計時刻で時辰を区切り、真太陽時の補正はしません。時計が飛ばした時辰は載せません。23:00 からの子の刻で日を替えるかどうかは命式の子の刻の設定に従います。"
+],
 "流时按所填钟表时间取时辰，不做太阳时换算。": [
 "The hour layer uses the clock time given, without solar-time correction.",
 "流時は入力した時計の時刻で時辰を取り、太陽時の換算はしません。"
@@ -10309,6 +10341,10 @@ const UI_EXTRA = {
 "流时流曜": [
 "Hour period stars",
 "流時の流曜"
+],
+"流时计算失败：": [
+"Hour pillars failed: ",
+"流時の計算に失敗しました："
 ],
 "流昌": [
 "Chang (annual)",
@@ -10549,6 +10585,10 @@ const UI_EXTRA = {
 "点年份可展开这一年的十二个流月。": [
 "Click a year to show its twelve monthly pillars.",
 "年をクリックすると、その年の十二か月の月柱を表示します。"
+],
+"点日期可展开这一天的十二时辰；方向键可在日期间移动。": [
+"Click a date to open its twelve double-hours; arrow keys move between dates.",
+"日付をクリックするとその日の十二時辰が開きます。方向キーで日付間を移動できます。"
 ],
 "点线：": [
 "Dotted lines:",

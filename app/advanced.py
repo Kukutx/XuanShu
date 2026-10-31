@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .astronomy import TERMS, from_jd, solar_term_jd, jie_months, jie_neighbors
 from .engines import (BirthInput, BRANCHES, STEMS, normalized_dt, calculate_bazi,
-                      calculate_ziwei, hour_branch_index, natal_interactions)
+                      calculate_ziwei, hour_branch_index, natal_interactions, pillar_indices)
 from .features import _day_pillar
 from .shensha import rule_notes
 from .timebasis import time_basis
@@ -31,6 +31,7 @@ class DayunRequest(BaseModel):
     hour_unknown: bool = Field(default=False, description='Birth hour unknown: relations with the hour pillar are left out')
     month_year: int | None = Field(default=None, ge=1901, le=2099, description='Also list the twelve month pillars of this year, counted from Lichun, each from the jie that opens it to the next, read against the natal chart')
     day_month: int | None = Field(default=None, ge=1, le=12, description='With month_year: also list every civil day of this month of that year (1 is the Yin month that opens at Lichun) with its day pillar read against the natal chart')
+    hour_date: date | None = Field(default=None, ge=date(1901, 1, 1), le=date(2099, 12, 31), description='Also list the thirteen double-hours of this civil day by the clock in the birth time zone (Zi from midnight and again from 23:00), each hour pillar read against the natal chart')
 
     @model_validator(mode='after')
     def require_direction(self):
@@ -67,6 +68,32 @@ def month_pillars(year: int, natal: dict, keys: tuple[str, ...], zone, day_month
                           **{k: v for k, v in natal_interactions(_day_pillar(day), natal, keys).items() if k != 'hidden_stems'}}
                          for n in range(count) if exists(day := first_day + timedelta(days=n))]
     return {'year': year, 'year_pillar': STEMS[year_stem] + BRANCHES[(year - 4) % 12], 'months': months}
+
+
+def hour_pillars(day: date, natal: dict, keys: tuple[str, ...], zone, late_zi: bool) -> dict:
+    """The double-hours of a civil day by the clock in the chart's zone: 子 from midnight to 01:00, a branch every two
+    hours after it, and 子 again from 23:00. Each pillar comes from the natal engine's own rule, the stem from the day
+    stem by the five-rat rule (五鼠遁); with the 23:00 day change the last 子 already belongs to the next day."""
+    def wall(minutes: int) -> datetime:
+        return datetime(day.year, day.month, day.day, tzinfo=zone) + timedelta(minutes=minutes)
+
+    def exists(moment: datetime) -> bool:  # not inside a clock jump (a DST gap or a skipped day)
+        return moment.astimezone(timezone.utc).astimezone(zone).replace(tzinfo=None) == moment.replace(tzinfo=None)
+
+    hours = []
+    for n in range(13):
+        start, end = (0, 1) if n == 0 else (2 * n - 1, min(2 * n + 1, 24))
+        # A double-hour the clock jumps over entirely is not listed; otherwise any minute of it that happened will do.
+        moment = next((m for m in (wall((start + end) * 30), wall(start * 60), wall(end * 60 - 1)) if exists(m)), None)
+        if moment is None:
+            continue
+        (_, _, day_index, hour_index), _, _ = pillar_indices(moment, late_zi)
+        pillar = STEMS[hour_index % 10] + BRANCHES[hour_index % 12]
+        hours.append({'branch': pillar[1], 'start': f'{start:02d}:00', 'end': f'{end:02d}:00', 'pillar': pillar,
+                      'day_pillar': STEMS[day_index % 10] + BRANCHES[day_index % 12],
+                      **{k: v for k, v in natal_interactions(pillar, natal, keys).items() if k != 'hidden_stems'}})
+    return {'date': day.isoformat(), 'day_pillar': _day_pillar(day), 'day_boundary': '23:00' if late_zi else '00:00',
+            'hours': hours}
 
 
 def dayun_sequence(request: DayunRequest) -> dict:
@@ -125,6 +152,8 @@ def dayun_sequence(request: DayunRequest) -> dict:
                                     for y in range(first, last)]
     flow_months = (month_pillars(request.month_year, natal, keys, birthday.tzinfo, request.day_month)
                    if request.month_year is not None else None)
+    flow_hours = (hour_pillars(request.hour_date, natal, keys, birthday.tzinfo, request.birth.late_zi_day_rollover)
+                  if request.hour_date is not None else None)
     months_float = traditional_years * 12
     months_whole = floor(months_float)
     nominal_days = round((months_float - months_whole) * 30, 1)
@@ -146,11 +175,13 @@ def dayun_sequence(request: DayunRequest) -> dict:
         'approx_first_start_local': start_utc.astimezone(birthday.tzinfo).isoformat(timespec='minutes'),
         'periods': periods,
         **({'flow_months': flow_months} if flow_months else {}),
+        **({'flow_hours': flow_hours} if flow_hours else {}),
         'shensha_rules': rule_notes({star['name'] for period in periods
                                      for item in [period['natal_interactions'], *period.get('years', [])]
                                      for star in item['shensha']}
                                     | {star['name'] for month in (flow_months or {}).get('months', [])
-                                       for item in [month, *month.get('days', [])] for star in item['shensha']}),
+                                       for item in [month, *month.get('days', [])] for star in item['shensha']}
+                                    | {star['name'] for hour in (flow_hours or {}).get('hours', []) for star in hour['shensha']}),
         'method': {'direction': 'year stem yin/yang + gender, or explicit override',
                    'jie': '12 month-boundary jie, not 24 solar terms',
                    'age_conversion': 'three exact elapsed days per nominal traditional year',
@@ -158,6 +189,7 @@ def dayun_sequence(request: DayunRequest) -> dict:
                    'annual_pillars': 'with include_years: the civil years from the one each period begins in to the one the next begins in; the year of a change is listed under the new period',
                    'month_pillars': 'with month_year: the twelve months of that year from Lichun, the Yin month first, each from its jie to the next; stems from the year stem by the five-tiger rule',
                    'day_pillars': 'with day_month: the civil days of that month, from the day its jie falls on to the day before the next jie; the day pillar changes at midnight',
+                   'hour_pillars': 'with hour_date: the thirteen double-hours of that civil day by the clock in the birth time zone, Zi at both ends; stems from the day stem by the five-rat rule, with the natal chart\'s choice of day change at 23:00 or midnight',
                    'shensha': 'stars on each luck or year pillar, read from the natal day stem, year stem, year and day branches and month branch (Kui Gang belongs to the natal day pillar only)'},
         'limitations': [
             '大运是传统十年干支标签，本工具不据此预测真实事件、吉凶、健康、财运或关系。',
@@ -169,6 +201,7 @@ def dayun_sequence(request: DayunRequest) -> dict:
             '流年按常见排法从交运那一年列起：交运当年整年记在新大运下，交运日之前的几个月实际仍属上一步大运。',
             '流月以十二节交接换月、立春起寅月，月干按五虎遁从年干起；与流年一样只读出关系标签，不断吉凶。',
             '流日按公历日列出，日柱在午夜换日；交节那天整天列在新月下，交节时刻之前其实仍属上个月。',
+            '流时按出生时区的钟表时间分时辰，不做真太阳时修正，时钟跳过的时辰不列出；23:00 起的子时是否换日跟随出生盘的子时设置。',
         ],
     }
 

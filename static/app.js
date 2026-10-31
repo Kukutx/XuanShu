@@ -250,6 +250,9 @@ let dayunAxisScroll = null;  // {key, left}: where the luck axis was scrolled to
 // those months the same way ({key, year, month, jie, pillar, days}, a request {key, year, month}, a failure with its text).
 let dayunMonths = null, dayunMonthsLoad = null, dayunMonthsError = null;
 let dayunDays = null, dayunDaysLoad = null, dayunDaysError = null;
+// The hours opened under one of those days ({key, date, day_pillar, day_boundary, hours}, a request {key, date}, a failure
+// with its text), and the day whose card takes the Tab stop in the grid (the arrow keys move it).
+let dayunHours = null, dayunHoursLoad = null, dayunHoursError = null, dayunDayCursor = null;
 const FLOW_MONTH_LAST_YEAR = 2099;  // the supported range ends here; a later year's months are not offered
 let boundaryDraft = {uncertainty_minutes: 60};
 let qualityMinutesDraft = 15;
@@ -6918,7 +6921,14 @@ function dayunDetail(d, x, isNow, o, now) {
   const inDecade = year => x.years.some(y => y.year === year);
   const shown = dayunMonths && dayunMonths.key === dayunKey && inDecade(dayunMonths.year) ? dayunMonths : null;
   const loading = dayunMonthsLoad && dayunMonthsLoad.key === dayunKey && inDecade(dayunMonthsLoad.year) ? dayunMonthsLoad : null;
-  append(box, 'p', 'field-help dy-years-hint', '点年份可展开这一年的十二个流月。');
+  const hint = append(box, 'div', 'dy-years-hint dy-hint-row');
+  append(hint, 'p', 'field-help', '点年份可展开这一年的十二个流月。');
+  if (isNow && thisYear <= FLOW_MONTH_LAST_YEAR) {
+    const jump = append(hint, 'button', 'tiny-button dy-today-jump', '展开今天'); jump.type = 'button'; jump.id = 'dayun-today';
+    tip(jump, '一次展开今天所在的流月、流日和十二时辰');
+    if (loading && loading.today) jump.setAttribute('aria-busy', 'true');
+    jump.addEventListener('click', dayunToday);
+  }
   const wrap = append(box, 'div', 'table-wrap');
   const table = append(wrap, 'table', 'data-table dy-years'); table.id = 'dayun-years';
   append(table, 'caption', 'visually-hidden', '这步大运里的流年');
@@ -6959,7 +6969,8 @@ function dayunDetail(d, x, isNow, o, now) {
 // chart like the years. Fetched when a year is opened; opening it again closes it.
 function dayunMonthsToggle(year) {
   const key = dayunKey;
-  dayunMonthsError = dayunDaysError = dayunDaysLoad = null;  // a reply still out for a month's days is dropped with it
+  // A reply still out for a month's days or a day's hours is dropped with it.
+  dayunMonthsError = dayunDaysError = dayunDaysLoad = dayunHoursError = dayunHoursLoad = null;
   if (dayunMonths && dayunMonths.key === key && dayunMonths.year === year) {dayunMonths = null; dayunRefocus('dayun-year-' + year); return;}
   if (dayunMonthsLoad && dayunMonthsLoad.key === key && dayunMonthsLoad.year === year) return;  // already on its way
   const load = dayunMonthsLoad = {key, year};
@@ -6974,7 +6985,7 @@ function dayunMonthsToggle(year) {
 function dayunDaysToggle(year, month) {
   const key = dayunKey, id = 'dayun-month-' + month;
   const same = x => x && x.key === key && x.year === year && x.month === month;
-  dayunDaysError = null;
+  dayunDaysError = dayunHoursError = dayunHoursLoad = null;  // and a reply still out for a day's hours
   if (same(dayunDays)) {dayunDays = null; dayunRefocus(id); return;}
   if (same(dayunDaysLoad)) return;  // already on its way
   const load = dayunDaysLoad = {key, year, month};
@@ -6988,7 +6999,76 @@ function dayunDaysToggle(year, month) {
     .catch(err => {if (dayunDaysLoad === load) dayunDaysError = {key, year, month, message: err.message};})
     .finally(() => {if (dayunDaysLoad === load) dayunDaysLoad = null; if (active === 'dayun') dayunRefocus(id);});
 }
-// Redraw, keeping the focus on a year's or month's button when it was there.
+// Today's date and the minute of the day by the clock of the birth zone, which the flow months, days and hours are
+// worked in: a browser elsewhere may already be on another day. The browser's own clock if the zone is not known.
+function flowNow() {
+  const now = new Date();
+  try {
+    const zone = JSON.parse(dayunKey).birth.timezone;
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23'}).formatToParts(now).map(part => [part.type, part.value]));
+    return {date: parts.year + '-' + parts.month + '-' + parts.day, minute: Number(parts.hour) % 24 * 60 + Number(parts.minute)};
+  } catch (e) {
+    return {date: localToday(), minute: now.getHours() * 60 + now.getMinutes()};
+  }
+}
+// The hours of one of those days, opened from its card the same way.
+function dayunHoursToggle(date) {
+  const key = dayunKey, id = 'dayun-day-' + date;
+  const same = x => x && x.key === key && x.date === date;
+  dayunHoursError = null; dayunDayCursor = date;
+  if (same(dayunHours)) {dayunHours = null; dayunRefocus(id); return;}
+  if (same(dayunHoursLoad)) return;  // already on its way
+  const load = dayunHoursLoad = {key, date};
+  dayunRefocus(id);
+  postJSON('/api/dayun', {...JSON.parse(key), periods: 1, include_years: false, hour_date: date})
+    .then(data => {if (dayunHoursLoad === load && dayunKey === key) dayunHours = {key, ...data.flow_hours};})
+    .catch(err => {if (dayunHoursLoad === load) dayunHoursError = {key, date, message: err.message};})
+    .finally(() => {if (dayunHoursLoad === load) dayunHoursLoad = null; if (active === 'dayun') dayunRefocus(id);});
+}
+// Open the chain down to today in one go: the year today falls in (before Lichun's day, the one before), the month of that
+// year today falls in, its days and today's hours; then bring today's card into view. Opening another year meanwhile wins.
+// The year and the month are picked by today's date in the birth zone, the rule the day cards are listed by: the day of a
+// jie belongs to the new month whole. A flow year before the decade's first (January of its first year) shows that decade.
+function dayunToday() {
+  const key = dayunKey, today = flowNow().date;
+  if (dayunMonthsLoad && dayunMonthsLoad.today && dayunMonthsLoad.key === key) return;  // already on its way
+  const load = dayunMonthsLoad = {key, year: Number(today.slice(0, 4)), today: true};
+  const live = () => dayunMonthsLoad === load && dayunKey === key;
+  const ask = extra => postJSON('/api/dayun', {...JSON.parse(key), periods: 1, include_years: false, ...extra});
+  dayunMonthsError = dayunDaysError = dayunDaysLoad = dayunHoursError = dayunHoursLoad = null;
+  dayunRefocus('dayun-today');
+  ask({month_year: load.year})
+    .then(data => !live() || today >= data.flow_months.months[0].start_local.slice(0, 10) || load.year <= 1901 ? data
+      : ask({month_year: --load.year}))
+    .then(data => {
+      if (!live()) return null;
+      const months = data.flow_months.months;
+      const month = [...months].reverse().find(m => m.start_local.slice(0, 10) <= today) || months[0];
+      const decade = dayunResult.periods.find(p => (p.years || []).some(y => y.year === load.year));
+      if (decade) dayunPick = decade.sequence;
+      return ask({month_year: load.year, day_month: month.month, hour_date: today});
+    })
+    .then(data => {
+      if (!data || !live()) return;
+      const flow = data.flow_months, month = flow.months.find(m => m.days);
+      dayunMonths = {key, year: load.year, pillar: flow.year_pillar, months: flow.months};
+      dayunDays = {key, year: load.year, month: month.month, jie: month.jie, pillar: month.pillar, days: month.days};
+      dayunHours = {key, ...data.flow_hours}; dayunDayCursor = today;
+    })
+    .catch(err => {if (dayunMonthsLoad === load) dayunMonthsError = {key, year: load.year, text: '展开今天失败：' + err.message};})
+    .finally(() => {
+      if (dayunMonthsLoad !== load) return;
+      dayunMonthsLoad = null;
+      if (active !== 'dayun') return;
+      render();
+      const card = document.getElementById('dayun-day-' + today) || document.getElementById('dayun-today');
+      if (!card) return;
+      card.focus({preventScroll: true});
+      card.scrollIntoView({block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    });
+}
+// Redraw, keeping the focus on a year's, month's or day's button when it was there.
 function dayunRefocus(id) {
   const had = document.activeElement && document.activeElement.id === id;
   render();
@@ -7055,21 +7135,81 @@ function dayunDayGrid(panel, d, o) {
   range.dataset.noI18n = '';
   append(head, 'span', 'muted', '日柱在午夜换日；交节当天列在本月');
   const list = append(box, 'ol', 'dy-day-grid'); list.id = 'dayun-day-grid';
-  const today = localToday();
+  const today = flowNow().date, inMonth = date => d.days.some(day => day.date === date);
+  const hours = dayunHours && dayunHours.key === dayunKey && inMonth(dayunHours.date) ? dayunHours : null;
+  const loading = dayunHoursLoad && dayunHoursLoad.key === dayunKey && inMonth(dayunHoursLoad.date) ? dayunHoursLoad : null;
+  // One card takes the Tab stop: the one moved to last, else the open one, today, or the first.
+  const stop = [dayunDayCursor, hours && hours.date, loading && loading.date, today].find(date => date && inMonth(date)) || d.days[0].date;
   d.days.forEach(day => {
-    const ds = settledInteractions(day, o);
-    const item = append(list, 'li', 'dy-day' + (day.date === today ? ' is-today' : '') + (day.jie_day ? ' is-jie' : ''));
-    if (day.date === today) item.setAttribute('aria-current', 'date');
-    const top = append(item, 'div', 'dy-day-top');
+    const ds = settledInteractions(day, o), item = append(list, 'li');
+    const open = append(item, 'button', 'dy-day' + (day.date === today ? ' is-today' : '') + (day.jie_day ? ' is-jie' : ''));
+    open.type = 'button'; open.id = 'dayun-day-' + day.date; open.tabIndex = day.date === stop ? 0 : -1;
+    if (day.date === today) open.setAttribute('aria-current', 'date');
+    const expanded = !loading && !!hours && hours.date === day.date;
+    open.setAttribute('aria-expanded', String(expanded));
+    if (expanded) open.setAttribute('aria-controls', 'dayun-hours');
+    if (loading && loading.date === day.date) open.setAttribute('aria-busy', 'true');
+    const top = append(open, 'span', 'dy-day-top');
     append(top, 'b', 'dy-day-date', (day.date.slice(5) === '01-01' ? day.date.slice(0, 4) + '/' : '') + day.date.slice(5).replace('-', '/'));
     append(top, 'small', null, shortWeekday(day.date));
-    const pair = append(item, 'span', 'pillar-cell dy-day-gz');
+    const pair = append(open, 'span', 'pillar-cell dy-day-gz');
     append(pair, 'span', stemClass(day.pillar[0]), day.pillar[0]); append(pair, 'span', branchClass(day.pillar[1]), day.pillar[1]);
-    const foot = append(item, 'div', 'dy-day-foot');
+    const foot = append(open, 'span', 'dy-day-foot');
     if (day.jie_day) append(foot, 'small', 'dy-day-jie', d.jie);
     if (!o.day) append(foot, 'small', 'dy-day-god', ds.ten_god_of_stem);
     natalMarks(foot, ds);
-    tip(item, natalText(ds));
+    tip(open, natalText(ds));
+    open.addEventListener('click', () => dayunHoursToggle(day.date));
+  });
+  // Arrow keys move along the cards, up and down by a row of the grid as it is laid out; Home and End to the ends.
+  list.addEventListener('keydown', event => {
+    const cards = [...list.querySelectorAll('.dy-day')], at = cards.indexOf(document.activeElement);
+    if (at < 0 || event.altKey || event.ctrlKey || event.metaKey) return;
+    const row = cards.filter(card => card.offsetTop === cards[0].offsetTop).length || 1;
+    const to = {ArrowRight: at + 1, ArrowLeft: at - 1, ArrowDown: at + row, ArrowUp: at - row, Home: 0, End: cards.length - 1}[event.key];
+    if (to === undefined || to < 0 || to >= cards.length) return;
+    event.preventDefault();
+    cards[at].tabIndex = -1; cards[to].tabIndex = 0; cards[to].focus();
+    dayunDayCursor = d.days[to].date;
+  });
+  append(box, 'p', 'field-help dy-years-hint', '点日期可展开这一天的十二时辰；方向键可在日期间移动。');
+  const failed = dayunHoursError && dayunHoursError.key === dayunKey && inMonth(dayunHoursError.date) ? dayunHoursError : null;
+  // The failure names its day: the hours of another day may still be open above it.
+  if (failed) texts(append(box, 'p', 'inline-msg'), failed.date.slice(5).replace('-', '/'), ' ', '流时计算失败：', failed.message);
+  if (loading) loadingGhost(box, 'table');
+  else if (hours) dayunHourTable(box, hours, o);
+}
+// The thirteen double-hours of a day, Zi at both ends, read against the natal chart like the days. The hour now is marked
+// when the day is today; with the 23:00 day change the last Zi shows the next day's pillar it belongs to.
+function dayunHourTable(box, h, o) {
+  const panel = append(box, 'section', 'dy-hours'); panel.id = 'dayun-hours';
+  panel.setAttribute('aria-labelledby', 'dayun-hours-title');
+  const head = append(panel, 'div', 'dy-months-head');
+  const heading = append(head, 'h5', 'dy-months-title'); heading.id = 'dayun-hours-title';
+  texts(heading, h.date.slice(5).replace('-', '/'), ' ', h.day_pillar, ' · ', '流时干支');
+  append(head, 'span', 'muted', h.day_boundary === '23:00' ? '按出生时区的钟表时间分时辰；23:00 起的子时已换到次日' : '按出生时区的钟表时间分时辰');
+  const wrap = append(panel, 'div', 'table-wrap');
+  const table = append(wrap, 'table', 'data-table dy-years dy-hour-table'); table.id = 'dayun-hour-table';
+  texts(append(table, 'caption', 'visually-hidden'), h.date, ' ', '流时干支');
+  const th = append(append(table, 'thead'), 'tr');
+  ['时辰', '干支', ...(o.day ? [] : ['十神', '星运']), '与原局', '神煞'].forEach(t => {append(th, 'th', null, t).scope = 'col';});
+  const tbody = append(table, 'tbody'), clock = flowNow();
+  const minute = h.date === clock.date ? clock.minute : -1;
+  const minutes = text => Number(text.slice(0, 2)) * 60 + Number(text.slice(3));
+  h.hours.forEach(hour => {
+    const live = minutes(hour.start) <= minute && minute < minutes(hour.end);
+    const tr = append(tbody, 'tr', live ? 'is-current' : null);
+    if (live) tr.setAttribute('aria-current', 'time');
+    const first = append(tr, 'th', 'dy-hour-name'); first.scope = 'row';
+    append(first, 'span', null, SHICHEN_NAMES['子丑寅卯辰巳午未申酉戌亥'.indexOf(hour.branch)]);
+    const span = append(first, 'small', 'dy-month-date', hour.start + '–' + hour.end); span.dataset.noI18n = '';
+    if (hour.day_pillar !== h.day_pillar) texts(append(first, 'small', 'dy-month-date'), '属次日', ' ', hour.day_pillar);
+    const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
+    append(pair, 'span', stemClass(hour.pillar[0]), hour.pillar[0]); append(pair, 'span', branchClass(hour.pillar[1]), hour.pillar[1]);
+    const hs = settledInteractions(hour, o);
+    if (!o.day) {append(tr, 'td', null, hs.ten_god_of_stem); append(tr, 'td', null, hs.growth_stage);}
+    const marks = append(tr, 'td'); natalMarks(marks, hs); tip(marks, natalText(hs)); if (!marks.childNodes.length) marks.textContent = '—';
+    append(tr, 'td', null, o.stars ? '随时辰而定' : (hs.shensha || []).map(sh => sh.name).join('、') || '—');
   });
 }
 function renderBirthBoundaries(){
