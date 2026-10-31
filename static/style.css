@@ -1770,7 +1770,6 @@ html[lang="en"] :is(.of-chip b,.of-jie b){font-family:inherit;font-size:13px}htm
 .ds-hour-head b{font-size:16px;font-variant-numeric:tabular-nums;color:var(--text)}
 .ds-hour-head span{font-size:13px;color:var(--gold2)}
 .ds-hour-card .tiny-button{margin-top:6px}
-html[lang="en"] .ds-reason{font-size:10px}
 .fh-views{margin:2px 0 10px}
 .fh-wrap{overflow-x:auto;margin:0 0 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel2)}
 .fh-table,.fh-matrix{border-collapse:separate;border-spacing:0;min-width:100%;font-size:13px}
@@ -1852,7 +1851,7 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .group-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
 /* Two cards a row on a phone leave a pillar about 26px: Year pillar in letters takes two pillars a row there */
 .group-member{container:group-member / inline-size}
-@container group-member (max-width:186px){html:not(:lang(zh),:lang(ja),:lang(ko)) .group-pillars{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container group-member (max-width:156px){html:not(:lang(zh),:lang(ja),:lang(ko)) .group-pillars{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .group-pillar{display:flex;flex-direction:column;align-items:center;border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 0;background:var(--panel)}
 .group-pillar small{font-size:11px;line-height:1.2;text-align:center;color:var(--muted)}
 .group-pillar b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.15;font-weight:500}

@@ -91,7 +91,7 @@ def test_small_labels_are_at_least_eleven_pixels():
 
 def test_more_small_labels_and_narrow_cells():
     # The rest of the labels standing on their own are 11px too: the palette kind, the pillar search axis, the deep
-    # review pillars and self-transform mark, the group pillars, the report step numbers, the API required mark and the
+    # review pillars and file hashes, the group pillars, the report step numbers, the API required mark and the
     # date scan notes; the dense timeline and date picker cells keep theirs.
     for rule in ('.palette-kind{flex:none;padding:1px 6px;border:1px solid var(--border);border-radius:999px;font-size:11px;',
                  'width:18px;height:18px;border-radius:999px;background:var(--panel3);font-size:11px;', '.ps-mark small{font-size:11px;',
@@ -100,9 +100,10 @@ def test_more_small_labels_and_narrow_cells():
                  '.ev-hash{font-size:11px;', '.group-pillar small{font-size:11px;', '.api-req{display:inline-block;margin-left:6px;font-size:11px;',
                  '.ds-reason{display:block;margin-top:3px;font-size:11px;', '.ds-hours{display:flex;flex-direction:column;margin-top:3px;font-size:11px;'):
         assert rule in CSS, rule
+    assert 'html[lang="en"] .ds-reason{' not in CSS
     # A date scan day too narrow for its hour and bureau puts the bureau on the next line instead of over the next day.
     assert '.ds-hour-bureau{display:inline-block}' in CSS and '.ds-hour-bureau{white-space:nowrap}' not in CSS
     assert "const line = texts(append(hours, 'span'), h.local_time, ' '); append(line, 'span', 'ds-hour-bureau', chartLine(h));" in APP
     # Two group cards a row on a phone: pillar names in letters take two pillars a row, and no pillar overflows.
     assert '.group-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}' in CSS
-    assert '@container group-member (max-width:186px){html:not(:lang(zh),:lang(ja),:lang(ko)) .group-pillars{grid-template-columns:repeat(2,minmax(0,1fr))}}' in CSS
+    assert '@container group-member (max-width:156px){html:not(:lang(zh),:lang(ja),:lang(ko)) .group-pillars{grid-template-columns:repeat(2,minmax(0,1fr))}}' in CSS
