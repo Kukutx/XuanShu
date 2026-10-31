@@ -4203,8 +4203,11 @@ function renderGroup() {
       const row = append(item, 'label', 'check-line group-profile');
       const box = append(row, 'input'); box.type = 'checkbox'; box.value = entry.id; box.id = 'group-profile-' + entry.id;
       box.checked = groupDraft.profiles.includes(entry.id);
-      append(row, 'span', 'user-text', entry.label);
-      append(row, 'small', 'muted', String(entry.data.birth_datetime || '').replace('T', ' '));
+      // The name and its birth time wrap as a pair: the time moves under a name too long to share its line, and only a
+      // name wider than the whole line breaks.
+      const what = append(row, 'span', 'group-profile-text');
+      append(what, 'span', 'user-text', entry.label);
+      append(what, 'small', 'muted', String(entry.data.birth_datetime || '').replace('T', ' '));
       box.addEventListener('change', () => {
         groupDraft.profiles = box.checked ? [...groupDraft.profiles, entry.id] : groupDraft.profiles.filter(id => id !== entry.id);
         render();

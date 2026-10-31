@@ -146,5 +146,9 @@ def test_long_typed_names_wrap_inside_their_cards():
     assert ':is(td,th).user-text,:is(td,th) .user-text{overflow-wrap:break-word}' in CSS
     # Only the tags are pills: a name or a day count inside a tag is plain text, and a wrapped tag is a rounded box.
     assert '.meta-tags span{' not in CSS and '.meta-tags>span{font-size:12px;' in CSS and 'border-radius:15px}' in CSS
+    # A saved profile's name and birth time wrap as a pair, so a medium name moves the time down instead of breaking.
+    assert '.group-profile-text{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px}' in CSS
     assert '.group-profile small{margin-left:auto;font-size:11px;white-space:nowrap}' in CSS
+    js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
+    assert "const what = append(row, 'span', 'group-profile-text');" in js
     assert '  .dm-sens .dm-sens-name{white-space:normal}' in CSS

@@ -68,8 +68,8 @@ html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--header-h) + 14p
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 var(--sans);transition:background .25s,color .25s;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 ::selection{background:var(--ring);color:var(--text)}
 /* Names and notes people type can be one long run with no space (an e-mail-like handle, a name in Latin letters):
-   they wrap anywhere rather than push their row out of its card. In a table cell the word stays whole and the
-   table scrolls instead, so short names are never split to squeeze a column. */
+   they wrap anywhere rather than push their row out of its card. In a table cell the word keeps its width, so an
+   automatically laid-out table (each sits in a scrolling wrapper) scrolls rather than split short names. */
 .user-text{overflow-wrap:anywhere}
 :is(td,th).user-text,:is(td,th) .user-text{overflow-wrap:break-word}
 /* Hints in empty fields: the theme's quiet text colour in both themes (Firefox would also fade it to half). */
@@ -1844,6 +1844,7 @@ html[lang=en] .fh-pick{flex-wrap:wrap;gap:0 6px;min-width:96px}
 .group-profile{cursor:pointer}
 .group-label{max-width:160px}
 .group-profiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 14px}
+.group-profile-text{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px}
 .group-profile small{margin-left:auto;font-size:11px;white-space:nowrap}
 .group-extra{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:4px 0;border-bottom:1px dashed var(--border)}
 .group-extra small{font-size:11px}
