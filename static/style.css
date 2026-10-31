@@ -952,7 +952,8 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .pillar-nayin{font-size:12px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--border);padding-top:7px}
 /* 神煞: one neutral style for every star, since the labels carry no good-or-bad reading here. */
 .pillar-shensha{font-size:12px;color:var(--text2);margin-top:7px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px 4px}
-.shensha-tag{max-width:100%;padding:0 6px;border:1px solid var(--border);border-radius:11px;background:var(--panel);line-height:1.6;cursor:help}
+/* A tag wraps between words when it is wider than its column; a Chinese or Japanese name stays whole. */
+.shensha-tag{max-width:100%;padding:0 6px;border:1px solid var(--border);border-radius:11px;background:var(--panel);line-height:1.6;word-break:keep-all;overflow-wrap:normal;cursor:help}
 .shensha-table td{vertical-align:top}
 .shensha-table .shensha-name{white-space:nowrap;font-weight:500}
 .shensha-where{display:table;cursor:help;border-bottom:1px dotted var(--border-strong);white-space:nowrap}
@@ -1429,6 +1430,8 @@ html[lang=en] .qh-name,html[lang=en] .qh-bureau,html[lang=en] .qh-duty{white-spa
 .luck-marks{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:2px;max-width:100%}
 .luck-mark{font-size:11px;line-height:1.2;padding:0 3px;border:1px solid var(--link);border-radius:3px;color:var(--link);white-space:nowrap}
 .luck-mark.link-clash{border-style:dashed}
+/* A mark may reach into its luck cell's padding, as it always did, and wraps only when wider than that. */
+.luck-cell .luck-marks{margin-inline:-5px;max-width:calc(100% + 10px)}
 .luck-cell .luck-mark,.group-year-row .luck-mark{max-width:100%;white-space:normal}
 .link-void{--link:var(--muted)}
 .luck-natal{font-size:12px;color:var(--text2);margin:-2px 0 8px;line-height:1.7}

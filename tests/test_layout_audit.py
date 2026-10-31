@@ -183,6 +183,8 @@ def test_wider_text_spacing_cuts_nothing_off():
     assert '.dy-band{position:relative;grid-row:1;' in CSS and 'axis.style.gridTemplateColumns = ' in APP
     assert '.dy-band small{max-width:100%;' in CSS
     assert '.shensha-tag{max-width:100%;padding:0 6px;border:1px solid var(--border);border-radius:11px;' in CSS
+    assert 'line-height:1.6;word-break:keep-all;overflow-wrap:normal;cursor:help}' in CSS
+    assert '.luck-cell .luck-marks{margin-inline:-5px;max-width:calc(100% + 10px)}' in CSS
     assert '.luck-cell .luck-mark,.group-year-row .luck-mark{max-width:100%;white-space:normal}' in CSS
     assert '.group-member-head strong{min-width:0}' in CSS
     assert '.ag-method{min-width:0;' in CSS and '.ag-param code{min-width:0;font-size:11.5px;overflow-wrap:anywhere}' in CSS

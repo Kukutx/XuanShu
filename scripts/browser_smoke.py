@@ -139,17 +139,19 @@ def check_relation_card(page, kind: str, screenshot: Path) -> None:
 OVERFLOW = """() => {
   const root = document.getElementById('result'), out = [];
   const scrolls = el => ['auto', 'scroll'].includes(getComputedStyle(el).overflowX);
-  // A rule down the left only (a tree's guide line) is no box on the right: text passing it is judged by the box around.
   const boxed = el => {const s = getComputedStyle(el); return el.tagName === 'TD' || el.tagName === 'TH'
     || parseFloat(s.borderRightWidth) > 0 || !['rgba(0, 0, 0, 0)', 'transparent'].includes(s.backgroundColor);};
+  // A rule down the left only (a note's accent, a tree's guide line) bounds the left side alone: on the right the
+  // text is judged by the box around it.
+  const ruled = el => parseFloat(getComputedStyle(el).borderLeftWidth) > 0;
   for (const el of root.querySelectorAll('*')) {
     if (!el.checkVisibility() || el.closest('.visually-hidden, thead, svg, .dy-year-toggle')) continue;
-    let skip = false, box = el.parentElement;
+    let skip = false, box = el.parentElement, left = null;
     for (let a = el; a && a !== root && !skip; a = a.parentElement) skip = ['absolute', 'fixed'].includes(getComputedStyle(a).position);
-    while (!skip && box && box !== root && !boxed(box)) {skip = scrolls(box); box = box.parentElement;}
+    while (!skip && box && box !== root && !boxed(box)) {if (!left && ruled(box)) left = box; skip = scrolls(box); box = box.parentElement;}
     if (skip || !box || box === root || scrolls(box)) continue;
-    const r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
-    if (r.width && r.height && (r.right > b.right + 1.5 || r.left < b.left - 1.5))
+    const r = el.getBoundingClientRect(), b = box.getBoundingClientRect(), l = (left || box).getBoundingClientRect();
+    if (r.width && r.height && (r.right > b.right + 1.5 || r.left < l.left - 1.5))
       out.push(el.className + ' in ' + box.className + ': ' + el.textContent.trim().slice(0, 30));
   }
   return out.slice(0, 5);
