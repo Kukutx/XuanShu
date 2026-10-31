@@ -3303,7 +3303,7 @@ function renderDateScanResult(r) {
       if (d.natal_clashes.length) append(box, 'span', 'ds-clash', clashText(d));
       if (d.hour_charts.length) {
         const hours = append(box, 'span', 'ds-hours');
-        d.hour_charts.forEach(h => {const line = texts(append(hours, 'span'), h.local_time); append(line, 'span', 'ds-hour-bureau', ' ' + chartLine(h));});
+        d.hour_charts.forEach(h => {const line = texts(append(hours, 'span'), h.local_time, ' '); append(line, 'span', 'ds-hour-bureau', chartLine(h));});
       }
     });
     append(result, 'p', 'field-help', '一行一周，从星期一开始。候选日可以点开，下方列出它的农历、相冲、交节和时家奇门盘；变淡的日子写着把它排除的条件。');
