@@ -15,6 +15,11 @@ a separate environment, then run the script:
     npm install --prefix docs/evals              # iztro and @soul-atelier/bazi (JavaScript)
     python scripts/eval_crosscheck.py            # full run
     python scripts/eval_crosscheck.py --quick    # every tenth year, smaller Zi Wei sample, build/evals-quick/
+    python scripts/eval_crosscheck.py --only-shensha   # re-run the 神煞 section of the committed report on its own
+
+The 神煞 section needs neither iztro-py nor lunar_python (it does need Node.js and @soul-atelier/bazi, and the
+other Python references this script imports), so after a star is added it can be re-run on its own; the other
+sections of the committed report are kept and the report says so.
 
 References: sxtwl (寿星天文历 by 许剑伟), lunar_python (6tail), lunardate
 (table based), PyEphem (libastro, VSOP87), iztro-py (port of iztro) and iztro
@@ -45,8 +50,15 @@ import ephem  # noqa: E402
 import lunardate  # noqa: E402
 import swisseph as swe  # noqa: E402
 import sxtwl  # noqa: E402
-from iztro_py import astro  # noqa: E402
-from lunar_python import Solar  # noqa: E402
+# Only the sections that use them need these two; --only-shensha runs without them.
+try:
+    from iztro_py import astro  # noqa: E402
+except ImportError:
+    astro = None
+try:
+    from lunar_python import Solar  # noqa: E402
+except ImportError:
+    Solar = None
 
 from app.almanac import moon_phases  # noqa: E402
 from app.astronomy import TERMS, _new_moons_between, calendar_zone, chinese_lunar_date, from_jd, solar_term_jd, to_jd  # noqa: E402
@@ -215,6 +227,14 @@ def compare_days(years) -> dict:
 
 # Names @soul-atelier/bazi gives the stars XuanShu lists under another name.
 SHENSHA_ALIASES = {'桃花': '咸池'}
+# Stars both list under one name but place by different rules: XuanShu takes 学堂 and 词馆 from the year's 纳音 (the
+# 三命通会's 正位), @soul-atelier/bazi from the day stem. They are not compared at all.
+SHENSHA_OTHER_RULES = ('学堂', '词馆')
+# 红艳 in the 三命通会 differs from the table @soul-atelier/bazi follows for these stems (乙午/申, 戊子/辰, 壬巳/子).
+HONG_YAN_DIFFERS = '乙戊壬'
+# 太极 in the 三命通会 gives 戊 and 己 申 as well as 辰戌丑未; @soul-atelier/bazi gives them 辰戌丑未 only.
+TAI_JI_DIFFERS = '戊己'
+SHENSHA_COMPARED = [rule['name'] for rule in SHENSHA_RULES if rule['name'] not in SHENSHA_OTHER_RULES]
 
 
 def shensha_js(queries: list[dict]) -> list[dict]:
@@ -234,7 +254,8 @@ def compare_shensha(years) -> dict:
 
     Both read the same bases, so the comparison covers the tables and which pillars carry each star. Where the two
     follow different rules the star is not compared: @soul-atelier/bazi also gives the five yin stems a 羊刃 (阴刃),
-    reads 孤辰 and 寡宿 from the day branch as well as the year branch, and also puts 魁罡 on luck and year pillars.
+    reads 孤辰 and 寡宿 from the day branch as well as the year branch, also puts 魁罡 on luck and year pillars, gives
+    戊 and 己 no 申 for 太极, uses another 红艳 table for 乙, 戊 and 壬, and reads 学堂 and 词馆 from the day stem.
     """
     charts, ours = [], []
     for day in all_days(years):
@@ -255,12 +276,17 @@ def compare_shensha(years) -> dict:
         reference = {SHENSHA_ALIASES.get(name, name): where for name, where in theirs['natal'].items()}
         reference_fortune = {SHENSHA_ALIASES.get(name, name) for name in theirs['fortune']}
         p = chart['pillars']
-        for rule in SHENSHA_RULES:
-            name = rule['name']
+        for name in SHENSHA_COMPARED:
             if name == '羊刃' and STEMS.index(p['day'][0]) % 2:
                 skipped['羊刃'] += 1
                 continue
             if name in ('孤辰', '寡宿') and _season(p['day'][1]) != _season(p['year'][1]):
+                skipped[name] += 1
+                continue
+            if name == '红艳' and {p['day'][0], p['year'][0]} & set(HONG_YAN_DIFFERS):
+                skipped[name] += 1
+                continue
+            if name == '太极贵人' and {p['day'][0], p['year'][0]} & set(TAI_JI_DIFFERS):
                 skipped[name] += 1
                 continue
             example = {'pillars': p, 'star': name}
@@ -700,15 +726,20 @@ def write_markdown(result: dict, path: Path) -> None:
         '',
         '## 八字神煞对照 @soul-atelier/bazi',
         '',
+        # Set only by --only-shensha, which re-runs this section and keeps the others.
+        (f"这一节于 {shensha['generated']} 单独重跑，其余各节仍是 {result['generated']} 的结果。"
+         if 'generated' in shensha else '') +
         f"每天一张盘，共 {shensha['charts']:,} 张：当天正午的年、月、日柱，时柱逐日轮换十二个时辰，另配一个逐日轮换六十甲子的大运或流年干支。"
         '两边按同样的原局日干、年干、年支、日支、月支查，比较每种神煞在原局落在哪几柱（柱位完全相同才算一致），以及大运流年干支带不带它。'
-        '参考库在三处与玄枢所引规则不同，这些盘上该星不比较：五阴干的羊刃（阴刃，'
+        '参考库在几处与玄枢所引规则不同，这些盘上该星不比较：五阴干的羊刃（阴刃，'
         f"{shensha['not_compared'].get('羊刃', 0):,} 张盘），孤辰、寡宿兼以日支查（日支与年支不在同一方的 {shensha['not_compared'].get('孤辰', 0):,} 张盘），"
-        '大运流年上的魁罡（玄枢只看原局日柱）。',
+        f"大运流年上的魁罡（玄枢只看原局日柱），太极贵人在日干或年干为戊、己时（玄枢按《三命通会》原文戊己见申和辰戌丑未，参考库只取辰戌丑未，{shensha['not_compared'].get('太极贵人', 0):,} 张盘），"
+        f"红艳在日干或年干为乙、戊、壬时（玄枢按《三命通会》原文乙见午、戊见子、壬见巳，参考库按今通行表乙见申、戊见辰、壬见子，{shensha['not_compared'].get('红艳', 0):,} 张盘）。"
+        '学堂、词馆两边取法不同（玄枢按年柱纳音的正位，参考库按日干），不比较。',
         '',
         '| 神煞 | 原局核对 | 不一致 | 大运流年核对 | 不一致 |',
         '| --- | ---: | ---: | ---: | ---: |',
-    ] + [shensha_row(rule['name']) for rule in SHENSHA_RULES] + [
+    ] + [shensha_row(name) for name in SHENSHA_COMPARED] + [
         '',
         '参考库另列、玄枢暂未收录的神煞（找到可引用的统一安法前不收）：' + '、'.join(shensha['reference_only']) + '。',
         '',
@@ -870,7 +901,8 @@ def summary(result: dict) -> dict:
                       'calendar_differs': sum(result['horoscope']['lunar_python_calendar_differs'].values()),
                       'unexplained': sum(item['mismatches'] for item in result['horoscope']['results'].values())
                       - sum(result['horoscope']['lunar_python_calendar_differs'].values())},
-        'shensha': {'charts': result['shensha']['charts'], 'stars': len(SHENSHA_RULES),
+        'shensha': {'charts': result['shensha']['charts'], 'stars': len(SHENSHA_COMPARED),
+                    **({'generated': result['shensha']['generated']} if 'generated' in result['shensha'] else {}),
                     **{part: {'checked': sum(v['checked'] for k, v in result['shensha']['results'].items() if k.startswith(part + '.')),
                               'mismatches': sum(v['mismatches'] for k, v in result['shensha']['results'].items() if k.startswith(part + '.'))}
                        for part in ('natal', 'fortune')}},
@@ -881,12 +913,44 @@ def summary(result: dict) -> dict:
     }
 
 
+def write_outputs(result: dict, output: Path, committed: Path) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    (output / 'crosscheck.json').write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    write_markdown(result, output / 'README.md')
+    # The page summary must stay in step with the committed report, so only a full run into docs/evals writes it.
+    if not result['quick'] and output.resolve() == committed.resolve():
+        (ROOT / 'static' / 'crosscheck-summary.json').write_text(
+            json.dumps(summary(result), ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
+    print('wrote', output / 'crosscheck.json')
+
+
+def only_shensha(committed: Path) -> None:
+    """Re-run the 神煞 section of the committed report, dated on its own, and keep every other section as it is."""
+    result = json.loads((committed / 'crosscheck.json').read_text(encoding='utf-8'))
+    if result['quick']:
+        raise SystemExit('the committed report is a quick run; make a full run first')
+    print('shensha…', flush=True)
+    result['shensha'] = {**compare_shensha(list(range(result['years'][0], result['years'][1] + 1))),
+                         'generated': date.today().isoformat()}
+    result['findings'] = findings(result)
+    write_outputs(result, committed, committed)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--quick', action='store_true', help='every tenth year and a smaller Zi Wei sample')
     parser.add_argument('--output', type=Path, help='default: docs/evals, or build/evals-quick with --quick')
+    parser.add_argument('--only-shensha', action='store_true',
+                        help='re-run only the 神煞 section of the committed full report and rewrite its outputs')
     args = parser.parse_args()
     committed = ROOT / 'docs' / 'evals'
+    if args.only_shensha:
+        if args.quick or args.output:
+            parser.error('--only-shensha rewrites the committed full report; it takes no --quick or --output')
+        only_shensha(committed)
+        return
+    if astro is None or Solar is None:
+        parser.error('a full run needs iztro-py and lunar_python: pip install -r docs/evals/requirements.txt')
     output = args.output or (ROOT / 'build' / 'evals-quick' if args.quick else committed)
     years = list(range(1901, 2100, 10)) + [2099] if args.quick else list(range(1901, 2100))
     result = {
@@ -908,14 +972,7 @@ def main() -> None:
     print('zi wei periods…', flush=True)
     result['horoscope'] = compare_horoscope(100 if args.quick else 1000)
     result['findings'] = findings(result)
-    output.mkdir(parents=True, exist_ok=True)
-    (output / 'crosscheck.json').write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
-    write_markdown(result, output / 'README.md')
-    # The page summary must stay in step with the committed report, so only a full run into docs/evals writes it.
-    if not args.quick and output.resolve() == committed.resolve():
-        (ROOT / 'static' / 'crosscheck-summary.json').write_text(
-            json.dumps(summary(result), ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
-    print('wrote', output / 'crosscheck.json')
+    write_outputs(result, output, committed)
 
 
 if __name__ == '__main__':

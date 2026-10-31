@@ -80,16 +80,22 @@ def test_committed_report_matches_its_data():
         (key, horoscope['results'][key]['mismatches']) for key in ('decade', 'small_limit', 'year', 'month', 'day', 'hour')]
     assert [row['field'] for row in page['horoscope']['flow_rows']] == ['flow_decade', 'flow_year', 'flow_month', 'flow_day', 'flow_hour', 'year_twelve']
     assert '| 主星与昌曲、火铃、羊陀庙旺利陷（iztro） | 3,000 | 0 | 100.000% |' in readme
-    # 神煞: every one of the sixteen stars on one chart a day agrees with @soul-atelier/bazi wherever both follow the same rule.
+    # 神煞: every star on one chart a day agrees with @soul-atelier/bazi wherever both follow the same rule; 学堂 and 词馆
+    # are placed by different rules (the year's 纳音 here, the day stem there) and not compared.
     from app.shensha import RULES
     shensha = data['shensha']
     assert shensha['charts'] == days['pillars_at_noon']['lunar_python.day']['checked']
-    assert {k.split('.', 1)[1] for k in shensha['results']} == {rule['name'] for rule in RULES}
+    assert {k.split('.', 1)[1] for k in shensha['results']} == {rule['name'] for rule in RULES} - {'学堂', '词馆'}
+    assert all(shensha['results']['natal.' + name]['checked'] + shensha['not_compared'][name] == shensha['charts'] for name in ('红艳', '太极贵人'))
+    assert not {'太极贵人', '金舆', '红艳', '学堂', '词馆'} & set(shensha['reference_only'])
     assert all(item['mismatches'] == 0 for item in shensha['results'].values())
     assert shensha['results']['natal.天乙贵人']['checked'] == shensha['charts'] and 'fortune.魁罡' not in shensha['results']
     assert shensha['results']['natal.羊刃']['checked'] + shensha['not_compared']['羊刃'] == shensha['charts']
-    assert page['shensha'] == {'charts': shensha['charts'], 'stars': 16, 'natal': {'checked': sum(v['checked'] for k, v in shensha['results'].items() if k.startswith('natal.')), 'mismatches': 0},
-                               'fortune': {'checked': sum(v['checked'] for k, v in shensha['results'].items() if k.startswith('fortune.')), 'mismatches': 0}}
+    # A section re-run on its own (--only-shensha) carries its own date into the page summary and the report.
+    assert ('generated' in page['shensha']) == ('generated' in shensha) and page['shensha'].get('generated') == shensha.get('generated')
+    assert (f"这一节于 {shensha['generated']} 单独重跑" in readme) if 'generated' in shensha else '单独重跑' not in readme
+    assert {k: v for k, v in page['shensha'].items() if k != 'generated'} == {'charts': shensha['charts'], 'stars': 19, 'natal': {'checked': sum(v['checked'] for k, v in shensha['results'].items() if k.startswith('natal.')), 'mismatches': 0},
+                                                                              'fortune': {'checked': sum(v['checked'] for k, v in shensha['results'].items() if k.startswith('fortune.')), 'mismatches': 0}}
     assert '## 八字神煞对照 @soul-atelier/bazi' in readme and '| 天乙贵人 | 72,684 | 0 | 72,684 | 0 |' in readme
     assert '## 紫微运限对照 iztro' in readme and '| 流年流曜（流魁至流喜、年解） | 1,000 | 0 |' in readme
     app_js = (ROOT / 'static/app.js').read_text(encoding='utf-8')

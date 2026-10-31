@@ -1762,7 +1762,7 @@ function renderBazi(b) {
   note(result, '藏干顺序为传统本气、中气、余气；计数仅统计明干和地支本气，不判断喜忌、旺衰与命运。颜色只标示五行归属。');
 }
 // 神煞: which natal values place a star on a pillar, and a table of the rule and source of each star the chart shows.
-const SHENSHA_BASIS = {day_stem: '日干', year_stem: '年干', day_branch: '日支', year_branch: '年支', month_branch: '月支', day_pillar: '日柱'};
+const SHENSHA_BASIS = {day_stem: '日干', year_stem: '年干', day_branch: '日支', year_branch: '年支', month_branch: '月支', day_pillar: '日柱', year_nayin: '年柱纳音'};
 const shenshaBasis = star => '查法起点：' + star.by.map(x => SHENSHA_BASIS[x.basis] + ' ' + x.value).join('、');
 // With the hour unknown any time of the birth day is possible, so the noon placeholder's hour pillar is not known;
 // a jie inside that day changes the month pillar (立春 the year pillar too), and the 23:00 day change or a solar-time
@@ -1838,7 +1838,7 @@ function renderShenshaRules(parent, b) {
     append(parent, 'p', 'info-inline', '出生时辰不详，而出生当天交节、按 23:00 换日或按太阳时换算，年柱、月柱或日柱可能随时辰变化，神煞也随之不同，这里不列；确定时辰后再看。');
     return;
   }
-  if (!found.length) {append(parent, 'p', 'info-inline', currentHourUnknown ? '已知的年、月、日三柱没有所收十六种神煞。' : '四柱没有所收十六种神煞。'); return;}
+  if (!found.length) {append(parent, 'p', 'info-inline', currentHourUnknown ? '已知的年、月、日三柱没有所收二十一种神煞。' : '四柱没有所收二十一种神煞。'); return;}
   const table = append(append(parent, 'div', 'table-wrap'), 'table', 'data-table shensha-table'); table.id = 'shensha-rules';
   const head = append(append(table, 'thead'), 'tr');
   ['神煞', '所在', '查法', '出处'].forEach(x => append(head, 'th', null, x));
@@ -1854,7 +1854,7 @@ function renderShenshaRules(parent, b) {
     append(tr, 'td', null, r.rule);
     append(tr, 'td', 'muted', r.source);
   });
-  append(parent, 'p', 'info-inline', '神煞是传统标签：只收能在古籍里查到安法的十六种，以日干、年干、年支、日支、月支查四柱，时柱不作查法起点；同一种神煞各家表格不尽相同（如阴干是否有羊刃），这里按所列出处。只列名称，不断吉凶。');
+  append(parent, 'p', 'info-inline', '神煞是传统标签：只收能在古籍里查到安法的二十一种，以日干、年干、年支、日支、月支和年柱纳音查四柱，时柱不作查法起点；同一种神煞各家表格不尽相同（如阴干是否有羊刃、红艳的几干），这里按所列出处。只列名称，不断吉凶。');
 }
 function findPalace(z, name) {return z.palaces.find(item => item.name === name) || z.palaces.find(item => item.is_ming);}
 // Transformations listed in the palace panel. On the Zi Wei board each one is a button: pointing at it or focusing it
@@ -9974,9 +9974,10 @@ function renderCrosscheck(dialog) {
   }
   if (d.shensha) {
     append(dialog, 'h4', null, '八字神煞对照');
-    texts(append(dialog, 'p', 'field-help'), '共', ' ' + d.shensha.charts.toLocaleString('en-US') + ' ', '张盘（每天一张）', ' · ', '十六种神煞逐柱比较');
+    texts(append(dialog, 'p', 'field-help'), '共', ' ' + d.shensha.charts.toLocaleString('en-US') + ' ', '张盘（每天一张）', ' · ', d.shensha.stars + ' ', '种神煞逐柱比较',
+      ...(d.shensha.generated ? [' · ', '这一节单独重跑于', ' ' + d.shensha.generated] : []));
     countRows(dialog, ['natal', 'fortune'].map(field => ({field, reference: '@soul-atelier/bazi', ...d.shensha[field]})));
-    append(dialog, 'p', 'field-help', '参考库给阴干也排羊刃、孤辰寡宿兼以日支查、大运流年也标魁罡，与玄枢所引规则不同，这几处不比较。');
+    append(dialog, 'p', 'field-help', '参考库给阴干也排羊刃、孤辰寡宿兼以日支查、大运流年也标魁罡、太极贵人戊己只取辰戌丑未、红艳按今通行表、学堂词馆按日干查，与玄枢所引规则不同，这几处不比较。');
   }
   append(dialog, 'h4', null, '仍有差异的月份');
   const list = append(dialog, 'ul', 'crosscheck-list'); list.id = 'crosscheck-differences';
