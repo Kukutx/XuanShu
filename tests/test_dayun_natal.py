@@ -142,6 +142,10 @@ def test_luck_page_years_open_their_months():
     # The four luck tables, the 神煞 rules, today's pillars and the year's four transformations.
     assert script.count('  stackTable(table);') == 7 and "table.querySelectorAll('td').forEach(cell => cell.setAttribute('role', 'cell'));" in script
     assert "label.setAttribute('aria-hidden', 'true');" in script and "stackLabel(append(tr, 'td'), '虚龄')" in script and "stackLabel(append(tr,'td'),'起运')" in script
+    # A ten god or growth stage spelled out in letters keeps about two lines' width in the four luck tables, so the
+    # stars wrap instead, and a table that then overflows stacks; in Chinese and Japanese the two characters need none.
+    assert script.count("'dy-short'") == 8
+    assert 'html:not(:lang(zh),:lang(ja),:lang(ko)) .dy-stack:not(.is-stacked) td.dy-short{min-width:11.5em}' in style
     # They stack only when their columns overflow the wrapper, measured as a table at each redraw, resize and translation.
     assert "table.classList.toggle('is-stacked', narrow || table.offsetWidth > table.parentElement.clientWidth + 1);" in script
     assert "cell.getBoundingClientRect().width < parseFloat(table.dataset.fitEm || '7.5') * parseFloat(getComputedStyle(cell).fontSize)" in script

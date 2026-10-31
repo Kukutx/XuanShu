@@ -2870,6 +2870,22 @@ def main() -> None:
                 assert not any(t['over'] or t['narrow'] for t in kept), (width, kept)
                 assert all(not t['scroll'] for t in page.evaluate(stacked_tables)), width
             assert page.locator('#dayun-table.is-stacked').count() == 0, 'columns kept on a wide screen'
+            # In English a ten god reads Direct Resource (Zheng Yin): where the columns are kept it takes two lines at
+            # most, the stars column wrapping instead, and where that leaves no room the rows stack.
+            page.locator('#ui-language').select_option('en')
+            page.wait_for_function("document.documentElement.lang === 'en'", timeout=5000)
+            for width in (1100, 1280, 1440):
+                page.set_viewport_size({'width': width, 'height': 844})
+                page.wait_for_timeout(300)
+                kept = page.evaluate('''() => [...document.querySelectorAll('#result table.dy-stack:not(.is-stacked)')].map(t => {
+                  const lines = [...t.querySelectorAll('tbody td.dy-short')].map(c => {const r = document.createRange(); r.selectNodeContents(c);
+                    return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size;});
+                  return {id: t.id, over: t.offsetWidth > t.parentElement.clientWidth + 1, lines: Math.max(0, ...lines)};})''')
+                assert not any(t['over'] or t['lines'] > 2 for t in kept), (width, kept)
+                assert all(not t['scroll'] for t in page.evaluate(stacked_tables)), width
+            assert page.locator('#dayun-years:not(.is-stacked)').count() == 1, 'English keeps the year columns at 1440 px'
+            page.locator('#ui-language').select_option('zh-CN')
+            page.wait_for_function("document.documentElement.lang === 'zh-CN'", timeout=5000)
             page.set_viewport_size({'width': 390, 'height': 844})
             # The 神煞 rules and the year's four transformations stack on a phone the same way: the rule and the source,
             # the main stars and the natal star each take a labelled line of their own, and neither scrolls sideways. The
