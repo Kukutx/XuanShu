@@ -1013,6 +1013,28 @@ def main() -> None:
             page.locator('[data-tab="group"]').click()
             # The relation card is drawn on this device: names, pillars and labels, never notes, birth dates or times.
             check_relation_card(page, 'group', screenshot_dir / '44-group-card.png')
+            # A name typed as one long run with no space wraps inside its card rather than pushing its row out: the
+            # saved profile in the picker, the member card, a pair's title and its ten-god tags (plain text inside the
+            # tag, not a pill of its own), the year cards, on a desk and on a phone; a medium name keeps whole, its
+            # birth time moving under it.
+            page.evaluate("""() => {
+              window.__group = JSON.stringify(groupResult); window.__profiles = localStorage.getItem(profileKey);
+              // Every place the first member's name appears (cards, pairs, the year cards and links, triads, day masters).
+              const name = 'W'.repeat(50), list = loadProfiles(), old = JSON.stringify(groupResult.members[0].label);
+              groupResult = JSON.parse(window.__group.split(old).join(JSON.stringify(name)));
+              list[0].label = name; localStorage.setItem(profileKey, JSON.stringify(list));
+            }""")
+            size = page.viewport_size
+            for width in (900, 360):
+                page.set_viewport_size({'width': width, 'height': 920})
+                page.evaluate("() => { render(); document.querySelector('.group-pair').open = true; }")
+                assert page.evaluate(OVERFLOW) == [], (width, page.evaluate(OVERFLOW))
+                assert page.evaluate("[...document.querySelectorAll('.group-pair .meta-tags span span')].every(s => getComputedStyle(s).borderTopStyle === 'none')")
+                assert page.evaluate("""() => { const s = document.querySelector('.group-profile .user-text'), w = s.textContent;
+                  s.textContent = 'Grandmother'; const range = document.createRange(); range.selectNodeContents(s);
+                  const lines = new Set([...range.getClientRects()].map(r => Math.round(r.top))).size; s.textContent = w; return lines; }""") == 1
+            page.set_viewport_size(size)
+            page.evaluate("() => { groupResult = JSON.parse(window.__group); localStorage.setItem(profileKey, window.__profiles); render(); }")
             page.locator('#group-note-clear-legacy-1').click()
             page.wait_for_function("() => loadProfiles().find(x => x.id === 'legacy-1').note === undefined && !document.getElementById('group-note-clear-legacy-1')", timeout=10000)
 
