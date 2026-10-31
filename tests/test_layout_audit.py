@@ -200,13 +200,15 @@ def test_wider_text_spacing_cuts_nothing_off():
 
 def test_keyboard_focus_stays_visible():
     # A focused field has a solid ring (at least 3:1, and kept by a contrast theme, which drops shadows) and a soft halo.
-    assert ('.input-panel input:focus,.input-panel select:focus{border-color:var(--gold);outline:2px solid var(--gold2);'
-            'outline-offset:1px;box-shadow:0 0 0 4px var(--ring);background:var(--panel)}') in CSS
+    assert ('.input-panel input:not([type=checkbox]):focus-visible,.input-panel select:focus-visible{outline:2px solid var(--gold2);'
+            'outline-offset:1px;box-shadow:0 0 0 4px var(--ring)}') in CSS
+    # A field reached with Tab scrolls clear of the sticky run bar at the foot of the side panel.
+    assert '.input-panel{scroll-padding-bottom:76px}' in CSS
     assert 'box-shadow:0 0 0 3px var(--ring)' not in CSS
     assert '.chat-composer:has(textarea:focus-visible){outline:2px solid var(--gold2);' in CSS
     # A chosen item with focus shows a double ring rather than hiding the focus ring behind its own.
-    assert '.ic-hour.is-picked:focus-visible{outline:6px double var(--gold2);outline-offset:0}' in CSS
-    assert '.palace-btn.selected:focus-visible,.ziwei-board .palace.fly-end:focus-visible{outline:6px double var(--gold2);outline-offset:-4px}' in CSS
-    assert ',[aria-pressed="true"]):focus-visible{outline:6px double Highlight;outline-offset:0}' in CSS
+    assert '.ic-hour.is-picked:focus-visible{outline:6px double var(--gold2);outline-offset:-3px}' in CSS
+    assert '.palace-btn.selected:focus-visible,.ziwei-board .palace.fly-end:focus-visible{outline:6px double var(--gold2);outline-offset:-5px}' in CSS
+    assert ',[aria-pressed="true"]):focus-visible{outline:6px double Highlight;outline-offset:-3px}' in CSS
     smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
     assert 'found += page.evaluate(UNFRAMED) + page.evaluate(MARKS_LOST) + page.evaluate(FOCUS_HIDDEN)' in smoke

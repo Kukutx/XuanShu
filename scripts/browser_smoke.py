@@ -3157,7 +3157,8 @@ def main() -> None:
             # Windows contrast theme (the Qimen check's run button, a flying-star palace, a timeline year), and no bar
             # or swatch drawn only with a background disappears there (the five-element bars, a decision weight). The
             # same holds with WCAG 1.4.12 spacing (a decade's age line, a star tag, a member's name, a festival), and
-            # at 900 px every control shows keyboard focus in both themes (the selected palace, a text field).
+            # at 900 px every visible control shows keyboard focus in the light and the contrast theme (the selected
+            # palace, a text field).
             back, overflow = page.evaluate('active'), {}
             for width in (900, 360):
               page.set_viewport_size({'width': width, 'height': 920})
@@ -3171,7 +3172,7 @@ def main() -> None:
                 found += ['spaced ' + f for f in page.evaluate(OVERFLOW) + sorted(set(page.evaluate(CUT_TEXT)) - cut)]
                 spaced.evaluate('s => s.remove()')
                 if width == 900:
-                    # Every control shows that it has keyboard focus, in the normal and the contrast theme alike.
+                    # Every visible control shows that it has keyboard focus, in the light and the contrast theme alike.
                     page.keyboard.press('Shift')
                     found += page.evaluate(FOCUS_HIDDEN)
                     page.evaluate(MARKS_TAG)

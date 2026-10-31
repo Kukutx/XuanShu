@@ -140,7 +140,8 @@ body.has-chart .today-chip{margin:0}
 .input-panel input:hover,.input-panel select:hover{border-color:var(--gold)}
 /* A focused field has a solid ring (at least 3:1 against the panel, and kept by a contrast theme, which drops shadows)
    with a soft halo outside it. */
-.input-panel input:focus,.input-panel select:focus{border-color:var(--gold);outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring);background:var(--panel)}
+.input-panel input:not([type=checkbox]):focus,.input-panel select:focus{border-color:var(--gold);background:var(--panel)}
+.input-panel input:not([type=checkbox]):focus-visible,.input-panel select:focus-visible{outline:2px solid var(--gold2);outline-offset:1px;box-shadow:0 0 0 4px var(--ring)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 /* Zone names run long (America/Argentina/Buenos Aires · UTC-3), so 时区 and 性别 take a row each. */
 .form-row.tz-row{grid-template-columns:minmax(0,1fr);gap:0}
@@ -170,7 +171,9 @@ body.has-chart .today-chip{margin:0}
 .primary-btn:disabled{opacity:.6;cursor:not-allowed}
 /* On a desk the form scrolls inside the sticky sidebar; its main button keeps to the panel's bottom edge, with the fields
    fading out under it, so a short screen never scrolls it out of reach. */
-@media(min-width:861px){.run-bar{position:sticky;bottom:-22px;z-index:1;margin:0 -22px;padding:0 22px 22px;background:linear-gradient(transparent,var(--panel) 18px)}}
+@media(min-width:861px){.run-bar{position:sticky;bottom:-22px;z-index:1;margin:0 -22px;padding:0 22px 22px;background:linear-gradient(transparent,var(--panel) 18px)}
+  /* A field reached with Tab scrolls clear of the bar, so its focus ring is never under the button. */
+  .input-panel{scroll-padding-bottom:76px}}
 .error{color:var(--red);margin:10px 0}
 .demo-data-notice{font-size:12px;color:var(--warn);border-left:3px solid var(--gold);padding:7px 10px;background:var(--accent-soft);margin:10px 0 0}
 /* The birth form folds into a one-line summary: on a phone after each cast, on a wide screen when the user asks,
@@ -1180,8 +1183,8 @@ html:not(:lang(zh),:lang(ja),:lang(ko)) :is(.star-primary,.star-secondary) .brig
 .palace-btn{cursor:pointer;text-align:left;color:inherit;font:inherit}
 .palace-btn:hover{border-color:var(--gold)}
 .palace-btn.selected{outline:2px solid var(--gold2);outline-offset:-2px}
-/* The selected palace (or a flying-star end) with focus: a double ring, the selection inside and focus outside. */
-.palace-btn.selected:focus-visible,.ziwei-board .palace.fly-end:focus-visible{outline:6px double var(--gold2);outline-offset:-4px}
+/* The selected palace (or a flying-star end) with focus: a double ring inside its edge, clear of its neighbours. */
+.palace-btn.selected:focus-visible,.ziwei-board .palace.fly-end:focus-visible{outline:6px double var(--gold2);outline-offset:-5px}
 .layer-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:4px 0 12px}
 .layer-modes{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--border-strong);border-radius:999px;padding:2px;background:var(--panel2)}
 .layer-btn{border:0;background:transparent;color:var(--text2);padding:5px 14px;border-radius:999px;font-size:13px;cursor:pointer}
@@ -1505,8 +1508,8 @@ html[lang=en] .qh-name,html[lang=en] .qh-bureau,html[lang=en] .qh-duty{white-spa
 .ic-tag.ic-near{color:var(--warn);font-weight:600}
 .ic-missing{color:var(--warn)}
 .ic-hour.is-picked{background:var(--accent-soft);outline:2px solid var(--gold);outline-offset:1px}
-/* The picked hour with focus: a double ring, its own ring inside and the focus ring around it. */
-.ic-hour.is-picked:focus-visible{outline:6px double var(--gold2);outline-offset:0}
+/* The picked hour with focus: a double ring whose outer line sits where its own ring was, clear of the next hour. */
+.ic-hour.is-picked:focus-visible{outline:6px double var(--gold2);outline-offset:-3px}
 .ic-name{font-size:11px;color:var(--muted);white-space:nowrap}
 .ic-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.25}
 .ic-clock{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
@@ -2759,9 +2762,11 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .switch-row input[type=checkbox]:checked::before{background:HighlightText}
   input:is([type=date],[type=datetime-local],[type=month],[type=time])::-webkit-calendar-picker-indicator{forced-color-adjust:none;background:CanvasText}
   :focus-visible{outline-color:Highlight}
-  /* A chosen item with focus: a double ring, so focus never hides behind the chosen ring. */
+  /* A chosen item with focus: a double ring reaching no further out than its chosen ring, so focus never hides
+     behind it and neighbours and scroll edges cut nothing. */
   :is(.tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,.cal-day.is-selected,.ds-day.is-selected,
-  .dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,.palette-opt.is-active,.dy-day[aria-expanded="true"],[aria-pressed="true"]):focus-visible{outline:6px double Highlight;outline-offset:0}
+  .dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,.dy-day[aria-expanded="true"],[aria-pressed="true"]):focus-visible{outline:6px double Highlight;outline-offset:-3px}
+  .chat-composer:has(textarea:focus-visible),.ziwei-board .palace.fly-end:focus-visible{outline-color:Highlight}
   .skip-link{border:2px solid ButtonText}
 }
 /* People who ask for less transparency get solid bars instead of frosted glass. */
