@@ -152,3 +152,15 @@ def test_long_typed_names_wrap_inside_their_cards():
     js = (ROOT / 'static/app.js').read_text(encoding='utf-8')
     assert "const what = append(row, 'span', 'group-profile-text');" in js
     assert '  .dm-sens .dm-sens-name{white-space:normal}' in CSS
+
+
+def test_contrast_theme_keeps_a_frame_on_every_button():
+    # Gold-filled run buttons and buttons that fill a heading cell keep a frame once a contrast theme drops colour.
+    assert '.consult-shortcuts>button.scan-run,.qr-run .scan-run,.layer-btn,.api-send{border:1px solid ButtonText}' in CSS
+    assert '  .fh-pick,.yt-year,.tl-year,.ds-pick,.qr-extra-remove{border:1px solid ButtonText}' in CSS
+    smoke = (ROOT / 'scripts/browser_smoke.py').read_text(encoding='utf-8')
+    assert "found += page.evaluate(UNFRAMED)" in smoke
+
+
+def test_json_tree_rows_are_tall_enough_to_tap():
+    assert '.jv-node>summary{padding-block:2.5px}' in CSS

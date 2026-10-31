@@ -154,6 +154,20 @@ OVERFLOW = """() => {
   return out.slice(0, 5);
 }"""
 
+# Controls that keep no frame or underline once a Windows contrast theme repaints every colour: they would read as
+# plain text (a tick box, a radio and a disclosure triangle carry their own mark).
+UNFRAMED = """() => {
+  const out = new Set();
+  for (const el of document.querySelectorAll('button, [role=button], [role=tab], select, input:not([type=hidden]), a.tiny-button')) {
+    if (!el.checkVisibility() || el.closest('.visually-hidden') || ['checkbox', 'radio'].includes(el.type)) continue;
+    const s = getComputedStyle(el);
+    if (['Top', 'Right', 'Bottom', 'Left'].some(k => parseFloat(s['border' + k + 'Width']) > 0 && s['border' + k + 'Style'] !== 'none')
+        || s.textDecorationLine.includes('underline')) continue;
+    out.add('unframed ' + el.tagName.toLowerCase() + '.' + String(el.className).split(' ').filter(Boolean).join('.'));
+  }
+  return [...out];
+}"""
+
 # Text fields whose hint is wider than the field, measured in the field's own font (folded settings opened for it).
 CLIPPED_HINTS = """() => {
   const folds = [...document.querySelectorAll('#connection-settings, .vault-pane')].filter(d => !d.open);
@@ -3073,7 +3087,8 @@ def main() -> None:
                     assert clipped == [], (lang, width, clipped)
             # No element runs out of its box on any page in English at 900 px, where the side panel is back and the
             # column is at its narrowest (a palace's stars, the rule cards, a date-scan day, a group member's pillars),
-            # nor on a 360 px phone (an hour of the Qimen day strip).
+            # nor on a 360 px phone (an hour of the Qimen day strip). At 900 px every control also keeps a frame in a
+            # Windows contrast theme (the Qimen check's run button, a flying-star palace, a timeline year).
             back, overflow = page.evaluate('active'), {}
             for width in (900, 360):
               page.set_viewport_size({'width': width, 'height': 920})
@@ -3081,6 +3096,10 @@ def main() -> None:
                 page.evaluate("(tab) => document.querySelector(`[data-tab='${tab}']`).click()", tab)
                 page.wait_for_timeout(1500)
                 found = page.evaluate(OVERFLOW)
+                if width == 900:
+                    page.emulate_media(forced_colors='active')
+                    found += page.evaluate(UNFRAMED)
+                    page.emulate_media(forced_colors='none')
                 if tab == 'rule-matrix':
                     # A rule card is at least 16em wide, or alone on its row.
                     found += page.evaluate("""() => [...document.querySelectorAll('.rule-card')].filter(c => {

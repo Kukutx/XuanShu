@@ -368,6 +368,8 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .jv-tree{padding:8px 12px 10px;font:12.5px/1.6 var(--mono);color:var(--code-text,var(--text));overflow-x:auto}
 .jv-node>summary{cursor:pointer;list-style:none;white-space:nowrap;border-radius:4px;padding:0 4px;margin-left:-4px}
 .jv-node>summary::-webkit-details-marker{display:none}
+/* Each row that opens is at least 24 px tall (WCAG target size), so a fingertip opens the row it means. */
+.jv-node>summary{padding-block:2.5px}
 .jv-node>summary::before{content:'▸';display:inline-block;width:1em;color:var(--muted);transition:transform .15s}
 .jv-node[open]>summary::before{transform:rotate(90deg)}
 .jv-node>summary:hover{background:var(--accent-soft)}
@@ -2717,7 +2719,10 @@ details.api-op>summary::before,details.api-schema>summary::before{flex:none;marg
   .cal-ghost,.xs-ghost>span{forced-color-adjust:none;background:GrayText;opacity:.5;animation:none}
   .tab-pill{display:none}
   .palette-opt.is-active{outline:2px solid Highlight;outline-offset:-2px}
-  .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
+  .primary-btn,.inline-control button,.consult-shortcuts>button.scan-run,.qr-run .scan-run,.layer-btn,.api-send{border:1px solid ButtonText}
+  /* Buttons drawn as plain text or as a whole cell (a palace, a year heading, a scanned day, the × that removes a
+     star) keep a frame, or they read as plain text once colours go. */
+  .fh-pick,.yt-year,.tl-year,.ds-pick,.qr-extra-remove{border:1px solid ButtonText}
   .tab.active,.of-chip.active,.layer-btn.active,.luck-decade.active,.layer-stack-row.active,.palace-btn.selected,
   .cal-day.is-selected,.ds-day.is-selected,.ds-day.is-pick,.dy-decade.is-picked,.ic-hour.is-picked,.rm-value.is-on,.rp-module.is-on,
   [aria-pressed="true"]{outline:2px solid Highlight;outline-offset:1px}
