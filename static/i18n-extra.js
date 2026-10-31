@@ -6322,6 +6322,14 @@ const UI_EXTRA = {
 "Export calendar",
 "カレンダーに書き出す"
 ],
+"导出流日日历": [
+"Export daily pillars calendar",
+"流日カレンダーを書き出す"
+],
+"导出流月日历": [
+"Export monthly pillars calendar",
+"流月カレンダーを書き出す"
+],
 "封诰": [
 "Feng Gao",
 "封誥"
@@ -7502,9 +7510,13 @@ const UI_EXTRA = {
 "Format the independent chart result as JSON containing reference_source, reference_school, root_fields and palaces. Use number=1…9 for each palace; fill in only the other fields you want compared.",
 "独立した作盤結果を reference_source、reference_school、root_fields、palaces を含む JSON にまとめてください。各宮は number=1…9 を使用し、その他は対照したいフィールドのみ記入します。"
 ],
-"把这个月每天的日柱存成日历文件（.ics），可导入手机或电脑日历；文件在本机生成，不经服务器。备注列出与原局四柱的关系，可据此推出大致出生时段，分享前请留意": [
-"Save this month's daily pillars as a calendar file (.ics) to import into a phone or desktop calendar; the file is made on this device and never sent to a server. The notes list the relations to the natal four pillars, from which a rough birth window can be worked out, so take care before sharing it",
-"この月の日柱をカレンダーファイル（.ics）として保存し、スマホやパソコンのカレンダーに取り込めます。ファイルはこの端末で作られ、サーバーには送られません。備考には原局の四柱との関係が載っており、そこからおおよその出生時間帯を推定できるため、共有する前にご注意ください"
+"把这一年的十二个流月存成日历文件（.ics），每月一条从交节日到下一个交节日前一天的全天事件；文件在本机生成，不经服务器。备注列出与原局四柱的关系和按出生地时区的交节时刻，可据此反推出生日期、时辰和出生地时区，分享前请留意": [
+"Save this year's twelve monthly pillars as a calendar file (.ics), one all-day event a month from its solar-term day to the day before the next; the file is made on this device and never sent to a server. The notes list the relations to the natal four pillars and the solar-term moments in the birth time zone, from which the birth date, hour and time zone can be worked back, so take care before sharing it",
+"この年の十二の流月をカレンダーファイル（.ics）として保存します。各月は節入りの日から次の節入りの前日までの終日予定になります。ファイルはこの端末で作られ、サーバーには送られません。備考には原局の四柱との関係と出生地のタイムゾーンでの節入り時刻が載っており、そこから出生日、時辰、出生地のタイムゾーンを逆算できるため、共有する前にご注意ください"
+],
+"把这个月每天的日柱存成日历文件（.ics），可导入手机或电脑日历；文件在本机生成，不经服务器。备注列出与原局四柱的关系，可据此反推出生日期和时辰，分享前请留意": [
+"Save this month's daily pillars as a calendar file (.ics) to import into a phone or desktop calendar; the file is made on this device and never sent to a server. The notes list the relations to the natal four pillars, from which the birth date and hour can be worked back, so take care before sharing it",
+"この月の日柱をカレンダーファイル（.ics）として保存し、スマホやパソコンのカレンダーに取り込めます。ファイルはこの端末で作られ、サーバーには送られません。備考には原局の四柱との関係が載っており、そこから出生日と時辰を逆算できるため、共有する前にご注意ください"
 ],
 "报告 综述 markdown": [
 "report summary markdown",
@@ -10725,6 +10737,10 @@ const UI_EXTRA = {
 "玄枢 · 流日": [
 "XuanShu · Daily pillars",
 "玄枢 · 流日"
+],
+"玄枢 · 流月": [
+"XuanShu · Monthly pillars",
+"玄枢 · 流月"
 ],
 "玄枢原生": [
 "XuanShu",
