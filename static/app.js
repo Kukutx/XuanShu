@@ -6708,6 +6708,38 @@ function renderReport() {
   printIt.addEventListener('click', () => window.print());
   r.limitations.forEach(x=>note(result,x));
 }
+// When their columns do not fit, the decade, year, month and hour tables stack each row (.dy-stack.is-stacked in the
+// stylesheet): the relations and the stars take lines of their own under the pillar instead of columns a few characters
+// wide that stretch a row to hundreds of pixels and scroll sideways. The roles keep the rows a table to screen readers
+// once they no longer display as table rows; a label a stacked cell needs, its column head being out of sight, is hidden
+// from them as the head says it already.
+function stackTable(table) {
+  table.classList.add('dy-stack'); table.setAttribute('role', 'table');
+  table.querySelectorAll('thead,tbody').forEach(group => group.setAttribute('role', 'rowgroup'));
+  table.querySelectorAll('tr').forEach(row => row.setAttribute('role', 'row'));
+  table.querySelectorAll('th').forEach(cell => cell.setAttribute('role', cell.scope === 'col' ? 'columnheader' : 'rowheader'));
+  table.querySelectorAll('td').forEach(cell => cell.setAttribute('role', 'cell'));
+}
+// Whether the columns fit is the table's own question, not the screen's: the side panel, the language and the content
+// all change it (with the panel back on a small laptop the column is narrower than on a large phone, and English needs
+// more room than Chinese). So each is laid out as a table and measured, and stacked when it overflows its wrapper or
+// its stars column is left under 7.5em, where the names wrap a few characters to a line and stretch every row; within
+// one task, so nothing is painted in between.
+function fitStacks() {
+  document.querySelectorAll('table.dy-stack').forEach(table => {
+    table.classList.remove('is-stacked');
+    const stars = table.querySelector('tbody td.dy-star-cell');
+    const narrow = stars && stars.getBoundingClientRect().width < 7.5 * parseFloat(getComputedStyle(stars).fontSize);
+    table.classList.toggle('is-stacked', narrow || table.offsetWidth > table.parentElement.clientWidth + 1);
+  });
+}
+function stackLabel(cell, text) {
+  const label = append(cell, 'span', 'dy-stack-label', text + ' '); label.setAttribute('aria-hidden', 'true');
+  return cell;
+}
+function stackStars(tr, text) {
+  stackLabel(append(tr, 'td', 'dy-star-cell'), '神煞').append(text);
+}
 function renderDayun() {
   title(result, '八字大运十年干支', '年干阴阳 + 性别或手动顺逆 · 十二节令 · 三日折一岁');
   append(result, 'p', 'info-inline', '只计算传统干支和名义起运年龄，公历时间为均值年近似，绝非对人生事件的预测。');
@@ -6762,14 +6794,15 @@ function renderDayun() {
   const body=append(table,'tbody');
   d.periods.forEach((x,i)=>{
     const n=settledInteractions(x.natal_interactions, o);
-    const tr=append(body,'tr',i===live?'is-current':null);append(tr,'td',null,x.sequence);
+    const tr=append(body,'tr',i===live?'is-current':null);append(tr,'td','dy-seq',String(x.sequence));
     if(i===live)tr.setAttribute('aria-current','date');
     const cell=append(tr,'td'),pillar=append(cell,'span','pillar-cell');append(pillar,'span',stemClass(x.pillar[0]),x.pillar[0]);append(pillar,'span',branchClass(x.pillar[1]),x.pillar[1]);
     if(i===live)append(cell,'span','dayun-now','约当前');
     if(!o.day){append(tr,'td',null,n?n.ten_god_of_stem:'—');append(tr,'td',null,n?n.growth_stage:'—');}
-    append(tr,'td',null,x.approx_start_age_years.toFixed(2));append(tr,'td','nowrap',x.approx_start_local.slice(0,10));
-    const marks=append(tr,'td');if(n){natalMarks(marks,n);tip(marks,natalText(n));}if(!marks.childNodes.length)marks.textContent='—';
-    append(tr,'td',null,o.stars?'随时辰而定':(n&&n.shensha||[]).map(s=>s.name).join('、')||'—');});
+    stackLabel(append(tr,'td'),'起运').append(x.approx_start_age_years.toFixed(2));append(tr,'td','nowrap',x.approx_start_local.slice(0,10));
+    const marks=append(tr,'td','dy-mark-cell');if(n){natalMarks(marks,n);tip(marks,natalText(n));}if(!marks.childNodes.length)marks.textContent='—';
+    stackStars(tr,o.stars?'随时辰而定':(n&&n.shensha||[]).map(s=>s.name).join('、')||'—');});
+  stackTable(table);
   d.limitations.forEach(x=>note(result,x));
 }
 // With the hour unknown, which pillars the noon placeholder leaves open (unsettledPillars) and what follows for the
@@ -6955,11 +6988,12 @@ function dayunDetail(d, x, isNow, o, now) {
     append(pair, 'span', stemClass(y.pillar[0]), y.pillar[0]); append(pair, 'span', branchClass(y.pillar[1]), y.pillar[1]);
     const ys = settledInteractions(y, o);
     if (!o.day) append(tr, 'td', null, ys.ten_god_of_stem);
-    append(tr, 'td', null, String(y.year - birthYear + 1));
+    stackLabel(append(tr, 'td'), '虚龄').append(String(y.year - birthYear + 1));
     if (!o.day) append(tr, 'td', null, ys.growth_stage);
-    const marks = append(tr, 'td'); natalMarks(marks, ys); tip(marks, natalText(ys)); if (!marks.childNodes.length) marks.textContent = '—';
-    append(tr, 'td', null, o.stars ? '随时辰而定' : (ys.shensha || []).map(s => s.name).join('、') || '—');
+    const marks = append(tr, 'td', 'dy-mark-cell'); natalMarks(marks, ys); tip(marks, natalText(ys)); if (!marks.childNodes.length) marks.textContent = '—';
+    stackStars(tr, o.stars ? '随时辰而定' : (ys.shensha || []).map(s => s.name).join('、') || '—');
   });
+  stackTable(table);
   append(box, 'p', 'field-help', '与原局一栏：冲月是与月柱六冲，合、刑、害同理，同是同支；日空、年空是落在日柱或年柱的旬空，悬停可看全部关系。流年以立春换年，虚龄从农历出生年起算。只列关系与标签，不判断吉凶。');
   const failed = dayunMonthsError && dayunMonthsError.key === dayunKey && inDecade(dayunMonthsError.year) ? dayunMonthsError : null;
   if (failed) append(box, 'p', 'inline-msg', failed.text);
@@ -7112,9 +7146,10 @@ function dayunMonthTable(box, m, o) {
     append(pair, 'span', stemClass(month.pillar[0]), month.pillar[0]); append(pair, 'span', branchClass(month.pillar[1]), month.pillar[1]);
     const ms = settledInteractions(month, o);
     if (!o.day) {append(tr, 'td', null, ms.ten_god_of_stem); append(tr, 'td', null, ms.growth_stage);}
-    const marks = append(tr, 'td'); natalMarks(marks, ms); tip(marks, natalText(ms)); if (!marks.childNodes.length) marks.textContent = '—';
-    append(tr, 'td', null, o.stars ? '随时辰而定' : (ms.shensha || []).map(sh => sh.name).join('、') || '—');
+    const marks = append(tr, 'td', 'dy-mark-cell'); natalMarks(marks, ms); tip(marks, natalText(ms)); if (!marks.childNodes.length) marks.textContent = '—';
+    stackStars(tr, o.stars ? '随时辰而定' : (ms.shensha || []).map(sh => sh.name).join('、') || '—');
   });
+  stackTable(table);
   append(panel, 'p', 'field-help dy-years-hint', '点节令可展开这个月每天的日柱。');
   const failed = dayunDaysError && dayunDaysError.key === dayunKey && dayunDaysError.year === m.year ? dayunDaysError : null;
   // The failure names its month: the grid of another month may still be open above it.
@@ -7264,9 +7299,10 @@ function dayunHourTable(box, h, o, day) {
     append(pair, 'span', stemClass(hour.pillar[0]), hour.pillar[0]); append(pair, 'span', branchClass(hour.pillar[1]), hour.pillar[1]);
     const hs = settledInteractions(hour, o);
     if (!o.day) {append(tr, 'td', null, hs.ten_god_of_stem); append(tr, 'td', null, hs.growth_stage);}
-    const marks = append(tr, 'td'); natalMarks(marks, hs); tip(marks, natalText(hs)); if (!marks.childNodes.length) marks.textContent = '—';
-    append(tr, 'td', null, o.stars ? '随时辰而定' : (hs.shensha || []).map(sh => sh.name).join('、') || '—');
+    const marks = append(tr, 'td', 'dy-mark-cell'); natalMarks(marks, hs); tip(marks, natalText(hs)); if (!marks.childNodes.length) marks.textContent = '—';
+    stackStars(tr, o.stars ? '随时辰而定' : (hs.shensha || []).map(sh => sh.name).join('、') || '—');
   });
+  stackTable(table);
 }
 function renderBirthBoundaries(){
   title(result,'出生时刻临界地图','模型边界自动分段 · 精度约1秒 · 与抽样不同');
@@ -8502,6 +8538,7 @@ function render() {
   const detailKey = d => d.id || (d.querySelector('summary') || {}).textContent || '';
   const openState = new Map([...result.querySelectorAll('details')].map(d => [detailKey(d), d.open]));
   renderView();
+  fitStacks();
   pageIndex();
   result.querySelectorAll('details').forEach(d => {const key = detailKey(d); if (openState.has(key)) d.open = openState.get(key);});
   if (focusId && !result.contains(document.activeElement)) {
@@ -8513,7 +8550,8 @@ function render() {
     }
   }
   autoOpen();
-  requestAnimationFrame(markScrollAreas);
+  // Again once the translator has put the interface language in: translated text can change what fits.
+  requestAnimationFrame(() => {fitStacks(); markScrollAreas();});
 }
 // Boxes that scroll inside the page (a luck strip, the palace board on a phone, a wide table, a code block) take the
 // keyboard focus while they overflow, so arrow keys scroll them without a mouse; a sideways one fades at the edge
@@ -8652,7 +8690,7 @@ if (BASE_SELECT) {
   });
 }
 let scrollAreaFrame = 0;
-const remarkScrollAreas = () => {cancelAnimationFrame(scrollAreaFrame); scrollAreaFrame = requestAnimationFrame(markScrollAreas);};
+const remarkScrollAreas = () => {cancelAnimationFrame(scrollAreaFrame); scrollAreaFrame = requestAnimationFrame(() => {fitStacks(); markScrollAreas();});};
 window.addEventListener('resize', remarkScrollAreas);
 // Translated text is longer or shorter, so what overflows changes with the language even without a redraw.
 document.addEventListener('xuanshu-language', remarkScrollAreas);
