@@ -2117,6 +2117,20 @@ def main() -> None:
             assert page.evaluate('''() => dayunDays.days.every((d, i, all) => i === 0 || Date.parse(d.date) - Date.parse(all[i - 1].date) === 864e5)
               && dayunDays.days[0].date === dayunMonths.months[0].start_local.slice(0, 10)''')
             page.locator('#dayun-days').screenshot(path=str(screenshot_dir / '50-dayun-days.png'))
+            # The month's days save as an iCalendar file made in the page: an all-day event a day, CRLF lines folded at
+            # 75 octets, the pillar in each title, nothing of the birth data in it.
+            with page.expect_download() as saved:
+                page.locator('#dayun-days-ics').click()
+            ics = Path(saved.value.path()).read_bytes()
+            assert saved.value.suggested_filename == 'xuanshu-flow-days-' + page.evaluate('dayunDays.days[0].date') + '.ics'
+            assert ics.startswith(b'BEGIN:VCALENDAR\r\n') and ics.endswith(b'END:VCALENDAR\r\n')
+            assert ics.count(b'BEGIN:VEVENT') == page.evaluate('dayunDays.days.length') and all(len(line) <= 75 for line in ics.split(b'\r\n'))
+            unfolded = ics.decode('utf-8').replace('\r\n ', '')
+            assert ('SUMMARY:' + page.evaluate('dayunDays.days[0].pillar') + '日') in unfolded and 'DTSTART;VALUE=DATE:' + page.evaluate("dayunDays.days[0].date.replace(/-/g, '')") in unfolded
+            assert page.evaluate('currentInput.birth_datetime.slice(0, 10)') not in unfolded and page.evaluate('currentInput.birth_datetime.slice(0, 10).replace(/-/g, "")') not in unfolded
+            # The UID tag comes from the natal pillars, not from the request whose birth minute a search would find.
+            assert page.evaluate('chartTag(dayunKey)') not in unfolded and ('-' + page.evaluate("chartTag(['year', 'month', 'day', 'hour'].map(k => current.bazi.pillars[k].text).join(' '))") + '@xuanshu.local') in unfolded
+            assert unfolded.count('SEQUENCE:') == page.evaluate('dayunDays.days.length')
             # A day opens its thirteen double-hours, Zi at both ends, the stems by the five-rat rule from the day stem;
             # the arrow keys move along the cards with a single Tab stop; opening the day again closes its hours.
             first_day = page.locator('#dayun-day-grid .dy-day').first
@@ -2124,6 +2138,8 @@ def main() -> None:
             page.locator('#dayun-hour-table tbody tr').nth(12).wait_for(timeout=30000)
             assert first_day.get_attribute('aria-expanded') == 'true' and page.evaluate('document.activeElement.id') == first_day.get_attribute('id')
             assert page.locator('#dayun-hour-table tbody tr').count() == 13
+            # The day's own relations in full head its hours: a tap on the card opens them, not a hint, on a touch screen.
+            assert page.locator('#dayun-hours .dy-hour-day').inner_text().startswith('当日')
             assert page.evaluate('''() => {
               const h = dayunHours.hours, stem = '甲乙丙丁戊己庚辛壬癸'.indexOf(dayunHours.day_pillar[0]);
               return h[0].pillar === '甲丙戊庚壬'[stem % 5] + '子' && h.map(x => x.branch).join('') === '子丑寅卯辰巳午未申酉戌亥子'

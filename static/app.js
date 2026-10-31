@@ -254,6 +254,7 @@ let dayunDays = null, dayunDaysLoad = null, dayunDaysError = null;
 // with its text), and the day whose card takes the Tab stop in the grid (the arrow keys move it).
 let dayunHours = null, dayunHoursLoad = null, dayunHoursError = null, dayunDayCursor = null;
 const FLOW_MONTH_LAST_YEAR = 2099;  // the supported range ends here; a later year's months are not offered
+const FLOW_HOUR_LAST_DATE = '2099-12-31';  // and the last day whose hours are worked out
 let boundaryDraft = {uncertainty_minutes: 60};
 let qualityMinutesDraft = 15;
 let qualityRun = null;  // the birth and window the shown audit was asked for
@@ -7033,7 +7034,7 @@ function dayunHoursToggle(date) {
 function dayunToday() {
   const key = dayunKey, today = flowNow().date;
   if (dayunMonthsLoad && dayunMonthsLoad.today && dayunMonthsLoad.key === key) return;  // already on its way
-  const load = dayunMonthsLoad = {key, year: Number(today.slice(0, 4)), today: true};
+  const start = Number(today.slice(0, 4)), load = dayunMonthsLoad = {key, year: start, today: true};
   const live = () => dayunMonthsLoad === load && dayunKey === key;
   const ask = extra => postJSON('/api/dayun', {...JSON.parse(key), periods: 1, include_years: false, ...extra});
   dayunMonthsError = dayunDaysError = dayunDaysLoad = dayunHoursError = dayunHoursLoad = null;
@@ -7046,7 +7047,9 @@ function dayunToday() {
       const months = data.flow_months.months;
       const month = [...months].reverse().find(m => m.start_local.slice(0, 10) <= today) || months[0];
       const decade = dayunResult.periods.find(p => (p.years || []).some(y => y.year === load.year));
-      if (decade) dayunPick = decade.sequence;
+      // Before Lichun in the year the first decade begins, today's flow year is listed under no decade.
+      if (!decade) throw new Error('今天所在的流年早于第一步大运，大运页没有列出这一年');
+      dayunPick = decade.sequence;
       return ask({month_year: load.year, day_month: month.month, hour_date: today});
     })
     .then(data => {
@@ -7056,7 +7059,8 @@ function dayunToday() {
       dayunDays = {key, year: load.year, month: month.month, jie: month.jie, pillar: month.pillar, days: month.days};
       dayunHours = {key, ...data.flow_hours}; dayunDayCursor = today;
     })
-    .catch(err => {if (dayunMonthsLoad === load) dayunMonthsError = {key, year: load.year, text: '展开今天失败：' + err.message};})
+    // Said under this year's table, where the button was: the year it failed for may be listed under no decade.
+    .catch(err => {if (dayunMonthsLoad === load) dayunMonthsError = {key, year: start, text: '展开今天失败：' + err.message};})
     .finally(() => {
       if (dayunMonthsLoad !== load) return;
       dayunMonthsLoad = null;
@@ -7134,6 +7138,10 @@ function dayunDayGrid(panel, d, o) {
   const range = append(head, 'span', 'dy-days-range', firstDate + ' – ' + (lastDate.slice(0, 4) === firstDate.slice(0, 4) ? lastDate.slice(5) : lastDate));
   range.dataset.noI18n = '';
   append(head, 'span', 'muted', '日柱在午夜换日；交节当天列在本月');
+  const save = append(head, 'button', 'tiny-button dy-days-ics', '导出日历'); save.type = 'button'; save.id = 'dayun-days-ics';
+  tip(save, '把这个月每天的日柱存成日历文件（.ics），可导入手机或电脑日历；文件在本机生成，不经服务器。备注列出与原局四柱的关系，可据此推出大致出生时段，分享前请留意');
+  save.addEventListener('click', () => downloadBlob(new Blob([flowDaysIcs(d, o)], {type: 'text/calendar;charset=utf-8'}),
+    'xuanshu-flow-days-' + d.days[0].date + '.ics'));
   const list = append(box, 'ol', 'dy-day-grid'); list.id = 'dayun-day-grid';
   const today = flowNow().date, inMonth = date => d.days.some(day => day.date === date);
   const hours = dayunHours && dayunHours.key === dayunKey && inMonth(dayunHours.date) ? dayunHours : null;
@@ -7142,11 +7150,15 @@ function dayunDayGrid(panel, d, o) {
   const stop = [dayunDayCursor, hours && hours.date, loading && loading.date, today].find(date => date && inMonth(date)) || d.days[0].date;
   d.days.forEach(day => {
     const ds = settledInteractions(day, o), item = append(list, 'li');
-    const open = append(item, 'button', 'dy-day' + (day.date === today ? ' is-today' : '') + (day.jie_day ? ' is-jie' : ''));
-    open.type = 'button'; open.id = 'dayun-day-' + day.date; open.tabIndex = day.date === stop ? 0 : -1;
+    // The twelfth month of 2099 runs into 2100, past the range hours are worked out for: those days are plain cards that
+    // still take the arrow keys and show their hint on a tap, but open nothing.
+    const closed = day.date > FLOW_HOUR_LAST_DATE;
+    const open = append(item, closed ? 'div' : 'button', 'dy-day' + (day.date === today ? ' is-today' : '') + (day.jie_day ? ' is-jie' : '') + (closed ? ' is-closed' : ''));
+    if (!closed) open.type = 'button';
+    open.id = 'dayun-day-' + day.date; open.tabIndex = day.date === stop ? 0 : -1;
     if (day.date === today) open.setAttribute('aria-current', 'date');
     const expanded = !loading && !!hours && hours.date === day.date;
-    open.setAttribute('aria-expanded', String(expanded));
+    if (!closed) open.setAttribute('aria-expanded', String(expanded));
     if (expanded) open.setAttribute('aria-controls', 'dayun-hours');
     if (loading && loading.date === day.date) open.setAttribute('aria-busy', 'true');
     const top = append(open, 'span', 'dy-day-top');
@@ -7159,7 +7171,7 @@ function dayunDayGrid(panel, d, o) {
     if (!o.day) append(foot, 'small', 'dy-day-god', ds.ten_god_of_stem);
     natalMarks(foot, ds);
     tip(open, natalText(ds));
-    open.addEventListener('click', () => dayunHoursToggle(day.date));
+    if (!closed) open.addEventListener('click', () => dayunHoursToggle(day.date));
   });
   // Arrow keys move along the cards, up and down by a row of the grid as it is laid out; Home and End to the ends.
   list.addEventListener('keydown', event => {
@@ -7177,17 +7189,61 @@ function dayunDayGrid(panel, d, o) {
   // The failure names its day: the hours of another day may still be open above it.
   if (failed) texts(append(box, 'p', 'inline-msg'), failed.date.slice(5).replace('-', '/'), ' ', '流时计算失败：', failed.message);
   if (loading) loadingGhost(box, 'table');
-  else if (hours) dayunHourTable(box, hours, o);
+  else if (hours) dayunHourTable(box, hours, o, d.days.find(day => day.date === hours.date));
+}
+// A month's flow days as an iCalendar file made in the browser, nothing sent anywhere: an all-day event a day, titled
+// with its pillar, ten god and the short marks against the natal chart, the full relations and stars in its notes, free
+// time so it blocks nothing. The chart notation stays Chinese, as in the other chart exports (繁體 in that interface).
+const icsEscape = text => String(text).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+// Lines over 75 octets go on with a leading space, never splitting a character (RFC 5545, 3.1).
+function icsFold(line) {
+  const size = text => new TextEncoder().encode(text).length, parts = [];
+  let part = '';
+  for (const ch of line) {
+    if (size(part + ch) > (parts.length ? 74 : 75)) {parts.push(part); part = '';}
+    part += ch;
+  }
+  return [...parts, part].join('\r\n ');
+}
+// A short tag of the natal pillars the notes already show keeps two charts' events apart in one calendar; it is not
+// made from the request, whose birth minute a search over every minute of 1901–2099 would find from the tag.
+const chartTag = key => [...key].reduce((h, ch) => Math.imul(h ^ ch.codePointAt(0), 16777619) >>> 0, 2166136261).toString(16).padStart(8, '0');
+function flowDaysIcs(d, o) {
+  const words = text => exportLang() ? calT(String(text)) : text;
+  const traditional = typeof uiLang !== 'undefined' && uiLang === 'zh-TW' && typeof toTraditional === 'function';
+  const local = text => traditional ? toTraditional(text) : text;
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  // Pillars the unknown hour leaves open are left out of the tag, as they are from the notes.
+  const tag = chartTag(['year', 'month', 'day', 'hour'].map(k => o.open.has(k) ? '' : current.bazi.pillars[k].text).join(' '));
+  // A later export of the same chart carries a higher sequence, so a calendar that updates events by UID takes it.
+  const sequence = Math.max(0, Math.floor((Date.now() - Date.UTC(2026, 0, 1)) / 6e4));
+  const compact = iso => iso.replace(/-/g, '');
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//XuanShu//Flow days//ZH', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    'X-WR-CALNAME:' + icsEscape(local(words('玄枢 · 流日') + ' ' + d.year + ' ' + words(d.jie) + ' ' + d.pillar))];
+  d.days.forEach(day => {
+    const ds = settledInteractions(day, o);
+    const title = [day.pillar + '日', !o.day && words(ds.ten_god_of_stem), day.jie_day && words(d.jie), natalMarkList(ds).map(([text]) => text).join(' ')];
+    const notes = [natalText(ds), o.stars ? words('神煞') + ' ' + words('随时辰而定') : '', words(TEXT_FOOTER[0])];
+    const next = new Date(Date.parse(day.date + 'T00:00:00Z') + 864e5).toISOString().slice(0, 10);
+    lines.push('BEGIN:VEVENT', 'UID:flow-day-' + compact(day.date) + '-' + tag + '@xuanshu.local', 'SEQUENCE:' + sequence, 'DTSTAMP:' + stamp,
+      'DTSTART;VALUE=DATE:' + compact(day.date), 'DTEND;VALUE=DATE:' + compact(next),
+      'SUMMARY:' + icsEscape(local(title.filter(Boolean).join(' · '))),
+      'DESCRIPTION:' + icsEscape(local(notes.filter(Boolean).join('\n'))), 'TRANSP:TRANSPARENT', 'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.map(icsFold).join('\r\n') + '\r\n';
 }
 // The thirteen double-hours of a day, Zi at both ends, read against the natal chart like the days. The hour now is marked
 // when the day is today; with the 23:00 day change the last Zi shows the next day's pillar it belongs to.
-function dayunHourTable(box, h, o) {
+function dayunHourTable(box, h, o, day) {
   const panel = append(box, 'section', 'dy-hours'); panel.id = 'dayun-hours';
   panel.setAttribute('aria-labelledby', 'dayun-hours-title');
   const head = append(panel, 'div', 'dy-months-head');
-  const heading = append(head, 'h5', 'dy-months-title'); heading.id = 'dayun-hours-title';
+  const heading = append(head, 'h6', 'dy-months-title'); heading.id = 'dayun-hours-title';
   texts(heading, h.date.slice(5).replace('-', '/'), ' ', h.day_pillar, ' · ', '流时干支');
   append(head, 'span', 'muted', h.day_boundary === '23:00' ? '按出生时区的钟表时间分时辰；23:00 起的子时已换到次日' : '按出生时区的钟表时间分时辰');
+  // The day's own relations in full, as its card's hint has them: a tap on the card opens its hours, not a hint.
+  if (day) texts(append(panel, 'p', 'field-help dy-hour-day'), '当日', '：', natalText(settledInteractions(day, o)));
   const wrap = append(panel, 'div', 'table-wrap');
   const table = append(wrap, 'table', 'data-table dy-years dy-hour-table'); table.id = 'dayun-hour-table';
   texts(append(table, 'caption', 'visually-hidden'), h.date, ' ', '流时干支');

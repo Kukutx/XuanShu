@@ -660,6 +660,7 @@ button:disabled{cursor:not-allowed}
 .dy-months-title{margin:0;font-size:14px;font-weight:600;color:var(--text)}
 .dy-months-head .muted{font-size:12px}
 .dy-days-range{font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.dy-days-ics{margin-left:auto;align-self:center}
 @media(max-width:640px){.dy-months{margin-inline:-6px;padding:10px 8px 2px}}
 .dy-month-toggle{align-items:center;text-align:left;font-weight:500}
 .dy-month-label{display:flex;flex-direction:column;line-height:1.35}
@@ -668,6 +669,9 @@ button:disabled{cursor:not-allowed}
 .dy-day-grid>li{display:flex;min-width:0}
 .dy-day{display:flex;flex-direction:column;gap:3px;width:100%;min-width:0;padding:7px 9px 8px;border:1px solid var(--border);border-radius:11px;background:var(--panel);color:inherit;font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
 .dy-day:hover{border-color:var(--accent-line)}
+.dy-day.is-closed{cursor:default}
+.dy-day.is-closed:hover{border-color:var(--border)}
+.dy-hour-day{margin:8px 0 2px;line-height:1.6}
 .dy-day.is-jie{background:var(--accent-soft)}
 .dy-day.is-today{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
 .dy-day[aria-expanded="true"]{border-color:var(--accent-line);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-line)}
@@ -687,7 +691,7 @@ button:disabled{cursor:not-allowed}
 .dy-day-jie{padding:0 6px;border-radius:999px;background:var(--gold);color:var(--on-gold);font-weight:600}
 .dy-day-foot .luck-marks{display:inline-flex;justify-content:flex-start;margin-top:0;gap:3px}
 @media (forced-colors:active){.dy-day.is-today{border:2px dashed CanvasText}.dy-day-jie{border:1px solid ButtonText}.dy-day[aria-expanded="true"]{outline:2px solid ButtonText;outline-offset:-3px}}
-@media print{.dy-day{break-inside:avoid}.dy-day.is-today{box-shadow:none}.dy-today-jump{display:none}.dy-hour-table tr{break-inside:avoid}}
+@media print{.dy-day{break-inside:avoid}.dy-day.is-today{box-shadow:none}.dy-today-jump,.dy-days-ics{display:none}.dy-hour-table tr{break-inside:avoid}}
 .dy-month-date{display:block;color:var(--muted);font-size:11px;font-weight:400;font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.dy-year-toggle,.dy-year-toggle::after,.dy-day{transition:none}.dy-year-toggle[aria-busy="true"]::after,.dy-day[aria-busy="true"],.dy-today-jump[aria-busy="true"]{animation:none}}
 @media (forced-colors:active){.dy-year-toggle[aria-expanded="true"],.dy-months{border-color:ButtonText}.dy-year-toggle::after{border-color:ButtonText}}

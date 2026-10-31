@@ -2198,6 +2198,10 @@ const UI_EXTRA = {
 "A solar term begins today; the day officer differs before and after it",
 "今日は節入りの日で、節入りの前後で十二直が異なります"
 ],
+"今天所在的流年早于第一步大运，大运页没有列出这一年": [
+"Today's flow year comes before the first luck pillar, so the page does not list it",
+"今日の流年は最初の大運より前なので、このページには載っていません"
+],
 "今天的四柱与命盘的关系": [
 "Today's pillars against the chart",
 "今日の四柱と命盤の関係"
@@ -6314,6 +6318,10 @@ const UI_EXTRA = {
 "Export Markdown with evidence ↓",
 "根拠付き Markdown をエクスポート ↓"
 ],
+"导出日历": [
+"Export calendar",
+"カレンダーに書き出す"
+],
 "封诰": [
 "Feng Gao",
 "封誥"
@@ -7493,6 +7501,10 @@ const UI_EXTRA = {
 "把独立排盘结果整理为 JSON，包含 reference_source、reference_school、root_fields 和 palaces。每个宫使用 number=1…9；其余只填写需要对照的字段。": [
 "Format the independent chart result as JSON containing reference_source, reference_school, root_fields and palaces. Use number=1…9 for each palace; fill in only the other fields you want compared.",
 "独立した作盤結果を reference_source、reference_school、root_fields、palaces を含む JSON にまとめてください。各宮は number=1…9 を使用し、その他は対照したいフィールドのみ記入します。"
+],
+"把这个月每天的日柱存成日历文件（.ics），可导入手机或电脑日历；文件在本机生成，不经服务器。备注列出与原局四柱的关系，可据此推出大致出生时段，分享前请留意": [
+"Save this month's daily pillars as a calendar file (.ics) to import into a phone or desktop calendar; the file is made on this device and never sent to a server. The notes list the relations to the natal four pillars, from which a rough birth window can be worked out, so take care before sharing it",
+"この月の日柱をカレンダーファイル（.ics）として保存し、スマホやパソコンのカレンダーに取り込めます。ファイルはこの端末で作られ、サーバーには送られません。備考には原局の四柱との関係が載っており、そこからおおよその出生時間帯を推定できるため、共有する前にご注意ください"
 ],
 "报告 综述 markdown": [
 "report summary markdown",
@@ -10709,6 +10721,10 @@ const UI_EXTRA = {
 "玄枢 · 正在回答": [
 "XuanShu · answering",
 "玄枢 · 回答中"
+],
+"玄枢 · 流日": [
+"XuanShu · Daily pillars",
+"玄枢 · 流日"
 ],
 "玄枢原生": [
 "XuanShu",
