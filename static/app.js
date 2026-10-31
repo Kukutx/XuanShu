@@ -1571,12 +1571,27 @@ function ensureLuck() {
 // month branch; 合 刑 害 likewise, 同 for the same branch; 日空 年空 for the voids); the full text in the caption and title.
 const natalMarkList = n => n.branch_relations.flatMap(r => r.labels.map(l => [(l === '同支' ? l.charAt(0) : l.slice(-1)) + nameMap[r.pillar].charAt(0), LINK_CLASS[l] || 'same']))
   .concat(n.void_of.map(v => [v === 'day' ? '日空' : '年空', 'void']));
+// A mark is a relation and the natal pillar it is with: 冲月, or 日空 for the day pillar's void. It stays two characters
+// in Chinese and Japanese (沖月、害時 in 繁體, 害時 in Japanese) and reads Clash M in English; the translator leaves
+// the badges alone, so each keeps its source and is relabelled when the language changes. The words live here rather
+// than in the dictionary, where a one-character entry would rename every text that is just 合 or 空.
+const MARK_WORDS = {合: 'Combine', 冲: 'Clash', 刑: 'Punish', 害: 'Harm', 同: 'Same', 空: 'Void'};
+const MARK_PILLARS = {年: 'Y', 月: 'M', 日: 'D', 时: 'H'};
+function markLabel(text) {
+  const lang = typeof uiLang === 'undefined' ? 'zh-CN' : uiLang;
+  if (lang === 'ja') return text.replace(/时/, '\u6642');  // 時
+  if (lang !== 'en') return calT(text);
+  const [relation, pillar] = MARK_PILLARS[text[0]] ? [text[1], text[0]] : [text[0], text[1]];
+  return MARK_WORDS[relation] + ' ' + MARK_PILLARS[pillar];
+}
+const calendarMark = text => exportLang() ? markLabel(text) : text;
 function natalMarks(parent, n) {
   const marks = natalMarkList(n);
   if (!marks.length) return;
   const line = append(parent, 'span', 'luck-marks'); line.setAttribute('data-no-i18n', '');
-  marks.forEach(([text, kind]) => append(line, 'span', 'luck-mark link-' + kind, text));
+  marks.forEach(([text, kind]) => {append(line, 'span', 'luck-mark link-' + kind, markLabel(text)).dataset.mark = text;});
 }
+document.addEventListener('xuanshu-language', () => document.querySelectorAll('.luck-mark[data-mark]').forEach(mark => {mark.textContent = markLabel(mark.dataset.mark);}));
 function natalText(n) {
   const parts = [n.growth_stage && '星运 ' + n.growth_stage, '自坐 ' + n.self_stage, '纳音 ' + n.na_yin].filter(Boolean);
   n.void_of.forEach(v => parts.push(v === 'day' ? '落日空' : '落年空'));
@@ -7275,7 +7290,7 @@ function flowDaysIcs(d, o) {
   return flowIcs(calendarWords('玄枢 · 流日') + ' ' + d.year + ' ' + calendarWords(d.jie) + ' ' + d.pillar, 'day', d.days.map(day => {
     const ds = settledInteractions(day, o);
     return {start: day.date, end: new Date(Date.parse(day.date + 'T00:00:00Z') + 864e5).toISOString().slice(0, 10),
-      title: [day.pillar + '日', !o.day && calendarWords(ds.ten_god_of_stem), day.jie_day && calendarWords(d.jie), natalMarkList(ds).map(([text]) => text).join(' ')],
+      title: [day.pillar + '日', !o.day && calendarWords(ds.ten_god_of_stem), day.jie_day && calendarWords(d.jie), natalMarkList(ds).map(([text]) => calendarMark(text)).join(' ')],
       notes: [natalText(ds), flowStarsNote(o), calendarWords(TEXT_FOOTER[0])]};
   }), o);
 }
@@ -7292,7 +7307,7 @@ function flowMonthsIcs(m, o) {
       ? calendarWords(month.jie) + ' ' + at(from) + ' – ' + next + ' ' + at(to) + ' (' + offset(from) + ')'
       : calendarWords(month.jie) + ' ' + at(from) + ' (' + offset(from) + ') – ' + next + ' ' + at(to) + ' (' + offset(to) + ')';
     return {key: m.year + String(month.month).padStart(2, '0'), start: from.slice(0, 10), end: to.slice(0, 10),
-      title: [month.pillar + '月', calendarWords(month.jie), !o.day && calendarWords(ms.ten_god_of_stem), natalMarkList(ms).map(([text]) => text).join(' ')],
+      title: [month.pillar + '月', calendarWords(month.jie), !o.day && calendarWords(ms.ten_god_of_stem), natalMarkList(ms).map(([text]) => calendarMark(text)).join(' ')],
       notes: [span, natalText(ms), flowStarsNote(o), calendarWords(TEXT_FOOTER[0])]};
   }), o);
 }

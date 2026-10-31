@@ -688,7 +688,10 @@ button:disabled{cursor:not-allowed}
 .dy-day-date{color:var(--text);font-weight:600}
 .dy-day-gz{font-size:18px;letter-spacing:.04em;line-height:1.2}
 .dy-day-foot{display:flex;flex-wrap:wrap;align-items:center;gap:3px 5px;min-height:18px;font-size:11px;color:var(--muted)}
-.dy-day-jie{padding:0 6px;border-radius:999px;background:var(--gold);color:var(--on-gold);font-weight:600}
+/* The weekday, the jie and the ten god are <small>, which would shrink them to 9–10px; they keep the card's 11px. A long
+   jie name (Clear and Bright (Qingming)) wraps, so its badge is a rounded box rather than a pill that turns oval. */
+.dy-day small{font-size:11px}
+.dy-day-jie{padding:1px 6px;border-radius:6px;line-height:1.3;background:var(--gold);color:var(--on-gold);font-weight:600}
 .dy-day-foot .luck-marks{display:inline-flex;justify-content:flex-start;margin-top:0;gap:3px}
 @media (forced-colors:active){.dy-day.is-today{border:2px dashed CanvasText}.dy-day-jie{border:1px solid ButtonText}.dy-day[aria-expanded="true"]{outline:2px solid ButtonText;outline-offset:-3px}}
 @media print{.dy-day{break-inside:avoid}.dy-day.is-today{box-shadow:none}.dy-today-jump,.dy-days-ics{display:none}.dy-hour-table tr{break-inside:avoid}}
