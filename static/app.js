@@ -5120,7 +5120,7 @@ function renderToday() {
       append(tr, 'th', null, nameMap[row.pillar_of]);
       const cell = append(tr, 'td', 'pillar-cell');
       append(cell, 'b', stemClass(row.pillar[0]), row.pillar[0]); append(cell, 'b', branchClass(row.pillar[1]), row.pillar[1]);
-      stackLabel(append(tr, 'td', 'today-god'), '天干十神').append(row.stem_ten_god);
+      stackLabel(append(tr, 'td', 'today-god dy-short'), '天干十神').append(row.stem_ten_god);
       const rel = stackLabel(append(tr, 'td', 'today-rel'), '地支与本命');
       if (!row.branch_relations.length) append(rel, 'span', 'muted', '—');
       row.branch_relations.forEach(x => {
@@ -6745,9 +6745,11 @@ function stackTable(table) {
 }
 // Whether the columns fit is the table's own question, not the screen's: the side panel, the language and the content
 // all change it (with the panel back on a small laptop the column is narrower than on a large phone, and English needs
-// more room than Chinese). So each is laid out as a table and measured, and stacked when it overflows its wrapper or
+// more room than Chinese). So each is laid out as a table and measured, and stacked when it overflows its wrapper, when
 // its stars column (or the cell marked dy-fit-cell) is left under 7.5em (or its data-fit-em), where the text wraps a
-// few characters to a line and stretches every row; within one task, so nothing is painted in between.
+// few characters to a line and stretches every row; within one task, so nothing is painted in between. A short label
+// spelled out in letters (a dy-short cell: Direct Resource (Zheng Yin) for 正印) keeps a width of its own in the CSS,
+// so the stars wrap instead of it, and a table that then overflows is stacked.
 function fitStacks() {
   document.querySelectorAll('table.dy-stack').forEach(table => {
     table.classList.remove('is-stacked');
@@ -6821,7 +6823,7 @@ function renderDayun() {
     if(i===live)tr.setAttribute('aria-current','date');
     const cell=append(tr,'td'),pillar=append(cell,'span','pillar-cell');append(pillar,'span',stemClass(x.pillar[0]),x.pillar[0]);append(pillar,'span',branchClass(x.pillar[1]),x.pillar[1]);
     if(i===live)append(cell,'span','dayun-now','约当前');
-    if(!o.day){append(tr,'td',null,n?n.ten_god_of_stem:'—');append(tr,'td',null,n?n.growth_stage:'—');}
+    if(!o.day){append(tr,'td','dy-short',n?n.ten_god_of_stem:'—');append(tr,'td','dy-short',n?n.growth_stage:'—');}
     stackLabel(append(tr,'td'),'起运').append(x.approx_start_age_years.toFixed(2));append(tr,'td','nowrap',x.approx_start_local.slice(0,10));
     const marks=append(tr,'td','dy-mark-cell');if(n){natalMarks(marks,n);tip(marks,natalText(n));}if(!marks.childNodes.length)marks.textContent='—';
     stackStars(tr,o.stars?'随时辰而定':(n&&n.shensha||[]).map(s=>s.name).join('、')||'—');});
@@ -7010,9 +7012,9 @@ function dayunDetail(d, x, isNow, o, now) {
     const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
     append(pair, 'span', stemClass(y.pillar[0]), y.pillar[0]); append(pair, 'span', branchClass(y.pillar[1]), y.pillar[1]);
     const ys = settledInteractions(y, o);
-    if (!o.day) append(tr, 'td', null, ys.ten_god_of_stem);
+    if (!o.day) append(tr, 'td', 'dy-short', ys.ten_god_of_stem);
     stackLabel(append(tr, 'td'), '虚龄').append(String(y.year - birthYear + 1));
-    if (!o.day) append(tr, 'td', null, ys.growth_stage);
+    if (!o.day) append(tr, 'td', 'dy-short', ys.growth_stage);
     const marks = append(tr, 'td', 'dy-mark-cell'); natalMarks(marks, ys); tip(marks, natalText(ys)); if (!marks.childNodes.length) marks.textContent = '—';
     stackStars(tr, o.stars ? '随时辰而定' : (ys.shensha || []).map(s => s.name).join('、') || '—');
   });
@@ -7173,7 +7175,7 @@ function dayunMonthTable(box, m, o) {
     const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
     append(pair, 'span', stemClass(month.pillar[0]), month.pillar[0]); append(pair, 'span', branchClass(month.pillar[1]), month.pillar[1]);
     const ms = settledInteractions(month, o);
-    if (!o.day) {append(tr, 'td', null, ms.ten_god_of_stem); append(tr, 'td', null, ms.growth_stage);}
+    if (!o.day) {append(tr, 'td', 'dy-short', ms.ten_god_of_stem); append(tr, 'td', 'dy-short', ms.growth_stage);}
     const marks = append(tr, 'td', 'dy-mark-cell'); natalMarks(marks, ms); tip(marks, natalText(ms)); if (!marks.childNodes.length) marks.textContent = '—';
     stackStars(tr, o.stars ? '随时辰而定' : (ms.shensha || []).map(sh => sh.name).join('、') || '—');
   });
@@ -7349,7 +7351,7 @@ function dayunHourTable(box, h, o, day) {
     const cell = append(tr, 'td'), pair = append(cell, 'span', 'pillar-cell');
     append(pair, 'span', stemClass(hour.pillar[0]), hour.pillar[0]); append(pair, 'span', branchClass(hour.pillar[1]), hour.pillar[1]);
     const hs = settledInteractions(hour, o);
-    if (!o.day) {append(tr, 'td', null, hs.ten_god_of_stem); append(tr, 'td', null, hs.growth_stage);}
+    if (!o.day) {append(tr, 'td', 'dy-short', hs.ten_god_of_stem); append(tr, 'td', 'dy-short', hs.growth_stage);}
     const marks = append(tr, 'td', 'dy-mark-cell'); natalMarks(marks, hs); tip(marks, natalText(hs)); if (!marks.childNodes.length) marks.textContent = '—';
     stackStars(tr, o.stars ? '随时辰而定' : (hs.shensha || []).map(sh => sh.name).join('、') || '—');
   });

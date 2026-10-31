@@ -154,7 +154,7 @@ body.has-chart .today-chip{margin:0}
 .form-section>summary::-webkit-details-marker{display:none}
 .form-section>summary::after{content:'＋';position:absolute;top:10px;right:12px;color:var(--muted);font-weight:400}
 .form-section[open]>summary::after{content:'－'}
-.form-section>summary small{color:var(--muted);font-weight:400;margin-left:auto}
+.form-section>summary small{color:var(--muted);font-size:11px;font-weight:400;margin-left:auto}
 .form-section .form-section-body{padding:0 12px 12px}
 .form-section.solar-active{border-color:var(--gold)}
 .primary-btn{width:100%;margin-top:20px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:var(--on-gold);border:none;border-radius:var(--radius);padding:13px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:13.5px;letter-spacing:.04em;box-shadow:0 10px 22px -12px var(--gold),inset 0 1px 0 rgba(255,255,255,.18);transition:filter .2s,transform .1s,box-shadow .2s}
@@ -448,7 +448,7 @@ html[lang="en"] .reading-row{grid-template-columns:11em minmax(0,1fr)}
 .ag-params{display:flex;flex-wrap:wrap;gap:4px;margin:0;padding:0;list-style:none}
 .ag-param{display:inline-flex;align-items:baseline;gap:4px;padding:1px 7px;border:1px solid var(--border);border-radius:999px;font-size:11.5px;color:var(--text2)}
 .ag-param code{font-size:11.5px}
-.ag-param small{font-size:10.5px;color:var(--muted)}
+.ag-param small{font-size:11px;color:var(--muted)}
 .ag-param.is-required{border-color:var(--accent-line);color:var(--text)}
 .ag-param.is-required code{color:var(--gold2)}
 .ag-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
@@ -707,6 +707,9 @@ button:disabled{cursor:not-allowed}
    that need one show a label. Print keeps the columns. */
 .dy-stack-label{display:none}
 @media screen{
+  /* A ten god or growth stage spelled out in letters (Direct Resource (Zheng Yin)) keeps about two lines' width, so the
+     stars wrap instead and a table that then overflows stacks; on paper, where nothing stacks, it may shrink */
+  html:not(:lang(zh),:lang(ja),:lang(ko)) .dy-stack:not(.is-stacked) td.dy-short{min-width:11.5em}
   .dy-stack.is-stacked,.dy-stack.is-stacked tbody{display:block;width:100%}
   .dy-stack.is-stacked thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .dy-stack.is-stacked tr{display:flex;flex-wrap:wrap;align-items:baseline;align-content:flex-start;gap:6px 12px;padding:10px 8px;border-bottom:1px solid var(--border)}
@@ -1201,7 +1204,7 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .ay-facts{display:flex;flex-wrap:wrap;gap:8px 22px;margin:0}
 .ay-facts dt{font-size:11px;color:var(--muted)}
 .ay-facts dd{margin:2px 0 0;font-weight:600;color:var(--text)}
-.ay-facts small.ay-now{margin-left:6px;font-size:10px;font-weight:700;color:var(--gold2)}
+.ay-facts small.ay-now{margin-left:6px;font-size:11px;font-weight:700;color:var(--gold2)}
 .ay-school{margin-left:auto;font-size:12px;color:var(--muted)}
 .ay-natal{margin-top:7px;font-size:12px;color:var(--text2)}
 .ay-board{list-style:none;padding:0;margin:6px 0 8px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,auto);gap:6px;max-width:760px}
@@ -1258,7 +1261,7 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .qh-head .subheading{margin:0}
 .qh-nav{display:flex;gap:6px;margin-left:auto}
 .qh-date{font-variant-numeric:tabular-nums;color:var(--text)}
-.qh-tag{font-size:10px;font-weight:700;color:var(--gold2)}
+.qh-tag{font-size:11px;font-weight:700;line-height:1.25;text-align:center;color:var(--gold2)}
 .qh-help{margin:6px 0 0}
 .qh-hours{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 @media(min-width:1400px){.qh-hours{grid-template-columns:repeat(13,minmax(0,1fr))}}
@@ -1272,8 +1275,8 @@ html[lang="en"] .cw-pair>span+span{margin-left:.3em}
 .qh-clock{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
 .qh-bureau{font-size:11px;color:var(--gold2);white-space:nowrap}
 .qh-bureau.is-new{font-weight:700;text-decoration:underline;text-underline-offset:2px}
-.qh-duty{font-size:10px;color:var(--muted);text-align:center;line-height:1.3}
-html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:center;line-height:1.2;font-size:10px}
+.qh-duty{font-size:11px;color:var(--muted);text-align:center;line-height:1.3}
+html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:center;line-height:1.2}
 
 /* ---- chat ---- */
 .chat-intro{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
@@ -1478,13 +1481,13 @@ html[lang=en] .qh-name,html[lang=en] .qh-duty{white-space:normal;text-align:cent
 .ic-clock{font-size:11px;color:var(--text2);font-variant-numeric:tabular-nums}
 .ic-count{font-size:11px;color:var(--muted)}
 .ic-hour.is-match .ic-count{color:var(--green);font-weight:600}
-.ic-tag{font-size:10px;color:var(--gold2);border-top:1px dashed var(--border);margin-top:2px;padding-top:1px}
+.ic-tag{font-size:11px;color:var(--gold2);border-top:1px dashed var(--border);margin-top:2px;padding-top:1px}
 .ic-detail{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel2);padding:10px 14px;margin:0 0 14px;font-size:13px}
 .ic-detail p{margin:0 0 6px}
 .ic-detail-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
 .ic-detail-diff{color:var(--text2)}
 .ic-detail-ok{color:var(--green)}
-html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-height:1.2}
+html[lang=en] .ic-name{white-space:normal;text-align:center;line-height:1.2}
 .import-result.same{color:var(--green);white-space:nowrap}
 .import-result.diff{color:var(--warn);white-space:nowrap;font-weight:600}
 .plain-list{margin:6px 0 12px 18px;font-size:13px;line-height:1.7;color:var(--text2)}
@@ -1626,12 +1629,12 @@ html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-
 .bt-badge{font-size:11px;font-weight:600;color:var(--gold2);border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:999px;padding:0 8px}
 .bt-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
 .bt-pillar{display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel);padding:4px 2px}
-.bt-pillar small{font-size:10px;line-height:1.2;color:var(--muted)}
+.bt-pillar small{font-size:11px;line-height:1.2;color:var(--muted)}
 .bt-pillar.is-changed{border-color:var(--warn-line);background:var(--warn-soft)}
 .bt-gz{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:18px;line-height:1.25}
 .bt-ziwei,.bt-lunar{display:flex;flex-wrap:wrap;gap:3px 10px;margin:0;font-size:12px;color:var(--text2)}
 .bt-field.is-changed,.bt-lunar.is-changed{color:var(--warn);font-weight:600}
-.bt-utc{font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
+.bt-utc{font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums}
 /* 时制对照: the three clocks side by side; the one the chart was cast with is outlined, and whatever differs
    from the clock time is marked as in the boundary cards. */
 .tb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px;margin:4px 0 8px}
@@ -1683,7 +1686,7 @@ html[lang=en] .ic-name{font-size:10px;white-space:normal;text-align:center;line-
 .yt-matrix td{min-width:66px;height:34px}
 .yt-matrix .is-now{background:var(--accent-soft)}
 .yt-matrix thead .is-now .yt-year{color:var(--gold2);font-weight:700}
-small.yt-now{font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:.02em}
+small.yt-now{font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:.02em}
 .yt-list .yt-now{margin-left:6px}
 .yt-matrix tr.is-focus>*{box-shadow:inset 0 2px 0 var(--gold),inset 0 -2px 0 var(--gold)}
 .yt-matrix tr.is-focus>.yt-palace{color:var(--gold2);box-shadow:inset 3px 0 0 var(--gold),inset 0 2px 0 var(--gold),inset 0 -2px 0 var(--gold)}
@@ -1716,7 +1719,7 @@ small.yt-now{font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:.0
 .of-date{position:absolute;top:5px;left:7px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 .of-gz{display:block;margin:12px 0 1px;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:12px;font-weight:400;letter-spacing:.04em}
 .of-officer{display:block;font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:22px;font-weight:600;line-height:1.15;color:var(--text)}
-.of-jie{display:block;margin-top:2px;font-size:10.5px;line-height:1.3;color:var(--green)}
+.of-jie{display:block;margin-top:2px;font-size:11px;line-height:1.3;color:var(--green)}
 .of-jie b{font-family:'Songti SC','STSong','Noto Serif SC',serif;font-size:12px;color:var(--text)}
 /* A long English term name (Start of Winter) wraps inside its day rather than losing its end. */
 .of-jie-name{display:block;overflow-wrap:anywhere}
@@ -2246,7 +2249,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;paddin
   .cal-nav .cal-step-words,.cal-nav .cal-caption{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .inline-control button.cal-step{min-height:42px;padding:0 15px}.cal-nav #calendar-today{grid-column:1/-1;justify-self:start}
   .cal-grid{width:calc(100% + 4px);border-spacing:2px;margin:2px -2px 8px}.cal-day{min-height:60px;padding:5px 1px;gap:1px;border-radius:7px}
-  .of-grid{width:calc(100% + 4px);border-spacing:2px;margin:0 -2px}.of-day{height:72px;padding:4px 1px;border-radius:7px}.of-date{top:3px;left:4px;font-size:10px}.of-gz{margin-top:11px;font-size:11px;letter-spacing:0}.of-officer{font-size:18px}.of-jie{font-size:9.5px}html[lang="en"] .of-officer{font-size:10.5px}.ds-pick{min-height:70px;padding:4px 1px}.ds-reason,.ds-clash,.ds-hours{font-size:9.5px}.ds-clash{padding:0 3px}.ds-reason:not(.is-unscanned){display:none}.ds-reason-short{display:block}.ds-hour-bureau{display:none}
+  .of-grid{width:calc(100% + 4px);border-spacing:2px;margin:0 -2px}.of-day{height:72px;padding:4px 1px;border-radius:7px}.of-date{top:3px;left:4px;font-size:10px}.of-day.is-today .of-date{left:2px;padding:0 3px}.of-gz{margin-top:11px;font-size:11px;letter-spacing:0}.of-officer{font-size:18px}.of-jie{font-size:9.5px}html[lang="en"] .of-officer{font-size:10.5px}.ds-pick{min-height:70px;padding:4px 1px}.ds-reason,.ds-clash,.ds-hours{font-size:9.5px}.ds-clash{padding:0 3px}.ds-reason:not(.is-unscanned){display:none}.ds-reason-short{display:block}.ds-hour-bureau{display:none}
   .cal-num{font-size:15px}.cal-lunar{font-size:10px}.cal-also{font-size:9.5px}.cal-day .cal-gz{font-size:10px;letter-spacing:0}.cal-title{font-size:20px}
   /* A phone cell is too narrow for Awakening of Insects on two lines: long names take a third line, English ones a
      lighter, smaller face, and on the narrowest phones a plain Day 20 wraps rather than losing its number. */
